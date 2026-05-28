@@ -122,10 +122,10 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
 
         <div style={{ margin:'12px 10px', padding:'10px', borderRadius:'var(--r-md)', background:'var(--surface-1)', display:'flex', alignItems:'center', gap:10 }}>
           <div style={{ width:30, height:30, borderRadius:8, background:'linear-gradient(135deg, #7BC47F, #3E6B4A)', display:'grid', placeItems:'center', fontFamily:'var(--font-serif)', fontSize:13, fontWeight:700, color:'white', flexShrink:0 }}>
-            {brand.brand_name_display[0]}
+            {brand.brand_name[0]}
           </div>
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize:13, fontWeight:600, color:'var(--ink)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{brand.brand_name_display}</div>
+            <div style={{ fontSize:13, fontWeight:600, color:'var(--ink)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{brand.brand_name}</div>
             <div style={{ fontSize:10, color:'var(--ink-30)', textTransform:'uppercase', letterSpacing:'0.8px', fontWeight:500 }}>{subscription?.plan ?? 'Trial'} · {claimedCount} SKU{claimedCount !== 1 ? 's' : ''}</div>
           </div>
         </div>
@@ -195,9 +195,9 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
               <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24 }}>
                 <div style={{ width:52, height:52, borderRadius:14, background:'linear-gradient(135deg, #DFF0E3, #C4E2CC)', display:'grid', placeItems:'center', fontSize:26, border:'1px solid rgba(74,124,89,0.15)', flexShrink:0 }}>🏷</div>
                 <div>
-                  <div style={{ fontSize:11, fontWeight:600, color:'var(--sage)', textTransform:'uppercase', letterSpacing:'1.3px', marginBottom:3 }}>{brand.brand_name_display}</div>
+                  <div style={{ fontSize:11, fontWeight:600, color:'var(--sage)', textTransform:'uppercase', letterSpacing:'1.3px', marginBottom:3 }}>{brand.brand_name}</div>
                   <div style={{ fontFamily:'var(--font-serif)', fontSize:20, fontWeight:600, color:'var(--ink)', lineHeight:1.15 }}>
-                    {productIntelligence[0] ? allProducts.find(p => p.product_id === productIntelligence[0].product_id)?.product_name_display ?? brand.brand_name_display : brand.brand_name_display}
+                    {productIntelligence[0] ? allProducts.find(p => p.product_id === productIntelligence[0].product_id)?.product_name_display ?? brand.brand_name : brand.brand_name}
                   </div>
                   <div style={{ fontSize:12, color:'var(--ink-50)', marginTop:3 }}>{productIntelligence[0]?.taxonomy_node_name ?? snapshot?.category_l1_name ?? 'Category loading...'}</div>
                 </div>
@@ -264,7 +264,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
               <div onClick={() => setExpandedCard(expandedCard==='wr'?null:'wr')} style={{ background:'var(--white)', borderRadius:'var(--r-lg)', border:`1px solid ${expandedCard==='wr'?'var(--ink-30)':'var(--ink-10)'}`, padding:20, cursor:'pointer' }}>
                 <div style={{ fontSize:10, fontWeight:700, letterSpacing:'1.3px', textTransform:'uppercase', color:'var(--ink-30)', marginBottom:6 }}>Head-to-Head</div>
                 <div style={{ fontFamily:'var(--font-serif)', fontSize:14, fontWeight:500, color:'var(--ink)', lineHeight:1.4, marginBottom:16 }}>
-                  {(snapshot?.win_rate_30d??0)>0.55?`${brand.brand_name_display} wins more often than it loses.`:`${brand.brand_name_display} is in a competitive position.`}
+                  {(snapshot?.win_rate_30d??0)>0.55?`${brand.brand_name} wins more often than it loses.`:`${brand.brand_name} is in a competitive position.`}
                 </div>
                 <div style={{ fontFamily:'var(--font-serif)', fontSize:48, fontWeight:700, color:'var(--ink)', lineHeight:1, marginBottom:4 }}>{pct(snapshot?.win_rate_30d)}</div>
                 <div style={{ height:6, background:'var(--surface-2)', borderRadius:3, overflow:'hidden', marginBottom:6 }}>

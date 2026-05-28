@@ -14,7 +14,7 @@ export type PortalUser = {
 
 export type Brand = {
   brand_id: number
-  brand_name_display: string
+  brand_name: string
   brand_website_url: string | null
   has_portal_access: boolean
 }
@@ -144,7 +144,7 @@ export async function getBrand(brandId: number): Promise<Brand | null> {
   const supabase = await createServerSupabaseClient()
   const { data } = await supabase
     .from('brands')
-    .select('brand_id, brand_name_display, brand_website_url, has_portal_access')
+    .select('brand_id, brand_name, brand_website_url, has_portal_access')
     .eq('brand_id', brandId)
     .single()
   return data
