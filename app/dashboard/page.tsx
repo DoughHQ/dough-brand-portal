@@ -25,9 +25,9 @@ export default async function DashboardPage() {
   const productIntelligence = await getProductIntelligence(portalUser.brand_id, claimedIds)
 
   const narrative = snapshot
-    ? generateNarrative(snapshot, brand.brand_name_display)
+    ? generateNarrative(snapshot, brand.brand_name)
     : {
-        headline: `Welcome to Dough, ${brand.brand_name_display}. Your data is being collected.`,
+        headline: `Welcome to Dough, ${brand.brand_name}. Your data is being collected.`,
         sub: 'Check back after your first battles are counted · Updated daily',
       }
 
