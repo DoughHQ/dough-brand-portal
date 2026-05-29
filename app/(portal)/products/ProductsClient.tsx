@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import type { PortalUser, Brand, BrandSubscription, BrandProduct } from '@/lib/queries'
 
 interface ProductsClientProps {
@@ -33,7 +34,7 @@ type ProductGroup = {
   totalBattles: number
 }
 
-function ProductCard({ product, isClaimed }: { product: BrandProduct; isClaimed: boolean }) {
+function ProductCard({ product, isClaimed, onSelect }: { product: BrandProduct; isClaimed: boolean; onSelect: () => void }) {
   const winRatePct =
     product.battles_total > 0
       ? Math.round((product.battles_won / product.battles_total) * 100)
@@ -41,6 +42,7 @@ function ProductCard({ product, isClaimed }: { product: BrandProduct; isClaimed:
 
   return (
     <div
+      onClick={onSelect}
       style={{
         background: 'var(--white)',
         border: '1px solid var(--ink-10)',
@@ -48,7 +50,7 @@ function ProductCard({ product, isClaimed }: { product: BrandProduct; isClaimed:
         borderRadius: 'var(--r-md)',
         padding: 16,
         transition: 'border-color 0.15s var(--ease)',
-        cursor: 'default',
+        cursor: 'pointer',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.borderColor = 'var(--ink-30)'
@@ -212,10 +214,12 @@ function CategoryGroupSection({
   group,
   expanded,
   onToggle,
+  onProductSelect,
 }: {
   group: ProductGroup
   expanded: boolean
   onToggle: () => void
+  onProductSelect: (productId: number) => void
 }) {
   const visible = expanded ? group.products : group.products.slice(0, 4)
   const hasMore = group.products.length > 4
@@ -274,6 +278,7 @@ function CategoryGroupSection({
             key={product.product_id}
             product={product}
             isClaimed={product.is_claimed}
+            onSelect={() => onProductSelect(product.product_id)}
           />
         ))}
       </div>
@@ -287,6 +292,7 @@ export default function ProductsClient({
   products,
   claimedIds,
 }: ProductsClientProps) {
+  const router = useRouter()
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
 
   const categoryCount = useMemo(() => {
@@ -465,6 +471,7 @@ export default function ProductsClient({
           onToggle={() =>
             setExpandedGroups(prev => ({ ...prev, [group.name]: !prev[group.name] }))
           }
+          onProductSelect={(productId) => router.push(`/products/${productId}`)}
         />
       ))}
 
