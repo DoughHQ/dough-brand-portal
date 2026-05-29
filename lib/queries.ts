@@ -126,6 +126,30 @@ export type CompetitorEntry = {
   momentum: string
 }
 
+export type BrandProduct = {
+  product_id: number
+  product_name_clean: string
+  product_name_display: string
+  product_flavor_variant: string | null
+  product_variety: string | null
+  image_url: string | null
+  total_battles: number
+  total_scans: number
+  price_tier_label: string | null
+  is_verified: boolean
+  l3_name: string | null
+  l2_name: string | null
+  l1_name: string | null
+  elo_score: number | null
+  battles_total: number
+  battles_won: number
+  battles_lost: number
+  user_percentile: number | null
+  is_favorite: boolean
+  last_battle_at: string | null
+  is_claimed: boolean
+}
+
 export async function getPortalUser(): Promise<PortalUser | null> {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -214,6 +238,43 @@ export async function getAllBrandProducts(brandId: number) {
     .order('total_battles', { ascending: false })
     .limit(50)
   return data ?? []
+}
+
+export async function getBrandProducts(
+  brandId: number,
+  claimedProductIds: number[]
+): Promise<BrandProduct[]> {
+  const supabase = await createServerSupabaseClient()
+
+  const { data } = await supabase.rpc('get_brand_products_with_taxonomy', {
+    p_brand_id: brandId,
+  }).range(0, 9999)
+
+  if (!data) return []
+
+  return (data as any[]).map((row) => ({
+    product_id: row.product_id,
+    product_name_clean: row.product_name_clean ?? row.product_name_display,
+    product_name_display: row.product_name_display,
+    product_flavor_variant: row.product_flavor_variant,
+    product_variety: row.product_variety,
+    image_url: row.image_url,
+    total_battles: row.total_battles ?? 0,
+    total_scans: row.total_scans ?? 0,
+    price_tier_label: row.price_tier_label,
+    is_verified: row.is_verified ?? false,
+    l3_name: row.l3_name,
+    l2_name: row.l2_name,
+    l1_name: row.l1_name,
+    elo_score: row.elo_score ? Number(row.elo_score) : null,
+    battles_total: row.battles_total ?? 0,
+    battles_won: row.battles_won ?? 0,
+    battles_lost: row.battles_lost ?? 0,
+    user_percentile: row.user_percentile ? Number(row.user_percentile) : null,
+    is_favorite: row.is_favorite ?? false,
+    last_battle_at: row.last_battle_at ?? null,
+    is_claimed: claimedProductIds.includes(row.product_id),
+  }))
 }
 
 export async function getCompetitiveSnapshot(
