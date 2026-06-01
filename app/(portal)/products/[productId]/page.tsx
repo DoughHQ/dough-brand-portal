@@ -5,10 +5,14 @@ import ProductDetailClient from './ProductDetailClient'
 
 interface Props {
   params: Promise<{ productId: string }>
+  searchParams: Promise<{ brand_id?: string }>
 }
 
-export default async function ProductDetailPage({ params }: Props) {
+export default async function ProductDetailPage({ params, searchParams }: Props) {
   const { productId } = await params
+  const { brand_id } = await searchParams
+  const impersonatedBrandId = brand_id ? parseInt(brand_id) : null
+
   const id = parseInt(productId)
   if (isNaN(id)) notFound()
 
@@ -19,15 +23,20 @@ export default async function ProductDetailPage({ params }: Props) {
   const portalUser = await getPortalUser()
   if (!portalUser) redirect('/login')
 
+  const targetBrandId = impersonatedBrandId ?? portalUser.brand_id
+
   const [brand, subscription] = await Promise.all([
-    getBrand(portalUser.brand_id),
-    getSubscription(portalUser.brand_id),
+    getBrand(targetBrandId),
+    getSubscription(targetBrandId),
   ])
   if (!brand) redirect('/login')
 
-  const [product, history] = await Promise.all([
-    getProductDetail(id, portalUser.brand_id),
+  const [product, history, barcode] = await Promise.all([
+    getProductDetail(id, targetBrandId),
     getProductBattleHistory(id),
+    supabase
+      .rpc('get_product_primary_barcode', { p_product_id: id })
+      .then(({ data }) => data as string | null),
   ])
   if (!product) notFound()
 
@@ -40,6 +49,8 @@ export default async function ProductDetailPage({ params }: Props) {
       product={product}
       history={history}
       isClaimed={isClaimed}
+      isImpersonating={!!impersonatedBrandId}
+      barcode={barcode}
     />
   )
 }

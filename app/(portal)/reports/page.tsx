@@ -1,14 +1,13 @@
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { getPortalUser, getBrand, getSubscription, getBrandProducts, getPlatformCategoryStats, getMilestoneAlerts } from '@/lib/queries'
-import ProductsClient from './ProductsClient'
-import AdminProductsClient from './AdminProductsClient'
+import { getPortalUser, getBrand, getSubscription } from '@/lib/queries'
+import ReportsClient from './ReportsClient'
 
 interface Props {
   searchParams: Promise<{ brand_id?: string }>
 }
 
-export default async function ProductsPage({ searchParams }: Props) {
+export default async function ReportsPage({ searchParams }: Props) {
   const { brand_id } = await searchParams
   const impersonatedBrandId = brand_id ? parseInt(brand_id) : null
 
@@ -19,40 +18,23 @@ export default async function ProductsPage({ searchParams }: Props) {
   const portalUser = await getPortalUser()
   if (!portalUser) redirect('/login')
 
-  if (portalUser.role === 'dough_admin' && !impersonatedBrandId) {
-    const [categoryStats, milestoneAlerts] = await Promise.all([
-      getPlatformCategoryStats(),
-      getMilestoneAlerts(),
-    ])
-
-    return (
-      <AdminProductsClient
-        portalUser={portalUser}
-        categoryStats={categoryStats}
-        milestoneAlerts={milestoneAlerts}
-      />
-    )
-  }
-
   const targetBrandId = impersonatedBrandId ?? portalUser.brand_id
-
   const [brand, subscription] = await Promise.all([
     getBrand(targetBrandId),
     getSubscription(targetBrandId),
   ])
   if (!brand) redirect('/login')
 
-  const claimedIds = subscription?.claimed_product_ids ?? []
-  const products = await getBrandProducts(targetBrandId, claimedIds)
+  const isAdmin = portalUser.role === 'dough_admin'
 
   return (
-    <ProductsClient
+    <ReportsClient
       portalUser={portalUser}
       brand={brand}
       subscription={subscription}
-      products={products}
-      claimedIds={claimedIds}
+      isAdmin={isAdmin}
       isImpersonating={!!impersonatedBrandId}
+      brandId={targetBrandId}
     />
   )
 }

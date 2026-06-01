@@ -2,49 +2,58 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import {
   getPortalUser, getBrand, getSubscription, getBrandSnapshot,
-  getBrandSnapshotHistory, getProductIntelligence,
-  getCompetitiveSnapshot, getAllBrandProducts, generateNarrative,
+  getBrandSnapshotHistory, getProductIntelligence, getCompetitiveSnapshot,
+  getAllBrandProducts, generateNarrative, getPlatformStats, getBrandProductCount,
 } from '@/lib/queries'
 import DashboardClient from './DashboardClient'
+import AdminDashboardClient from './AdminDashboardClient'
 
-export default async function DashboardPage() {
+interface PageProps {
+  searchParams: Promise<{ brand_id?: string }>
+}
+
+export default async function DashboardPage({ searchParams }: PageProps) {
   try {
+    const { brand_id } = await searchParams
+
     const supabase = await createServerSupabaseClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
-      console.error('Auth error:', authError)
-      redirect('/login')
-    }
+    if (authError || !user) redirect('/login')
 
     const portalUser = await getPortalUser()
-    if (!portalUser) {
-      console.error('No portal user found for auth uid:', user.id)
-      redirect('/login')
+    if (!portalUser) redirect('/login')
+
+    const parsedBrandId = brand_id ? parseInt(brand_id, 10) : NaN
+    const impersonatedBrandId =
+      portalUser.role === 'dough_admin' && Number.isFinite(parsedBrandId) ? parsedBrandId : null
+
+    // Admin path with no impersonation
+    if (portalUser.role === 'dough_admin' && !impersonatedBrandId) {
+      const stats = await getPlatformStats()
+      return <AdminDashboardClient portalUser={portalUser} stats={stats} />
     }
 
-    const [brand, subscription, snapshot, history, competitive, allProducts] = await Promise.all([
-      getBrand(portalUser.brand_id),
-      getSubscription(portalUser.brand_id),
-      getBrandSnapshot(portalUser.brand_id),
-      getBrandSnapshotHistory(portalUser.brand_id, 30),
-      getCompetitiveSnapshot(portalUser.brand_id),
-      getAllBrandProducts(portalUser.brand_id),
+    // Admin impersonating a brand, OR regular brand user
+    const targetBrandId = impersonatedBrandId ?? portalUser.brand_id
+
+    const [brand, subscription, snapshot, history, competitive, allProducts, totalProductCount] = await Promise.all([
+      getBrand(targetBrandId),
+      getSubscription(targetBrandId),
+      getBrandSnapshot(targetBrandId),
+      getBrandSnapshotHistory(targetBrandId, 30),
+      getCompetitiveSnapshot(targetBrandId),
+      getAllBrandProducts(targetBrandId),
+      getBrandProductCount(targetBrandId),
     ])
-
-    if (!brand) {
-      console.error('No brand found for brand_id:', portalUser.brand_id)
-      redirect('/login')
-    }
+    if (!brand) redirect('/login')
 
     const claimedIds = subscription?.claimed_product_ids ?? []
-    const productIntelligence = await getProductIntelligence(portalUser.brand_id, claimedIds)
-
+    const productIntelligence = await getProductIntelligence(targetBrandId, claimedIds)
     const narrative = snapshot
       ? generateNarrative(snapshot, brand.brand_name)
       : {
-          headline: `Welcome to Dough, ${brand.brand_name}. Your data is being collected.`,
-          sub: 'Check back after your first battles are counted · Updated daily',
+          headline: `${brand.brand_name} is in the Dough database. Data builds as battles are recorded.`,
+          sub: 'Updated daily',
         }
 
     return (
@@ -58,15 +67,12 @@ export default async function DashboardPage() {
         competitive={competitive}
         allProducts={allProducts}
         narrative={narrative}
+        totalProductCount={totalProductCount}
+        isImpersonating={portalUser.role === 'dough_admin' && !!impersonatedBrandId}
       />
     )
   } catch (error) {
     console.error('Dashboard error:', error)
-    return (
-      <div style={{ padding: '40px', fontFamily: 'monospace', color: 'red' }}>
-        <h2>Dashboard Error</h2>
-        <pre>{JSON.stringify(error, null, 2)}</pre>
-      </div>
-    )
+    redirect('/login')
   }
 }

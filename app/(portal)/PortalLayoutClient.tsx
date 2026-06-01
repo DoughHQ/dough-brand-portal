@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { PortalUser, Brand, BrandSubscription } from '@/lib/queries'
+import { ImpersonationProvider, useImpersonation } from './ImpersonationContext'
 
 interface PortalLayoutClientProps {
   brand: Brand
@@ -14,7 +15,7 @@ interface PortalLayoutClientProps {
   children: React.ReactNode
 }
 
-export default function PortalLayoutClient({
+function PortalLayoutInner({
   brand,
   portalUser,
   subscription,
@@ -25,10 +26,25 @@ export default function PortalLayoutClient({
   const pathname = usePathname()
   const supabase = createClient()
   const [dark, setDark] = useState(false)
+  const { viewingBrand, setViewingBrand } = useImpersonation()
+  const isAdmin = portalUser.role === 'dough_admin'
+
+  const sidebarBrandName = isAdmin
+    ? (viewingBrand ? viewingBrand.brand_name : 'Platform view')
+    : brand.brand_name
+
+  const sidebarBrandInitial = isAdmin && viewingBrand
+    ? viewingBrand.brand_name[0]
+    : brand.brand_name[0]
 
   async function handleSignOut() {
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  function exitImpersonation() {
+    setViewingBrand(null)
+    router.push('/dashboard')
   }
 
   return (
@@ -45,13 +61,55 @@ export default function PortalLayoutClient({
 
         <div style={{ margin: '12px 10px', padding: '10px', borderRadius: 'var(--r-md)', background: 'var(--surface-1)', display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--sage)', display: 'grid', placeItems: 'center', fontFamily: 'var(--font-serif)', fontSize: 13, fontWeight: 500, color: 'white', flexShrink: 0 }}>
-            {brand.brand_name[0]}
+            {sidebarBrandInitial}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{brand.brand_name}</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sidebarBrandName}</div>
             <div style={{ fontSize: 10, color: 'var(--ink-30)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 400 }}>{subscription?.plan ?? 'Trial'} · {claimedCount} SKU{claimedCount !== 1 ? 's' : ''}</div>
           </div>
         </div>
+
+        {isAdmin && (
+          <div style={{
+            margin: '0 10px 4px',
+            padding: '8px 10px',
+            borderRadius: 'var(--r-sm)',
+            background: viewingBrand ? 'var(--amber-pale)' : 'transparent',
+            border: viewingBrand ? '1px solid rgba(192,120,24,0.2)' : '1px solid transparent',
+          }}>
+            {viewingBrand ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: 10, color: 'var(--amber)', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 2 }}>
+                    Viewing as brand
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--ink)', fontWeight: 500 }}>
+                    {viewingBrand.brand_name}
+                  </div>
+                </div>
+                <button
+                  onClick={exitImpersonation}
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--amber)',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-sans)',
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                  }}
+                >
+                  Exit
+                </button>
+              </div>
+            ) : (
+              <div style={{ fontSize: 11, color: 'var(--ink-30)', fontWeight: 400 }}>
+                Admin · Platform view
+              </div>
+            )}
+          </div>
+        )}
 
         <nav style={{ flex: 1, padding: '4px 10px', display: 'flex', flexDirection: 'column', gap: 1 }}>
           {[
@@ -63,11 +121,15 @@ export default function PortalLayoutClient({
             { label: 'Launch IHUT',   href: '/ihut' },
             { label: 'Reports',       href: '/reports' },
           ].map(item => {
+            const brandParam = (isAdmin && viewingBrand)
+              ? `?brand_id=${viewingBrand.brand_id}`
+              : ''
+            const href = `${item.href}${brandParam}`
             const active = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link
                 key={item.label}
-                href={item.href}
+                href={href}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -117,5 +179,13 @@ export default function PortalLayoutClient({
       </main>
 
     </div>
+  )
+}
+
+export default function PortalLayoutClient(props: PortalLayoutClientProps) {
+  return (
+    <ImpersonationProvider>
+      <PortalLayoutInner {...props} />
+    </ImpersonationProvider>
   )
 }
