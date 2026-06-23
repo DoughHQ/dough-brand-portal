@@ -120,6 +120,7 @@ function PortalLayoutInner({
             { label: 'Occasions',     href: '/occasions' },
             { label: 'Launch IHUT',   href: '/ihut' },
             { label: 'Reports',       href: '/reports' },
+            ...(isAdmin ? [{ label: 'Corrections', href: '/admin/corrections' }] : []),
           ].map(item => {
             const brandParam = (isAdmin && viewingBrand)
               ? `?brand_id=${viewingBrand.brand_id}`

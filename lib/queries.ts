@@ -1,4 +1,6 @@
+import { createServerSupabaseClient as createClient } from '@/lib/supabase-server'
 import { createServerSupabaseClient } from './supabase-server'
+import { MISSION_TYPE_MAP } from '@/lib/ihut/constants'
 
 export type PortalUser = {
   portal_user_id: string
@@ -200,9 +202,9 @@ export type ProductBattleHistory = {
 }
 
 export async function getPortalUser(): Promise<PortalUser | null> {
-  const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user) return null
   const { data } = await supabase
     .from('brand_portal_users')
     .select('*')
@@ -301,12 +303,30 @@ export async function getAllBrandProducts(brandId: number) {
   const supabase = await createServerSupabaseClient()
   const { data } = await supabase
     .from('products')
-    .select('product_id, product_name_display, taxonomy_node_id, total_battles, status')
+    .select(`
+      product_id,
+      product_name_display,
+      taxonomy_node_id,
+      total_battles,
+      status,
+      taxonomy_nodes!products_taxonomy_node_id_fkey (
+        node_name_display,
+        parent_taxonomy_node_id
+      )
+    `)
     .eq('brand_id', brandId)
     .eq('status', 'active')
     .eq('is_suppressed', false)
     .order('total_battles', { ascending: false })
-  return data ?? []
+  if (!data) return []
+  return data.map((row: any) => ({
+    product_id: row.product_id,
+    product_name_display: row.product_name_display,
+    taxonomy_node_id: row.taxonomy_node_id,
+    total_battles: row.total_battles ?? 0,
+    status: row.status,
+    l2_name: row.taxonomy_nodes?.node_name_display ?? null,
+  }))
 }
 
 export async function getBrandProductCount(brandId: number): Promise<number> {
@@ -581,4 +601,334 @@ export async function getMilestoneAlerts(): Promise<MilestoneAlert[]> {
     .limit(20)
   if (error) console.error('getMilestoneAlerts error:', error)
   return (data ?? []) as unknown as MilestoneAlert[]
+}
+
+// ---------------------------------------------------------------------------
+// IHUT / campaign
+// ---------------------------------------------------------------------------
+
+export type QuestionType = {
+  code: string
+  display_name: string
+  requires_products: boolean
+  min_products: number | null
+  max_products: number | null
+  is_brand_configurable: boolean
+  sort_order: number
+}
+
+export type ProtocolQuestionRow = {
+  protocol_id: string
+  question_type_code: string
+  session_number: number
+  position: number
+  label: string | null
+  config: object
+  selection_strategy: string | null
+  selection_config: object
+  is_required: boolean
+}
+
+export async function getFocalProductTaxonomyNode(productId: number): Promise<number | null> {
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase
+    .from('products')
+    .select('taxonomy_node_id')
+    .eq('product_id', productId)
+    .single()
+  if (error) console.error('getFocalProductTaxonomyNode error:', error)
+  return data?.taxonomy_node_id ?? null
+}
+
+export type ChallengerProductResult = {
+  product_id: number
+  product_name_display: string
+  brand_id: number
+  brand_name: string
+  total_battles: number
+}
+
+export async function searchChallengerProducts(
+  query: string,
+  excludeBrandId: number,
+  excludeProductId: number | null,
+  limit = 20
+): Promise<ChallengerProductResult[]> {
+  const supabase = await createServerSupabaseClient()
+  let builder = supabase
+    .from('products')
+    .select('product_id, product_name_display, brand_id, total_battles, brands!inner(brand_name)')
+    .neq('brand_id', excludeBrandId)
+    .eq('status', 'active')
+    .eq('is_suppressed', false)
+    .ilike('product_name_display', `%${query}%`)
+    .order('total_battles', { ascending: false })
+    .limit(limit)
+  if (excludeProductId) builder = builder.neq('product_id', excludeProductId)
+  const { data, error } = await builder
+  if (error) {
+    console.error('searchChallengerProducts error:', error)
+    return []
+  }
+  return (data ?? []).map((row: any) => ({
+    product_id: row.product_id,
+    product_name_display: row.product_name_display,
+    brand_id: row.brand_id,
+    brand_name: row.brands?.brand_name ?? '',
+    total_battles: row.total_battles ?? 0,
+  }))
+}
+
+export type BrandMissionListItem = {
+  mission_id: string
+  campaign_id: string
+  status: string
+  mission_type: string
+  campaign_objective: string
+  product_name: string | null
+  title: string
+  created_at: string
+}
+
+export async function getBrandMissions(brandId: number): Promise<BrandMissionListItem[]> {
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase
+    .from('missions')
+    .select(`
+      id,
+      status,
+      mission_type,
+      campaign_objective,
+      title,
+      created_at,
+      brand_campaign_id,
+      products:product_id(product_name_display),
+      brand_campaigns!inner(brand_id)
+    `)
+    .eq('brand_campaigns.brand_id', brandId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+  if (error) {
+    console.error('getBrandMissions error:', error)
+    return []
+  }
+  return (data ?? []).map((row: any) => ({
+    mission_id: row.id,
+    campaign_id: row.brand_campaign_id,
+    status: row.status,
+    mission_type: row.mission_type,
+    campaign_objective: row.campaign_objective,
+    product_name: row.products?.product_name_display ?? null,
+    title: row.title,
+    created_at: row.created_at,
+  }))
+}
+
+export type MissionWizardDraft = {
+  campaignId: string
+  missionId: string
+  protocolId: string
+  missionType: 'discovery' | 'positioning' | 'head_to_head'
+  focalProductId: string | null
+  focalProductTaxonomyNodeId: number | null
+  focalProductName: string | null
+  targetCompletions: number
+  payoutPerUserCents: number
+  targeting: {
+    states: string[]
+    minCategoryBattles: number
+    newToBrandOnly: boolean
+    recentPurchaseOnly: boolean
+  }
+  questions: Array<{
+    _id: string
+    question_type_code: string
+    session_number: 1 | 2
+    position: number
+    label: string | null
+    config: object
+    selection_strategy: string | null
+    selection_config: object
+    is_required: boolean
+  }>
+}
+
+export async function getMissionWizardDraft(
+  missionId: string,
+  brandId: number
+): Promise<MissionWizardDraft | null> {
+  const supabase = await createServerSupabaseClient()
+
+  const { data: mission, error: missionError } = await supabase
+    .from('missions')
+    .select(`
+      id,
+      mission_type,
+      campaign_objective,
+      product_id,
+      taxonomy_node_id,
+      max_claims,
+      platform_reward_value,
+      require_new_trial,
+      brand_campaign_id,
+      products:product_id(product_name_display),
+      brand_campaigns!inner(brand_id)
+    `)
+    .eq('id', missionId)
+    .eq('brand_campaigns.brand_id', brandId)
+    .is('deleted_at', null)
+    .single()
+  if (missionError || !mission) return null
+
+  const { data: protocol } = await supabase
+    .from('mission_protocols')
+    .select('id')
+    .eq('mission_id', missionId)
+    .order('version', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (!protocol) return null
+
+  const { data: eligibility } = await supabase
+    .from('mission_eligibility_rules')
+    .select('target_states, min_category_battles, max_days_since_last_purchase')
+    .eq('mission_id', missionId)
+    .maybeSingle()
+
+  const { data: brandQuestions } = await supabase
+    .from('protocol_questions')
+    .select('id, question_type_code, session_number, position, label, config, selection_strategy, selection_config, is_required')
+    .eq('protocol_id', protocol.id)
+    .eq('is_required', false)
+    .order('session_number')
+    .order('position')
+
+  let missionType: MissionWizardDraft['missionType'] | null = null
+  if (mission.mission_type === 'product_discovery') missionType = 'discovery'
+  else if (mission.mission_type === 'brand_challenge' && mission.campaign_objective === 'depth') missionType = 'positioning'
+  else if (mission.mission_type === 'brand_challenge' && mission.campaign_objective === 'conquest') missionType = 'head_to_head'
+  if (!missionType) return null
+
+  return {
+    campaignId: mission.brand_campaign_id,
+    missionId: mission.id,
+    protocolId: protocol.id,
+    missionType,
+    focalProductId: mission.product_id ? String(mission.product_id) : null,
+    focalProductTaxonomyNodeId: mission.taxonomy_node_id ?? null,
+    focalProductName: (mission.products as any)?.product_name_display ?? null,
+    targetCompletions: mission.max_claims ?? 30,
+    payoutPerUserCents: mission.platform_reward_value
+      ? Math.round(Number(mission.platform_reward_value) * 100)
+      : 600,
+    targeting: {
+      states: eligibility?.target_states ?? [],
+      minCategoryBattles: eligibility?.min_category_battles ?? 0,
+      newToBrandOnly: mission.require_new_trial ?? false,
+      recentPurchaseOnly: (eligibility?.max_days_since_last_purchase ?? 0) > 0,
+    },
+    questions: (brandQuestions ?? []).map((q: any) => ({
+      _id: q.id,
+      question_type_code: q.question_type_code,
+      session_number: q.session_number as 1 | 2,
+      position: q.position,
+      label: q.label,
+      config: q.config ?? {},
+      selection_strategy: q.selection_strategy,
+      selection_config: q.selection_config ?? {},
+      is_required: false,
+    })),
+  }
+}
+
+export async function getEligiblePool(
+  states: string[] | null,
+  newToBrandId: number | null,
+  taxonomyNodeId: number | null
+): Promise<number> {
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase.rpc('count_eligible_users', {
+    p_target_states: states,
+    p_new_to_brand_id: newToBrandId,
+    p_taxonomy_node_id: taxonomyNodeId,
+  })
+  if (error) console.error('getEligiblePool error:', error)
+  return typeof data === 'number' ? data : 0
+}
+
+export async function getQuestionTypes(): Promise<QuestionType[]> {
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase
+    .from('question_types')
+    .select('code, display_name, requires_products, min_products, max_products, is_brand_configurable, sort_order')
+    .eq('is_active', true)
+    .order('sort_order')
+  if (error) console.error('getQuestionTypes error:', error)
+  return (data ?? []) as QuestionType[]
+}
+
+export async function createCampaignDraft(
+  brandId: number,
+  _portalUserAuthUid: string,
+  wizardStudyType: 'discovery' | 'positioning' | 'head_to_head',
+  focalProductId: number,
+  taxonomyNodeId: number
+): Promise<{ campaignId: string; missionId: string; protocolId: string }> {
+  const supabase = await createServerSupabaseClient()
+
+  const now = new Date()
+  const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+
+  const { data, error } = await supabase.rpc('create_campaign_draft', {
+    p_brand_id: brandId,
+    p_campaign_name: 'Draft campaign',
+    p_mission_title: 'Draft',
+    p_mission_type: MISSION_TYPE_MAP[wizardStudyType],
+    p_operator_type: 'brand',
+    p_product_id: focalProductId,
+    p_taxonomy_node_id: taxonomyNodeId,
+    p_session_count: 2,
+    p_session2_interval_hours: 24,
+    p_starts_at: now.toISOString(),
+    p_expires_at: expiresAt.toISOString(),
+  })
+  if (error) throw new Error(error.message)
+
+  const result = data as { campaign_id: string; mission_id: string; protocol_id: string }
+  return {
+    campaignId: String(result.campaign_id),
+    missionId: String(result.mission_id),
+    protocolId: String(result.protocol_id),
+  }
+}
+
+export async function upsertProtocolQuestions(
+  protocolId: string,
+  questions: ProtocolQuestionRow[]
+): Promise<void> {
+  const supabase = await createServerSupabaseClient()
+  const { error: deleteError } = await supabase
+    .from('protocol_questions')
+    .delete()
+    .eq('protocol_id', protocolId)
+    .eq('is_required', false)
+  if (deleteError) console.error('upsertProtocolQuestions delete error:', deleteError)
+
+  const brandQuestions = questions.filter((q) => !q.is_required)
+  const spineQuestions = questions.filter((q) => q.is_required)
+
+  if (brandQuestions.length) {
+    const { error: insertError } = await supabase
+      .from('protocol_questions')
+      .insert(brandQuestions)
+    if (insertError) throw new Error('Failed to insert protocol questions: ' + insertError.message)
+  }
+
+  if (spineQuestions.length) {
+    const { error: spineError } = await supabase
+      .from('protocol_questions')
+      .upsert(spineQuestions, { ignoreDuplicates: true })
+    if (spineError) console.error('upsertProtocolQuestions spine error:', spineError)
+  }
 }

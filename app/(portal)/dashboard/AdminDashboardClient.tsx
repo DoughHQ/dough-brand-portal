@@ -174,7 +174,7 @@ export default function AdminDashboardClient({ portalUser, stats }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
         {[
           { label: 'All products', sub: `${stats.products_with_elo.toLocaleString()} with ELO data`, href: '/products' },
-          { label: 'Waitlist', sub: 'Review brand access requests', href: '/waitlist' },
+          { label: 'Corrections', sub: 'Review flagged product data', href: '/admin/corrections' },
           { label: 'Platform health', sub: 'Pipeline status · Data freshness', href: '/health' },
         ].map(item => (
           <div

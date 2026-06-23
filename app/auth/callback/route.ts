@@ -1,13 +1,42 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-export async function GET(request: Request) {
+import type { NextRequest } from 'next/server'
+
+/** Only allow internal relative paths — prevents open redirects */
+function safeNextPath(raw: string | null): string {
+  if (!raw) return '/dashboard'
+  if (!raw.startsWith('/') || raw.startsWith('//')) return '/dashboard'
+  if (raw.includes('://')) return '/dashboard'
+  return raw
+}
+
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/dashboard'
+  const next = safeNextPath(searchParams.get('next'))
+
   if (code) {
-    const supabase = await createServerSupabaseClient()
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return cookieStore.getAll() },
+          setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          },
+        },
+      }
+    )
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) return NextResponse.redirect(`${origin}${next}`)
+    if (!error) {
+      return NextResponse.redirect(`${origin}${next}`)
+    }
   }
-  return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+
+  return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`)
 }
