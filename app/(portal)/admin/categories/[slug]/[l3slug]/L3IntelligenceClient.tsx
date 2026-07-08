@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useImpersonation } from '../../../../ImpersonationContext'
+import { useEnterImpersonation } from '@/lib/portal/useEnterImpersonation'
 
 type Product = {
   product_id: number
@@ -64,7 +64,7 @@ interface Props {
 
 export default function L3IntelligenceClient({ l2Name, l3Name, products }: Props) {
   const router = useRouter()
-  const { setViewingBrand } = useImpersonation()
+  const { enterAsBrand, loading: entering } = useEnterImpersonation()
   const [sort, setSort] = useState<SortKey>('elo')
   const [filter, setFilter] = useState<FilterKey>('all')
 
@@ -355,8 +355,7 @@ export default function L3IntelligenceClient({ l2Name, l3Name, products }: Props
                 <div
                   onClick={e => {
                     e.stopPropagation()
-                    setViewingBrand({ brand_id: product.brand_id, brand_name: product.brand_name })
-                    router.push(`/dashboard?brand_id=${product.brand_id}`)
+                    if (!entering) void enterAsBrand(product.brand_id, '/dashboard')
                   }}
                   style={{
                     fontSize: 12, color: 'var(--ink-50)',

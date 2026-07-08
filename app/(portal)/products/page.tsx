@@ -1,25 +1,16 @@
 import { redirect } from 'next/navigation'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { getPortalUser, getBrand, getSubscription, getBrandProducts, getPlatformCategoryStats, getMilestoneAlerts } from '@/lib/queries'
+import { getBrand, getSubscription, getBrandProducts, getPlatformCategoryStats, getMilestoneAlerts } from '@/lib/queries'
+import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import ProductsClient from './ProductsClient'
 import AdminProductsClient from './AdminProductsClient'
 
-interface Props {
-  searchParams: Promise<{ brand_id?: string }>
-}
+export default async function ProductsPage() {
+  const scope = await getPortalBrandScope()
+  if (!scope) redirect('/login')
 
-export default async function ProductsPage({ searchParams }: Props) {
-  const { brand_id } = await searchParams
-  const impersonatedBrandId = brand_id ? parseInt(brand_id) : null
+  const { portalUser, effectiveBrandId, isImpersonating } = scope
 
-  const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const portalUser = await getPortalUser()
-  if (!portalUser) redirect('/login')
-
-  if (portalUser.role === 'dough_admin' && !impersonatedBrandId) {
+  if (portalUser.role === 'dough_admin' && !isImpersonating) {
     const [categoryStats, milestoneAlerts] = await Promise.all([
       getPlatformCategoryStats(),
       getMilestoneAlerts(),
@@ -34,16 +25,14 @@ export default async function ProductsPage({ searchParams }: Props) {
     )
   }
 
-  const targetBrandId = impersonatedBrandId ?? portalUser.brand_id
-
   const [brand, subscription] = await Promise.all([
-    getBrand(targetBrandId),
-    getSubscription(targetBrandId),
+    getBrand(effectiveBrandId),
+    getSubscription(effectiveBrandId),
   ])
   if (!brand) redirect('/login')
 
   const claimedIds = subscription?.claimed_product_ids ?? []
-  const products = await getBrandProducts(targetBrandId, claimedIds)
+  const products = await getBrandProducts(effectiveBrandId, claimedIds)
 
   return (
     <ProductsClient
@@ -52,7 +41,7 @@ export default async function ProductsPage({ searchParams }: Props) {
       subscription={subscription}
       products={products}
       claimedIds={claimedIds}
-      isImpersonating={!!impersonatedBrandId}
+      isImpersonating={isImpersonating}
     />
   )
 }

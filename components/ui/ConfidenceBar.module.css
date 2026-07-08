@@ -1,0 +1,182 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.labels {
+  min-width: 0;
+}
+
+.label {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+.sublabel {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.trackBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.track {
+  position: relative;
+  height: 12px;
+  background: var(--surface-1);
+  border-radius: 4px;
+  overflow: visible;
+}
+
+.trackWithheld {
+  position: relative;
+  height: 40px;
+  background: transparent;
+  border: 1px dashed var(--mist);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.fiftyMarker {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--amber);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.fiftyCaption {
+  position: absolute;
+  top: -18px;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--amber);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.ciBand {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  border-radius: 3px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.ciBandSage {
+  background: rgba(62, 107, 74, 0.25);
+}
+
+.ciBandClay {
+  background: rgba(166, 84, 60, 0.25);
+}
+
+.whisker {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.whiskerSage {
+  background: rgba(62, 107, 74, 0.55);
+}
+
+.whiskerClay {
+  background: rgba(166, 84, 60, 0.55);
+}
+
+.barFill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 4px 0 0 4px;
+  z-index: 3;
+  min-width: 2px;
+}
+
+.barSage {
+  background: var(--sage);
+}
+
+.barClay {
+  background: var(--clay);
+}
+
+.figures {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.point {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.ci {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.withheldLabel {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-faint);
+  letter-spacing: 0.01em;
+}
+
+.withheldDetail {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-top: 4px;
+  text-align: center;
+}
+
+@media (min-width: 520px) {
+  .root {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .labels {
+    flex: 0 0 160px;
+  }
+
+  .trackBlock {
+    flex: 1;
+  }
+}

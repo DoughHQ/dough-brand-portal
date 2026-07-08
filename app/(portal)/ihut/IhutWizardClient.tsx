@@ -2,7 +2,7 @@
 
 import { useReducer, useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import type { PortalUser, Brand, QuestionType, ProtocolQuestionRow, MissionWizardDraft } from '@/lib/queries'
+import type { PortalUser, Brand, QuestionType, ProtocolQuestionRow, MissionWizardDraft, ValidatedCommissionProduct } from '@/lib/queries'
 import type { CampaignDraft, BrandQuestion } from '@/lib/ihut/types'
 import {
   STUDY_TYPES,
@@ -24,6 +24,7 @@ import {
   createCampaignDraftAction,
   upsertProtocolQuestionsAction,
 } from './actions'
+import { commissionCampaignDraftAction } from '../admin/studies/actions'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -84,25 +85,37 @@ const emptyDraft: CampaignDraft = {
   questions: [],
 }
 
-function buildInitialDraft(resumed: MissionWizardDraft | null): CampaignDraft {
-  if (!resumed) return { ...emptyDraft }
-  const fee = STUDY_TYPES.find((s) => s.key === resumed.missionType)?.feeCents ?? 0
-  return {
-    campaignId: resumed.campaignId,
-    missionId: resumed.missionId,
-    protocolId: resumed.protocolId,
-    missionType: resumed.missionType,
-    focalProductId: resumed.focalProductId,
-    focalProductTaxonomyNodeId: resumed.focalProductTaxonomyNodeId,
-    focalProductName: resumed.focalProductName,
-    challengerProductIds: [],
-    challengerMethod: null,
-    targeting: resumed.targeting,
-    targetCompletions: resumed.targetCompletions,
-    payoutPerUserCents: resumed.payoutPerUserCents,
-    doughFeeCents: fee,
-    questions: resumed.questions,
+function buildInitialDraft(
+  resumed: MissionWizardDraft | null,
+  serverProduct?: ValidatedCommissionProduct | null
+): CampaignDraft {
+  if (resumed) {
+    const fee = STUDY_TYPES.find((s) => s.key === resumed.missionType)?.feeCents ?? 0
+    return {
+      campaignId: resumed.campaignId,
+      missionId: resumed.missionId,
+      protocolId: resumed.protocolId,
+      missionType: resumed.missionType,
+      focalProductId: resumed.focalProductId,
+      focalProductTaxonomyNodeId: resumed.focalProductTaxonomyNodeId,
+      focalProductName: resumed.focalProductName,
+      challengerProductIds: [],
+      challengerMethod: null,
+      targeting: resumed.targeting,
+      targetCompletions: resumed.targetCompletions,
+      payoutPerUserCents: resumed.payoutPerUserCents,
+      doughFeeCents: fee,
+      questions: resumed.questions,
+    }
   }
+
+  const draft = { ...emptyDraft }
+  if (serverProduct) {
+    draft.focalProductId = String(serverProduct.product_id)
+    draft.focalProductTaxonomyNodeId = serverProduct.taxonomy_node_id
+    draft.focalProductName = serverProduct.product_name_display
+  }
+  return draft
 }
 
 function computeResumeStepIndex(draft: CampaignDraft): number {
@@ -325,10 +338,12 @@ function StepProduct({
   draft,
   dispatch,
   brandId,
+  lockProduct,
 }: {
   draft: CampaignDraft
   dispatch: React.Dispatch<Action>
   brandId: number
+  lockProduct?: boolean
 }) {
   const [products, setProducts] = useState<BrandProductRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -341,10 +356,6 @@ function StepProduct({
       .catch((err) => console.error('getAllBrandProducts error:', err))
       .finally(() => setLoading(false))
   }, [brandId])
-
-  const filtered = products.filter((p) =>
-    !search || p.product_name_display.toLowerCase().includes(search.toLowerCase())
-  )
 
   async function selectProduct(p: BrandProductRow) {
     setSelectingId(p.product_id)
@@ -366,6 +377,10 @@ function StepProduct({
     }
   }
 
+  const filtered = products.filter((p) =>
+    !search || p.product_name_display.toLowerCase().includes(search.toLowerCase())
+  )
+
   if (loading) {
     return (
       <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--ink-30)', fontSize: 13 }}>
@@ -374,47 +389,68 @@ function StepProduct({
     )
   }
 
+  const lockedProduct = lockProduct && draft.focalProductName
+
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
         <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 400, color: 'var(--ink)', marginBottom: 6 }}>
-          Choose your focal product
+          {lockProduct ? 'Focal product' : 'Choose your focal product'}
         </h2>
         <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55 }}>
-          This is the product users will trial. Its category determines the eligible user pool.
+          {lockProduct
+            ? 'Locked from your search selection. This product will anchor the study.'
+            : 'This is the product users will trial. Its category determines the eligible user pool.'}
         </p>
       </div>
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search products…"
-        style={{
-          width: '100%',
-          padding: '10px 14px',
-          fontSize: 13,
-          border: '1px solid var(--ink-10)',
-          borderRadius: 'var(--r-md)',
-          marginBottom: 16,
-          fontFamily: 'var(--font-sans)',
-          color: 'var(--ink)',
-          background: 'var(--white)',
-          outline: 'none',
-        }}
-      />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {filtered.map((p) => {
-          const selected = draft.focalProductId === String(p.product_id)
-          const busy = selectingId === p.product_id
-          return (
-            <button
-              key={p.product_id}
-              onClick={() => selectProduct(p)}
-              disabled={busy}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '14px 16px',
+
+      {lockedProduct ? (
+        <div
+          style={{
+            padding: '18px 20px',
+            background: 'var(--sage-pale)',
+            border: '1.5px solid var(--sage)',
+            borderRadius: 'var(--r-md)',
+          }}
+        >
+          <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--sage)', marginBottom: 6 }}>
+            Selected product
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--ink)' }}>{draft.focalProductName}</div>
+        </div>
+      ) : (
+        <>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search products…"
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              fontSize: 13,
+              border: '1px solid var(--ink-10)',
+              borderRadius: 'var(--r-md)',
+              marginBottom: 16,
+              fontFamily: 'var(--font-sans)',
+              color: 'var(--ink)',
+              background: 'var(--white)',
+              outline: 'none',
+            }}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {filtered.map((p) => {
+              const selected = draft.focalProductId === String(p.product_id)
+              const busy = selectingId === p.product_id
+              return (
+                <button
+                  key={p.product_id}
+                  onClick={() => selectProduct(p)}
+                  disabled={busy}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 16px',
                 background: selected ? 'var(--sage-pale)' : 'var(--white)',
                 border: selected ? '2px solid var(--sage)' : '1px solid var(--ink-10)',
                 borderRadius: 'var(--r-md)',
@@ -443,7 +479,9 @@ function StepProduct({
             No products match your search.
           </div>
         )}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -569,11 +607,14 @@ function StepTargeting({
   draft,
   dispatch,
   brandId,
+  allowPoolOverride,
   onReadyChange,
 }: {
   draft: CampaignDraft
   dispatch: React.Dispatch<Action>
   brandId: number
+  /** dough_admin: proceed past pool gate; numbers stay truthful */
+  allowPoolOverride: boolean
   onReadyChange: (ready: boolean) => void
 }) {
   const [stateInput, setStateInput] = useState('')
@@ -598,12 +639,18 @@ function StepTargeting({
 
   const spotsOpening = Math.round(draft.targetCompletions / EXPECTED_COMPLETION_RATE)
   const feasible = pool === null || spotsOpening <= pool
+  const poolLoaded = pool !== null && !poolLoading
+  const wouldBlockBrand = poolLoaded && !feasible
   const walletTotal =
     draft.targetCompletions * (draft.payoutPerUserCents + draft.doughFeeCents) + PLATFORM_FEE_CENTS
 
   useEffect(() => {
-    onReadyChange(feasible && pool !== null && !poolLoading)
-  }, [feasible, pool, poolLoading, onReadyChange])
+    if (allowPoolOverride) {
+      onReadyChange(poolLoaded)
+    } else {
+      onReadyChange(poolLoaded && feasible)
+    }
+  }, [feasible, poolLoaded, onReadyChange, allowPoolOverride])
 
   function handleStateKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter' || e.key === ',') {
@@ -734,6 +781,24 @@ function StepTargeting({
         {!feasible && pool !== null && (
           <div style={{ marginTop: 12, padding: '9px 12px', background: 'var(--red-pale)', borderRadius: 'var(--r-sm)', fontSize: 12, color: 'var(--red)', lineHeight: 1.5 }}>
             Exceeds pool — reduce target completions or grow the category.
+          </div>
+        )}
+        {allowPoolOverride && wouldBlockBrand && (
+          <div
+            style={{
+              marginTop: 12,
+              padding: '10px 12px',
+              background: 'var(--amber-pale)',
+              border: '1px solid rgba(192,120,24,0.25)',
+              borderRadius: 'var(--r-sm)',
+              fontSize: 12,
+              color: 'var(--amber)',
+              lineHeight: 1.55,
+            }}
+          >
+            <strong>Admin override</strong> — you can proceed for setup and testing. This study is
+            under-powered ({pool!.toLocaleString()} eligible vs {draft.targetCompletions.toLocaleString()}{' '}
+            target) and cannot complete to target.
           </div>
         )}
       </div>
@@ -968,22 +1033,43 @@ function StepReview({ draft }: { draft: CampaignDraft }) {
 interface Props {
   portalUser: PortalUser
   brand: Brand
-  isImpersonating: boolean
+  isImpersonating?: boolean
+  operatorMode?: boolean
+  /** Server-validated focal product for operator commission (not from client/URL trust). */
+  serverValidatedProduct?: ValidatedCommissionProduct | null
   resumedDraft?: MissionWizardDraft | null
 }
 
-export default function IhutWizardClient({ portalUser, brand, isImpersonating, resumedDraft = null }: Props) {
-  const [draft, dispatch] = useReducer(draftReducer, resumedDraft, buildInitialDraft)
-  const [stepIdx, setStepIdx] = useState(() => (resumedDraft ? computeResumeStepIndex(buildInitialDraft(resumedDraft)) : 0))
+type WizardInit = {
+  resumed: MissionWizardDraft | null
+  serverProduct: ValidatedCommissionProduct | null
+}
+
+export default function IhutWizardClient({
+  portalUser,
+  brand,
+  isImpersonating = false,
+  operatorMode = false,
+  serverValidatedProduct = null,
+  resumedDraft = null,
+}: Props) {
+  const [draft, dispatch] = useReducer(
+    draftReducer,
+    { resumed: resumedDraft, serverProduct: serverValidatedProduct },
+    (init: WizardInit) => buildInitialDraft(init.resumed, init.serverProduct)
+  )
+  const [stepIdx, setStepIdx] = useState(() =>
+    resumedDraft ? computeResumeStepIndex(buildInitialDraft(resumedDraft, serverValidatedProduct)) : 0
+  )
   const [step4Ready, setStep4Ready] = useState(false)
   const [savingQuestions, setSavingQuestions] = useState(false)
   const [creatingDraft, setCreatingDraft] = useState(false)
 
   const steps = buildSteps(draft.missionType)
   const currentStep = steps[stepIdx]
-  const brandParam = isImpersonating ? `?brand_id=${brand.brand_id}` : ''
 
   const handleStep4Ready = useCallback((ready: boolean) => setStep4Ready(ready), [])
+  const allowPoolOverride = portalUser.role === 'dough_admin'
 
   const canContinue = (() => {
     switch (currentStep.id) {
@@ -1006,14 +1092,35 @@ export default function IhutWizardClient({ portalUser, brand, isImpersonating, r
       if (!draft.missionId) {
         setCreatingDraft(true)
         try {
-          const ids = await createCampaignDraftAction(
-            brand.brand_id,
-            portalUser.auth_uid,
-            draft.missionType,
-            parseInt(draft.focalProductId, 10),
-            draft.focalProductTaxonomyNodeId
-          )
-          dispatch({ type: 'PATCH', patch: ids })
+          if (operatorMode) {
+            const result = await commissionCampaignDraftAction(
+              brand.brand_id,
+              draft.missionType,
+              parseInt(draft.focalProductId, 10),
+              draft.focalProductTaxonomyNodeId
+            )
+            if (!result.ok) {
+              console.error('commissionCampaignDraft error:', result.error)
+              return
+            }
+            dispatch({
+              type: 'PATCH',
+              patch: {
+                campaignId: result.campaignId,
+                missionId: result.missionId,
+                protocolId: result.protocolId,
+              },
+            })
+          } else {
+            const ids = await createCampaignDraftAction(
+              brand.brand_id,
+              portalUser.auth_uid,
+              draft.missionType,
+              parseInt(draft.focalProductId, 10),
+              draft.focalProductTaxonomyNodeId
+            )
+            dispatch({ type: 'PATCH', patch: ids })
+          }
           setStepIdx((i) => i + 1)
         } catch (err) {
           console.error('createCampaignDraft error:', err)
@@ -1051,7 +1158,13 @@ export default function IhutWizardClient({ portalUser, brand, isImpersonating, r
 
   return (
     <div style={{ fontFamily: 'var(--font-sans)', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      {isImpersonating && (
+      {operatorMode && (
+        <div style={{ background: 'var(--surface-1)', borderBottom: '1px solid var(--ink-10)', padding: '10px 32px', fontSize: 12, color: 'var(--ink-50)' }}>
+          <span style={{ fontWeight: 500, color: 'var(--ink)' }}>Operator mode</span>
+          {' · '}Commissioning for {brand.brand_name}. You are not impersonating this brand.
+        </div>
+      )}
+      {isImpersonating && !operatorMode && (
         <div style={{ background: 'var(--amber-pale)', borderBottom: '1px solid rgba(192,120,24,0.2)', padding: '10px 32px', fontSize: 12, color: 'var(--amber)' }}>
           Viewing as {brand.brand_name} — changes here are on behalf of this brand.
         </div>
@@ -1060,12 +1173,15 @@ export default function IhutWizardClient({ portalUser, brand, isImpersonating, r
       <div style={{ padding: '32px 32px 24px', borderBottom: '1px solid var(--ink-10)', background: 'var(--white)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <Link href={`/ihut${brandParam}`} style={{ fontSize: 12, color: 'var(--ink-30)', textDecoration: 'none', marginBottom: 6, display: 'inline-block' }}>
-              ← All studies
+            <Link
+              href={operatorMode ? '/studies' : '/ihut'}
+              style={{ fontSize: 12, color: 'var(--ink-30)', textDecoration: 'none', marginBottom: 6, display: 'inline-block' }}
+            >
+              {operatorMode ? '← Operator console' : '← All studies'}
             </Link>
             <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink-30)', marginBottom: 6 }}>{brand.brand_name}</div>
             <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 400, color: 'var(--ink)' }}>
-              {resumedDraft ? 'Continue setup' : 'Launch an IHUT'}
+              {resumedDraft ? 'Continue setup' : operatorMode ? 'Commission a study' : 'Launch an IHUT'}
             </h1>
           </div>
         </div>
@@ -1094,9 +1210,24 @@ export default function IhutWizardClient({ portalUser, brand, isImpersonating, r
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <div style={{ flex: 1, padding: '32px 36px', maxWidth: 720 }}>
             {currentStep.id === 'study_type' && <StepStudyType draft={draft} dispatch={dispatch} />}
-            {currentStep.id === 'product' && <StepProduct draft={draft} dispatch={dispatch} brandId={brand.brand_id} />}
+            {currentStep.id === 'product' && (
+              <StepProduct
+                draft={draft}
+                dispatch={dispatch}
+                brandId={brand.brand_id}
+                lockProduct={!!serverValidatedProduct}
+              />
+            )}
             {currentStep.id === 'challengers' && <StepChallengers draft={draft} dispatch={dispatch} brandId={brand.brand_id} />}
-            {currentStep.id === 'targeting' && <StepTargeting draft={draft} dispatch={dispatch} brandId={brand.brand_id} onReadyChange={handleStep4Ready} />}
+            {currentStep.id === 'targeting' && (
+              <StepTargeting
+                draft={draft}
+                dispatch={dispatch}
+                brandId={brand.brand_id}
+                allowPoolOverride={allowPoolOverride}
+                onReadyChange={handleStep4Ready}
+              />
+            )}
             {currentStep.id === 'questions' && <StepQuestions draft={draft} dispatch={dispatch} />}
             {currentStep.id === 'review' && <StepReview draft={draft} />}
           </div>

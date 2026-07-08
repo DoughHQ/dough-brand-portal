@@ -440,7 +440,7 @@ export default function ProductDetailClient({ portalUser, product, history, isCl
   return (
     <div style={{ fontFamily: 'var(--font-sans)', maxWidth: 1200, margin: '0 auto', padding: '36px 32px' }}>
 
-      <Link href={isImpersonating ? `/products?brand_id=${product.brand_id}` : '/products'} style={{
+      <Link href="/products" style={{
         display: 'inline-flex',
         alignItems: 'center',
         gap: 6,

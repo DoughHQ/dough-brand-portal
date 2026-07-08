@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { BrandSnapshot, ProductIntelligence, CompetitiveSnapshot, PortalUser, Brand, BrandSubscription } from '@/lib/queries'
 import { createClient } from '@/lib/supabase'
-import { useImpersonation } from '../ImpersonationContext'
+import { exitImpersonationAction } from '../admin/impersonation/actions'
 
 type Period = '7d' | '30d' | '90d' | 'all'
 
@@ -270,7 +270,6 @@ function InlineEditText({
 
 export default function DashboardClient({ portalUser, brand, subscription, snapshot, history, productIntelligence, competitive, allProducts, narrative, isImpersonating, totalProductCount }: Props) {
   const router = useRouter()
-  const { setViewingBrand } = useImpersonation()
   const supabase = createClient()
   const [period, setPeriod] = useState<Period>('30d')
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
@@ -375,8 +374,10 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
               Viewing as {brand.brand_name} — this is exactly what they see.
             </div>
             <button
-              onClick={() => {
-                setViewingBrand(null)
+              onClick={async () => {
+                const result = await exitImpersonationAction()
+                if (!result.ok) return
+                router.refresh()
                 router.push('/dashboard')
               }}
               style={{
@@ -1093,8 +1094,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
                   <div style={{ fontSize:12, color:'var(--ink-30)', lineHeight:1.6, maxWidth:280, margin:'0 auto 16px' }}>Search for your product in Dough's database and activate it to start seeing data.</div>
                   <button
                     onClick={() => {
-                      const brandParam = isImpersonating ? `?brand_id=${brand.brand_id}` : ''
-                      router.push(`/products${brandParam}`)
+                      router.push('/products')
                     }}
                     style={{ padding:'10px 20px', background:'var(--sage)', color:'white', fontSize:13, fontWeight:500, borderRadius:'var(--r-sm)', cursor:'pointer', border:'none', fontFamily:'var(--font-sans)' }}
                   >

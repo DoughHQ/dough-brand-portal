@@ -62,8 +62,6 @@ export default function ProductsClient({
   })
   const battledCount = portfolioProducts.filter(p => p.has_battle_data).length
 
-  const brandQuery = isImpersonating ? `?brand_id=${brand.brand_id}` : ''
-
   return (
     <div style={{ fontFamily: 'var(--font-sans)', maxWidth: 1200, margin: '0 auto', padding: '36px 32px' }}>
 
@@ -173,7 +171,7 @@ export default function ProductsClient({
             return (
               <div
                 key={product.product_id}
-                onClick={() => router.push(`/products/${product.product_id}${brandQuery}`)}
+                onClick={() => router.push(`/products/${product.product_id}`)}
                 style={{
                   background: 'var(--white)',
                   border: `1px solid ${isClaimed ? 'var(--sage)' : 'var(--ink-10)'}`,
@@ -246,7 +244,7 @@ export default function ProductsClient({
                   <button
                     onClick={e => {
                       e.stopPropagation()
-                      router.push(`/products/${product.product_id}${brandQuery}`)
+                      router.push(`/products/${product.product_id}`)
                     }}
                     style={{
                       width: '100%',
@@ -301,7 +299,7 @@ export default function ProductsClient({
                 }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface-1)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-                onClick={() => router.push(`/products/${product.product_id}${brandQuery}`)}
+                onClick={() => router.push(`/products/${product.product_id}`)}
               >
                 <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--surface-1)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px solid var(--ink-10)' }}>
                   {product.image_url

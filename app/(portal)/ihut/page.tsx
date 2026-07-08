@@ -1,36 +1,22 @@
 import { redirect } from 'next/navigation'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { getPortalUser, getBrand, getBrandMissions } from '@/lib/queries'
+import { getBrand, getBrandMissions } from '@/lib/queries'
+import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import IhutListClient from './IhutListClient'
 import AdminIhutClient from './AdminIhutClient'
 
-interface PageProps {
-  searchParams: Promise<{ brand_id?: string }>
-}
+export default async function IhutPage() {
+  const scope = await getPortalBrandScope()
+  if (!scope) redirect('/login')
 
-export default async function IhutPage({ searchParams }: PageProps) {
-  const { brand_id } = await searchParams
+  const { portalUser, effectiveBrandId, isImpersonating } = scope
 
-  const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const portalUser = await getPortalUser()
-  if (!portalUser) redirect('/login')
-
-  const parsedBrandId = brand_id ? parseInt(brand_id, 10) : NaN
-  const impersonatedBrandId =
-    portalUser.role === 'dough_admin' && Number.isFinite(parsedBrandId) ? parsedBrandId : null
-
-  if (portalUser.role === 'dough_admin' && !impersonatedBrandId) {
+  if (portalUser.role === 'dough_admin' && !isImpersonating) {
     return <AdminIhutClient />
   }
 
-  const targetBrandId = impersonatedBrandId ?? portalUser.brand_id
-
   const [brand, missions] = await Promise.all([
-    getBrand(targetBrandId),
-    getBrandMissions(targetBrandId),
+    getBrand(effectiveBrandId),
+    getBrandMissions(effectiveBrandId),
   ])
   if (!brand) redirect('/login')
 
@@ -39,7 +25,7 @@ export default async function IhutPage({ searchParams }: PageProps) {
       portalUser={portalUser}
       brand={brand}
       missions={missions}
-      isImpersonating={portalUser.role === 'dough_admin' && !!impersonatedBrandId}
+      isImpersonating={isImpersonating}
     />
   )
 }

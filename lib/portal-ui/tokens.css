@@ -1,0 +1,72 @@
+/**
+ * Dough brand portal — design tokens
+ * Thesis: precision instrument, not marketing dashboard.
+ */
+
+:root {
+  /* Color */
+  --sage: #3e6b4a;
+  --sage-dark: #243d2c;
+  --amber: #c07818;
+  --cream: #faf8f3;
+  --ink: #1c2620;
+  --clay: #a6543c;
+  --mist: #e7e4db;
+  --paper: #ffffff;
+
+  /* Semantic tints */
+  --sage-soft: rgba(62, 107, 74, 0.12);
+  --amber-soft: rgba(192, 120, 24, 0.12);
+  --clay-soft: rgba(166, 84, 60, 0.14);
+  --ink-muted: rgba(28, 38, 32, 0.55);
+  --ink-faint: rgba(28, 38, 32, 0.38);
+
+  /* Typography */
+  --font-display: var(--font-serif-display), 'DM Serif Display', Georgia, serif;
+  --font-sans: var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), 'DM Mono', ui-monospace, monospace;
+
+  /* Spacing (8px base) */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+
+  /* Radius */
+  --radius-control: 6px;
+  --radius-card: 8px;
+
+  /* Motion */
+  --motion-duration: 200ms;
+  --motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Legacy aliases — existing screens */
+  --sage-mid: #4a7c59;
+  --sage-light: #6a9e78;
+  --sage-pale: var(--sage-soft);
+  --amber-light: #e09232;
+  --amber-pale: var(--amber-soft);
+  --ink-80: #2d3832;
+  --ink-50: var(--ink-muted);
+  --ink-30: var(--ink-faint);
+  --ink-10: var(--mist);
+  --surface: var(--cream);
+  --surface-1: #f4f1ea;
+  --surface-2: #ede9e1;
+  --white: var(--paper);
+  --red: #b83a24;
+  --red-pale: #fceee9;
+  --font-serif: var(--font-display);
+  --r-sm: var(--radius-control);
+  --r-md: var(--radius-card);
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --ease: var(--motion-ease);
+  --shadow-card: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration: 0ms;
+  }
+}
