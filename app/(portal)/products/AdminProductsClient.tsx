@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { useImpersonation } from '../ImpersonationContext'
+import { useEnterImpersonation } from '@/lib/portal/useEnterImpersonation'
 import type { PortalUser, CategoryStat, MilestoneAlert } from '@/lib/queries'
 
 type ProductResult = {
@@ -27,7 +27,7 @@ interface Props {
 export default function AdminProductsClient({ portalUser, categoryStats, milestoneAlerts }: Props) {
   const supabase = createClient()
   const router = useRouter()
-  const { setViewingBrand } = useImpersonation()
+  const { enterAsBrand, loading: entering } = useEnterImpersonation()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<ProductResult[]>([])
@@ -139,11 +139,10 @@ export default function AdminProductsClient({ portalUser, categoryStats, milesto
                   )}
                 </div>
                 <div
-                  style={{ fontSize: 12, color: 'var(--ink-50)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }}
+                  style={{ fontSize: 12, color: 'var(--ink-50)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: entering ? 'default' : 'pointer' }}
                   onClick={e => {
                     e.stopPropagation()
-                    setViewingBrand({ brand_id: product.brand_id, brand_name: product.brand_name })
-                    router.push(`/dashboard?brand_id=${product.brand_id}`)
+                    if (!entering) void enterAsBrand(product.brand_id, '/dashboard')
                   }}
                 >
                   {product.brand_name}

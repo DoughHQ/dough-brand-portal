@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useImpersonation } from '../../../ImpersonationContext'
+import { useEnterImpersonation } from '@/lib/portal/useEnterImpersonation'
 
 type Product = {
   product_id: number
@@ -38,7 +38,7 @@ interface Props {
 
 export default function CategoryIntelligenceClient({ l2Name, products, l3Breakdown }: Props) {
   const router = useRouter()
-  const { setViewingBrand } = useImpersonation()
+  const { enterAsBrand, loading: entering } = useEnterImpersonation()
   const [sort, setSort] = useState<SortKey>('elo')
 
   const totalBattles = products.reduce((s, p) => s + p.battles_total, 0)
@@ -288,8 +288,7 @@ export default function CategoryIntelligenceClient({ l2Name, products, l3Breakdo
               <div
                 onClick={e => {
                   e.stopPropagation()
-                  setViewingBrand({ brand_id: product.brand_id, brand_name: product.brand_name })
-                  router.push(`/dashboard?brand_id=${product.brand_id}`)
+                  if (!entering) void enterAsBrand(product.brand_id, '/dashboard')
                 }}
                 style={{
                   fontSize: 12,

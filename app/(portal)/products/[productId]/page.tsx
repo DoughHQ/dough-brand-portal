@@ -1,38 +1,34 @@
 import { redirect, notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { getPortalUser, getBrand, getSubscription, getProductDetail, getProductBattleHistory } from '@/lib/queries'
+import { getBrand, getSubscription, getProductDetail, getProductBattleHistory } from '@/lib/queries'
+import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import ProductDetailClient from './ProductDetailClient'
 
 interface Props {
   params: Promise<{ productId: string }>
-  searchParams: Promise<{ brand_id?: string }>
 }
 
-export default async function ProductDetailPage({ params, searchParams }: Props) {
+export default async function ProductDetailPage({ params }: Props) {
   const { productId } = await params
-  const { brand_id } = await searchParams
-  const impersonatedBrandId = brand_id ? parseInt(brand_id) : null
 
   const id = parseInt(productId)
   if (isNaN(id)) notFound()
 
+  const scope = await getPortalBrandScope()
+  if (!scope) redirect('/login')
+
+  const { portalUser, effectiveBrandId, isImpersonating } = scope
+
   const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const portalUser = await getPortalUser()
-  if (!portalUser) redirect('/login')
-
-  const targetBrandId = impersonatedBrandId ?? portalUser.brand_id
 
   const [brand, subscription] = await Promise.all([
-    getBrand(targetBrandId),
-    getSubscription(targetBrandId),
+    getBrand(effectiveBrandId),
+    getSubscription(effectiveBrandId),
   ])
   if (!brand) redirect('/login')
 
   const [product, history, barcode] = await Promise.all([
-    getProductDetail(id, targetBrandId),
+    getProductDetail(id, effectiveBrandId),
     getProductBattleHistory(id),
     supabase
       .rpc('get_product_primary_barcode', { p_product_id: id })
@@ -49,7 +45,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
       product={product}
       history={history}
       isClaimed={isClaimed}
-      isImpersonating={!!impersonatedBrandId}
+      isImpersonating={isImpersonating}
       barcode={barcode}
     />
   )

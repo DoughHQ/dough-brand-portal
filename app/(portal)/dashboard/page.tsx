@@ -1,54 +1,38 @@
 import { redirect } from 'next/navigation'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
 import {
-  getPortalUser, getBrand, getSubscription, getBrandSnapshot,
+  getBrand, getSubscription, getBrandSnapshot,
   getBrandSnapshotHistory, getProductIntelligence, getCompetitiveSnapshot,
   getAllBrandProducts, generateNarrative, getPlatformStats, getBrandProductCount,
 } from '@/lib/queries'
+import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import DashboardClient from './DashboardClient'
 import AdminDashboardClient from './AdminDashboardClient'
 
-interface PageProps {
-  searchParams: Promise<{ brand_id?: string }>
-}
-
-export default async function DashboardPage({ searchParams }: PageProps) {
+export default async function DashboardPage() {
   try {
-    const { brand_id } = await searchParams
+    const scope = await getPortalBrandScope()
+    if (!scope) redirect('/login')
 
-    const supabase = await createServerSupabaseClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) redirect('/login')
+    const { portalUser, effectiveBrandId, isImpersonating } = scope
 
-    const portalUser = await getPortalUser()
-    if (!portalUser) redirect('/login')
-
-    const parsedBrandId = brand_id ? parseInt(brand_id, 10) : NaN
-    const impersonatedBrandId =
-      portalUser.role === 'dough_admin' && Number.isFinite(parsedBrandId) ? parsedBrandId : null
-
-    // Admin path with no impersonation
-    if (portalUser.role === 'dough_admin' && !impersonatedBrandId) {
+    if (portalUser.role === 'dough_admin' && !isImpersonating) {
       const stats = await getPlatformStats()
-      return <AdminDashboardClient portalUser={portalUser} stats={stats} />
+      return <AdminDashboardClient stats={stats} />
     }
 
-    // Admin impersonating a brand, OR regular brand user
-    const targetBrandId = impersonatedBrandId ?? portalUser.brand_id
-
     const [brand, subscription, snapshot, history, competitive, allProducts, totalProductCount] = await Promise.all([
-      getBrand(targetBrandId),
-      getSubscription(targetBrandId),
-      getBrandSnapshot(targetBrandId),
-      getBrandSnapshotHistory(targetBrandId, 30),
-      getCompetitiveSnapshot(targetBrandId),
-      getAllBrandProducts(targetBrandId),
-      getBrandProductCount(targetBrandId),
+      getBrand(effectiveBrandId),
+      getSubscription(effectiveBrandId),
+      getBrandSnapshot(effectiveBrandId),
+      getBrandSnapshotHistory(effectiveBrandId, 30),
+      getCompetitiveSnapshot(effectiveBrandId),
+      getAllBrandProducts(effectiveBrandId),
+      getBrandProductCount(effectiveBrandId),
     ])
     if (!brand) redirect('/login')
 
     const claimedIds = subscription?.claimed_product_ids ?? []
-    const productIntelligence = await getProductIntelligence(targetBrandId, claimedIds)
+    const productIntelligence = await getProductIntelligence(effectiveBrandId, claimedIds)
     const narrative = snapshot
       ? generateNarrative(snapshot, brand.brand_name)
       : {
@@ -68,7 +52,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         allProducts={allProducts}
         narrative={narrative}
         totalProductCount={totalProductCount}
-        isImpersonating={portalUser.role === 'dough_admin' && !!impersonatedBrandId}
+        isImpersonating={isImpersonating}
       />
     )
   } catch (error) {

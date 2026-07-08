@@ -5,46 +5,61 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { PortalUser, Brand, BrandSubscription } from '@/lib/queries'
-import { ImpersonationProvider, useImpersonation } from './ImpersonationContext'
+import { exitImpersonationAction } from './admin/impersonation/actions'
 
 interface PortalLayoutClientProps {
-  brand: Brand
+  brand: Brand | null
   portalUser: PortalUser
   subscription: BrandSubscription | null
   claimedCount: number
+  isAdmin: boolean
+  isImpersonating: boolean
+  impersonatedBrandName: string | null
   children: React.ReactNode
 }
 
-function PortalLayoutInner({
+export default function PortalLayoutClient({
   brand,
   portalUser,
   subscription,
   claimedCount,
+  isAdmin,
+  isImpersonating,
+  impersonatedBrandName,
   children,
 }: PortalLayoutClientProps) {
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
   const [dark, setDark] = useState(false)
-  const { viewingBrand, setViewingBrand } = useImpersonation()
-  const isAdmin = portalUser.role === 'dough_admin'
+  const [exiting, setExiting] = useState(false)
 
   const sidebarBrandName = isAdmin
-    ? (viewingBrand ? viewingBrand.brand_name : 'Platform view')
-    : brand.brand_name
+    ? (isImpersonating && impersonatedBrandName ? impersonatedBrandName : 'Platform view')
+    : (brand?.brand_name ?? 'Brand')
 
-  const sidebarBrandInitial = isAdmin && viewingBrand
-    ? viewingBrand.brand_name[0]
-    : brand.brand_name[0]
+  const sidebarBrandInitial = isAdmin && isImpersonating && impersonatedBrandName
+    ? impersonatedBrandName[0]
+    : (brand?.brand_name[0] ?? 'P')
 
   async function handleSignOut() {
+    if (isImpersonating) {
+      await exitImpersonationAction()
+    }
     await supabase.auth.signOut()
     router.push('/login')
   }
 
-  function exitImpersonation() {
-    setViewingBrand(null)
-    router.push('/dashboard')
+  async function exitImpersonation() {
+    setExiting(true)
+    try {
+      const result = await exitImpersonationAction()
+      if (!result.ok) return
+      router.refresh()
+      router.push('/dashboard')
+    } finally {
+      setExiting(false)
+    }
   }
 
   return (
@@ -74,33 +89,34 @@ function PortalLayoutInner({
             margin: '0 10px 4px',
             padding: '8px 10px',
             borderRadius: 'var(--r-sm)',
-            background: viewingBrand ? 'var(--amber-pale)' : 'transparent',
-            border: viewingBrand ? '1px solid rgba(192,120,24,0.2)' : '1px solid transparent',
+            background: isImpersonating ? 'var(--amber-pale)' : 'transparent',
+            border: isImpersonating ? '1px solid rgba(192,120,24,0.2)' : '1px solid transparent',
           }}>
-            {viewingBrand ? (
+            {isImpersonating && impersonatedBrandName ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                   <div style={{ fontSize: 10, color: 'var(--amber)', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 2 }}>
                     Viewing as brand
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--ink)', fontWeight: 500 }}>
-                    {viewingBrand.brand_name}
+                    {impersonatedBrandName}
                   </div>
                 </div>
                 <button
                   onClick={exitImpersonation}
+                  disabled={exiting}
                   style={{
                     fontSize: 11,
                     color: 'var(--amber)',
                     background: 'transparent',
                     border: 'none',
-                    cursor: 'pointer',
+                    cursor: exiting ? 'default' : 'pointer',
                     fontFamily: 'var(--font-sans)',
                     padding: '2px 6px',
                     borderRadius: 4,
                   }}
                 >
-                  Exit
+                  {exiting ? '…' : 'Exit'}
                 </button>
               </div>
             ) : (
@@ -113,6 +129,7 @@ function PortalLayoutInner({
 
         <nav style={{ flex: 1, padding: '4px 10px', display: 'flex', flexDirection: 'column', gap: 1 }}>
           {[
+            { label: 'Studies',       href: '/studies' },
             { label: 'Dashboard',     href: '/dashboard' },
             { label: 'Momentum',      href: '/momentum' },
             { label: 'Products',      href: '/products' },
@@ -122,15 +139,11 @@ function PortalLayoutInner({
             { label: 'Reports',       href: '/reports' },
             ...(isAdmin ? [{ label: 'Corrections', href: '/admin/corrections' }] : []),
           ].map(item => {
-            const brandParam = (isAdmin && viewingBrand)
-              ? `?brand_id=${viewingBrand.brand_id}`
-              : ''
-            const href = `${item.href}${brandParam}`
             const active = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link
                 key={item.label}
-                href={href}
+                href={item.href}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -180,13 +193,5 @@ function PortalLayoutInner({
       </main>
 
     </div>
-  )
-}
-
-export default function PortalLayoutClient(props: PortalLayoutClientProps) {
-  return (
-    <ImpersonationProvider>
-      <PortalLayoutInner {...props} />
-    </ImpersonationProvider>
   )
 }

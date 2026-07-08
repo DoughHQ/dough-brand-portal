@@ -32,8 +32,7 @@ function statusStyle(status: string): { color: string; background: string } {
 }
 
 export default function IhutListClient({ brand, missions, isImpersonating }: Props) {
-  const brandParam = isImpersonating ? `?brand_id=${brand.brand_id}` : ''
-  const newHref = `/ihut/new${brandParam}`
+  const newHref = '/ihut/new'
 
   const drafts = missions.filter((m) => m.status === 'draft')
   const live = missions.filter((m) => m.status !== 'draft')
@@ -113,9 +112,7 @@ export default function IhutListClient({ brand, missions, isImpersonating }: Pro
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {drafts.map((m) => {
-              const resumeParam = isImpersonating
-                ? `?missionId=${m.mission_id}&brand_id=${brand.brand_id}`
-                : `?missionId=${m.mission_id}`
+              const resumeParam = `?missionId=${m.mission_id}`
               const studyLabel = wizardStudyLabel(m.mission_type, m.campaign_objective)
               return (
                 <div
@@ -191,6 +188,7 @@ export default function IhutListClient({ brand, missions, isImpersonating }: Pro
             {live.map((m) => {
               const studyLabel = wizardStudyLabel(m.mission_type, m.campaign_objective)
               const badge = statusStyle(m.status)
+              const reportHref = `/reports/${m.mission_id}`
               return (
                 <div
                   key={m.mission_id}
@@ -199,30 +197,48 @@ export default function IhutListClient({ brand, missions, isImpersonating }: Pro
                     border: '1px solid var(--ink-10)',
                     borderRadius: 'var(--r-md)',
                     padding: '18px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 16,
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>
-                      {studyLabel}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 500,
-                        letterSpacing: '0.06em',
-                        textTransform: 'uppercase',
-                        padding: '2px 8px',
-                        borderRadius: 10,
-                        color: badge.color,
-                        background: badge.background,
-                      }}
-                    >
-                      {m.status}
-                    </span>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>
+                        {studyLabel}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 500,
+                          letterSpacing: '0.06em',
+                          textTransform: 'uppercase',
+                          padding: '2px 8px',
+                          borderRadius: 10,
+                          color: badge.color,
+                          background: badge.background,
+                        }}
+                      >
+                        {m.status}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--ink-50)' }}>
+                      {m.product_name ?? m.title}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--ink-50)' }}>
-                    {m.product_name ?? m.title}
-                  </div>
+                  <Link
+                    href={reportHref}
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: 'var(--sage)',
+                      textDecoration: 'none',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    View report →
+                  </Link>
                 </div>
               )
             })}

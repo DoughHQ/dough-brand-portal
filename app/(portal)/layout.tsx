@@ -1,32 +1,47 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { getPortalUser, getBrand, getSubscription } from '@/lib/queries'
+import { getBrand, getSubscription } from '@/lib/queries'
+import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import PortalLayoutClient from './PortalLayoutClient'
+import LegacyBrandIdGate from './components/LegacyBrandIdGate'
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const scope = await getPortalBrandScope()
+  if (!scope) redirect('/login')
 
-  const portalUser = await getPortalUser()
-  if (!portalUser) redirect('/login')
+  const { portalUser, effectiveBrandId, isImpersonating } = scope
+  const isAdmin = portalUser.role === 'dough_admin'
 
-  const [brand, subscription] = await Promise.all([
-    getBrand(portalUser.brand_id),
-    getSubscription(portalUser.brand_id),
-  ])
-  if (!brand) redirect('/login')
+  let brand = null
+  let subscription = null
+  let claimedCount = 0
 
-  const claimedCount = subscription?.claimed_product_ids?.length ?? 0
+  if (!isAdmin || isImpersonating) {
+    const [loadedBrand, loadedSubscription] = await Promise.all([
+      getBrand(effectiveBrandId),
+      getSubscription(effectiveBrandId),
+    ])
+    if (!loadedBrand) redirect('/login')
+    brand = loadedBrand
+    subscription = loadedSubscription
+    claimedCount = subscription?.claimed_product_ids?.length ?? 0
+  }
 
   return (
-    <PortalLayoutClient
-      brand={brand}
-      portalUser={portalUser}
-      subscription={subscription}
-      claimedCount={claimedCount}
-    >
-      {children}
-    </PortalLayoutClient>
+    <Suspense fallback={null}>
+      <PortalLayoutClient
+        brand={brand}
+        portalUser={portalUser}
+        subscription={subscription}
+        claimedCount={claimedCount}
+        isAdmin={isAdmin}
+        isImpersonating={isImpersonating}
+        impersonatedBrandName={isImpersonating && brand ? brand.brand_name : null}
+      >
+        <LegacyBrandIdGate isAdmin={isAdmin} isImpersonating={isImpersonating}>
+          {children}
+        </LegacyBrandIdGate>
+      </PortalLayoutClient>
+    </Suspense>
   )
 }

@@ -533,6 +533,77 @@ export async function getPlatformStats(): Promise<PlatformStats> {
   }
 }
 
+export type AdminProductSearchResult = {
+  product_id: number
+  product_name_clean: string
+  brand_name: string
+  brand_id: number
+  l2_name: string | null
+  l3_name: string | null
+  battles_total: number
+  win_rate_pct: number | null
+  elo_score: number | null
+  milestone: string
+}
+
+export async function searchProductsAdmin(query: string): Promise<AdminProductSearchResult[]> {
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase.rpc('search_products_admin', { p_query: query })
+  if (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('searchProductsAdmin unavailable:', error.message || error.code)
+    }
+    return []
+  }
+  return (data ?? []) as AdminProductSearchResult[]
+}
+
+export type OperatorDraftMission = {
+  mission_id: string
+  brand_id: number
+  brand_name: string
+  product_name: string | null
+  mission_type: string
+  campaign_objective: string
+  created_at: string
+}
+
+export async function getOperatorDraftMissions(authUid: string): Promise<OperatorDraftMission[]> {
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase
+    .from('missions')
+    .select(`
+      id,
+      mission_type,
+      campaign_objective,
+      created_at,
+      products:product_id(product_name_display),
+      brand_campaigns!inner(brand_id, brands:brand_id(brand_name))
+    `)
+    .eq('status', 'draft')
+    .eq('created_by', authUid)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(20)
+
+  if (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('getOperatorDraftMissions unavailable:', error.message || error.code)
+    }
+    return []
+  }
+
+  return (data ?? []).map((row: any) => ({
+    mission_id: row.id,
+    brand_id: row.brand_campaigns.brand_id,
+    brand_name: row.brand_campaigns.brands?.brand_name ?? 'Unknown brand',
+    product_name: row.products?.product_name_display ?? null,
+    mission_type: row.mission_type,
+    campaign_objective: row.campaign_objective,
+    created_at: row.created_at,
+  }))
+}
+
 export async function searchBrands(query: string): Promise<BrandSearchResult[]> {
   const supabase = await createServerSupabaseClient()
   const { data } = await supabase.rpc('search_brands_admin', { p_query: query })
@@ -599,7 +670,15 @@ export async function getMilestoneAlerts(): Promise<MilestoneAlert[]> {
     .is('outreach_sent_at', null)
     .order('triggered_at', { ascending: false })
     .limit(20)
-  if (error) console.error('getMilestoneAlerts error:', error)
+
+  if (error) {
+    // Table may be absent or RLS-blocked in some environments; admin products still renders.
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('getMilestoneAlerts unavailable:', error.message || error.code || error)
+    }
+    return []
+  }
+
   return (data ?? []) as unknown as MilestoneAlert[]
 }
 
@@ -638,6 +717,40 @@ export async function getFocalProductTaxonomyNode(productId: number): Promise<nu
     .single()
   if (error) console.error('getFocalProductTaxonomyNode error:', error)
   return data?.taxonomy_node_id ?? null
+}
+
+/** Server-side check: product exists, belongs to brand, and has taxonomy for commissioning. */
+export type ValidatedCommissionProduct = {
+  product_id: number
+  product_name_display: string
+  taxonomy_node_id: number
+}
+
+export async function validateCommissionProduct(
+  productId: number,
+  brandId: number
+): Promise<ValidatedCommissionProduct | null> {
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase
+    .from('products')
+    .select('product_id, product_name_display, taxonomy_node_id, brand_id')
+    .eq('product_id', productId)
+    .eq('brand_id', brandId)
+    .eq('status', 'active')
+    .eq('is_suppressed', false)
+    .maybeSingle()
+
+  if (error || !data) return null
+
+  const taxonomyNodeId =
+    data.taxonomy_node_id ?? (await getFocalProductTaxonomyNode(productId))
+  if (!taxonomyNodeId) return null
+
+  return {
+    product_id: data.product_id,
+    product_name_display: data.product_name_display,
+    taxonomy_node_id: taxonomyNodeId,
+  }
 }
 
 export type ChallengerProductResult = {
@@ -873,14 +986,15 @@ export async function createCampaignDraft(
   _portalUserAuthUid: string,
   wizardStudyType: 'discovery' | 'positioning' | 'head_to_head',
   focalProductId: number,
-  taxonomyNodeId: number
+  taxonomyNodeId: number,
+  sessionCount: 1 | 2 = 2
 ): Promise<{ campaignId: string; missionId: string; protocolId: string }> {
   const supabase = await createServerSupabaseClient()
 
   const now = new Date()
   const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
 
-  const { data, error } = await supabase.rpc('create_campaign_draft', {
+  const rpcParams: Record<string, unknown> = {
     p_brand_id: brandId,
     p_campaign_name: 'Draft campaign',
     p_mission_title: 'Draft',
@@ -888,11 +1002,15 @@ export async function createCampaignDraft(
     p_operator_type: 'brand',
     p_product_id: focalProductId,
     p_taxonomy_node_id: taxonomyNodeId,
-    p_session_count: 2,
-    p_session2_interval_hours: 24,
+    p_session_count: sessionCount,
     p_starts_at: now.toISOString(),
     p_expires_at: expiresAt.toISOString(),
-  })
+  }
+  if (sessionCount === 2) {
+    rpcParams.p_session2_interval_hours = 24
+  }
+
+  const { data, error } = await supabase.rpc('create_campaign_draft', rpcParams)
   if (error) throw new Error(error.message)
 
   const result = data as { campaign_id: string; mission_id: string; protocol_id: string }
