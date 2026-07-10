@@ -43,13 +43,35 @@ export default function LoginPage() {
 
     if (urlError || errorCode) {
       setStep('login')
-      if (errorCode === 'otp_expired') {
+      if (errorCode === 'otp_expired' || urlError === 'otp_expired') {
         setError('This reset link has expired or was already used. Request a new one below.')
+      } else if (urlError === 'auth_callback_failed') {
+        setError(
+          'Reset link failed. Open it in the same browser (and Chrome profile) you used to request the reset, or request a new link below.'
+        )
       } else {
         setError('Sign-in link failed. Please try again.')
       }
       window.history.replaceState(null, '', window.location.pathname)
     }
+
+    // Safety net: recovery session/hash landed on /login instead of update-password
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        window.location.replace('/auth/update-password')
+      }
+    })
+
+    const hashRaw = window.location.hash.startsWith('#')
+      ? window.location.hash.slice(1)
+      : window.location.hash
+    const hashParams = new URLSearchParams(hashRaw)
+    if (hashParams.get('type') === 'recovery') {
+      window.location.replace('/auth/update-password')
+    }
+
+    return () => subscription.unsubscribe()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function handleWaitlistSubmit() {
@@ -104,10 +126,11 @@ export default function LoginPage() {
     setError(null)
     setInfo(null)
 
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).replace(/\/$/, '')
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       forgotEmail.trim().toLowerCase(),
       {
-        redirectTo: `${window.location.origin}/auth/callback?next=/auth/update-password`,
+        redirectTo: `${appUrl}/auth/callback?next=/auth/update-password`,
       }
     )
 
@@ -115,7 +138,9 @@ export default function LoginPage() {
     if (resetError) {
       console.error('resetPasswordForEmail error:', resetError)
     }
-    setInfo('If an account exists for that email, a reset link is on its way.')
+    setInfo(
+      'If an account exists for that email, a reset link is on its way. Open it in this same browser.'
+    )
   }
 
   const shellStyle = {

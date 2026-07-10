@@ -33,10 +33,10 @@ export default function UpdatePasswordPage() {
         setStatus('ready')
         return
       }
-      // Brief wait for hash-token recovery events before showing invalid
+      // Allow time for cookie/session hydrate after PKCE callback redirect
       setTimeout(() => {
         if (!resolved) setStatus('invalid')
-      }, 500)
+      }, 2000)
     }
 
     checkSession()
