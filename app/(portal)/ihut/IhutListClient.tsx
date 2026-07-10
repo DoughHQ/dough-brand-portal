@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import type { PortalUser, Brand, BrandMissionListItem } from '@/lib/queries'
-import { STUDY_TYPES } from '@/lib/ihut/constants'
 
 interface Props {
   portalUser: PortalUser
@@ -285,7 +284,7 @@ export default function IhutListClient({ brand, missions, isImpersonating }: Pro
             Start a study →
           </Link>
           <div style={{ marginTop: 20, fontSize: 12, color: 'var(--ink-30)' }}>
-            Study types: {STUDY_TYPES.map((s) => s.label).join(' · ')}
+            Studies are commissioned from published mission templates.
           </div>
         </div>
       )}

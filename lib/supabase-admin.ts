@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/database.types'
 
 /**
  * Server-only Supabase client with service role.
@@ -10,7 +11,7 @@ export function createAdminSupabaseClient() {
   if (!url || !serviceKey) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured on the server')
   }
-  return createClient(url, serviceKey, {
+  return createClient<Database>(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 }

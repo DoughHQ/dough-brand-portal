@@ -2,10 +2,19 @@
 
 import { useReducer, useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import type { PortalUser, Brand, QuestionType, ProtocolQuestionRow, MissionWizardDraft, ValidatedCommissionProduct } from '@/lib/queries'
+import type {
+  PortalUser,
+  Brand,
+  QuestionType,
+  ProtocolQuestionRow,
+  MissionWizardDraft,
+  ValidatedCommissionProduct,
+  MissionTemplate,
+} from '@/lib/queries'
+import type { MissionMenuSelection } from '../admin/studies/new/MissionMenuClient'
 import type { CampaignDraft, BrandQuestion } from '@/lib/ihut/types'
+import MissionMenuClient from '../admin/studies/new/MissionMenuClient'
 import {
-  STUDY_TYPES,
   MIN_COMPLETIONS_FLOOR,
   MAX_COMPLETIONS,
   DEFAULT_PAYOUT_PER_USER_CENTS,
@@ -23,8 +32,11 @@ import {
   searchChallengerProductsAction,
   createCampaignDraftAction,
   upsertProtocolQuestionsAction,
+  previewMissionFeasibilityAction,
+  publishMissionFromTemplateAction,
 } from './actions'
 import { commissionCampaignDraftAction } from '../admin/studies/actions'
+import type { PreviewMissionFeasibility, PreviewPanelMember } from '@/lib/ihut/missionPublish'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -36,6 +48,7 @@ type StepId =
   | 'challengers'
   | 'targeting'
   | 'questions'
+  | 'preview'
   | 'review'
 
 type Step = { id: StepId; label: string }
@@ -56,7 +69,13 @@ type ChallengerRow = {
 }
 
 type Action =
-  | { type: 'SET_MISSION'; missionType: NonNullable<CampaignDraft['missionType']>; doughFeeCents: number }
+  | {
+      type: 'SET_MISSION'
+      missionType: NonNullable<CampaignDraft['missionType']>
+      doughFeeCents: number
+      missionTemplateId?: string | null
+      menuProductKey?: string | null
+    }
   | { type: 'PATCH'; patch: Partial<CampaignDraft> }
   | { type: 'PATCH_TARGETING'; patch: Partial<CampaignDraft['targeting']> }
   | { type: 'ADD_QUESTION'; question: BrandQuestion }
@@ -68,6 +87,8 @@ const emptyDraft: CampaignDraft = {
   missionId: null,
   protocolId: null,
   missionType: null,
+  missionTemplateId: null,
+  menuProductKey: null,
   focalProductId: null,
   focalProductTaxonomyNodeId: null,
   focalProductName: null,
@@ -90,12 +111,13 @@ function buildInitialDraft(
   serverProduct?: ValidatedCommissionProduct | null
 ): CampaignDraft {
   if (resumed) {
-    const fee = STUDY_TYPES.find((s) => s.key === resumed.missionType)?.feeCents ?? 0
     return {
       campaignId: resumed.campaignId,
       missionId: resumed.missionId,
       protocolId: resumed.protocolId,
       missionType: resumed.missionType,
+      missionTemplateId: null,
+      menuProductKey: null,
       focalProductId: resumed.focalProductId,
       focalProductTaxonomyNodeId: resumed.focalProductTaxonomyNodeId,
       focalProductName: resumed.focalProductName,
@@ -104,8 +126,8 @@ function buildInitialDraft(
       targeting: resumed.targeting,
       targetCompletions: resumed.targetCompletions,
       payoutPerUserCents: resumed.payoutPerUserCents,
-      doughFeeCents: fee,
-      questions: resumed.questions,
+      doughFeeCents: 0,
+      questions: resumed.questions as BrandQuestion[],
     }
   }
 
@@ -119,7 +141,18 @@ function buildInitialDraft(
 }
 
 function computeResumeStepIndex(draft: CampaignDraft): number {
-  const steps = buildSteps(draft.missionType)
+  const steps = buildSteps(draft.missionType, !!draft.missionTemplateId)
+  if (draft.missionTemplateId) {
+    if (draft.campaignId) {
+      const previewIdx = steps.findIndex((s) => s.id === 'preview')
+      return previewIdx >= 0 ? previewIdx : 0
+    }
+    if (draft.focalProductId) {
+      const productIdx = steps.findIndex((s) => s.id === 'product')
+      return productIdx >= 0 ? productIdx : 0
+    }
+    return 0
+  }
   if (!draft.missionId) return 0
   const targetingIdx = steps.findIndex((s) => s.id === 'targeting')
   return targetingIdx >= 0 ? targetingIdx : 0
@@ -132,6 +165,18 @@ function draftReducer(state: CampaignDraft, action: Action): CampaignDraft {
         ...state,
         missionType: action.missionType,
         doughFeeCents: action.doughFeeCents,
+        missionTemplateId:
+          action.missionTemplateId !== undefined
+            ? action.missionTemplateId
+            : state.missionTemplateId,
+        menuProductKey:
+          action.menuProductKey !== undefined
+            ? action.menuProductKey
+            : state.menuProductKey,
+        // New study selection invalidates any prior campaign mint.
+        campaignId: null,
+        missionId: null,
+        protocolId: null,
         challengerProductIds:
           action.missionType === 'head_to_head' ? state.challengerProductIds : [],
         challengerMethod:
@@ -158,7 +203,21 @@ function draftReducer(state: CampaignDraft, action: Action): CampaignDraft {
   }
 }
 
-function buildSteps(missionType: CampaignDraft['missionType']): Step[] {
+function buildSteps(
+  missionType: CampaignDraft['missionType'],
+  hasTemplate: boolean
+): Step[] {
+  // Template path: preview before naming/creating a campaign. No opponent picker,
+  // no targeting/questions (protocol + panel come from the template at publish),
+  // no funding step.
+  if (hasTemplate) {
+    return [
+      { id: 'study_type', label: 'Study type' },
+      { id: 'product', label: 'Product' },
+      { id: 'preview', label: 'Preview & publish' },
+    ]
+  }
+
   const base: Step[] = [
     { id: 'study_type', label: 'Study type' },
     { id: 'product', label: 'Product' },
@@ -169,7 +228,7 @@ function buildSteps(missionType: CampaignDraft['missionType']): Step[] {
   base.push(
     { id: 'targeting', label: 'Targeting & size' },
     { id: 'questions', label: 'Questions' },
-    { id: 'review', label: 'Review & fund' },
+    { id: 'review', label: 'Review' },
   )
   return base
 }
@@ -283,52 +342,10 @@ function ToggleRow({
 // Step 1 — Study type
 // ---------------------------------------------------------------------------
 
-function StepStudyType({ draft, dispatch }: { draft: CampaignDraft; dispatch: React.Dispatch<Action> }) {
-  return (
-    <div>
-      <div style={{ marginBottom: 28 }}>
-        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 400, color: 'var(--ink)', marginBottom: 6 }}>
-          What kind of study do you need?
-        </h2>
-        <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55 }}>
-          Each study type unlocks a different set of battle mechanics and delivers a different output.
-        </p>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {STUDY_TYPES.map((st) => {
-          const selected = draft.missionType === st.key
-          return (
-            <button
-              key={st.key}
-              onClick={() => dispatch({ type: 'SET_MISSION', missionType: st.key, doughFeeCents: st.feeCents })}
-              style={{
-                display: 'block',
-                width: '100%',
-                textAlign: 'left',
-                background: selected ? 'var(--sage-pale)' : 'var(--white)',
-                border: selected ? '2px solid var(--sage)' : '2px solid var(--ink-10)',
-                borderRadius: 'var(--r-md)',
-                padding: '20px 22px',
-                cursor: 'pointer',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: selected ? 'var(--sage)' : 'var(--ink)' }}>{st.label}</div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: selected ? 'var(--sage)' : 'var(--ink-50)' }}>
-                  {formatCents(st.feeCents)} / completion
-                </div>
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--ink-50)', marginBottom: 8, fontStyle: 'italic' }}>
-                &ldquo;{st.question}&rdquo;
-              </div>
-              <div style={{ fontSize: 12, color: selected ? 'var(--sage)' : 'var(--ink-30)' }}>{st.deliverable}</div>
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+// ---------------------------------------------------------------------------
+// Step 1 — Study type is MissionMenuClient (DB templates). StepStudyType removed.
+// ---------------------------------------------------------------------------
+
 
 // ---------------------------------------------------------------------------
 // Step 2 — Product
@@ -368,6 +385,10 @@ function StepProduct({
           focalProductId: String(p.product_id),
           focalProductTaxonomyNodeId: taxonomyNodeId,
           focalProductName: p.product_name_display,
+          // New focal invalidates any prior campaign / preview publish state.
+          campaignId: null,
+          missionId: null,
+          protocolId: null,
         },
       })
     } catch (err) {
@@ -957,18 +978,522 @@ function StepQuestions({ draft, dispatch }: { draft: CampaignDraft; dispatch: Re
 }
 
 // ---------------------------------------------------------------------------
-// Step 6 — Review & fund (placeholder)
+// Step — Preview panel (read-only) + one-click publish
+// Preview is hypothetical. After publish, show the publish response panel only.
+// ---------------------------------------------------------------------------
+
+function formatDollarsFromCents(cents: number | null): string {
+  if (cents == null) return '—'
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(cents / 100)
+}
+
+/** Clean competitive set — name, brand, tier. No selection metadata dumps. */
+function PanelList({
+  panel,
+  emptyLabel,
+}: {
+  panel: PreviewPanelMember[]
+  emptyLabel: string
+}) {
+  if (panel.length === 0) {
+    return <p style={{ fontSize: 13, color: 'var(--ink-50)' }}>{emptyLabel}</p>
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {panel.map((member) => (
+        <div
+          key={`${member.position}-${member.product_id}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '12px 14px',
+            background: 'var(--white)',
+            border: '1px solid var(--ink-10)',
+            borderRadius: 'var(--r-sm)',
+          }}
+        >
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'var(--surface-1)',
+              display: 'grid',
+              placeItems: 'center',
+              fontSize: 12,
+              fontWeight: 600,
+              color: 'var(--ink-50)',
+              flexShrink: 0,
+            }}
+          >
+            {member.position}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>
+              {member.product}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--ink-50)', marginTop: 2 }}>
+              {member.brand}
+              {member.price_tier ? ` · ${member.price_tier}` : ''}
+            </div>
+          </div>
+          {member.curated ? (
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: 'var(--sage)',
+                background: 'var(--sage-pale)',
+                padding: '4px 8px',
+                borderRadius: 999,
+                flexShrink: 0,
+              }}
+            >
+              Curated
+            </span>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function StepPreviewPublish({
+  draft,
+  dispatch,
+  brandId,
+  authUid,
+  operatorMode,
+}: {
+  draft: CampaignDraft
+  dispatch: React.Dispatch<Action>
+  brandId: number
+  authUid: string
+  operatorMode: boolean
+}) {
+  const [preview, setPreview] = useState<PreviewMissionFeasibility | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(true)
+  const [previewError, setPreviewError] = useState<string | null>(null)
+  const [publishing, setPublishing] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [publishedPanel, setPublishedPanel] = useState<PreviewPanelMember[] | null>(null)
+  const [publishedMissionId, setPublishedMissionId] = useState<string | null>(null)
+  const [publishedPanelSize, setPublishedPanelSize] = useState<number | null>(null)
+
+  const templateId = draft.missionTemplateId
+  const focalId = draft.focalProductId ? parseInt(draft.focalProductId, 10) : NaN
+  const nodeId = draft.focalProductTaxonomyNodeId
+
+  useEffect(() => {
+    if (!templateId || !Number.isFinite(focalId)) {
+      setPreviewLoading(false)
+      setPreviewError('Pick a study type and focal product first.')
+      return
+    }
+
+    let cancelled = false
+    setPreviewLoading(true)
+    setPreviewError(null)
+    setPublishedPanel(null)
+    setPublishedMissionId(null)
+    setPublishedPanelSize(null)
+
+    previewMissionFeasibilityAction(focalId, templateId)
+      .then((result) => {
+        if (cancelled) return
+        if (!result.ok) {
+          setPreview(null)
+          setPreviewError(result.error)
+          return
+        }
+        setPreview(result.preview)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        setPreviewError(err instanceof Error ? err.message : 'Preview failed')
+      })
+      .finally(() => {
+        if (!cancelled) setPreviewLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [templateId, focalId])
+
+  async function mintCampaignIfNeeded(): Promise<string | null> {
+    if (draft.campaignId) return draft.campaignId
+    if (!draft.missionType || !Number.isFinite(focalId) || !nodeId) return null
+
+    if (operatorMode) {
+      const result = await commissionCampaignDraftAction(
+        brandId,
+        draft.missionType,
+        focalId,
+        nodeId
+      )
+      if (!result.ok) {
+        setActionError(result.error)
+        return null
+      }
+      if (result.missionId) {
+        console.warn(
+          '[StepPreviewPublish] create returned mission_id; expected null (campaign-only mint)'
+        )
+      }
+      dispatch({
+        type: 'PATCH',
+        patch: {
+          campaignId: result.campaignId,
+          missionId: result.missionId,
+          protocolId: result.protocolId,
+        },
+      })
+      return result.campaignId
+    }
+
+    const ids = await createCampaignDraftAction(
+      brandId,
+      authUid,
+      draft.missionType,
+      focalId,
+      nodeId
+    )
+    if (ids.missionId) {
+      console.warn(
+        '[StepPreviewPublish] create returned mission_id; expected null (campaign-only mint)'
+      )
+    }
+    dispatch({ type: 'PATCH', patch: ids })
+    return ids.campaignId
+  }
+
+  /** One CTA: create campaign (if needed) then publish. Retry skips re-mint. */
+  async function handlePublishStudy() {
+    if (!templateId || !Number.isFinite(focalId) || !nodeId) return
+    setPublishing(true)
+    setActionError(null)
+    try {
+      const campaignId = await mintCampaignIfNeeded()
+      if (!campaignId) return
+
+      const result = await publishMissionFromTemplateAction({
+        brandCampaignId: campaignId,
+        createdBy: authUid,
+        focalProductId: focalId,
+        nodeId,
+        templateId,
+        titleOverride: draft.focalProductName
+          ? `${draft.focalProductName} study`
+          : undefined,
+      })
+      if (!result.ok) {
+        setActionError(result.error)
+        return
+      }
+      setPreview(null)
+      setPublishedPanel(result.result.panel)
+      setPublishedPanelSize(result.result.panel_size)
+      setPublishedMissionId(result.result.mission_id)
+      dispatch({
+        type: 'PATCH',
+        patch: { missionId: result.result.mission_id },
+      })
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Publish failed')
+    } finally {
+      setPublishing(false)
+    }
+  }
+
+  if (previewLoading) {
+    return (
+      <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--ink-30)', fontSize: 13 }}>
+        Checking whether this category can support a study…
+      </div>
+    )
+  }
+
+  if (publishedMissionId) {
+    return (
+      <div>
+        <div style={{ marginBottom: 28 }}>
+          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 400, color: 'var(--ink)', marginBottom: 6 }}>
+            Study published
+          </h2>
+          <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55 }}>
+            The protocol is locked. This is your frozen competitive set — not the earlier example.
+          </p>
+        </div>
+        <div
+          style={{
+            padding: '14px 16px',
+            background: 'var(--sage-pale)',
+            border: '1px solid rgba(62,107,74,0.2)',
+            borderRadius: 'var(--r-md)',
+            marginBottom: 20,
+            fontSize: 13,
+            color: 'var(--ink)',
+          }}
+        >
+          Locked · {publishedPanelSize ?? publishedPanel?.length ?? 0} products
+        </div>
+        <div style={{ marginBottom: 10, fontSize: 11, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-30)' }}>
+          Your locked panel
+        </div>
+        <PanelList panel={publishedPanel ?? []} emptyLabel="No panel members returned." />
+        <div style={{ marginTop: 24, display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+          <Link
+            href={`/ihut/${publishedMissionId}/report`}
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: 'white',
+              background: 'var(--sage)',
+              borderRadius: 'var(--r-sm)',
+              padding: '10px 18px',
+              textDecoration: 'none',
+            }}
+          >
+            View report
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              setPublishedMissionId(null)
+              setPublishedPanel(null)
+              setPublishedPanelSize(null)
+              setActionError(null)
+              // Keep campaignId — next publish adds another mission to this campaign.
+              if (templateId && Number.isFinite(focalId)) {
+                setPreviewLoading(true)
+                previewMissionFeasibilityAction(focalId, templateId)
+                  .then((result) => {
+                    if (!result.ok) {
+                      setPreview(null)
+                      setPreviewError(result.error)
+                      return
+                    }
+                    setPreview(result.preview)
+                    setPreviewError(null)
+                  })
+                  .finally(() => setPreviewLoading(false))
+              }
+            }}
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: 'var(--ink)',
+              background: 'var(--white)',
+              border: '1px solid var(--ink-10)',
+              borderRadius: 'var(--r-sm)',
+              padding: '10px 18px',
+              cursor: 'pointer',
+            }}
+          >
+            Add another study to this campaign
+          </button>
+          <Link
+            href={operatorMode ? '/studies' : '/ihut'}
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: 'var(--ink-50)',
+              padding: '10px 18px',
+              textDecoration: 'none',
+            }}
+          >
+            Back to studies
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (previewError && !preview) {
+    return (
+      <div>
+        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 400, color: 'var(--ink)', marginBottom: 6 }}>
+          Preview unavailable
+        </h2>
+        <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55, marginBottom: 16 }}>{previewError}</p>
+      </div>
+    )
+  }
+
+  const runnable = preview?.runnable === true
+  const infeasible = preview != null && !preview.runnable
+  const addingToExisting = Boolean(draft.campaignId)
+
+  return (
+    <div>
+      <div style={{ marginBottom: 28 }}>
+        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 400, color: 'var(--ink)', marginBottom: 6 }}>
+          Preview & publish
+        </h2>
+        <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55 }}>
+          This is exactly what participants will experience. No setup required.
+        </p>
+      </div>
+
+      {infeasible && preview ? (
+        <div
+          style={{
+            padding: '16px 18px',
+            background: 'var(--amber-pale, #FBF3E8)',
+            border: '1px solid rgba(192,120,24,0.25)',
+            borderRadius: 'var(--r-md)',
+            marginBottom: 20,
+          }}
+        >
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--amber, #C07818)', marginBottom: 6 }}>
+            Category too thin
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.5 }}>
+            {preview.reason === 'PANEL_INFEASIBLE'
+              ? 'This category does not have enough competitors for a study yet.'
+              : preview.reason}
+            {preview.pool.shortfall > 0 ? (
+              <span> Shortfall: {preview.pool.shortfall}.</span>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {runnable && preview ? (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+            gap: 12,
+            marginBottom: 20,
+          }}
+        >
+          <div style={{ padding: '14px 16px', background: 'var(--surface-1)', borderRadius: 'var(--r-md)' }}>
+            <div style={{ fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-30)', marginBottom: 6 }}>
+              Price
+            </div>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: 22, color: 'var(--ink)' }}>
+              {formatDollarsFromCents(preview.price_cents)}
+            </div>
+          </div>
+          <div style={{ padding: '14px 16px', background: 'var(--surface-1)', borderRadius: 'var(--r-md)' }}>
+            <div style={{ fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-30)', marginBottom: 6 }}>
+              Rounds
+            </div>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: 22, color: 'var(--ink)' }}>
+              {preview.protocol.scoring_rounds}+{preview.protocol.reliability_repeats}
+            </div>
+          </div>
+          <div style={{ padding: '14px 16px', background: 'var(--surface-1)', borderRadius: 'var(--r-md)' }}>
+            <div style={{ fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-30)', marginBottom: 6 }}>
+              Panel
+            </div>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: 22, color: 'var(--ink)' }}>
+              {preview.protocol.panel_size_required}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {preview?.panel_composition.disclosure ? (
+        <p style={{ fontSize: 12, color: 'var(--ink-30)', lineHeight: 1.45, marginBottom: 12 }}>
+          {preview.panel_composition.disclosure}
+        </p>
+      ) : null}
+
+      <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-30)' }}>
+        Example competitive set
+      </div>
+      <p style={{ fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45, marginBottom: 12 }}>
+        Finalized when you publish — Dough curates a fair set; publish may differ slightly.
+      </p>
+      <PanelList
+        panel={preview?.panel ?? []}
+        emptyLabel={infeasible ? 'Not enough rivals to curate a panel.' : 'No panel members returned.'}
+      />
+
+      {actionError ? (
+        <div
+          style={{
+            marginTop: 16,
+            padding: '12px 14px',
+            background: '#FCEDED',
+            border: '1px solid rgba(180,60,60,0.25)',
+            borderRadius: 'var(--r-sm)',
+            fontSize: 13,
+            color: '#8B2E2E',
+          }}
+        >
+          {actionError}
+        </div>
+      ) : null}
+
+      {addingToExisting ? (
+        <div
+          style={{
+            marginTop: 16,
+            padding: '12px 14px',
+            background: 'var(--surface-1)',
+            borderRadius: 'var(--r-sm)',
+            fontSize: 13,
+            color: 'var(--ink-50)',
+          }}
+        >
+          Adding to existing campaign · {draft.campaignId!.slice(0, 8)}…
+        </div>
+      ) : null}
+
+      <div style={{ marginTop: 24 }}>
+        <button
+          type="button"
+          onClick={() => void handlePublishStudy()}
+          disabled={!runnable || publishing}
+          style={{
+            width: '100%',
+            fontSize: 15,
+            fontWeight: 500,
+            color: runnable && !publishing ? 'white' : 'var(--ink-30)',
+            background: runnable && !publishing ? 'var(--sage)' : 'var(--surface-1)',
+            border: '1px solid var(--ink-10)',
+            borderRadius: 'var(--r-sm)',
+            padding: '14px 20px',
+            cursor: runnable && !publishing ? 'pointer' : 'not-allowed',
+          }}
+        >
+          {publishing
+            ? 'Publishing…'
+            : addingToExisting
+              ? 'Publish study to this campaign'
+              : 'Publish study'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Step 6 — Review (legacy non-template path; no funding)
 // ---------------------------------------------------------------------------
 
 function StepReview({ draft }: { draft: CampaignDraft }) {
-  const studyLabel = STUDY_TYPES.find((s) => s.key === draft.missionType)?.label ?? '—'
+  const studyLabel = draft.menuProductKey ?? draft.missionType ?? '—'
   const walletTotal = draft.targetCompletions * (draft.payoutPerUserCents + draft.doughFeeCents) + PLATFORM_FEE_CENTS
 
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
-        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 400, color: 'var(--ink)', marginBottom: 6 }}>Review & fund</h2>
-        <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55 }}>Confirm your study configuration before funding.</p>
+        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 400, color: 'var(--ink)', marginBottom: 6 }}>Review</h2>
+        <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55 }}>
+          Confirm your study configuration. Publishing from a template is available on the commissioned path.
+        </p>
       </div>
 
       <div style={{ background: 'var(--white)', border: '1px solid var(--ink-10)', borderRadius: 'var(--r-md)', padding: '20px 22px', marginBottom: 24 }}>
@@ -1000,28 +1525,11 @@ function StepReview({ draft }: { draft: CampaignDraft }) {
             <span style={{ color: 'var(--ink)', fontWeight: 500 }}>{draft.questions.length}</span>
           </div>
           <div style={{ borderTop: '1px solid var(--ink-10)', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ fontSize: 14, color: 'var(--ink)', fontWeight: 500 }}>Wallet total</span>
+            <span style={{ fontSize: 14, color: 'var(--ink)', fontWeight: 500 }}>Estimated total</span>
             <span style={{ fontSize: 22, fontFamily: 'var(--font-serif)', fontWeight: 600, color: 'var(--ink)' }}>{formatCents(walletTotal)}</span>
           </div>
         </div>
       </div>
-
-      <button
-        disabled
-        style={{
-          width: '100%',
-          fontSize: 14,
-          fontWeight: 500,
-          color: 'var(--ink-30)',
-          background: 'var(--surface-1)',
-          border: '1px solid var(--ink-10)',
-          borderRadius: 'var(--r-sm)',
-          padding: '12px 20px',
-          cursor: 'not-allowed',
-        }}
-      >
-        Fund campaign — Stripe integration coming soon
-      </button>
     </div>
   )
 }
@@ -1038,6 +1546,8 @@ interface Props {
   /** Server-validated focal product for operator commission (not from client/URL trust). */
   serverValidatedProduct?: ValidatedCommissionProduct | null
   resumedDraft?: MissionWizardDraft | null
+  /** Published mission_templates for the operator mission menu (step 1). */
+  missionTemplates?: MissionTemplate[]
 }
 
 type WizardInit = {
@@ -1052,6 +1562,7 @@ export default function IhutWizardClient({
   operatorMode = false,
   serverValidatedProduct = null,
   resumedDraft = null,
+  missionTemplates = [],
 }: Props) {
   const [draft, dispatch] = useReducer(
     draftReducer,
@@ -1065,22 +1576,38 @@ export default function IhutWizardClient({
   const [savingQuestions, setSavingQuestions] = useState(false)
   const [creatingDraft, setCreatingDraft] = useState(false)
 
-  const steps = buildSteps(draft.missionType)
+  const steps = buildSteps(draft.missionType, !!draft.missionTemplateId)
   const currentStep = steps[stepIdx]
+  const useMissionMenu = currentStep.id === 'study_type'
+  const isTemplatePath = !!draft.missionTemplateId
 
   const handleStep4Ready = useCallback((ready: boolean) => setStep4Ready(ready), [])
   const allowPoolOverride = portalUser.role === 'dough_admin'
 
+  const onMissionMenuSelect = useCallback((selection: MissionMenuSelection) => {
+    dispatch({
+      type: 'SET_MISSION',
+      missionType: selection.missionType,
+      doughFeeCents: selection.doughFeeCents,
+      missionTemplateId: selection.missionTemplateId,
+      menuProductKey: selection.templateCode,
+    })
+    setStepIdx(1)
+  }, [])
+
   const canContinue = (() => {
     switch (currentStep.id) {
       case 'study_type':
-        return draft.missionType !== null
+        // Menu advances via card click; footer Continue stays disabled.
+        return false
       case 'product':
         return !!draft.focalProductId && !!draft.focalProductTaxonomyNodeId && !creatingDraft
       case 'challengers':
         return draft.challengerProductIds.length >= 1
       case 'targeting':
         return step4Ready
+      case 'preview':
+        return false
       default:
         return true
     }
@@ -1089,7 +1616,14 @@ export default function IhutWizardClient({
   async function goNext() {
     if (currentStep.id === 'product') {
       if (!draft.focalProductId || !draft.focalProductTaxonomyNodeId || !draft.missionType) return
-      if (!draft.missionId) {
+
+      // Template path: preview before any campaign mint. Do not create here.
+      if (isTemplatePath) {
+        setStepIdx((i) => i + 1)
+        return
+      }
+
+      if (!draft.missionId && !draft.campaignId) {
         setCreatingDraft(true)
         try {
           if (operatorMode) {
@@ -1208,14 +1742,25 @@ export default function IhutWizardClient({
         </aside>
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ flex: 1, padding: '32px 36px', maxWidth: 720 }}>
-            {currentStep.id === 'study_type' && <StepStudyType draft={draft} dispatch={dispatch} />}
+          <div style={{ flex: 1, padding: '32px 36px', maxWidth: useMissionMenu ? 880 : 720 }}>
+            {currentStep.id === 'study_type' && (
+              <MissionMenuClient templates={missionTemplates} onSelect={onMissionMenuSelect} />
+            )}
             {currentStep.id === 'product' && (
               <StepProduct
                 draft={draft}
                 dispatch={dispatch}
                 brandId={brand.brand_id}
                 lockProduct={!!serverValidatedProduct}
+              />
+            )}
+            {currentStep.id === 'preview' && (
+              <StepPreviewPublish
+                draft={draft}
+                dispatch={dispatch}
+                brandId={brand.brand_id}
+                authUid={portalUser.auth_uid}
+                operatorMode={operatorMode}
               />
             )}
             {currentStep.id === 'challengers' && <StepChallengers draft={draft} dispatch={dispatch} brandId={brand.brand_id} />}
@@ -1238,22 +1783,24 @@ export default function IhutWizardClient({
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <span style={{ fontSize: 12, color: 'var(--ink-30)' }}>Step {stepIdx + 1} of {steps.length}</span>
-              <button
-                onClick={goNext}
-                disabled={!canContinue || savingQuestions || creatingDraft}
-                style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: 'white',
-                  background: canContinue && !savingQuestions && !creatingDraft ? 'var(--sage)' : 'var(--ink-10)',
-                  border: 'none',
-                  borderRadius: 'var(--r-sm)',
-                  padding: '9px 20px',
-                  cursor: canContinue && !savingQuestions && !creatingDraft ? 'pointer' : 'not-allowed',
-                }}
-              >
-                {creatingDraft ? 'Creating draft…' : savingQuestions ? 'Saving…' : stepIdx === steps.length - 1 ? 'Submit' : 'Continue →'}
-              </button>
+              {currentStep.id !== 'preview' ? (
+                <button
+                  onClick={goNext}
+                  disabled={!canContinue || savingQuestions || creatingDraft}
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: 'white',
+                    background: canContinue && !savingQuestions && !creatingDraft ? 'var(--sage)' : 'var(--ink-10)',
+                    border: 'none',
+                    borderRadius: 'var(--r-sm)',
+                    padding: '9px 20px',
+                    cursor: canContinue && !savingQuestions && !creatingDraft ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  {creatingDraft ? 'Creating draft…' : savingQuestions ? 'Saving…' : stepIdx === steps.length - 1 ? 'Done' : 'Continue →'}
+                </button>
+              ) : null}
             </div>
           </div>
         </div>

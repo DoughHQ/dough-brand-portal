@@ -1,6 +1,22 @@
 import { createServerSupabaseClient as createClient } from '@/lib/supabase-server'
 import { createServerSupabaseClient } from './supabase-server'
 import { MISSION_TYPE_MAP } from '@/lib/ihut/constants'
+import {
+  parseCreateCampaignDraftResult,
+  parsePreviewMissionFeasibility,
+  parsePublishSuccess,
+  PublishError,
+  type CreateCampaignDraftResult,
+  type PreviewMissionFeasibility,
+  type PublishMissionResult,
+} from '@/lib/ihut/missionPublish'
+
+export type {
+  CreateCampaignDraftResult,
+  PreviewMissionFeasibility,
+  PreviewPanelMember,
+  PublishMissionResult,
+} from '@/lib/ihut/missionPublish'
 
 export type PortalUser = {
   portal_user_id: string
@@ -212,7 +228,7 @@ export async function getPortalUser(): Promise<PortalUser | null> {
     .eq('status', 'active')
     .is('deleted_at', null)
     .single()
-  return data
+  return data as PortalUser | null
 }
 
 export async function getBrand(brandId: number): Promise<Brand | null> {
@@ -243,7 +259,8 @@ export async function getBrand(brandId: number): Promise<Brand | null> {
     `)
     .eq('brand_id', brandId)
     .single()
-  return data
+  if (!data) return null
+  return { ...data, has_portal_access: data.has_portal_access ?? false } as Brand
 }
 
 export async function getSubscription(brandId: number): Promise<BrandSubscription | null> {
@@ -253,7 +270,7 @@ export async function getSubscription(brandId: number): Promise<BrandSubscriptio
     .select('*')
     .eq('brand_id', brandId)
     .single()
-  return data
+  return data as BrandSubscription | null
 }
 
 export async function getBrandSnapshot(brandId: number): Promise<BrandSnapshot | null> {
@@ -264,7 +281,7 @@ export async function getBrandSnapshot(brandId: number): Promise<BrandSnapshot |
     .eq('brand_id', brandId)
     .eq('is_current', true)
     .single()
-  return data
+  return data as BrandSnapshot | null
 }
 
 export async function getBrandSnapshotHistory(
@@ -280,7 +297,7 @@ export async function getBrandSnapshotHistory(
     .eq('brand_id', brandId)
     .gte('snapshot_date', since.toISOString().split('T')[0])
     .order('snapshot_date', { ascending: true })
-  return data ?? []
+  return (data ?? []) as { snapshot_date: string; weighted_elo_score: number }[]
 }
 
 export async function getProductIntelligence(
@@ -296,7 +313,7 @@ export async function getProductIntelligence(
     .eq('is_current', true)
     .in('product_id', claimedProductIds)
     .order('global_elo_score', { ascending: false })
-  return data ?? []
+  return (data ?? []) as unknown as ProductIntelligence[]
 }
 
 export async function getAllBrandProducts(brandId: number) {
@@ -443,7 +460,7 @@ export async function getCompetitiveSnapshot(
     .order('computed_at', { ascending: false })
     .limit(1)
     .single()
-  return data
+  return data as unknown as CompetitiveSnapshot | null
 }
 
 export function generateNarrative(
@@ -686,6 +703,114 @@ export async function getMilestoneAlerts(): Promise<MilestoneAlert[]> {
 // IHUT / campaign
 // ---------------------------------------------------------------------------
 
+export type MissionTemplateSlot = {
+  question_type_code: string
+  position: number
+}
+
+export type MissionTemplate = {
+  id: string
+  code: string
+  name: string
+  tagline: string | null
+  description: string | null
+  price_cents: number
+  display_order: number | null
+  mission_type: string
+  /** Session 1 question_type_code chain, ordered by position. */
+  session1_chain: string[]
+  /** Session 2 chain when present (e.g. loyalty). */
+  session2_chain: string[]
+  /** Hours before session 2 may start; null when single-session. */
+  session2_min_hours_after_prev: number | null
+}
+
+type SlotRow = { question_type_code: string; position: number }
+type SessionEmbed = {
+  id: string
+  min_hours_after_prev: number | null
+  question_slots: SlotRow[] | null
+} | null
+
+function chainFromSession(session: SessionEmbed): string[] {
+  const slots = session?.question_slots ?? []
+  return [...slots]
+    .sort((a, b) => a.position - b.position)
+    .map((s) => s.question_type_code)
+}
+
+/**
+ * Published mission templates with protocol shape from question_slots.
+ * SELECT-able by authenticated for published templates — no service role.
+ */
+export async function fetchPublishedMissionTemplates(): Promise<MissionTemplate[]> {
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase
+    .from('mission_templates')
+    .select(
+      `
+      id,
+      code,
+      name,
+      tagline,
+      description,
+      price_cents,
+      display_order,
+      mission_type,
+      session_1_template_id,
+      session_2_template_id,
+      session_1:session_templates!mission_templates_session_1_template_id_fkey (
+        id,
+        min_hours_after_prev,
+        question_slots ( question_type_code, position )
+      ),
+      session_2:session_templates!mission_templates_session_2_template_id_fkey (
+        id,
+        min_hours_after_prev,
+        question_slots ( question_type_code, position )
+      )
+    `
+    )
+    .eq('is_published', true)
+    .order('display_order', { ascending: true })
+
+  if (error) {
+    console.error('fetchPublishedMissionTemplates error:', error)
+    return []
+  }
+
+  type TemplateRow = {
+    id: string
+    code: string
+    name: string
+    tagline: string | null
+    description: string | null
+    price_cents: number | null
+    display_order: number | null
+    mission_type: string
+    session_1: SessionEmbed | SessionEmbed[]
+    session_2: SessionEmbed | SessionEmbed[]
+  }
+
+  return ((data ?? []) as unknown as TemplateRow[]).map((row) => {
+    const s1 = (Array.isArray(row.session_1) ? row.session_1[0] : row.session_1) as SessionEmbed
+    const s2 = (Array.isArray(row.session_2) ? row.session_2[0] : row.session_2) as SessionEmbed
+    return {
+      id: row.id,
+      code: row.code,
+      name: row.name,
+      tagline: row.tagline,
+      description: row.description,
+      price_cents: row.price_cents ?? 0,
+      display_order: row.display_order,
+      mission_type: row.mission_type,
+      session1_chain: chainFromSession(s1),
+      session2_chain: chainFromSession(s2),
+      session2_min_hours_after_prev: s2?.min_hours_after_prev ?? null,
+    }
+  })
+}
+
 export type QuestionType = {
   code: string
   display_name: string
@@ -702,9 +827,9 @@ export type ProtocolQuestionRow = {
   session_number: number
   position: number
   label: string | null
-  config: object
+  config: import('@/lib/database.types').Json
   selection_strategy: string | null
-  selection_config: object
+  selection_config: import('@/lib/database.types').Json
   is_required: boolean
 }
 
@@ -768,7 +893,9 @@ export async function searchChallengerProducts(
   limit = 20
 ): Promise<ChallengerProductResult[]> {
   const supabase = await createServerSupabaseClient()
-  let builder = supabase
+  // Nested brand join blows TS recursion depth under Database generics.
+  const client = supabase as any
+  let builder = client
     .from('products')
     .select('product_id, product_name_display, brand_id, total_battles, brands!inner(brand_name)')
     .neq('brand_id', excludeBrandId)
@@ -859,9 +986,9 @@ export type MissionWizardDraft = {
     session_number: 1 | 2
     position: number
     label: string | null
-    config: object
+    config: import('@/lib/database.types').Json
     selection_strategy: string | null
-    selection_config: object
+    selection_config: import('@/lib/database.types').Json
     is_required: boolean
   }>
 }
@@ -924,7 +1051,7 @@ export async function getMissionWizardDraft(
   if (!missionType) return null
 
   return {
-    campaignId: mission.brand_campaign_id,
+    campaignId: mission.brand_campaign_id ?? '',
     missionId: mission.id,
     protocolId: protocol.id,
     missionType,
@@ -962,9 +1089,9 @@ export async function getEligiblePool(
 ): Promise<number> {
   const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase.rpc('count_eligible_users', {
-    p_target_states: states,
-    p_new_to_brand_id: newToBrandId,
-    p_taxonomy_node_id: taxonomyNodeId,
+    p_target_states: states ?? undefined,
+    p_new_to_brand_id: newToBrandId ?? undefined,
+    p_taxonomy_node_id: taxonomyNodeId ?? undefined,
   })
   if (error) console.error('getEligiblePool error:', error)
   return typeof data === 'number' ? data : 0
@@ -987,16 +1114,32 @@ export async function createCampaignDraft(
   wizardStudyType: 'discovery' | 'positioning' | 'head_to_head',
   focalProductId: number,
   taxonomyNodeId: number,
-  sessionCount: 1 | 2 = 2
-): Promise<{ campaignId: string; missionId: string; protocolId: string }> {
+  sessionCount: 1 | 2 = 2,
+  campaignName = 'Draft campaign'
+): Promise<CreateCampaignDraftResult> {
   const supabase = await createServerSupabaseClient()
 
   const now = new Date()
   const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
 
-  const rpcParams: Record<string, unknown> = {
+  // Campaign-only mint. Mission is born later via publish_mission_from_template.
+  // Legacy args (mission title/type/product) remain for RPC signature compatibility;
+  // the function must return mission_id: null and insert no missions row.
+  const rpcParams: {
+    p_brand_id: number
+    p_campaign_name: string
+    p_mission_title: string
+    p_mission_type: string
+    p_operator_type: string
+    p_product_id: number
+    p_taxonomy_node_id: number
+    p_session_count: number
+    p_starts_at: string
+    p_expires_at: string
+    p_session2_interval_hours?: number
+  } = {
     p_brand_id: brandId,
-    p_campaign_name: 'Draft campaign',
+    p_campaign_name: campaignName,
     p_mission_title: 'Draft',
     p_mission_type: MISSION_TYPE_MAP[wizardStudyType],
     p_operator_type: 'brand',
@@ -1013,12 +1156,57 @@ export async function createCampaignDraft(
   const { data, error } = await supabase.rpc('create_campaign_draft', rpcParams)
   if (error) throw new Error(error.message)
 
-  const result = data as { campaign_id: string; mission_id: string; protocol_id: string }
-  return {
-    campaignId: String(result.campaign_id),
-    missionId: String(result.mission_id),
-    protocolId: String(result.protocol_id),
+  return parseCreateCampaignDraftResult(data)
+}
+
+export async function previewMissionFeasibility(
+  focalProductId: number,
+  templateId: string
+): Promise<PreviewMissionFeasibility> {
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase.rpc('preview_mission_feasibility', {
+    p_focal_product_id: focalProductId,
+    p_template_id: templateId,
+  })
+  // Raises TEMPLATE_NOT_FOUND / TEMPLATE_NOT_PUBLISHED / NOT_A_BRAND_PORTAL_USER.
+  // runnable:false is a normal success payload — not an error channel.
+  if (error) throw new PublishError(error.hint ?? error.message, error.code, error.hint)
+  return parsePreviewMissionFeasibility(data)
+}
+
+export async function publishMissionFromTemplate(params: {
+  brandCampaignId: string
+  createdBy: string
+  focalProductId: number
+  nodeId: number
+  templateId: string
+  titleOverride?: string
+  expiresAt?: string
+}): Promise<PublishMissionResult> {
+  const supabase = await createServerSupabaseClient()
+  const rpcParams: {
+    p_brand_campaign_id: string
+    p_created_by: string
+    p_focal_product_id: number
+    p_node_id: number
+    p_template_id: string
+    p_title_override?: string
+    p_expires_at?: string
+  } = {
+    p_brand_campaign_id: params.brandCampaignId,
+    p_created_by: params.createdBy,
+    p_focal_product_id: params.focalProductId,
+    p_node_id: params.nodeId,
+    p_template_id: params.templateId,
   }
+  // Omit optional keys — PostgREST drops undefined; explicit null breaks overload resolution.
+  if (params.titleOverride) rpcParams.p_title_override = params.titleOverride
+  if (params.expiresAt) rpcParams.p_expires_at = params.expiresAt
+
+  const { data, error } = await supabase.rpc('publish_mission_from_template', rpcParams)
+  // ONE error channel: PostgREST `error`. Every failure raises — no data.error branch.
+  if (error) throw new PublishError(error.hint ?? error.message, error.code, error.hint)
+  return parsePublishSuccess(data)
 }
 
 export async function upsertProtocolQuestions(
@@ -1039,14 +1227,14 @@ export async function upsertProtocolQuestions(
   if (brandQuestions.length) {
     const { error: insertError } = await supabase
       .from('protocol_questions')
-      .insert(brandQuestions)
+      .insert(brandQuestions as never)
     if (insertError) throw new Error('Failed to insert protocol questions: ' + insertError.message)
   }
 
   if (spineQuestions.length) {
     const { error: spineError } = await supabase
       .from('protocol_questions')
-      .upsert(spineQuestions, { ignoreDuplicates: true })
+      .upsert(spineQuestions as never, { ignoreDuplicates: true })
     if (spineError) console.error('upsertProtocolQuestions spine error:', spineError)
   }
 }

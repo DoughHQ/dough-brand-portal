@@ -10,12 +10,22 @@ import {
   upsertProtocolQuestions,
   getBrandMissions,
   getMissionWizardDraft,
+  previewMissionFeasibility,
+  publishMissionFromTemplate,
   type QuestionType,
   type ProtocolQuestionRow,
   type ChallengerProductResult,
   type BrandMissionListItem,
   type MissionWizardDraft,
+  type CreateCampaignDraftResult,
+  type PreviewMissionFeasibility,
+  type PublishMissionResult,
 } from '@/lib/queries'
+import {
+  extractRpcErrorCode,
+  humanizeRpcError,
+  PublishError,
+} from '@/lib/ihut/missionPublish'
 
 export async function getEligiblePoolAction(
   states: string[] | null,
@@ -51,8 +61,65 @@ export async function createCampaignDraftAction(
   wizardStudyType: 'discovery' | 'positioning' | 'head_to_head',
   focalProductId: number,
   taxonomyNodeId: number
-): Promise<{ campaignId: string; missionId: string; protocolId: string }> {
+): Promise<CreateCampaignDraftResult> {
   return createCampaignDraft(brandId, portalUserAuthUid, wizardStudyType, focalProductId, taxonomyNodeId)
+}
+
+export type PreviewActionResult =
+  | { ok: true; preview: PreviewMissionFeasibility }
+  | { ok: false; error: string }
+
+export async function previewMissionFeasibilityAction(
+  focalProductId: number,
+  templateId: string
+): Promise<PreviewActionResult> {
+  try {
+    const preview = await previewMissionFeasibility(focalProductId, templateId)
+    return { ok: true, preview }
+  } catch (err) {
+    if (err instanceof PublishError) {
+      return {
+        ok: false,
+        error: humanizeRpcError(err.hint, err.message),
+      }
+    }
+    return {
+      ok: false,
+      error: humanizeRpcError(null, err instanceof Error ? err.message : String(err)),
+    }
+  }
+}
+
+export type PublishActionResult =
+  | { ok: true; result: PublishMissionResult }
+  | { ok: false; error: string; code: string | null }
+
+export async function publishMissionFromTemplateAction(params: {
+  brandCampaignId: string
+  createdBy: string
+  focalProductId: number
+  nodeId: number
+  templateId: string
+  titleOverride?: string
+}): Promise<PublishActionResult> {
+  try {
+    const result = await publishMissionFromTemplate(params)
+    return { ok: true, result }
+  } catch (err) {
+    if (err instanceof PublishError) {
+      return {
+        ok: false,
+        error: humanizeRpcError(err.hint, err.message),
+        code: extractRpcErrorCode(err.hint, err.message) ?? err.code,
+      }
+    }
+    const message = err instanceof Error ? err.message : String(err)
+    return {
+      ok: false,
+      error: humanizeRpcError(null, message),
+      code: extractRpcErrorCode(null, message),
+    }
+  }
 }
 
 export async function upsertProtocolQuestionsAction(

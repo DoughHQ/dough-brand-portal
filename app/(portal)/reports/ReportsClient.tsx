@@ -70,8 +70,11 @@ export default function ReportsClient({ portalUser, brand, subscription, isAdmin
         .eq('is_suppressed', false)
         .then(({ data }) => {
           const parentIds = new Set<number>()
-          ;(data ?? []).forEach((row: { taxonomy_nodes?: { parent_taxonomy_node_id?: number } | { parent_taxonomy_node_id?: number }[] | null }) => {
-            const nodes = row.taxonomy_nodes
+          ;(data ?? []).forEach((row) => {
+            const nodes = row.taxonomy_nodes as
+              | { parent_taxonomy_node_id?: number | null }
+              | { parent_taxonomy_node_id?: number | null }[]
+              | null
             const parentId = Array.isArray(nodes) ? nodes[0]?.parent_taxonomy_node_id : nodes?.parent_taxonomy_node_id
             if (parentId) parentIds.add(Number(parentId))
           })

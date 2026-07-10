@@ -1,3 +1,5 @@
+import type { Json } from '@/lib/database.types'
+
 // BrandQuestion represents a user-added protocol question in the wizard draft.
 // _id is a local React key only; it is stripped before persisting to protocol_questions.
 export type BrandQuestion = {
@@ -6,9 +8,9 @@ export type BrandQuestion = {
   session_number: 1 | 2
   position: number
   label: string | null
-  config: object
+  config: Json
   selection_strategy: string | null
-  selection_config: object
+  selection_config: Json
   is_required: boolean
 }
 
@@ -19,6 +21,10 @@ export type CampaignDraft = {
   protocolId: string | null
 
   missionType: 'discovery' | 'positioning' | 'head_to_head' | null
+  /** Resolved from mission_templates for commissioned studies; null for snapshot placeholders. */
+  missionTemplateId: string | null
+  /** Local menu key for the chosen product (snapshot tier id or template code). */
+  menuProductKey: string | null
   focalProductId: string | null
   focalProductTaxonomyNodeId: number | null
   focalProductName: string | null

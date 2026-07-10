@@ -1,14 +1,15 @@
 'use server'
 
 import { getPortalUser, createCampaignDraft, validateCommissionProduct } from '@/lib/queries'
+import type { CreateCampaignDraftResult } from '@/lib/ihut/missionPublish'
 
 export type CommissionDraftResult =
-  | { ok: true; campaignId: string; missionId: string; protocolId: string }
+  | ({ ok: true } & CreateCampaignDraftResult)
   | { ok: false; error: string }
 
 /**
  * Operator commission path — dough_admin only, explicit brandId, no impersonation.
- * Records created_by via RPC (auth.uid()).
+ * Records created_by via RPC (auth.uid()). Does not mint a mission — publish does.
  */
 export async function commissionCampaignDraftAction(
   brandId: number,

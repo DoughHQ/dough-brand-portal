@@ -132,7 +132,7 @@ function InlineEditLink({
 
   async function save() {
     setSaving(true)
-    await supabase.from('brands').update({ [field]: draft || null, updated_at: new Date().toISOString() }).eq('brand_id', brandId)
+    await supabase.from('brands').update({ [field]: draft || null, updated_at: new Date().toISOString() } as never).eq('brand_id', brandId)
     setSaving(false)
     onChange(draft)
     setEditing(false)
@@ -210,7 +210,7 @@ function InlineEditText({
   async function save() {
     setSaving(true)
     const val = field === 'founded_year' ? (parseInt(draft) || null) : (draft || null)
-    await supabase.from('brands').update({ [field]: val, updated_at: new Date().toISOString() }).eq('brand_id', brandId)
+    await supabase.from('brands').update({ [field]: val, updated_at: new Date().toISOString() } as never).eq('brand_id', brandId)
     setSaving(false)
     setEditing(false)
   }
@@ -321,7 +321,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
     setSaveError(null)
     const { error } = await supabase
       .from('brands')
-      .update({ [field]: value || null, updated_at: new Date().toISOString() })
+      .update({ [field]: value || null, updated_at: new Date().toISOString() } as never)
       .eq('brand_id', brand.brand_id)
     setSaving(false)
     if (error) setSaveError('Save failed. Try again.')

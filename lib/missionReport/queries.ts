@@ -1,10 +1,18 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { BrandMissionReportResult } from './types'
 
+/** Portal report RPCs not yet in regenerated database.types.ts Functions block. */
+type ReportRpcClient = {
+  rpc(
+    fn: 'get_brand_mission_report' | 'refresh_brand_mission_report',
+    args: { p_mission_id: string }
+  ): Promise<{ data: unknown; error: { message: string } | null }>
+}
+
 export async function getBrandMissionReport(
   missionId: string
 ): Promise<BrandMissionReportResult> {
-  const supabase = await createServerSupabaseClient()
+  const supabase = (await createServerSupabaseClient()) as unknown as ReportRpcClient
   const { data, error } = await supabase.rpc('get_brand_mission_report', {
     p_mission_id: missionId,
   })
@@ -13,7 +21,7 @@ export async function getBrandMissionReport(
 }
 
 export async function refreshBrandMissionReport(missionId: string): Promise<unknown> {
-  const supabase = await createServerSupabaseClient()
+  const supabase = (await createServerSupabaseClient()) as unknown as ReportRpcClient
   const { data, error } = await supabase.rpc('refresh_brand_mission_report', {
     p_mission_id: missionId,
   })
@@ -31,9 +39,5 @@ export async function getFocalProductDisplayName(
     .eq('product_id', productId)
     .maybeSingle()
   if (!data) return null
-  return (
-    (data as { product_name_short?: string | null }).product_name_short ??
-    (data as { product_name_display?: string | null }).product_name_display ??
-    null
-  )
+  return data.product_name_short ?? data.product_name_display ?? null
 }

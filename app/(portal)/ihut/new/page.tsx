@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getBrand, getMissionWizardDraft } from '@/lib/queries'
+import { getBrand, getMissionWizardDraft, fetchPublishedMissionTemplates } from '@/lib/queries'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import IhutWizardClient from '../IhutWizardClient'
 
@@ -28,12 +28,15 @@ export default async function IhutNewPage({ searchParams }: PageProps) {
 
   if (missionId && !resumedDraft) redirect('/ihut')
 
+  const missionTemplates = await fetchPublishedMissionTemplates()
+
   return (
     <IhutWizardClient
       portalUser={portalUser}
       brand={brand}
       isImpersonating={isImpersonating}
       resumedDraft={resumedDraft}
+      missionTemplates={missionTemplates}
     />
   )
 }

@@ -3,6 +3,7 @@ import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import {
   getBrand,
   getMissionWizardDraft,
+  fetchPublishedMissionTemplates,
   validateCommissionProduct,
   type ValidatedCommissionProduct,
 } from '@/lib/queries'
@@ -53,6 +54,8 @@ export default async function AdminStudiesNewPage({ searchParams }: PageProps) {
     if (!serverValidatedProduct) notFound()
   }
 
+  const missionTemplates = await fetchPublishedMissionTemplates()
+
   return (
     <IhutWizardClient
       portalUser={portalUser}
@@ -60,6 +63,7 @@ export default async function AdminStudiesNewPage({ searchParams }: PageProps) {
       operatorMode
       serverValidatedProduct={serverValidatedProduct}
       resumedDraft={resumedDraft}
+      missionTemplates={missionTemplates}
     />
   )
 }
