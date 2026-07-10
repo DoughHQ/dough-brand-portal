@@ -32766,6 +32766,27 @@ export type Database = {
         Args: { p_product_id: number }
         Returns: boolean
       }
+      list_operator_studies: {
+        Args: {
+          p_brand_id?: number | null
+          p_include_finished?: boolean
+        }
+        Returns: {
+          brand_id: number | null
+          brand_name: string | null
+          completed_claims: number
+          created_at: string
+          expires_at: string | null
+          focal_product_id: number | null
+          focal_product_name: string | null
+          is_finished: boolean
+          mission_id: string
+          status: 'active' | 'archived' | 'expired' | 'paused'
+          template_code: string | null
+          title: string
+          total_claims: number
+        }[]
+      }
       log_session_entry: {
         Args: {
           p_body: string

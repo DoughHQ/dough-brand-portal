@@ -56,3 +56,20 @@ export type StudiesLoadResult =
       securityViolation: false
       error: string
     }
+
+/** Row from list_operator_studies — tenancy enforced server-side by the RPC. */
+export type OperatorStudyRow = {
+  mission_id: string
+  title: string
+  status: 'active' | 'archived' | 'expired' | 'paused'
+  is_finished: boolean
+  brand_id: number | null
+  brand_name: string | null
+  focal_product_id: number | null
+  focal_product_name: string | null
+  template_code: string | null
+  total_claims: number
+  completed_claims: number
+  created_at: string
+  expires_at: string | null
+}
