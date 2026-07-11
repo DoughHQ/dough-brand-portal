@@ -101,6 +101,7 @@ export async function publishMissionFromTemplateAction(params: {
   nodeId: number
   templateId: string
   titleOverride?: string
+  targetCompletions?: number
 }): Promise<PublishActionResult> {
   try {
     const result = await publishMissionFromTemplate(params)

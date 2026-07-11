@@ -18,5 +18,15 @@ export async function getOperatorStudies(options?: {
 
   if (error) throw new Error(error.message)
 
-  return (data ?? []) as OperatorStudyRow[]
+  const rows = (data ?? []) as Array<Partial<OperatorStudyRow> & OperatorStudyRow>
+  // target_completions is optional until the RPC always returns it — never invent N.
+  return rows.map((row) => ({
+    ...row,
+    target_completions:
+      typeof row.target_completions === 'number' &&
+      Number.isFinite(row.target_completions) &&
+      row.target_completions > 0
+        ? row.target_completions
+        : null,
+  }))
 }

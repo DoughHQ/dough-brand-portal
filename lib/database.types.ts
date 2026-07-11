@@ -31812,6 +31812,10 @@ export type Database = {
         Returns: Json
       }
       claim_sku: { Args: { p_product_id: number }; Returns: Json }
+      close_study: {
+        Args: { p_mission_id: string }
+        Returns: Json
+      }
       classify_and_normalize_scan: {
         Args: { p_raw: string }
         Returns: {
@@ -32694,6 +32698,10 @@ export type Database = {
         Args: { p_product_id: number }
         Returns: boolean
       }
+      hard_delete_mission: {
+        Args: { p_mission_id: string }
+        Returns: Json
+      }
       hex_blend: {
         Args: { hex1: string; hex2: string; ratio: number }
         Returns: string
@@ -32781,7 +32789,28 @@ export type Database = {
           focal_product_name: string | null
           is_finished: boolean
           mission_id: string
-          status: 'active' | 'archived' | 'expired' | 'paused'
+          status: 'active' | 'archived' | 'expired' | 'paused' | 'completed'
+          target_completions?: number | null
+          template_code: string | null
+          title: string
+          total_claims: number
+        }[]
+      }
+      list_withdrawn_studies: {
+        Args: {
+          p_brand_id?: number | null
+        }
+        Returns: {
+          brand_id: number | null
+          brand_name: string | null
+          completed_claims: number
+          created_at: string
+          deleted_at: string
+          focal_product_id: number | null
+          focal_product_name: string | null
+          is_draft: boolean
+          mission_id: string
+          status: string
           template_code: string | null
           title: string
           total_claims: number
@@ -32920,6 +32949,7 @@ export type Database = {
           p_expires_at?: string
           p_focal_product_id: number
           p_node_id: number
+          p_target_completions?: number | null
           p_template_id: string
           p_title_override?: string
         }
@@ -33111,6 +33141,10 @@ export type Database = {
           resolution_source: string
           resolved_prompt_id: number
         }[]
+      }
+      restore_mission: {
+        Args: { p_mission_id: string }
+        Returns: Json
       }
       run_bayesian_batch: { Args: never; Returns: string }
       run_brand_intelligence_refresh: { Args: never; Returns: Json }
@@ -33578,6 +33612,10 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      withdraw_mission: {
+        Args: { p_mission_id: string }
+        Returns: Json
       }
     }
     Enums: {

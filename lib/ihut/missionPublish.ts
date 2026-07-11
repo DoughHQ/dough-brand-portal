@@ -60,6 +60,8 @@ export type PublishMissionResult = {
   panel: PreviewPanelMember[]
   battle_protocol_question_id?: string
   scoring_rounds?: number
+  /** Ordered completion count when set at publish. */
+  target_completions?: number | null
 }
 
 export type CreateCampaignDraftResult = {
@@ -83,6 +85,7 @@ export const RPC_ERROR_CODES = [
   'NOT_AUTHENTICATED',
   'NOT_AUTHORIZED',
   'FORBIDDEN',
+  'INVALID_TARGET_COMPLETIONS',
 ] as const
 
 export type RpcErrorCode = (typeof RPC_ERROR_CODES)[number]
@@ -217,6 +220,8 @@ export function humanizeRpcError(
       return 'You are not allowed to do that for this brand.'
     case 'NOT_AUTHENTICATED':
       return 'You need to sign in again.'
+    case 'INVALID_TARGET_COMPLETIONS':
+      return 'Enter at least 1 completion for this study.'
     default:
       return (hint ?? message)?.trim() || 'Something went wrong. Please try again.'
   }
@@ -281,6 +286,12 @@ export function parsePublishSuccess(data: unknown): PublishMissionResult {
   }
   if (typeof root.scoring_rounds === 'number' && Number.isFinite(root.scoring_rounds)) {
     result.scoring_rounds = root.scoring_rounds
+  }
+  if (
+    root.target_completions === null ||
+    (typeof root.target_completions === 'number' && Number.isFinite(root.target_completions))
+  ) {
+    result.target_completions = root.target_completions as number | null
   }
 
   return result

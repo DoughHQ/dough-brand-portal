@@ -1182,6 +1182,8 @@ export async function publishMissionFromTemplate(params: {
   templateId: string
   titleOverride?: string
   expiresAt?: string
+  /** Ordered completion count — backend delivers exactly this many. */
+  targetCompletions?: number
 }): Promise<PublishMissionResult> {
   const supabase = await createServerSupabaseClient()
   const rpcParams: {
@@ -1192,6 +1194,7 @@ export async function publishMissionFromTemplate(params: {
     p_template_id: string
     p_title_override?: string
     p_expires_at?: string
+    p_target_completions?: number
   } = {
     p_brand_campaign_id: params.brandCampaignId,
     p_created_by: params.createdBy,
@@ -1202,6 +1205,12 @@ export async function publishMissionFromTemplate(params: {
   // Omit optional keys — PostgREST drops undefined; explicit null breaks overload resolution.
   if (params.titleOverride) rpcParams.p_title_override = params.titleOverride
   if (params.expiresAt) rpcParams.p_expires_at = params.expiresAt
+  if (
+    typeof params.targetCompletions === 'number' &&
+    Number.isFinite(params.targetCompletions)
+  ) {
+    rpcParams.p_target_completions = params.targetCompletions
+  }
 
   const { data, error } = await supabase.rpc('publish_mission_from_template', rpcParams)
   // ONE error channel: PostgREST `error`. Every failure raises — no data.error branch.

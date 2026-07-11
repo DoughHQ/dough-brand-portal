@@ -1,6 +1,6 @@
 'use client'
 
-import { useReducer, useState, useEffect, useCallback } from 'react'
+import { useReducer, useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import type {
   PortalUser,
@@ -23,6 +23,11 @@ import {
   REQUIRED_QUESTION_CODES,
   H2H_REQUIRED_QUESTION_CODES,
   MAX_BRAND_QUESTIONS_PER_SESSION,
+  TEMPLATE_DEFAULT_COMPLETIONS,
+  minTemplateCompletions,
+  ENFORCE_TEMPLATE_COMPLETIONS_FLOOR,
+  TEMPLATE_COMPLETIONS_SOFT_FLOOR,
+  TEMPLATE_COMPLETIONS_ABSOLUTE_MIN,
 } from '@/lib/ihut/constants'
 import {
   getEligiblePoolAction,
@@ -49,6 +54,7 @@ type StepId =
   | 'targeting'
   | 'questions'
   | 'preview'
+  | 'completions'
   | 'review'
 
 type Step = { id: StepId; label: string }
@@ -214,7 +220,8 @@ function buildSteps(
     return [
       { id: 'study_type', label: 'Study type' },
       { id: 'product', label: 'Product' },
-      { id: 'preview', label: 'Preview & publish' },
+      { id: 'preview', label: 'Preview' },
+      { id: 'completions', label: 'Completions' },
     ]
   }
 
@@ -1071,53 +1078,80 @@ function StepPreviewPublish({
   brandId,
   authUid,
   operatorMode,
+  mode,
+  onReadyChange,
+  initialPreview = null,
+  onPreviewCached,
 }: {
   draft: CampaignDraft
   dispatch: React.Dispatch<Action>
   brandId: number
   authUid: string
   operatorMode: boolean
+  mode: 'preview' | 'completions'
+  onReadyChange?: (ready: boolean) => void
+  /** Cached feasibility from the Preview step — skip re-fetch when present. */
+  initialPreview?: PreviewMissionFeasibility | null
+  onPreviewCached?: (preview: PreviewMissionFeasibility | null) => void
 }) {
-  const [preview, setPreview] = useState<PreviewMissionFeasibility | null>(null)
-  const [previewLoading, setPreviewLoading] = useState(true)
+  const [preview, setPreview] = useState<PreviewMissionFeasibility | null>(initialPreview)
+  const [previewLoading, setPreviewLoading] = useState(initialPreview == null)
   const [previewError, setPreviewError] = useState<string | null>(null)
   const [publishing, setPublishing] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [publishedPanel, setPublishedPanel] = useState<PreviewPanelMember[] | null>(null)
   const [publishedMissionId, setPublishedMissionId] = useState<string | null>(null)
   const [publishedPanelSize, setPublishedPanelSize] = useState<number | null>(null)
+  const [completionsInput, setCompletionsInput] = useState(
+    String(draft.targetCompletions || TEMPLATE_DEFAULT_COMPLETIONS)
+  )
 
   const templateId = draft.missionTemplateId
   const focalId = draft.focalProductId ? parseInt(draft.focalProductId, 10) : NaN
   const nodeId = draft.focalProductTaxonomyNodeId
+  const minCompletions = minTemplateCompletions()
 
   useEffect(() => {
+    if (initialPreview) {
+      setPreview(initialPreview)
+      setPreviewLoading(false)
+      setPreviewError(null)
+      onReadyChange?.(initialPreview.runnable === true)
+      return
+    }
+
     if (!templateId || !Number.isFinite(focalId)) {
       setPreviewLoading(false)
       setPreviewError('Pick a study type and focal product first.')
+      onReadyChange?.(false)
+      onPreviewCached?.(null)
       return
     }
 
     let cancelled = false
     setPreviewLoading(true)
     setPreviewError(null)
-    setPublishedPanel(null)
-    setPublishedMissionId(null)
-    setPublishedPanelSize(null)
-
     previewMissionFeasibilityAction(focalId, templateId)
       .then((result) => {
         if (cancelled) return
         if (!result.ok) {
           setPreview(null)
           setPreviewError(result.error)
+          onReadyChange?.(false)
+          onPreviewCached?.(null)
           return
         }
         setPreview(result.preview)
+        setPreviewError(null)
+        onReadyChange?.(result.preview.runnable === true)
+        onPreviewCached?.(result.preview)
       })
       .catch((err) => {
         if (cancelled) return
+        setPreview(null)
         setPreviewError(err instanceof Error ? err.message : 'Preview failed')
+        onReadyChange?.(false)
+        onPreviewCached?.(null)
       })
       .finally(() => {
         if (!cancelled) setPreviewLoading(false)
@@ -1126,7 +1160,28 @@ function StepPreviewPublish({
     return () => {
       cancelled = true
     }
-  }, [templateId, focalId])
+  }, [templateId, focalId, onReadyChange, initialPreview, onPreviewCached])
+
+  useEffect(() => {
+    setCompletionsInput(String(draft.targetCompletions || TEMPLATE_DEFAULT_COMPLETIONS))
+  }, [draft.targetCompletions])
+
+  const parsedCompletions = (() => {
+    const n = parseInt(completionsInput, 10)
+    return Number.isFinite(n) ? n : NaN
+  })()
+  const completionsValid =
+    Number.isFinite(parsedCompletions) &&
+    parsedCompletions >= minCompletions &&
+    parsedCompletions <= MAX_COMPLETIONS
+
+  function commitCompletions(raw: string) {
+    setCompletionsInput(raw)
+    const n = parseInt(raw, 10)
+    if (!Number.isFinite(n)) return
+    const clamped = Math.min(MAX_COMPLETIONS, Math.max(minCompletions, n))
+    dispatch({ type: 'PATCH', patch: { targetCompletions: clamped } })
+  }
 
   async function mintCampaignIfNeeded(): Promise<string | null> {
     if (draft.campaignId) return draft.campaignId
@@ -1178,11 +1233,22 @@ function StepPreviewPublish({
   /** One CTA: create campaign (if needed) then publish. Retry skips re-mint. */
   async function handlePublishStudy() {
     if (!templateId || !Number.isFinite(focalId) || !nodeId) return
+    if (!completionsValid) {
+      setActionError(
+        ENFORCE_TEMPLATE_COMPLETIONS_FLOOR
+          ? `Enter at least ${TEMPLATE_COMPLETIONS_SOFT_FLOOR} completions.`
+          : 'Enter at least 1 completion.'
+      )
+      return
+    }
     setPublishing(true)
     setActionError(null)
     try {
       const campaignId = await mintCampaignIfNeeded()
       if (!campaignId) return
+
+      const targetCompletions = parsedCompletions
+      dispatch({ type: 'PATCH', patch: { targetCompletions } })
 
       const result = await publishMissionFromTemplateAction({
         brandCampaignId: campaignId,
@@ -1193,6 +1259,7 @@ function StepPreviewPublish({
         titleOverride: draft.focalProductName
           ? `${draft.focalProductName} study`
           : undefined,
+        targetCompletions,
       })
       if (!result.ok) {
         setActionError(result.error)
@@ -1221,7 +1288,7 @@ function StepPreviewPublish({
     )
   }
 
-  if (publishedMissionId) {
+  if (publishedMissionId && mode === 'completions') {
     return (
       <div>
         <div style={{ marginBottom: 28 }}>
@@ -1244,6 +1311,9 @@ function StepPreviewPublish({
           }}
         >
           Locked · {publishedPanelSize ?? publishedPanel?.length ?? 0} products
+          {draft.targetCompletions
+            ? ` · ${draft.targetCompletions} completions commissioned`
+            : ''}
         </div>
         <div style={{ marginBottom: 10, fontSize: 11, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-30)' }}>
           Your locked panel
@@ -1271,7 +1341,6 @@ function StepPreviewPublish({
               setPublishedPanel(null)
               setPublishedPanelSize(null)
               setActionError(null)
-              // Keep campaignId — next publish adds another mission to this campaign.
               if (templateId && Number.isFinite(focalId)) {
                 setPreviewLoading(true)
                 previewMissionFeasibilityAction(focalId, templateId)
@@ -1332,11 +1401,172 @@ function StepPreviewPublish({
   const infeasible = preview != null && !preview.runnable
   const addingToExisting = Boolean(draft.campaignId)
 
+  if (mode === 'completions') {
+    return (
+      <div>
+        <div style={{ marginBottom: 28 }}>
+          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 400, color: 'var(--ink)', marginBottom: 6 }}>
+            Completions
+          </h2>
+          <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55 }}>
+            How many verified completions are you ordering? Dough will close the study when this
+            count is reached.
+          </p>
+        </div>
+
+        <label style={{ display: 'block', marginBottom: 20 }}>
+          <span
+            style={{
+              display: 'block',
+              fontSize: 11,
+              fontWeight: 500,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-30)',
+              marginBottom: 8,
+            }}
+          >
+            Ordered completions
+          </span>
+          <input
+            type="number"
+            min={minCompletions}
+            max={MAX_COMPLETIONS}
+            step={1}
+            value={completionsInput}
+            onChange={(e) => commitCompletions(e.target.value)}
+            style={{
+              width: '100%',
+              maxWidth: 200,
+              fontSize: 22,
+              fontFamily: 'var(--font-serif)',
+              color: 'var(--ink)',
+              background: 'var(--white)',
+              border: '1px solid var(--ink-10)',
+              borderRadius: 'var(--r-sm)',
+              padding: '12px 14px',
+            }}
+          />
+          <span style={{ display: 'block', marginTop: 8, fontSize: 12, color: 'var(--ink-30)' }}>
+            Minimum {minCompletions}
+            {ENFORCE_TEMPLATE_COMPLETIONS_FLOOR ? '' : ' · enter the number of verified completions you want'}.
+          </span>
+        </label>
+
+        <div
+          style={{
+            background: 'var(--white)',
+            border: '1px solid var(--ink-10)',
+            borderRadius: 'var(--r-md)',
+            padding: '20px 22px',
+            marginBottom: 24,
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+              <span style={{ color: 'var(--ink-50)' }}>Focal product</span>
+              <span style={{ color: 'var(--ink)', fontWeight: 500 }}>
+                {draft.focalProductName ?? '—'}
+              </span>
+            </div>
+            {preview?.protocol.panel_size_required != null ? (
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <span style={{ color: 'var(--ink-50)' }}>Panel size</span>
+                <span style={{ color: 'var(--ink)', fontWeight: 500 }}>
+                  {preview.protocol.panel_size_required}
+                </span>
+              </div>
+            ) : null}
+            <div
+              style={{
+                borderTop: '1px solid var(--ink-10)',
+                paddingTop: 12,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+              }}
+            >
+              <span style={{ fontSize: 14, color: 'var(--ink)', fontWeight: 500 }}>
+                Order quantity
+              </span>
+              <span
+                style={{
+                  fontSize: 22,
+                  fontFamily: 'var(--font-serif)',
+                  fontWeight: 600,
+                  color: 'var(--ink)',
+                }}
+              >
+                {completionsValid ? parsedCompletions : '—'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {actionError ? (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: '12px 14px',
+              background: '#FCEDED',
+              border: '1px solid rgba(180,60,60,0.25)',
+              borderRadius: 'var(--r-sm)',
+              fontSize: 13,
+              color: '#8B2E2E',
+            }}
+          >
+            {actionError}
+          </div>
+        ) : null}
+
+        {addingToExisting ? (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: '12px 14px',
+              background: 'var(--surface-1)',
+              borderRadius: 'var(--r-sm)',
+              fontSize: 13,
+              color: 'var(--ink-50)',
+            }}
+          >
+            Adding to existing campaign · {draft.campaignId!.slice(0, 8)}…
+          </div>
+        ) : null}
+
+        <button
+          type="button"
+          onClick={() => void handlePublishStudy()}
+          disabled={!runnable || !completionsValid || publishing}
+          style={{
+            width: '100%',
+            fontSize: 15,
+            fontWeight: 500,
+            color: runnable && completionsValid && !publishing ? 'white' : 'var(--ink-30)',
+            background:
+              runnable && completionsValid && !publishing ? 'var(--sage)' : 'var(--surface-1)',
+            border: '1px solid var(--ink-10)',
+            borderRadius: 'var(--r-sm)',
+            padding: '14px 20px',
+            cursor:
+              runnable && completionsValid && !publishing ? 'pointer' : 'not-allowed',
+          }}
+        >
+          {publishing
+            ? 'Publishing…'
+            : addingToExisting
+              ? 'Publish study to this campaign'
+              : 'Publish study'}
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
         <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 400, color: 'var(--ink)', marginBottom: 6 }}>
-          Preview & publish
+          Preview
         </h2>
         <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55 }}>
           This is exactly what participants will experience. No setup required.
@@ -1419,62 +1649,6 @@ function StepPreviewPublish({
         panel={preview?.panel ?? []}
         emptyLabel={infeasible ? 'Not enough rivals to curate a panel.' : 'No panel members returned.'}
       />
-
-      {actionError ? (
-        <div
-          style={{
-            marginTop: 16,
-            padding: '12px 14px',
-            background: '#FCEDED',
-            border: '1px solid rgba(180,60,60,0.25)',
-            borderRadius: 'var(--r-sm)',
-            fontSize: 13,
-            color: '#8B2E2E',
-          }}
-        >
-          {actionError}
-        </div>
-      ) : null}
-
-      {addingToExisting ? (
-        <div
-          style={{
-            marginTop: 16,
-            padding: '12px 14px',
-            background: 'var(--surface-1)',
-            borderRadius: 'var(--r-sm)',
-            fontSize: 13,
-            color: 'var(--ink-50)',
-          }}
-        >
-          Adding to existing campaign · {draft.campaignId!.slice(0, 8)}…
-        </div>
-      ) : null}
-
-      <div style={{ marginTop: 24 }}>
-        <button
-          type="button"
-          onClick={() => void handlePublishStudy()}
-          disabled={!runnable || publishing}
-          style={{
-            width: '100%',
-            fontSize: 15,
-            fontWeight: 500,
-            color: runnable && !publishing ? 'white' : 'var(--ink-30)',
-            background: runnable && !publishing ? 'var(--sage)' : 'var(--surface-1)',
-            border: '1px solid var(--ink-10)',
-            borderRadius: 'var(--r-sm)',
-            padding: '14px 20px',
-            cursor: runnable && !publishing ? 'pointer' : 'not-allowed',
-          }}
-        >
-          {publishing
-            ? 'Publishing…'
-            : addingToExisting
-              ? 'Publish study to this campaign'
-              : 'Publish study'}
-        </button>
-      </div>
     </div>
   )
 }
@@ -1573,6 +1747,7 @@ export default function IhutWizardClient({
     resumedDraft ? computeResumeStepIndex(buildInitialDraft(resumedDraft, serverValidatedProduct)) : 0
   )
   const [step4Ready, setStep4Ready] = useState(false)
+  const [previewReady, setPreviewReady] = useState(false)
   const [savingQuestions, setSavingQuestions] = useState(false)
   const [creatingDraft, setCreatingDraft] = useState(false)
 
@@ -1582,6 +1757,16 @@ export default function IhutWizardClient({
   const isTemplatePath = !!draft.missionTemplateId
 
   const handleStep4Ready = useCallback((ready: boolean) => setStep4Ready(ready), [])
+  const handlePreviewReady = useCallback((ready: boolean) => setPreviewReady(ready), [])
+  const templatePreviewCacheRef = useRef<PreviewMissionFeasibility | null>(null)
+  const handlePreviewCached = useCallback((preview: PreviewMissionFeasibility | null) => {
+    templatePreviewCacheRef.current = preview
+  }, [])
+  // Invalidate cached feasibility when template or focal product changes.
+  useEffect(() => {
+    templatePreviewCacheRef.current = null
+    setPreviewReady(false)
+  }, [draft.missionTemplateId, draft.focalProductId])
   const allowPoolOverride = portalUser.role === 'dough_admin'
 
   const onMissionMenuSelect = useCallback((selection: MissionMenuSelection) => {
@@ -1592,6 +1777,12 @@ export default function IhutWizardClient({
       missionTemplateId: selection.missionTemplateId,
       menuProductKey: selection.templateCode,
     })
+    if (selection.missionTemplateId) {
+      dispatch({
+        type: 'PATCH',
+        patch: { targetCompletions: TEMPLATE_DEFAULT_COMPLETIONS },
+      })
+    }
     setStepIdx(1)
   }, [])
 
@@ -1607,6 +1798,8 @@ export default function IhutWizardClient({
       case 'targeting':
         return step4Ready
       case 'preview':
+        return previewReady
+      case 'completions':
         return false
       default:
         return true
@@ -1761,6 +1954,22 @@ export default function IhutWizardClient({
                 brandId={brand.brand_id}
                 authUid={portalUser.auth_uid}
                 operatorMode={operatorMode}
+                mode="preview"
+                onReadyChange={handlePreviewReady}
+                initialPreview={templatePreviewCacheRef.current}
+                onPreviewCached={handlePreviewCached}
+              />
+            )}
+            {currentStep.id === 'completions' && (
+              <StepPreviewPublish
+                draft={draft}
+                dispatch={dispatch}
+                brandId={brand.brand_id}
+                authUid={portalUser.auth_uid}
+                operatorMode={operatorMode}
+                mode="completions"
+                initialPreview={templatePreviewCacheRef.current}
+                onPreviewCached={handlePreviewCached}
               />
             )}
             {currentStep.id === 'challengers' && <StepChallengers draft={draft} dispatch={dispatch} brandId={brand.brand_id} />}
@@ -1783,7 +1992,7 @@ export default function IhutWizardClient({
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <span style={{ fontSize: 12, color: 'var(--ink-30)' }}>Step {stepIdx + 1} of {steps.length}</span>
-              {currentStep.id !== 'preview' ? (
+              {currentStep.id !== 'completions' ? (
                 <button
                   onClick={goNext}
                   disabled={!canContinue || savingQuestions || creatingDraft}
