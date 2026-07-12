@@ -123,7 +123,9 @@ function MissionRowView({
             color: 'var(--ink-muted)',
           }}
         >
-          {product?.product_name_short ?? 'Product pending'}
+          {mission.mission_type === 'concept_test'
+            ? 'Concept'
+            : (product?.product_name_short ?? 'Product pending')}
         </div>
       </div>
 
