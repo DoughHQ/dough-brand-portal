@@ -42,8 +42,10 @@ export async function fetchStudiesIndex(
 
   const { data: missions, error: missionsError } = await supabase
     .from('missions')
-    .select('id, title, status, product_id, starts_at, expires_at, brand_campaign_id')
+    .select('id, title, status, product_id, starts_at, expires_at, brand_campaign_id, mission_type')
     .in('brand_campaign_id', campaignIds)
+    .is('deleted_at', null)
+    .neq('status', 'draft')
 
   if (missionsError) {
     return { ok: false, securityViolation: false, error: missionsError.message }

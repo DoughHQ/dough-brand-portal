@@ -14,6 +14,7 @@ export type MissionRow = {
   starts_at: string | null
   expires_at: string | null
   brand_campaign_id: string
+  mission_type?: string | null
 }
 
 export type MissionReportRow = {
@@ -68,6 +69,8 @@ export type OperatorStudyRow = {
   focal_product_id: number | null
   focal_product_name: string | null
   template_code: string | null
+  /** missions.mission_type — e.g. concept_test, brand_challenge. */
+  mission_type?: string | null
   total_claims: number
   completed_claims: number
   /** Ordered completion count when set at publish; null = manual close only / unknown. */

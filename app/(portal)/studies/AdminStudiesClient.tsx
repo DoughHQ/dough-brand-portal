@@ -20,12 +20,21 @@ import {
 } from './missionTrashActions'
 import { closeStudyAction } from './closeStudyAction'
 import ConfirmDialog from './ConfirmDialog'
+import ConceptDraftsPanel from './concept/ConceptDraftsPanel'
 
 function studyLabel(missionType: string, objective: string): string {
+  if (missionType === 'concept_test') return 'Concept'
   if (missionType === 'product_discovery') return 'Discovery'
+  if (missionType === 'verified_purchase') return 'Verified purchase'
   if (missionType === 'brand_challenge' && objective === 'depth') return 'Positioning'
   if (missionType === 'brand_challenge' && objective === 'conquest') return 'Head-to-Head'
+  if (missionType === 'brand_challenge') return 'Challenge'
   return 'Study'
+}
+
+function publishedTypeLabel(missionType: string | null | undefined): string {
+  if (!missionType) return 'Study'
+  return studyLabel(missionType, '')
 }
 
 function relativeTime(iso: string): string {
@@ -323,6 +332,8 @@ export default function AdminStudiesClient({ drafts, studies, withdrawn }: Props
   return (
     <div style={{ fontFamily: 'var(--font-sans)', maxWidth: 900, margin: '0 auto', padding: '36px 32px' }}>
       <OperatorLaunchpad variant="compact" />
+
+      <ConceptDraftsPanel />
 
       <ConfirmDialog
         open={confirm?.kind === 'close'}
@@ -638,6 +649,20 @@ export default function AdminStudiesClient({ drafts, studies, withdrawn }: Props
                             textTransform: 'uppercase',
                             padding: '2px 8px',
                             borderRadius: 10,
+                            color: 'var(--ink-50)',
+                            background: 'var(--surface-1)',
+                          }}
+                        >
+                          {publishedTypeLabel(row.mission_type)}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 500,
+                            letterSpacing: '0.06em',
+                            textTransform: 'uppercase',
+                            padding: '2px 8px',
+                            borderRadius: 10,
                             color: pill.color,
                             background: pill.background,
                           }}
@@ -654,7 +679,9 @@ export default function AdminStudiesClient({ drafts, studies, withdrawn }: Props
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {row.focal_product_name ?? 'Product pending'}
+                        {row.mission_type === 'concept_test'
+                          ? 'Concept field'
+                          : (row.focal_product_name ?? 'Product pending')}
                         {showBrand && row.brand_name ? ` · ${row.brand_name}` : ''}
                       </div>
                     </div>

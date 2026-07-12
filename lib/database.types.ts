@@ -32789,6 +32789,7 @@ export type Database = {
           focal_product_name: string | null
           is_finished: boolean
           mission_id: string
+          mission_type: string | null
           status: 'active' | 'archived' | 'expired' | 'paused' | 'completed'
           target_completions?: number | null
           template_code: string | null
@@ -32940,6 +32941,27 @@ export type Database = {
       }
       preview_mission_feasibility: {
         Args: { p_focal_product_id: number; p_template_id: string }
+        Returns: Json
+      }
+      publish_concept_mission: {
+        Args: {
+          p_audience_definition?: string | null
+          p_brand_campaign_id: string
+          p_brand_id: number
+          p_category_intelligence_opt_in?: boolean
+          p_concepts: Json
+          p_created_by: string
+          p_expires_at?: string | null
+          p_predictive_validity_opt_in?: boolean
+          p_price_posture: string
+          p_products: Json
+          p_questions: Json
+          p_scoring_rounds?: number
+          p_session_count?: number
+          p_session2_interval_hours?: number | null
+          p_taxonomy_node_id: number
+          p_title: string
+        }
         Returns: Json
       }
       publish_mission_from_template: {
