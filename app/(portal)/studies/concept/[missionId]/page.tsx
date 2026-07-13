@@ -5,11 +5,12 @@ type Props = {
   searchParams: Promise<{ published?: string }>
 }
 
-/** Post-publish status stub — report UI comes later. */
+/** Post-publish status — report memo at /report when frozen snapshot exists. */
 export default async function ConceptStudyStatusPage({ params, searchParams }: Props) {
   const { missionId } = await params
   const sp = await searchParams
   const justPublished = sp.published === '1'
+  const reportHref = `/studies/concept/${missionId}/report`
 
   return (
     <div
@@ -38,8 +39,8 @@ export default async function ConceptStudyStatusPage({ params, searchParams }: P
         {justPublished ? 'Study published' : 'Concept study'}
       </h1>
       <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.5, margin: '0 0 20px' }}>
-        Mission <code style={{ fontSize: 12 }}>{missionId}</code> is live. Full report UI is
-        coming — for now, manage it from Studies (close / withdraw like other missions).
+        Mission <code style={{ fontSize: 12 }}>{missionId}</code> is live. The report memo
+        appears once enough people complete — manage close / withdraw from Studies.
       </p>
       {justPublished ? (
         <div
@@ -57,21 +58,39 @@ export default async function ConceptStudyStatusPage({ params, searchParams }: P
           Study published
         </div>
       ) : null}
-      <Link
-        href="/studies"
-        style={{
-          display: 'inline-block',
-          background: 'var(--sage)',
-          color: 'var(--white)',
-          fontSize: 13,
-          fontWeight: 600,
-          padding: '10px 18px',
-          borderRadius: 'var(--r-sm)',
-          textDecoration: 'none',
-        }}
-      >
-        Back to studies
-      </Link>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+        <Link
+          href={reportHref}
+          style={{
+            display: 'inline-block',
+            background: 'var(--sage)',
+            color: 'var(--white)',
+            fontSize: 13,
+            fontWeight: 600,
+            padding: '10px 18px',
+            borderRadius: 'var(--r-sm)',
+            textDecoration: 'none',
+          }}
+        >
+          View report
+        </Link>
+        <Link
+          href="/studies"
+          style={{
+            display: 'inline-block',
+            background: 'var(--paper)',
+            color: 'var(--sage-dark)',
+            border: '1px solid var(--mist)',
+            fontSize: 13,
+            fontWeight: 500,
+            padding: '10px 18px',
+            borderRadius: 'var(--r-sm)',
+            textDecoration: 'none',
+          }}
+        >
+          Back to studies
+        </Link>
+      </div>
     </div>
   )
 }

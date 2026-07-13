@@ -91,16 +91,20 @@ function MissionRowView({
   product,
   report,
   reportHref,
+  forceLinkable = false,
 }: {
   mission: MissionRow
   product: ProductRow | undefined
   report: MissionReportRow | undefined
   reportHref: string | null
+  /** Concept reports live on a different path — link even without brand_mission_reports. */
+  forceLinkable?: boolean
 }) {
   const status = mapReportStatus(report)
   const pillStatus: StatusPillStatus =
     status === 'ready' ? 'ready' : status === 'gathering' ? 'gathering' : 'not_started'
-  const isLinkable = (status === 'ready' || status === 'gathering') && report != null
+  const isLinkable =
+    forceLinkable || ((status === 'ready' || status === 'gathering') && report != null)
 
   const rowInner = (
     <>
@@ -446,10 +450,12 @@ export default function StudiesClient({
                         mission.product_id != null
                           ? productsById[mission.product_id]
                           : undefined
-                      const reportHref =
-                        report &&
-                        (mapReportStatus(report) === 'ready' ||
-                          mapReportStatus(report) === 'gathering')
+                      const isConcept = mission.mission_type === 'concept_test'
+                      const reportHref = isConcept
+                        ? `/studies/concept/${mission.id}/report`
+                        : report &&
+                            (mapReportStatus(report) === 'ready' ||
+                              mapReportStatus(report) === 'gathering')
                           ? `/reports/${mission.id}`
                           : null
 
@@ -460,6 +466,7 @@ export default function StudiesClient({
                           product={product}
                           report={report}
                           reportHref={reportHref}
+                          forceLinkable={isConcept}
                         />
                       )
                     })}

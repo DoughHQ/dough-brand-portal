@@ -616,7 +616,11 @@ export default function AdminStudiesClient({ drafts, studies, withdrawn }: Props
                   }}
                 >
                   <Link
-                    href={`/reports/${row.mission_id}`}
+                    href={
+                      row.mission_type === 'concept_test'
+                        ? `/studies/concept/${row.mission_id}/report`
+                        : `/reports/${row.mission_id}`
+                    }
                     style={{
                       display: 'flex',
                       alignItems: 'center',
