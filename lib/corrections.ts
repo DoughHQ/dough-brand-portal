@@ -36,8 +36,18 @@ export async function getPendingCorrectionReviews(): Promise<CorrectionReviewRow
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('getPendingCorrectionReviews error:', error.message)
-    return []
+    console.error('[corrections] querying project:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.error('[corrections] getPendingCorrectionReviews error:', {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      message: error.message,
+    })
+    throw error
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('[corrections] rows returned:', data?.length ?? 0)
   }
   return (data ?? []) as CorrectionReviewRow[]
 }
