@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       activity_log: {
@@ -690,6 +715,11 @@ export type Database = {
           decision_ms: number | null
           deleted_at: string | null
           device_platform: string | null
+          evidence_stamped_at: string | null
+          focal_evidence_grade:
+            | Database["public"]["Enums"]["consumption_evidence_grade"]
+            | null
+          focal_scan_corroborated: boolean | null
           hour_of_day: number | null
           location_consent_verified: boolean | null
           mission_claim_id: string | null
@@ -697,9 +727,13 @@ export type Database = {
           opponent_elo_before: number | null
           opponent_elo_confidence_before: number | null
           opponent_elo_delta: number | null
+          opponent_evidence_grade:
+            | Database["public"]["Enums"]["consumption_evidence_grade"]
+            | null
           opponent_meal_id: number | null
           opponent_product_id: number
           opponent_role: string | null
+          opponent_scan_corroborated: boolean | null
           opponent_selection_strategy: string | null
           outcome: string
           override_source: string | null
@@ -736,6 +770,11 @@ export type Database = {
           decision_ms?: number | null
           deleted_at?: string | null
           device_platform?: string | null
+          evidence_stamped_at?: string | null
+          focal_evidence_grade?:
+            | Database["public"]["Enums"]["consumption_evidence_grade"]
+            | null
+          focal_scan_corroborated?: boolean | null
           hour_of_day?: number | null
           location_consent_verified?: boolean | null
           mission_claim_id?: string | null
@@ -743,9 +782,13 @@ export type Database = {
           opponent_elo_before?: number | null
           opponent_elo_confidence_before?: number | null
           opponent_elo_delta?: number | null
+          opponent_evidence_grade?:
+            | Database["public"]["Enums"]["consumption_evidence_grade"]
+            | null
           opponent_meal_id?: number | null
           opponent_product_id: number
           opponent_role?: string | null
+          opponent_scan_corroborated?: boolean | null
           opponent_selection_strategy?: string | null
           outcome: string
           override_source?: string | null
@@ -782,6 +825,11 @@ export type Database = {
           decision_ms?: number | null
           deleted_at?: string | null
           device_platform?: string | null
+          evidence_stamped_at?: string | null
+          focal_evidence_grade?:
+            | Database["public"]["Enums"]["consumption_evidence_grade"]
+            | null
+          focal_scan_corroborated?: boolean | null
           hour_of_day?: number | null
           location_consent_verified?: boolean | null
           mission_claim_id?: string | null
@@ -789,9 +837,13 @@ export type Database = {
           opponent_elo_before?: number | null
           opponent_elo_confidence_before?: number | null
           opponent_elo_delta?: number | null
+          opponent_evidence_grade?:
+            | Database["public"]["Enums"]["consumption_evidence_grade"]
+            | null
           opponent_meal_id?: number | null
           opponent_product_id?: number
           opponent_role?: string | null
+          opponent_scan_corroborated?: boolean | null
           opponent_selection_strategy?: string | null
           outcome?: string
           override_source?: string | null
@@ -2066,6 +2118,7 @@ export type Database = {
           occasion_signals: Json | null
           preference_drift_mean: number | null
           provenance_composition: Json
+          report_payload: Json | null
           repurchase_rate: number | null
           snapshot_date: string
           stated_drift_rate: number | null
@@ -2095,6 +2148,7 @@ export type Database = {
           occasion_signals?: Json | null
           preference_drift_mean?: number | null
           provenance_composition?: Json
+          report_payload?: Json | null
           repurchase_rate?: number | null
           snapshot_date: string
           stated_drift_rate?: number | null
@@ -2124,6 +2178,7 @@ export type Database = {
           occasion_signals?: Json | null
           preference_drift_mean?: number | null
           provenance_composition?: Json
+          report_payload?: Json | null
           repurchase_rate?: number | null
           snapshot_date?: string
           stated_drift_rate?: number | null
@@ -4165,6 +4220,36 @@ export type Database = {
           },
         ]
       }
+      capabilities: {
+        Row: {
+          created_at: string
+          description: string
+          is_dangerous: boolean
+          is_reserved: boolean
+          key: string
+          resource: string
+          verb: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          is_dangerous?: boolean
+          is_reserved?: boolean
+          key: string
+          resource: string
+          verb: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          is_dangerous?: boolean
+          is_reserved?: boolean
+          key?: string
+          resource?: string
+          verb?: string
+        }
+        Relationships: []
+      }
       cart_contexts: {
         Row: {
           context_type: string
@@ -5448,6 +5533,312 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "score_dimensions"
             referencedColumns: ["dimension_code"]
+          },
+        ]
+      }
+      concept_battle_outcomes: {
+        Row: {
+          combatant_ref_a: number
+          combatant_ref_b: number
+          concept_session_id: string
+          created_at: string
+          decided_at: string
+          decision_ms: number | null
+          id: string
+          mission_claim_id: string
+          outcome: string
+          presented_position: string
+          round_number: number
+          round_role: string
+          session_number: number
+          timing_anomaly_flag: boolean
+          user_id: number
+          winner_ref: number | null
+        }
+        Insert: {
+          combatant_ref_a: number
+          combatant_ref_b: number
+          concept_session_id: string
+          created_at?: string
+          decided_at?: string
+          decision_ms?: number | null
+          id?: string
+          mission_claim_id: string
+          outcome: string
+          presented_position?: string
+          round_number: number
+          round_role?: string
+          session_number?: number
+          timing_anomaly_flag?: boolean
+          user_id: number
+          winner_ref?: number | null
+        }
+        Update: {
+          combatant_ref_a?: number
+          combatant_ref_b?: number
+          concept_session_id?: string
+          created_at?: string
+          decided_at?: string
+          decision_ms?: number | null
+          id?: string
+          mission_claim_id?: string
+          outcome?: string
+          presented_position?: string
+          round_number?: number
+          round_role?: string
+          session_number?: number
+          timing_anomaly_flag?: boolean
+          user_id?: number
+          winner_ref?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concept_battle_outcomes_concept_session_id_fkey"
+            columns: ["concept_session_id"]
+            isOneToOne: false
+            referencedRelation: "concept_scoring_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "concept_battle_outcomes_mission_claim_id_fkey"
+            columns: ["mission_claim_id"]
+            isOneToOne: false
+            referencedRelation: "mission_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "concept_battle_outcomes_mission_claim_id_fkey"
+            columns: ["mission_claim_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_claims_base"
+            referencedColumns: ["claim_id"]
+          },
+        ]
+      }
+      concept_field_pairings: {
+        Row: {
+          combatant_ref_a: number
+          combatant_ref_b: number
+          concept_session_id: string
+          frozen_at: string
+          id: string
+          mission_claim_id: string
+          presented_position: string
+          round_number: number
+          round_role: string
+          user_id: number
+        }
+        Insert: {
+          combatant_ref_a: number
+          combatant_ref_b: number
+          concept_session_id: string
+          frozen_at?: string
+          id?: string
+          mission_claim_id: string
+          presented_position?: string
+          round_number: number
+          round_role?: string
+          user_id: number
+        }
+        Update: {
+          combatant_ref_a?: number
+          combatant_ref_b?: number
+          concept_session_id?: string
+          frozen_at?: string
+          id?: string
+          mission_claim_id?: string
+          presented_position?: string
+          round_number?: number
+          round_role?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concept_field_pairings_concept_session_id_fkey"
+            columns: ["concept_session_id"]
+            isOneToOne: false
+            referencedRelation: "concept_scoring_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "concept_field_pairings_mission_claim_id_fkey"
+            columns: ["mission_claim_id"]
+            isOneToOne: false
+            referencedRelation: "mission_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "concept_field_pairings_mission_claim_id_fkey"
+            columns: ["mission_claim_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_claims_base"
+            referencedColumns: ["claim_id"]
+          },
+        ]
+      }
+      concept_mission_reports: {
+        Row: {
+          achieved_pair_coverage: Json
+          brand_id: number
+          campaign_id: string | null
+          computed_at: string
+          connectivity: Json
+          design_effect_summary: Json
+          finding: Json | null
+          id: string
+          is_current: boolean
+          methodology_note: string
+          min_cluster_warning: string
+          mission_id: string
+          n_combatants: number
+          n_decisive_battles: number
+          n_neither: number
+          n_respondents: number
+          neither_rate: number | null
+          pairwise_probabilities: Json
+          panel_composition_note: string
+          position_bias_check: Json
+          question_responses: Json | null
+          ranked_field: Json
+          snapshot_date: string
+          top_pair_record: Json | null
+          win_rate_field: Json | null
+        }
+        Insert: {
+          achieved_pair_coverage?: Json
+          brand_id: number
+          campaign_id?: string | null
+          computed_at?: string
+          connectivity?: Json
+          design_effect_summary?: Json
+          finding?: Json | null
+          id?: string
+          is_current?: boolean
+          methodology_note?: string
+          min_cluster_warning?: string
+          mission_id: string
+          n_combatants?: number
+          n_decisive_battles?: number
+          n_neither?: number
+          n_respondents?: number
+          neither_rate?: number | null
+          pairwise_probabilities?: Json
+          panel_composition_note?: string
+          position_bias_check?: Json
+          question_responses?: Json | null
+          ranked_field?: Json
+          snapshot_date?: string
+          top_pair_record?: Json | null
+          win_rate_field?: Json | null
+        }
+        Update: {
+          achieved_pair_coverage?: Json
+          brand_id?: number
+          campaign_id?: string | null
+          computed_at?: string
+          connectivity?: Json
+          design_effect_summary?: Json
+          finding?: Json | null
+          id?: string
+          is_current?: boolean
+          methodology_note?: string
+          min_cluster_warning?: string
+          mission_id?: string
+          n_combatants?: number
+          n_decisive_battles?: number
+          n_neither?: number
+          n_respondents?: number
+          neither_rate?: number | null
+          pairwise_probabilities?: Json
+          panel_composition_note?: string
+          position_bias_check?: Json
+          question_responses?: Json | null
+          ranked_field?: Json
+          snapshot_date?: string
+          top_pair_record?: Json | null
+          win_rate_field?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concept_mission_reports_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "concept_mission_reports_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_export_summary"
+            referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "concept_mission_reports_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_funnel"
+            referencedColumns: ["mission_id"]
+          },
+        ]
+      }
+      concept_scoring_sessions: {
+        Row: {
+          created_at: string
+          current_round_number: number
+          deleted_at: string | null
+          ended_at: string | null
+          id: string
+          max_rounds: number | null
+          mission_claim_id: string
+          session_number: number
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: number
+        }
+        Insert: {
+          created_at?: string
+          current_round_number?: number
+          deleted_at?: string | null
+          ended_at?: string | null
+          id?: string
+          max_rounds?: number | null
+          mission_claim_id: string
+          session_number?: number
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: number
+        }
+        Update: {
+          created_at?: string
+          current_round_number?: number
+          deleted_at?: string | null
+          ended_at?: string | null
+          id?: string
+          max_rounds?: number | null
+          mission_claim_id?: string
+          session_number?: number
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concept_scoring_sessions_mission_claim_id_fkey"
+            columns: ["mission_claim_id"]
+            isOneToOne: false
+            referencedRelation: "mission_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "concept_scoring_sessions_mission_claim_id_fkey"
+            columns: ["mission_claim_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_claims_base"
+            referencedColumns: ["claim_id"]
           },
         ]
       }
@@ -8653,6 +9044,268 @@ export type Database = {
           },
         ]
       }
+      mission_combatants: {
+        Row: {
+          battle_intent: Database["public"]["Enums"]["battle_intent"]
+          combatant_ref: number
+          concept_id: string | null
+          created_at: string
+          deleted_at: string | null
+          display_order: number
+          frozen_at: string
+          frozen_brand_name: string | null
+          frozen_display_name: string
+          frozen_image_url: string | null
+          frozen_price: number | null
+          id: string
+          kind: string
+          mission_id: string
+          product_id: number | null
+          updated_at: string
+        }
+        Insert: {
+          battle_intent: Database["public"]["Enums"]["battle_intent"]
+          combatant_ref: number
+          concept_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          display_order?: number
+          frozen_at?: string
+          frozen_brand_name?: string | null
+          frozen_display_name: string
+          frozen_image_url?: string | null
+          frozen_price?: number | null
+          id?: string
+          kind: string
+          mission_id: string
+          product_id?: number | null
+          updated_at?: string
+        }
+        Update: {
+          battle_intent?: Database["public"]["Enums"]["battle_intent"]
+          combatant_ref?: number
+          concept_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          display_order?: number
+          frozen_at?: string
+          frozen_brand_name?: string | null
+          frozen_display_name?: string
+          frozen_image_url?: string | null
+          frozen_price?: number | null
+          id?: string
+          kind?: string
+          mission_id?: string
+          product_id?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_combatants_concept_id_fkey"
+            columns: ["concept_id"]
+            isOneToOne: false
+            referencedRelation: "mission_concepts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_combatants_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_combatants_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_export_summary"
+            referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "mission_combatants_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_funnel"
+            referencedColumns: ["mission_id"]
+          },
+        ]
+      }
+      mission_concepts: {
+        Row: {
+          arm_label: string
+          brand_id: number
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          display_name: string | null
+          frozen_price: number | null
+          id: string
+          image_url: string | null
+          mission_id: string
+          stimulus_payload: Json
+          stimulus_type: Database["public"]["Enums"]["concept_stimulus_type"]
+          updated_at: string
+        }
+        Insert: {
+          arm_label: string
+          brand_id: number
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          display_name?: string | null
+          frozen_price?: number | null
+          id?: string
+          image_url?: string | null
+          mission_id: string
+          stimulus_payload?: Json
+          stimulus_type: Database["public"]["Enums"]["concept_stimulus_type"]
+          updated_at?: string
+        }
+        Update: {
+          arm_label?: string
+          brand_id?: number
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          display_name?: string | null
+          frozen_price?: number | null
+          id?: string
+          image_url?: string | null
+          mission_id?: string
+          stimulus_payload?: Json
+          stimulus_type?: Database["public"]["Enums"]["concept_stimulus_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_concepts_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brand_slot_ownership"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "mission_concepts_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "mission_concepts_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "mission_concepts_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "mission_concepts_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_concepts_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_export_summary"
+            referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "mission_concepts_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_funnel"
+            referencedColumns: ["mission_id"]
+          },
+        ]
+      }
+      mission_consent: {
+        Row: {
+          audience_definition: string | null
+          brand_campaign_id: string
+          brand_id: number
+          category_intelligence_opt_in: boolean
+          consented_at: string
+          consented_by: string
+          created_at: string
+          id: string
+          mission_id: string
+          predictive_validity_opt_in: boolean
+          updated_at: string
+        }
+        Insert: {
+          audience_definition?: string | null
+          brand_campaign_id: string
+          brand_id: number
+          category_intelligence_opt_in?: boolean
+          consented_at?: string
+          consented_by: string
+          created_at?: string
+          id?: string
+          mission_id: string
+          predictive_validity_opt_in?: boolean
+          updated_at?: string
+        }
+        Update: {
+          audience_definition?: string | null
+          brand_campaign_id?: string
+          brand_id?: number
+          category_intelligence_opt_in?: boolean
+          consented_at?: string
+          consented_by?: string
+          created_at?: string
+          id?: string
+          mission_id?: string
+          predictive_validity_opt_in?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_consent_brand_campaign_id_fkey"
+            columns: ["brand_campaign_id"]
+            isOneToOne: false
+            referencedRelation: "brand_campaign_dashboard"
+            referencedColumns: ["campaign_id"]
+          },
+          {
+            foreignKeyName: "mission_consent_brand_campaign_id_fkey"
+            columns: ["brand_campaign_id"]
+            isOneToOne: false
+            referencedRelation: "brand_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_consent_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_consent_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "v_mission_export_summary"
+            referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "mission_consent_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "v_mission_funnel"
+            referencedColumns: ["mission_id"]
+          },
+        ]
+      }
       mission_eligibility_rules: {
         Row: {
           created_at: string
@@ -9571,9 +10224,17 @@ export type Database = {
         Row: {
           aggregate_shown_before_commit: boolean
           created_at: string
+          focal_evidence_grade:
+            | Database["public"]["Enums"]["consumption_evidence_grade"]
+            | null
+          focal_scan_corroborated: boolean | null
           id: string
           is_experienced: boolean | null
           mission_claim_id: string
+          opponent_evidence_grade:
+            | Database["public"]["Enums"]["consumption_evidence_grade"]
+            | null
+          opponent_scan_corroborated: boolean | null
           protocol_question_id: string
           protocol_version: number
           provenance_class: string
@@ -9587,9 +10248,17 @@ export type Database = {
         Insert: {
           aggregate_shown_before_commit?: boolean
           created_at?: string
+          focal_evidence_grade?:
+            | Database["public"]["Enums"]["consumption_evidence_grade"]
+            | null
+          focal_scan_corroborated?: boolean | null
           id?: string
           is_experienced?: boolean | null
           mission_claim_id: string
+          opponent_evidence_grade?:
+            | Database["public"]["Enums"]["consumption_evidence_grade"]
+            | null
+          opponent_scan_corroborated?: boolean | null
           protocol_question_id: string
           protocol_version: number
           provenance_class: string
@@ -9603,9 +10272,17 @@ export type Database = {
         Update: {
           aggregate_shown_before_commit?: boolean
           created_at?: string
+          focal_evidence_grade?:
+            | Database["public"]["Enums"]["consumption_evidence_grade"]
+            | null
+          focal_scan_corroborated?: boolean | null
           id?: string
           is_experienced?: boolean | null
           mission_claim_id?: string
+          opponent_evidence_grade?:
+            | Database["public"]["Enums"]["consumption_evidence_grade"]
+            | null
+          opponent_scan_corroborated?: boolean | null
           protocol_question_id?: string
           protocol_version?: number
           provenance_class?: string
@@ -9849,6 +10526,70 @@ export type Database = {
           },
         ]
       }
+      mission_status_transitions: {
+        Row: {
+          actor_auth_id: string | null
+          completed_count: number | null
+          from_status: Database["public"]["Enums"]["mission_status"] | null
+          id: string
+          metadata: Json
+          mission_id: string
+          reason: string
+          target_completions: number | null
+          to_status: Database["public"]["Enums"]["mission_status"]
+          transitioned_at: string
+          triggered_by: string
+        }
+        Insert: {
+          actor_auth_id?: string | null
+          completed_count?: number | null
+          from_status?: Database["public"]["Enums"]["mission_status"] | null
+          id?: string
+          metadata?: Json
+          mission_id: string
+          reason: string
+          target_completions?: number | null
+          to_status: Database["public"]["Enums"]["mission_status"]
+          transitioned_at?: string
+          triggered_by: string
+        }
+        Update: {
+          actor_auth_id?: string | null
+          completed_count?: number | null
+          from_status?: Database["public"]["Enums"]["mission_status"] | null
+          id?: string
+          metadata?: Json
+          mission_id?: string
+          reason?: string
+          target_completions?: number | null
+          to_status?: Database["public"]["Enums"]["mission_status"]
+          transitioned_at?: string
+          triggered_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_status_transitions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_status_transitions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_export_summary"
+            referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "mission_status_transitions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_funnel"
+            referencedColumns: ["mission_id"]
+          },
+        ]
+      }
       mission_templates: {
         Row: {
           code: string
@@ -9925,11 +10666,13 @@ export type Database = {
           brand_campaign_id: string | null
           campaign_objective: string
           completion_criteria: Json
+          completions_delivered: number
           created_at: string
           created_by: string
           deleted_at: string | null
           description: string | null
           effects_config: Json
+          eligibility_tier: Database["public"]["Enums"]["mission_eligibility_tier"]
           evidence_timing: string
           expires_at: string
           id: string
@@ -9942,6 +10685,7 @@ export type Database = {
           mission_template_id: string | null
           mission_type: Database["public"]["Enums"]["mission_type"]
           operator_type: Database["public"]["Enums"]["mission_operator_type"]
+          panel_eligibility_tier: Database["public"]["Enums"]["mission_panel_eligibility_tier"]
           platform_reward_type: string | null
           platform_reward_value: number | null
           product_acceptance_mode: string | null
@@ -9956,6 +10700,7 @@ export type Database = {
           spot_role_id: number | null
           starts_at: string
           status: Database["public"]["Enums"]["mission_status"]
+          target_completions: number | null
           targeting_mode: Database["public"]["Enums"]["mission_targeting_mode"]
           taxonomy_node_id: number | null
           title: string
@@ -9969,11 +10714,13 @@ export type Database = {
           brand_campaign_id?: string | null
           campaign_objective?: string
           completion_criteria?: Json
+          completions_delivered?: number
           created_at?: string
           created_by: string
           deleted_at?: string | null
           description?: string | null
           effects_config?: Json
+          eligibility_tier?: Database["public"]["Enums"]["mission_eligibility_tier"]
           evidence_timing?: string
           expires_at: string
           id?: string
@@ -9986,6 +10733,7 @@ export type Database = {
           mission_template_id?: string | null
           mission_type: Database["public"]["Enums"]["mission_type"]
           operator_type: Database["public"]["Enums"]["mission_operator_type"]
+          panel_eligibility_tier?: Database["public"]["Enums"]["mission_panel_eligibility_tier"]
           platform_reward_type?: string | null
           platform_reward_value?: number | null
           product_acceptance_mode?: string | null
@@ -10000,6 +10748,7 @@ export type Database = {
           spot_role_id?: number | null
           starts_at: string
           status?: Database["public"]["Enums"]["mission_status"]
+          target_completions?: number | null
           targeting_mode?: Database["public"]["Enums"]["mission_targeting_mode"]
           taxonomy_node_id?: number | null
           title: string
@@ -10013,11 +10762,13 @@ export type Database = {
           brand_campaign_id?: string | null
           campaign_objective?: string
           completion_criteria?: Json
+          completions_delivered?: number
           created_at?: string
           created_by?: string
           deleted_at?: string | null
           description?: string | null
           effects_config?: Json
+          eligibility_tier?: Database["public"]["Enums"]["mission_eligibility_tier"]
           evidence_timing?: string
           expires_at?: string
           id?: string
@@ -10030,6 +10781,7 @@ export type Database = {
           mission_template_id?: string | null
           mission_type?: Database["public"]["Enums"]["mission_type"]
           operator_type?: Database["public"]["Enums"]["mission_operator_type"]
+          panel_eligibility_tier?: Database["public"]["Enums"]["mission_panel_eligibility_tier"]
           platform_reward_type?: string | null
           platform_reward_value?: number | null
           product_acceptance_mode?: string | null
@@ -10044,6 +10796,7 @@ export type Database = {
           spot_role_id?: number | null
           starts_at?: string
           status?: Database["public"]["Enums"]["mission_status"]
+          target_completions?: number | null
           targeting_mode?: Database["public"]["Enums"]["mission_targeting_mode"]
           taxonomy_node_id?: number | null
           title?: string
@@ -12049,6 +12802,10 @@ export type Database = {
           created_at: string
           current_value: Json | null
           evidence_image_url: string | null
+          extracted_at: string | null
+          extracted_value: Json | null
+          extraction_error: string | null
+          human_corrected_value: Json | null
           human_decision: string | null
           human_notes: string | null
           id: string
@@ -12060,6 +12817,7 @@ export type Database = {
           proposed_taxonomy_node_id: number | null
           proposed_value: Json
           reviewed_at: string | null
+          reviewed_by_portal_user_id: string | null
           reviewed_by_user_id: number | null
           status: string
           submitted_by_user_id: number
@@ -12078,6 +12836,10 @@ export type Database = {
           created_at?: string
           current_value?: Json | null
           evidence_image_url?: string | null
+          extracted_at?: string | null
+          extracted_value?: Json | null
+          extraction_error?: string | null
+          human_corrected_value?: Json | null
           human_decision?: string | null
           human_notes?: string | null
           id?: string
@@ -12089,6 +12851,7 @@ export type Database = {
           proposed_taxonomy_node_id?: number | null
           proposed_value: Json
           reviewed_at?: string | null
+          reviewed_by_portal_user_id?: string | null
           reviewed_by_user_id?: number | null
           status?: string
           submitted_by_user_id: number
@@ -12107,6 +12870,10 @@ export type Database = {
           created_at?: string
           current_value?: Json | null
           evidence_image_url?: string | null
+          extracted_at?: string | null
+          extracted_value?: Json | null
+          extraction_error?: string | null
+          human_corrected_value?: Json | null
           human_decision?: string | null
           human_notes?: string | null
           id?: string
@@ -12118,6 +12885,7 @@ export type Database = {
           proposed_taxonomy_node_id?: number | null
           proposed_value?: Json
           reviewed_at?: string | null
+          reviewed_by_portal_user_id?: string | null
           reviewed_by_user_id?: number | null
           status?: string
           submitted_by_user_id?: number
@@ -12250,6 +13018,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
             referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "product_correction_submissions_reviewed_by_portal_user_id_fkey"
+            columns: ["reviewed_by_portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "brand_portal_users"
+            referencedColumns: ["portal_user_id"]
           },
         ]
       }
@@ -16736,6 +17511,10 @@ export type Database = {
           is_brand_configurable: boolean
           max_products: number | null
           min_products: number | null
+          report_framing_note: string | null
+          report_signal_kind:
+            | Database["public"]["Enums"]["report_signal_kind"]
+            | null
           requires_products: boolean
           response_schema: Json
           sort_order: number
@@ -16750,6 +17529,10 @@ export type Database = {
           is_brand_configurable?: boolean
           max_products?: number | null
           min_products?: number | null
+          report_framing_note?: string | null
+          report_signal_kind?:
+            | Database["public"]["Enums"]["report_signal_kind"]
+            | null
           requires_products?: boolean
           response_schema?: Json
           sort_order?: number
@@ -16764,6 +17547,10 @@ export type Database = {
           is_brand_configurable?: boolean
           max_products?: number | null
           min_products?: number | null
+          report_framing_note?: string | null
+          report_signal_kind?:
+            | Database["public"]["Enums"]["report_signal_kind"]
+            | null
           requires_products?: boolean
           response_schema?: Json
           sort_order?: number
@@ -17827,6 +18614,32 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      role_capabilities: {
+        Row: {
+          capability_key: string
+          granted_at: string
+          role: string
+        }
+        Insert: {
+          capability_key: string
+          granted_at?: string
+          role: string
+        }
+        Update: {
+          capability_key?: string
+          granted_at?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_capabilities_capability_key_fkey"
+            columns: ["capability_key"]
+            isOneToOne: false
+            referencedRelation: "capabilities"
+            referencedColumns: ["key"]
+          },
+        ]
       }
       scan_events: {
         Row: {
@@ -19263,6 +20076,7 @@ export type Database = {
           external_product_snapshot_id: number | null
           ingredients_parsed: Json | null
           ingredients_text_raw: string
+          is_human_verified: boolean
           is_verified: boolean | null
           sku_ingredients_id: number
           sku_variant_id: number
@@ -19276,6 +20090,7 @@ export type Database = {
           external_product_snapshot_id?: number | null
           ingredients_parsed?: Json | null
           ingredients_text_raw: string
+          is_human_verified?: boolean
           is_verified?: boolean | null
           sku_ingredients_id?: number
           sku_variant_id: number
@@ -19289,6 +20104,7 @@ export type Database = {
           external_product_snapshot_id?: number | null
           ingredients_parsed?: Json | null
           ingredients_text_raw?: string
+          is_human_verified?: boolean
           is_verified?: boolean | null
           sku_ingredients_id?: number
           sku_variant_id?: number
@@ -19329,6 +20145,7 @@ export type Database = {
       sku_nutrition_facts: {
         Row: {
           added_sugars_g: number | null
+          basis_type: string | null
           calcium_mg: number | null
           calories: number | null
           calories_from_fat: number | null
@@ -19338,6 +20155,7 @@ export type Database = {
           extended_nutrients: Json | null
           external_product_snapshot_id: number | null
           iron_mg: number | null
+          is_human_verified: boolean
           is_verified: boolean | null
           monounsaturated_fat_g: number | null
           percent_daily_value_basis: string | null
@@ -19364,6 +20182,7 @@ export type Database = {
         }
         Insert: {
           added_sugars_g?: number | null
+          basis_type?: string | null
           calcium_mg?: number | null
           calories?: number | null
           calories_from_fat?: number | null
@@ -19373,6 +20192,7 @@ export type Database = {
           extended_nutrients?: Json | null
           external_product_snapshot_id?: number | null
           iron_mg?: number | null
+          is_human_verified?: boolean
           is_verified?: boolean | null
           monounsaturated_fat_g?: number | null
           percent_daily_value_basis?: string | null
@@ -19399,6 +20219,7 @@ export type Database = {
         }
         Update: {
           added_sugars_g?: number | null
+          basis_type?: string | null
           calcium_mg?: number | null
           calories?: number | null
           calories_from_fat?: number | null
@@ -19408,6 +20229,7 @@ export type Database = {
           extended_nutrients?: Json | null
           external_product_snapshot_id?: number | null
           iron_mg?: number | null
+          is_human_verified?: boolean
           is_verified?: boolean | null
           monounsaturated_fat_g?: number | null
           percent_daily_value_basis?: string | null
@@ -20438,6 +21260,48 @@ export type Database = {
             referencedColumns: ["product_id"]
           },
         ]
+      }
+      system_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_id: number
+          dedupe_key: string
+          detail: Json
+          first_seen_at: string
+          last_seen_at: string
+          occurrence_count: number
+          severity: string
+          source: string
+          summary: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_id?: never
+          dedupe_key: string
+          detail?: Json
+          first_seen_at?: string
+          last_seen_at?: string
+          occurrence_count?: number
+          severity?: string
+          source: string
+          summary: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_id?: never
+          dedupe_key?: string
+          detail?: Json
+          first_seen_at?: string
+          last_seen_at?: string
+          occurrence_count?: number
+          severity?: string
+          source?: string
+          summary?: string
+        }
+        Relationships: []
       }
       system_default_health_weights: {
         Row: {
@@ -27785,7 +28649,6 @@ export type Database = {
           home_longitude: number | null
           home_region: string | null
           home_zip: string | null
-          is_admin: boolean | null
           is_public_profile: boolean | null
           last_discovery_at: string | null
           last_seen_at: string | null
@@ -27876,7 +28739,6 @@ export type Database = {
           home_longitude?: number | null
           home_region?: string | null
           home_zip?: string | null
-          is_admin?: boolean | null
           is_public_profile?: boolean | null
           last_discovery_at?: string | null
           last_seen_at?: string | null
@@ -27967,7 +28829,6 @@ export type Database = {
           home_longitude?: number | null
           home_region?: string | null
           home_zip?: string | null
-          is_admin?: boolean | null
           is_public_profile?: boolean | null
           last_discovery_at?: string | null
           last_seen_at?: string | null
@@ -28525,6 +29386,10 @@ export type Database = {
           current_category: string | null
           current_value: Json | null
           evidence_image_url: string | null
+          extracted_at: string | null
+          extracted_value: Json | null
+          extraction_error: string | null
+          human_corrected_value: Json | null
           id: string | null
           other_category_description: string | null
           product_id: number | null
@@ -31691,11 +32556,46 @@ export type Database = {
       }
     }
     Functions: {
+      _hard_delete_mission_internal: {
+        Args: { p_mission_id: string }
+        Returns: Json
+      }
+      _log_mission_transition: {
+        Args: {
+          p_actor?: string
+          p_from: Database["public"]["Enums"]["mission_status"]
+          p_metadata?: Json
+          p_mission_id: string
+          p_reason: string
+          p_to: Database["public"]["Enums"]["mission_status"]
+          p_triggered_by: string
+        }
+        Returns: undefined
+      }
+      _maybe_complete_mission: {
+        Args: { p_mission_id: string }
+        Returns: boolean
+      }
+      _mission_completed_count: {
+        Args: { p_mission_id: string }
+        Returns: number
+      }
+      _raise_system_alert: {
+        Args: {
+          p_dedupe_key: string
+          p_detail?: Json
+          p_severity: string
+          p_source: string
+          p_summary: string
+        }
+        Returns: undefined
+      }
       abandon_stale_sessions: { Args: never; Returns: undefined }
       accept_brand_portal_invitation: {
         Args: { p_display_name?: string; p_token: string }
         Returns: Json
       }
+      acknowledge_alert: { Args: { p_alert_id: number }; Returns: Json }
       advance_capture_step: {
         Args: {
           p_image_url: string
@@ -31806,16 +32706,21 @@ export type Database = {
         Args: { p_user_id: number }
         Returns: undefined
       }
+      check_mission_eligibility: {
+        Args: { p_mission_id: string; p_user_id: number }
+        Returns: Json
+      }
+      check_mission_lifecycle_invariants: { Args: never; Returns: number }
       check_tried_invariant: { Args: never; Returns: number }
+      claim_concept_mission: {
+        Args: { p_mission_id: string; p_user_id?: number }
+        Returns: Json
+      }
       claim_mission: {
         Args: { p_mission_id: string; p_user_id?: number }
         Returns: Json
       }
       claim_sku: { Args: { p_product_id: number }; Returns: Json }
-      close_study: {
-        Args: { p_mission_id: string }
-        Returns: Json
-      }
       classify_and_normalize_scan: {
         Args: { p_raw: string }
         Returns: {
@@ -31826,8 +32731,13 @@ export type Database = {
         }[]
       }
       classify_scan_code: { Args: { p_raw: string }; Returns: string }
+      close_study: { Args: { p_mission_id: string }; Returns: Json }
       complete_brand_claim: {
         Args: { p_display_name?: string; p_token: string }
+        Returns: Json
+      }
+      complete_concept_session: {
+        Args: { p_mission_claim_id: string; p_session_number?: number }
         Returns: Json
       }
       complete_mission_session: {
@@ -31872,6 +32782,14 @@ export type Database = {
       compute_category_level: {
         Args: { p_completed_tries: number }
         Returns: number
+      }
+      compute_concept_mission_report: {
+        Args: { p_mission_id: string }
+        Returns: string
+      }
+      compute_concept_question_responses: {
+        Args: { p_mission_id: string }
+        Returns: Json
       }
       compute_experience_lift_vs_baseline: {
         Args: { p_k_floor?: number; p_mission_id: string }
@@ -31988,7 +32906,9 @@ export type Database = {
       }
       compute_mission_signal_aggregate: {
         Args: {
+          p_enforce_floors?: boolean
           p_k_floor?: number
+          p_min_evidence_grade?: Database["public"]["Enums"]["consumption_evidence_grade"]
           p_min_latency_ms?: number
           p_mission_id: string
           p_reporting_floor?: number
@@ -31996,10 +32916,12 @@ export type Database = {
         Returns: {
           ci_high: number
           ci_low: number
+          evidence_split: string
           experience_split: string
           focal_product_id: number
           method: string
           n_decisive: number
+          n_excluded_evidence: number
           n_excluded_reliability: number
           n_excluded_timing: number
           n_ties: number
@@ -32142,6 +33064,84 @@ export type Database = {
         Args: { p_node_id: number }
         Returns: number
       }
+      concept_bradley_terry_fit: {
+        Args: {
+          p_max_iter?: number
+          p_mission_id: string
+          p_prior?: number
+          p_tol?: number
+        }
+        Returns: {
+          beta: number
+          combatant_ref: number
+          final_delta: number
+          iterations: number
+          rank: number
+          strength: number
+        }[]
+      }
+      concept_bt_diagnostics: {
+        Args: { p_mission_id: string }
+        Returns: {
+          combatant_ref: number
+          component_id: number
+          is_separated: boolean
+          is_thin: boolean
+          losses: number
+          separation_kind: string
+          total_decisive: number
+          wins: number
+        }[]
+      }
+      concept_bt_intervals: {
+        Args: { p_mission_id: string; p_prior?: number; p_z?: number }
+        Returns: {
+          beta: number
+          beta_hi: number
+          beta_lo: number
+          ci_note: string
+          combatant_ref: number
+          se_beta: number
+          strength: number
+          strength_hi: number
+          strength_lo: number
+        }[]
+      }
+      concept_bt_intervals_clustered: {
+        Args: {
+          p_min_clusters?: number
+          p_mission_id: string
+          p_prior?: number
+          p_z?: number
+        }
+        Returns: {
+          beta: number
+          beta_hi: number
+          beta_lo: number
+          ci_note: string
+          combatant_ref: number
+          design_effect: number
+          n_clusters: number
+          se_cluster: number
+          se_naive: number
+          strength: number
+          strength_hi: number
+          strength_lo: number
+        }[]
+      }
+      concept_pair_tallies: {
+        Args: { p_mission_id: string }
+        Returns: {
+          decisive_n: number
+          dropped_n: number
+          hi_ref: number
+          hi_wins: number
+          lo_ref: number
+          lo_wins: number
+          neither_n: number
+          reliability_n: number
+        }[]
+      }
       consolidate_duplicate_brands: {
         Args: never
         Returns: {
@@ -32149,6 +33149,7 @@ export type Database = {
           step: string
         }[]
       }
+      correction_jsonb_is_empty: { Args: { p_value: Json }; Returns: boolean }
       count_eligible_users: {
         Args: {
           p_new_to_brand_id?: number
@@ -32156,6 +33157,17 @@ export type Database = {
           p_taxonomy_node_id?: number
         }
         Returns: number
+      }
+      count_eligible_users_for_study: {
+        Args: {
+          p_eligibility_tier?: Database["public"]["Enums"]["mission_eligibility_tier"]
+          p_focal_product_id: number
+          p_new_to_brand_id?: number
+          p_opponent_product_ids?: number[]
+          p_panel_eligibility?: Database["public"]["Enums"]["mission_panel_eligibility_tier"]
+          p_target_states?: string[]
+        }
+        Returns: Json
       }
       count_ingredients_from_raw: {
         Args: { raw_text: string }
@@ -32166,8 +33178,8 @@ export type Database = {
           p_brand_id: number
           p_campaign_name: string
           p_expires_at?: string
-          p_mission_title: string
-          p_mission_type: string
+          p_mission_title?: string
+          p_mission_type?: string
           p_operator_type?: string
           p_product_id?: number
           p_session_count?: number
@@ -32213,6 +33225,10 @@ export type Database = {
       }
       display_brand_name: { Args: { p_brand_name: string }; Returns: string }
       enter_brand_impersonation: { Args: { p_brand_id: number }; Returns: Json }
+      evidence_grade: {
+        Args: { p_product_id: number; p_user_id: number }
+        Returns: Database["public"]["Enums"]["consumption_evidence_grade"]
+      }
       exit_brand_impersonation: { Args: never; Returns: Json }
       expand_food_query: { Args: { p_query: string }; Returns: string }
       expand_upce_to_upca: { Args: { p_upce: string }; Returns: string }
@@ -32248,6 +33264,16 @@ export type Database = {
         Args: { p_target_user_id: number; p_viewer_auth_id: string }
         Returns: Json
       }
+      freeze_experienced_mission_report: {
+        Args: {
+          p_headline_floor?: number
+          p_k_floor?: number
+          p_min_latency_ms?: number
+          p_mission_id: string
+          p_opponent_floor?: number
+        }
+        Returns: string
+      }
       freeze_mission_battle_for_user: {
         Args: {
           p_focal_product_id: number
@@ -32264,6 +33290,10 @@ export type Database = {
           p_target_protocol_question_id: string
           p_user_id: number
         }
+        Returns: Json
+      }
+      generate_concept_session_plan: {
+        Args: { p_mission_claim_id: string; p_session_number?: number }
         Returns: Json
       }
       generate_maxdiff_design: {
@@ -32407,6 +33437,10 @@ export type Database = {
           top_taste_score: number
         }[]
       }
+      get_concept_mission_report: {
+        Args: { p_mission_id: string }
+        Returns: Json
+      }
       get_current_user_id: { Args: never; Returns: number }
       get_data_request_status: { Args: { p_product_id: number }; Returns: Json }
       get_effective_brand_id: { Args: never; Returns: number }
@@ -32419,6 +33453,10 @@ export type Database = {
           eff_taste: number
           scoring_tier: number
         }[]
+      }
+      get_experienced_mission_report: {
+        Args: { p_mission_id: string }
+        Returns: Json
       }
       get_follow_list: {
         Args: {
@@ -32494,6 +33532,19 @@ export type Database = {
           should_use_anchor: boolean
         }[]
       }
+      get_open_alerts: {
+        Args: never
+        Returns: {
+          alert_id: number
+          detail: Json
+          first_seen_at: string
+          last_seen_at: string
+          occurrence_count: number
+          severity: string
+          source: string
+          summary: string
+        }[]
+      }
       get_or_create_scan_session: {
         Args: { p_scanned_at?: string; p_user_id: number }
         Returns: number
@@ -32533,10 +33584,6 @@ export type Database = {
         }[]
       }
       get_portal_brand_id: { Args: never; Returns: number }
-      get_portal_user_brand_id: {
-        Args: { user_auth_uid: string }
-        Returns: number
-      }
       get_portal_user_role: { Args: { user_auth_uid: string }; Returns: string }
       get_probe_screen: {
         Args: { p_mission_claim_id: string; p_protocol_question_id: string }
@@ -32689,18 +33736,16 @@ export type Database = {
         Args: { p_subject_id: number; p_viewer_id: number }
         Returns: Json
       }
+      hard_delete_mission: { Args: { p_mission_id: string }; Returns: Json }
       has_ai_ingredients: {
         Args: { p_sku_variant_id: number }
         Returns: boolean
       }
       has_ai_nutrition: { Args: { p_sku_variant_id: number }; Returns: boolean }
+      has_capability: { Args: { p_capability: string }; Returns: boolean }
       has_gluten_in_allergen_array: {
         Args: { p_product_id: number }
         Returns: boolean
-      }
-      hard_delete_mission: {
-        Args: { p_mission_id: string }
-        Returns: Json
       }
       hex_blend: {
         Args: { hex1: string; hex2: string; ratio: number }
@@ -32774,45 +33819,44 @@ export type Database = {
         Args: { p_product_id: number }
         Returns: boolean
       }
+      is_scan_corroborated: {
+        Args: { p_product_id: number; p_user_id: number; p_window?: string }
+        Returns: boolean
+      }
       list_operator_studies: {
-        Args: {
-          p_brand_id?: number | null
-          p_include_finished?: boolean
-        }
+        Args: { p_brand_id?: number | null; p_include_finished?: boolean }
         Returns: {
-          brand_id: number | null
-          brand_name: string | null
+          brand_id: number
+          brand_name: string
           completed_claims: number
           created_at: string
-          expires_at: string | null
-          focal_product_id: number | null
-          focal_product_name: string | null
+          expires_at: string
+          focal_product_id: number
+          focal_product_name: string
           is_finished: boolean
           mission_id: string
-          mission_type: string | null
-          status: 'active' | 'archived' | 'expired' | 'paused' | 'completed'
-          target_completions?: number | null
-          template_code: string | null
+          mission_type: string
+          status: string
+          target_completions: number
+          template_code: string
           title: string
           total_claims: number
         }[]
       }
       list_withdrawn_studies: {
-        Args: {
-          p_brand_id?: number | null
-        }
+        Args: { p_brand_id?: number | null }
         Returns: {
-          brand_id: number | null
-          brand_name: string | null
+          brand_id: number
+          brand_name: string
           completed_claims: number
           created_at: string
           deleted_at: string
-          focal_product_id: number | null
-          focal_product_name: string | null
+          focal_product_id: number
+          focal_product_name: string
           is_draft: boolean
           mission_id: string
           status: string
-          template_code: string | null
+          template_code: string
           title: string
           total_claims: number
         }[]
@@ -32906,6 +33950,7 @@ export type Database = {
       }
       mission_brand_report: {
         Args: {
+          p_enforce_floors?: boolean
           p_headline_floor?: number
           p_k_floor?: number
           p_min_latency_ms?: number
@@ -32922,6 +33967,7 @@ export type Database = {
         Args: { p_product_id: number }
         Returns: string
       }
+      nutrition_basis_plausible: { Args: { p_value: Json }; Returns: boolean }
       opt_in_to_ihut: {
         Args: { p_campaign_id: string; p_shipping_address_id?: number }
         Returns: Json
@@ -32953,7 +33999,7 @@ export type Database = {
           p_created_by: string
           p_expires_at?: string | null
           p_predictive_validity_opt_in?: boolean
-          p_price_posture: string
+          p_price_posture?: string
           p_products: Json
           p_questions: Json
           p_scoring_rounds?: number
@@ -32975,6 +34021,10 @@ export type Database = {
           p_template_id: string
           p_title_override?: string
         }
+        Returns: Json
+      }
+      purge_expired_withdrawn_missions: {
+        Args: { p_age_days?: number }
         Returns: Json
       }
       purge_old_purveyor_messages: { Args: never; Returns: undefined }
@@ -32999,6 +34049,27 @@ export type Database = {
       record_brand_portal_login: {
         Args: { p_ip_address?: unknown; p_user_agent?: string }
         Returns: string
+      }
+      record_concept_battle_response: {
+        Args: {
+          p_combatant_ref_a: number
+          p_combatant_ref_b: number
+          p_concept_session_id: string
+          p_decision_ms?: number
+          p_outcome: string
+          p_round_number: number
+        }
+        Returns: Json
+      }
+      record_concept_screen_response: {
+        Args: {
+          p_decision_ms?: number
+          p_mission_claim_id: string
+          p_protocol_question_id: string
+          p_response_value: Json
+          p_session_number?: number
+        }
+        Returns: Json
       }
       record_forced_rank_response: {
         Args: {
@@ -33164,8 +34235,30 @@ export type Database = {
           resolved_prompt_id: number
         }[]
       }
-      restore_mission: {
-        Args: { p_mission_id: string }
+      resolve_reliability_anchors: {
+        Args: {
+          p_focal_product_id: number
+          p_n_anchors?: number
+          p_node_id: number
+        }
+        Returns: {
+          anchor_product_id: number
+          anchor_rank: number
+          anchor_tier: number
+          sibling_distance: number
+          source: string
+          source_node_id: number
+        }[]
+      }
+      restore_mission: { Args: { p_mission_id: string }; Returns: Json }
+      review_correction: {
+        Args: {
+          p_corrected_value?: Json
+          p_decision: string
+          p_notes?: string
+          p_sku_variant_id?: number
+          p_submission_id: string
+        }
         Returns: Json
       }
       run_bayesian_batch: { Args: never; Returns: string }
@@ -33402,6 +34495,16 @@ export type Database = {
           total_in_brand: number
         }[]
       }
+      search_taxonomy_nodes: {
+        Args: { p_limit?: number; p_query: string }
+        Returns: {
+          is_leaf: boolean
+          node_level: number
+          node_name_display: string
+          path_names_csv: string
+          taxonomy_node_id: number
+        }[]
+      }
       search_user_taste: {
         Args: { p_query: string; p_user_id: number }
         Returns: {
@@ -33461,6 +34564,10 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
       soft_delete_saved_product: {
         Args: { p_product_id: number }
+        Returns: Json
+      }
+      start_concept_session: {
+        Args: { p_mission_claim_id: string; p_session_number?: number }
         Returns: Json
       }
       start_mission_session: {
@@ -33635,10 +34742,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      withdraw_mission: {
-        Args: { p_mission_id: string }
-        Returns: Json
-      }
+      withdraw_mission: { Args: { p_mission_id: string }; Returns: Json }
     }
     Enums: {
       assignment_status:
@@ -33649,6 +34753,7 @@ export type Database = {
         | "expired"
         | "dismissed"
       attribution_type: "seeded" | "organic_post_completion"
+      battle_intent: "direct_competitor" | "jtbd_incumbent" | "own_concept_arm"
       battle_provenance_class: "organic" | "study"
       challenger_selection_method:
         | "genome_driven"
@@ -33664,13 +34769,33 @@ export type Database = {
         | "expired"
         | "resubmission_requested"
       cohort_selection_method: "manual" | "computed" | "segment"
+      concept_stimulus_type:
+        | "name"
+        | "package"
+        | "claim"
+        | "flavor"
+        | "positioning"
+        | "price"
+        | "full_concept"
+      consumption_evidence_grade:
+        | "hypothetical"
+        | "unverifiable"
+        | "self_reported"
+        | "receipt_verified"
       credibility_verdict: "credible" | "not_credible" | "needs_review"
       evidence_type:
         | "receipt_image"
         | "product_image"
         | "location_signal"
         | "video"
+      mission_eligibility_tier:
+        | "any"
+        | "scanned"
+        | "tried"
+        | "tried_scan_corroborated"
+        | "receipt_verified"
       mission_operator_type: "platform" | "brand"
+      mission_panel_eligibility_tier: "none" | "any_one" | "all"
       mission_status:
         | "draft"
         | "scheduled"
@@ -33678,6 +34803,7 @@ export type Database = {
         | "paused"
         | "expired"
         | "archived"
+        | "completed"
       mission_targeting_mode: "open" | "assigned" | "hybrid"
       mission_type:
         | "verified_purchase"
@@ -33688,6 +34814,15 @@ export type Database = {
         | "platform_seeded"
         | "seasonal"
         | "limited"
+        | "concept_test"
+      report_signal_kind:
+        | "ranking_driver"
+        | "categorical_distribution"
+        | "intent_scale"
+        | "screening_context"
+        | "ordinal_rating"
+        | "free_text"
+        | "unreported"
       user_role: "user" | "admin" | "brand_partner"
     }
     CompositeTypes: {
@@ -33814,6 +34949,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       assignment_status: [
@@ -33825,6 +34963,7 @@ export const Constants = {
         "dismissed",
       ],
       attribution_type: ["seeded", "organic_post_completion"],
+      battle_intent: ["direct_competitor", "jtbd_incumbent", "own_concept_arm"],
       battle_provenance_class: ["organic", "study"],
       challenger_selection_method: [
         "genome_driven",
@@ -33842,6 +34981,21 @@ export const Constants = {
         "resubmission_requested",
       ],
       cohort_selection_method: ["manual", "computed", "segment"],
+      concept_stimulus_type: [
+        "name",
+        "package",
+        "claim",
+        "flavor",
+        "positioning",
+        "price",
+        "full_concept",
+      ],
+      consumption_evidence_grade: [
+        "hypothetical",
+        "unverifiable",
+        "self_reported",
+        "receipt_verified",
+      ],
       credibility_verdict: ["credible", "not_credible", "needs_review"],
       evidence_type: [
         "receipt_image",
@@ -33849,7 +35003,15 @@ export const Constants = {
         "location_signal",
         "video",
       ],
+      mission_eligibility_tier: [
+        "any",
+        "scanned",
+        "tried",
+        "tried_scan_corroborated",
+        "receipt_verified",
+      ],
       mission_operator_type: ["platform", "brand"],
+      mission_panel_eligibility_tier: ["none", "any_one", "all"],
       mission_status: [
         "draft",
         "scheduled",
@@ -33857,6 +35019,7 @@ export const Constants = {
         "paused",
         "expired",
         "archived",
+        "completed",
       ],
       mission_targeting_mode: ["open", "assigned", "hybrid"],
       mission_type: [
@@ -33868,6 +35031,16 @@ export const Constants = {
         "platform_seeded",
         "seasonal",
         "limited",
+        "concept_test",
+      ],
+      report_signal_kind: [
+        "ranking_driver",
+        "categorical_distribution",
+        "intent_scale",
+        "screening_context",
+        "ordinal_rating",
+        "free_text",
+        "unreported",
       ],
       user_role: ["user", "admin", "brand_partner"],
     },
