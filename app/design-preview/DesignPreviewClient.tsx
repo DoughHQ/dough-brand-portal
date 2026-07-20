@@ -7,6 +7,8 @@ import {
   MethodologyDisclosure,
   StatusPill,
 } from '@/components/ui'
+import { ConceptReportDeck } from '@/components/conceptReport/ConceptReportDeck'
+import { conceptReportFixture } from '@/lib/conceptReport/fixture'
 
 function PreviewCard({
   title,
@@ -158,6 +160,43 @@ export default function DesignPreviewClient() {
       <PreviewCard title="Methodology disclosure">
         <MethodologyDisclosure disclosure={SAMPLE_DISCLOSURE} />
       </PreviewCard>
+
+      <div style={{ marginTop: 'var(--space-4)' }}>
+        <h2
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'var(--ink-faint)',
+            marginBottom: 'var(--space-2)',
+          }}
+        >
+          Concept study report memo (fixture)
+        </h2>
+        <p
+          style={{
+            fontSize: 13,
+            color: 'var(--ink-muted)',
+            marginBottom: 'var(--space-3)',
+            lineHeight: 1.5,
+          }}
+        >
+          Pure renderer of frozen win rates + decision frame. Live path:{' '}
+          <code style={{ fontSize: 12 }}>/studies/concept/[missionId]/report</code>
+        </p>
+        <div
+          style={{
+            border: '1px solid var(--mist)',
+            borderRadius: 'var(--radius-card)',
+            overflow: 'hidden',
+            background: 'var(--cream)',
+          }}
+        >
+          <ConceptReportDeck report={conceptReportFixture()} backHref="/design-preview" />
+        </div>
+      </div>
     </div>
   )
 }

@@ -137,7 +137,12 @@ export default function PortalLayoutClient({
             { label: 'Occasions',     href: '/occasions' },
             { label: 'Launch IHUT',   href: '/ihut' },
             { label: 'Reports',       href: '/reports' },
-            ...(isAdmin ? [{ label: 'Corrections', href: '/admin/corrections' }] : []),
+            ...(isAdmin
+              ? [
+                  { label: 'Corrections', href: '/admin/corrections' },
+                  { label: 'Compare Groups', href: '/admin/compare-groups' },
+                ]
+              : []),
           ].map(item => {
             const active = pathname === item.href || pathname.startsWith(item.href + '/')
             return (

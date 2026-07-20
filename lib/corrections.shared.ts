@@ -90,3 +90,25 @@ export function isEmptyApplicableProposal(row: CorrectionReviewRow): boolean {
 export function canApproveAsIs(row: CorrectionReviewRow): boolean {
   return !isEmptyApplicableProposal(row)
 }
+
+/** Human reason Approve is disabled — shown in review UI instead of a silent dash. */
+export function approveBlockedReason(row: CorrectionReviewRow): string | null {
+  if (canApproveAsIs(row)) return null
+  const ct = (row.correction_type ?? '').toLowerCase()
+  if (PHOTO_ONLY_TYPES.has(ct)) {
+    return 'Photo-only — extract from the photo, then confirm via Override (or reject).'
+  }
+  if (ct === 'category') {
+    const reason =
+      (row.proposed_value?.review_reason as string | undefined) ??
+      (row.claude_corrected_value?.review_reason as string | undefined)
+    if (reason === 'no_match_auto_classify') {
+      return 'No proposed category — the classifier could not match this product. Assign one via Override.'
+    }
+    if (reason === 'low_confidence_auto_classify') {
+      return 'Low-confidence classification — confirm or change the category via Override.'
+    }
+    return 'No proposed category to apply — assign one via Override.'
+  }
+  return 'Nothing to approve as-is — enter a value via Override, or reject.'
+}

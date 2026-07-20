@@ -63,6 +63,70 @@ a {
   border-radius: 3px;
 }
 
+/* Concept study report — story deck print + motion */
+@media (prefers-reduced-motion: no-preference) {
+  .deck-enter-title {
+    animation: fadeUp 500ms var(--motion-ease) both;
+  }
+  .deck-enter-verdict {
+    animation: fadeUp 600ms var(--motion-ease) 80ms both;
+  }
+  .deck-enter-ladder {
+    animation: fadeUp 500ms var(--motion-ease) both;
+  }
+}
+
+@media (max-width: 800px) {
+  .deck-verdict-grid,
+  .deck-drivers-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media print {
+  body {
+    background: #fff !important;
+  }
+
+  .concept-report-deck,
+  .concept-report-memo,
+  .experienced-report-deck {
+    max-width: none !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    background: #fff !important;
+  }
+
+  .concept-report-deck a,
+  .concept-report-deck button,
+  .concept-report-memo a,
+  .concept-report-memo button,
+  .experienced-report-deck a,
+  .experienced-report-deck button {
+    display: none !important;
+  }
+
+  .concept-report-simulated-banner,
+  .concept-report-thin-banner {
+    display: flex !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    break-inside: avoid;
+  }
+
+  .deck-trust-details summary {
+    list-style: none;
+  }
+
+  .deck-trust-details > *:not(summary) {
+    display: block !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
 /* Dark mode — legacy portal shell */
 .dark {
   --cream: #141210;

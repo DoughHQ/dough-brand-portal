@@ -33,25 +33,66 @@ interface ProductsClientProps {
 
 export default function ProductsClient({
   brand,
+  products: serverProducts,
   claimedIds,
   isImpersonating,
 }: ProductsClientProps) {
-  const supabase = createClient()
   const router = useRouter()
   const [portfolioProducts, setPortfolioProducts] = useState<PortfolioProduct[]>([])
+  const [portfolioError, setPortfolioError] = useState<string | null>(null)
+  const [usingFallback, setUsingFallback] = useState(false)
   const [loadingPortfolio, setLoadingPortfolio] = useState(true)
   const [search, setSearch] = useState('')
   const [showBattledOnly, setShowBattledOnly] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   useEffect(() => {
-    supabase
+    let cancelled = false
+    const client = createClient()
+    client
       .rpc('get_brand_products_portfolio', { p_brand_id: brand.brand_id })
       .then(({ data, error }) => {
-        if (error) console.error('portfolio error:', error)
-        setPortfolioProducts((data ?? []) as PortfolioProduct[])
+        if (cancelled) return
+        if (error) {
+          console.error('portfolio error:', error)
+          setPortfolioError(error.message)
+        }
+        const rows = (data ?? []) as PortfolioProduct[]
+        if (rows.length > 0) {
+          setPortfolioProducts(rows)
+          setUsingFallback(false)
+        } else {
+          // Portfolio empty or failed — use server list so the page isn't a dead end.
+          setPortfolioProducts(
+            serverProducts.map((p) => ({
+              product_id: p.product_id,
+              product_name_clean: p.product_name_clean,
+              product_name_display: p.product_name_display,
+              image_url: p.image_url,
+              primary_barcode: null,
+              l2_name: p.l2_name,
+              l3_name: p.l3_name,
+              price_tier_label: p.price_tier_label,
+              total_battles: p.total_battles ?? p.battles_total ?? 0,
+              elo_score: p.elo_score,
+              win_rate_pct:
+                p.battles_total > 0
+                  ? Math.round((p.battles_won / p.battles_total) * 1000) / 10
+                  : null,
+              has_battle_data: (p.battles_total ?? 0) > 0,
+              package_size_value: null,
+              package_size_uom: null,
+            }))
+          )
+          setUsingFallback(true)
+        }
         setLoadingPortfolio(false)
       })
+    return () => {
+      cancelled = true
+    }
+    // serverProducts is the SSR catalog for this brand; re-run if brand changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brand.brand_id])
 
   const claimedIdSet = new Set(claimedIds)
@@ -78,7 +119,15 @@ export default function ProductsClient({
           </div>
           <div style={{ fontSize: 13, color: 'var(--ink-50)' }}>
             {portfolioProducts.length.toLocaleString()} products · {battledCount} with battle data
+            {usingFallback ? ' · catalog list' : ''}
           </div>
+          {(portfolioError || usingFallback) && (
+            <div style={{ fontSize: 12, color: 'var(--amber)', marginTop: 6 }}>
+              {portfolioError
+                ? `Portfolio RPC failed (${portfolioError}). Showing server catalog.`
+                : 'Portfolio returned no rows — showing server catalog so you can still open products.'}
+            </div>
+          )}
         </div>
         <button
           onClick={() => alert('Add product coming soon')}

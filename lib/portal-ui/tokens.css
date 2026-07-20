@@ -21,6 +21,16 @@
   --ink-muted: rgba(28, 38, 32, 0.55);
   --ink-faint: rgba(28, 38, 32, 0.38);
 
+  /* Concept report — own-arm tint (ownership, never rank) */
+  --bg-pro: rgba(62, 107, 74, 0.08);
+  --text-pro: #3e6b4a;
+  --fill-pro: rgba(62, 107, 74, 0.28);
+  --border-strong: rgba(28, 38, 32, 0.55);
+
+  /* System notices (simulated / integrity banners) */
+  --bg-warning: #f3e6d0;
+  --text-warning: #8a4b0f;
+
   /* Typography */
   --font-display: var(--font-serif-display), 'DM Serif Display', Georgia, serif;
   --font-sans: var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;

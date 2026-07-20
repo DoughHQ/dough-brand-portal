@@ -8,10 +8,12 @@ import {
   type CorrectionReviewRow,
   type TaxonomySearchHit,
 } from '@/lib/corrections.shared'
+import { searchTaxonomyNodes as searchTaxonomyNodesShared } from '@/lib/taxonomy'
 
 export type { CorrectionReviewRow, TaxonomySearchHit } from '@/lib/corrections.shared'
 export {
   PHOTO_ONLY_TYPES,
+  approveBlockedReason,
   canApproveAsIs,
   isEmptyApplicableProposal,
   isBlankLeaf,
@@ -285,16 +287,7 @@ export async function extractCorrectionLabel(
 }
 
 export async function searchTaxonomyNodes(query: string): Promise<TaxonomySearchHit[]> {
-  const supabase = await createServerSupabaseClient()
-  const { data, error } = await supabase.rpc('search_taxonomy_nodes', {
-    p_query: query,
-    p_limit: 25,
-  })
-  if (error) {
-    console.error('[corrections] search_taxonomy_nodes', error)
-    return []
-  }
-  return (data ?? []) as TaxonomySearchHit[]
+  return searchTaxonomyNodesShared(query, 25)
 }
 
 export async function searchBrands(query: string): Promise<Array<{ brand_id: number; brand_name: string }>> {

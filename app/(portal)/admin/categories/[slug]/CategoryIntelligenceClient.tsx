@@ -8,7 +8,7 @@ type Product = {
   product_name_clean: string
   brand_id: number
   brand_name: string
-  l3_name: string
+  l3_name: string | null
   battles_total: number
   battles_won: number
   win_rate_pct: number | null
@@ -34,9 +34,17 @@ interface Props {
   l2Name: string
   products: Product[]
   l3Breakdown: L3Row[]
+  scopeNote?: string | null
+  loadError?: string | null
 }
 
-export default function CategoryIntelligenceClient({ l2Name, products, l3Breakdown }: Props) {
+export default function CategoryIntelligenceClient({
+  l2Name,
+  products,
+  l3Breakdown,
+  scopeNote,
+  loadError,
+}: Props) {
   const router = useRouter()
   const { enterAsBrand, loading: entering } = useEnterImpersonation()
   const [sort, setSort] = useState<SortKey>('elo')
@@ -48,7 +56,7 @@ export default function CategoryIntelligenceClient({ l2Name, products, l3Breakdo
     ? Math.round(products.reduce((s, p) => s + Number(p.win_rate_pct ?? 0), 0) / products.length)
     : 0
 
-  const filtered = products
+  const filtered = [...products]
     .sort((a, b) => {
       if (sort === 'elo') return Number(b.elo_score ?? 0) - Number(a.elo_score ?? 0)
       if (sort === 'win_rate') return Number(b.win_rate_pct ?? 0) - Number(a.win_rate_pct ?? 0)
@@ -74,8 +82,26 @@ export default function CategoryIntelligenceClient({ l2Name, products, l3Breakdo
           {l2Name}
         </div>
         <div style={{ fontSize: 13, color: 'var(--ink-30)' }}>
-          Ranked by declared consumer preference · Updated continuously
+          Ranked by declared consumer preference · Click a product for the master page
         </div>
+        {scopeNote && (
+          <div style={{ fontSize: 12, color: 'var(--amber)', marginTop: 8 }}>{scopeNote}</div>
+        )}
+        {loadError && (
+          <div
+            style={{
+              fontSize: 12,
+              color: 'var(--clay, #a6543c)',
+              marginTop: 8,
+              padding: '10px 12px',
+              background: 'var(--cream, #faf8f3)',
+              borderRadius: 8,
+              border: '1px solid var(--ink-10)',
+            }}
+          >
+            Couldn’t load rankings: {loadError}
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 28 }}>
@@ -241,7 +267,15 @@ export default function CategoryIntelligenceClient({ l2Name, products, l3Breakdo
             ))}
           </div>
 
-          {filtered.map((product, i) => (
+          {filtered.length === 0 ? (
+            <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.5 }}>
+              No battled products in this category yet.
+              <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-30)' }}>
+                When shoppers battle here, the Elo leaderboard will show up — and each row opens the product master page.
+              </div>
+            </div>
+          ) : (
+            filtered.map((product, i) => (
             <div
               key={product.product_id}
               style={{
@@ -327,7 +361,8 @@ export default function CategoryIntelligenceClient({ l2Name, products, l3Breakdo
                 {product.price_tier_label ?? '—'}
               </div>
             </div>
-          ))}
+          ))
+          )}
         </div>
       </div>
 

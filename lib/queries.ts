@@ -184,39 +184,6 @@ export type BrandProduct = {
   is_claimed: boolean
 }
 
-export type ProductDetail = {
-  product_id: number
-  product_name_clean: string
-  product_name_display: string
-  product_flavor_variant: string | null
-  product_variety: string | null
-  image_url: string | null
-  total_battles: number
-  total_scans: number
-  price_tier_label: string | null
-  is_verified: boolean
-  brand_id: number
-  brand_name: string
-  l3_name: string | null
-  l2_name: string | null
-  l1_name: string | null
-  elo_score: number | null
-  battles_total: number
-  battles_won: number
-  battles_lost: number
-  user_percentile: number | null
-  is_favorite: boolean
-  last_battle_at: string | null
-}
-
-export type ProductBattleHistory = {
-  battle_date: string
-  battles: number
-  wins: number
-  losses: number
-  avg_decision_ms: number
-}
-
 export async function getPortalUser(): Promise<PortalUser | null> {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
@@ -391,60 +358,6 @@ export async function getBrandProducts(
     is_favorite: row.is_favorite ?? false,
     last_battle_at: row.last_battle_at ?? null,
     is_claimed: claimedProductIds.includes(row.product_id),
-  }))
-}
-
-export async function getProductDetail(
-  productId: number,
-  brandId: number
-): Promise<ProductDetail | null> {
-  const supabase = await createServerSupabaseClient()
-  const { data } = await supabase.rpc('get_product_detail', {
-    p_product_id: productId,
-    p_brand_id: brandId,
-  })
-  if (!data || !data.length) return null
-  const row = data[0] as any
-  return {
-    product_id: row.product_id,
-    product_name_clean: row.product_name_clean ?? row.product_name_display,
-    product_name_display: row.product_name_display,
-    product_flavor_variant: row.product_flavor_variant,
-    product_variety: row.product_variety,
-    image_url: row.image_url,
-    total_battles: row.total_battles ?? 0,
-    total_scans: row.total_scans ?? 0,
-    price_tier_label: row.price_tier_label,
-    is_verified: row.is_verified ?? false,
-    brand_id: row.brand_id,
-    brand_name: row.brand_name,
-    l3_name: row.l3_name,
-    l2_name: row.l2_name,
-    l1_name: row.l1_name,
-    elo_score: row.elo_score ? Number(row.elo_score) : null,
-    battles_total: row.battles_total ?? 0,
-    battles_won: row.battles_won ?? 0,
-    battles_lost: row.battles_lost ?? 0,
-    user_percentile: row.user_percentile ? Number(row.user_percentile) : null,
-    is_favorite: row.is_favorite ?? false,
-    last_battle_at: row.last_battle_at ?? null,
-  }
-}
-
-export async function getProductBattleHistory(
-  productId: number
-): Promise<ProductBattleHistory[]> {
-  const supabase = await createServerSupabaseClient()
-  const { data } = await supabase.rpc('get_product_battle_history', {
-    p_product_id: productId,
-  })
-  if (!data) return []
-  return (data as any[]).map(row => ({
-    battle_date: row.battle_date,
-    battles: row.battles,
-    wins: row.wins,
-    losses: row.losses,
-    avg_decision_ms: Math.round(Number(row.avg_decision_ms)),
   }))
 }
 
