@@ -12802,6 +12802,10 @@ export type Database = {
           created_at: string
           current_value: Json | null
           evidence_image_url: string | null
+          extracted_at: string | null
+          extracted_value: Json | null
+          extraction_error: string | null
+          human_corrected_value: Json | null
           human_decision: string | null
           human_notes: string | null
           id: string
@@ -12813,6 +12817,7 @@ export type Database = {
           proposed_taxonomy_node_id: number | null
           proposed_value: Json
           reviewed_at: string | null
+          reviewed_by_portal_user_id: string | null
           reviewed_by_user_id: number | null
           status: string
           submitted_by_user_id: number
@@ -12831,6 +12836,10 @@ export type Database = {
           created_at?: string
           current_value?: Json | null
           evidence_image_url?: string | null
+          extracted_at?: string | null
+          extracted_value?: Json | null
+          extraction_error?: string | null
+          human_corrected_value?: Json | null
           human_decision?: string | null
           human_notes?: string | null
           id?: string
@@ -12842,6 +12851,7 @@ export type Database = {
           proposed_taxonomy_node_id?: number | null
           proposed_value: Json
           reviewed_at?: string | null
+          reviewed_by_portal_user_id?: string | null
           reviewed_by_user_id?: number | null
           status?: string
           submitted_by_user_id: number
@@ -12860,6 +12870,10 @@ export type Database = {
           created_at?: string
           current_value?: Json | null
           evidence_image_url?: string | null
+          extracted_at?: string | null
+          extracted_value?: Json | null
+          extraction_error?: string | null
+          human_corrected_value?: Json | null
           human_decision?: string | null
           human_notes?: string | null
           id?: string
@@ -12871,6 +12885,7 @@ export type Database = {
           proposed_taxonomy_node_id?: number | null
           proposed_value?: Json
           reviewed_at?: string | null
+          reviewed_by_portal_user_id?: string | null
           reviewed_by_user_id?: number | null
           status?: string
           submitted_by_user_id?: number
@@ -13003,6 +13018,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
             referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "product_correction_submissions_reviewed_by_portal_user_id_fkey"
+            columns: ["reviewed_by_portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "brand_portal_users"
+            referencedColumns: ["portal_user_id"]
           },
         ]
       }
@@ -20054,6 +20076,7 @@ export type Database = {
           external_product_snapshot_id: number | null
           ingredients_parsed: Json | null
           ingredients_text_raw: string
+          is_human_verified: boolean
           is_verified: boolean | null
           sku_ingredients_id: number
           sku_variant_id: number
@@ -20067,6 +20090,7 @@ export type Database = {
           external_product_snapshot_id?: number | null
           ingredients_parsed?: Json | null
           ingredients_text_raw: string
+          is_human_verified?: boolean
           is_verified?: boolean | null
           sku_ingredients_id?: number
           sku_variant_id: number
@@ -20080,6 +20104,7 @@ export type Database = {
           external_product_snapshot_id?: number | null
           ingredients_parsed?: Json | null
           ingredients_text_raw?: string
+          is_human_verified?: boolean
           is_verified?: boolean | null
           sku_ingredients_id?: number
           sku_variant_id?: number
@@ -20120,6 +20145,7 @@ export type Database = {
       sku_nutrition_facts: {
         Row: {
           added_sugars_g: number | null
+          basis_type: string | null
           calcium_mg: number | null
           calories: number | null
           calories_from_fat: number | null
@@ -20129,6 +20155,7 @@ export type Database = {
           extended_nutrients: Json | null
           external_product_snapshot_id: number | null
           iron_mg: number | null
+          is_human_verified: boolean
           is_verified: boolean | null
           monounsaturated_fat_g: number | null
           percent_daily_value_basis: string | null
@@ -20155,6 +20182,7 @@ export type Database = {
         }
         Insert: {
           added_sugars_g?: number | null
+          basis_type?: string | null
           calcium_mg?: number | null
           calories?: number | null
           calories_from_fat?: number | null
@@ -20164,6 +20192,7 @@ export type Database = {
           extended_nutrients?: Json | null
           external_product_snapshot_id?: number | null
           iron_mg?: number | null
+          is_human_verified?: boolean
           is_verified?: boolean | null
           monounsaturated_fat_g?: number | null
           percent_daily_value_basis?: string | null
@@ -20190,6 +20219,7 @@ export type Database = {
         }
         Update: {
           added_sugars_g?: number | null
+          basis_type?: string | null
           calcium_mg?: number | null
           calories?: number | null
           calories_from_fat?: number | null
@@ -20199,6 +20229,7 @@ export type Database = {
           extended_nutrients?: Json | null
           external_product_snapshot_id?: number | null
           iron_mg?: number | null
+          is_human_verified?: boolean
           is_verified?: boolean | null
           monounsaturated_fat_g?: number | null
           percent_daily_value_basis?: string | null
@@ -29355,6 +29386,10 @@ export type Database = {
           current_category: string | null
           current_value: Json | null
           evidence_image_url: string | null
+          extracted_at: string | null
+          extracted_value: Json | null
+          extraction_error: string | null
+          human_corrected_value: Json | null
           id: string | null
           other_category_description: string | null
           product_id: number | null
@@ -33114,6 +33149,7 @@ export type Database = {
           step: string
         }[]
       }
+      correction_jsonb_is_empty: { Args: { p_value: Json }; Returns: boolean }
       count_eligible_users: {
         Args: {
           p_new_to_brand_id?: number
@@ -33931,6 +33967,7 @@ export type Database = {
         Args: { p_product_id: number }
         Returns: string
       }
+      nutrition_basis_plausible: { Args: { p_value: Json }; Returns: boolean }
       opt_in_to_ihut: {
         Args: { p_campaign_id: string; p_shipping_address_id?: number }
         Returns: Json
@@ -34214,6 +34251,16 @@ export type Database = {
         }[]
       }
       restore_mission: { Args: { p_mission_id: string }; Returns: Json }
+      review_correction: {
+        Args: {
+          p_corrected_value?: Json
+          p_decision: string
+          p_notes?: string
+          p_sku_variant_id?: number
+          p_submission_id: string
+        }
+        Returns: Json
+      }
       run_bayesian_batch: { Args: never; Returns: string }
       run_brand_intelligence_refresh: { Args: never; Returns: Json }
       run_gate1_extraction: {
@@ -34446,6 +34493,16 @@ export type Database = {
           product_name: string
           ranked_in_cat: number
           total_in_brand: number
+        }[]
+      }
+      search_taxonomy_nodes: {
+        Args: { p_limit?: number; p_query: string }
+        Returns: {
+          is_leaf: boolean
+          node_level: number
+          node_name_display: string
+          path_names_csv: string
+          taxonomy_node_id: number
         }[]
       }
       search_user_taste: {

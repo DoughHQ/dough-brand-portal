@@ -1,81 +1,26 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import 'server-only'
 
-export type CorrectionReviewRow = {
-  id: string
-  product_id: number
-  created_at: string
-  correction_type: string | null
-  product_name_display: string | null
-  brand_name: string | null
-  current_category: string | null
-  current_category_path: string | null
-  current_value: Record<string, unknown> | null
-  proposed_value: Record<string, unknown> | null
-  user_notes: string | null
-  evidence_image_url: string | null
-  product_image_url: string | null
-  proposed_taxonomy_node_id: number | null
-  proposed_category_label: string | null
-  proposed_category_path: string | null
-  other_category_description: string | null
-  proposed_price_amount: number | string | null
-  proposed_price_store: string | null
-  proposed_price_unit: string | null
-  claude_decision: string | null
-  claude_confidence: number | string | null
-  claude_reasoning: string | null
-  claude_corrected_value: Record<string, unknown> | null
-  status: string | null
-}
+import { createServerSupabaseClient } from '@/lib/supabase-server'
+import type { Json } from '@/lib/database.types'
+import {
+  canApproveAsIs,
+  isBlankLeaf,
+  type CorrectionReviewRow,
+  type TaxonomySearchHit,
+} from '@/lib/corrections.shared'
+import { searchTaxonomyNodes as searchTaxonomyNodesShared } from '@/lib/taxonomy'
+
+export type { CorrectionReviewRow, TaxonomySearchHit } from '@/lib/corrections.shared'
+export {
+  PHOTO_ONLY_TYPES,
+  approveBlockedReason,
+  canApproveAsIs,
+  isEmptyApplicableProposal,
+  isBlankLeaf,
+} from '@/lib/corrections.shared'
 
 const QUEUE_SELECT =
-  'id, product_id, created_at, correction_type, product_name_display, brand_name, current_category, current_value, proposed_value, user_notes, evidence_image_url, proposed_taxonomy_node_id, other_category_description, proposed_price_amount, proposed_price_store, proposed_price_unit, claude_decision, claude_confidence, claude_reasoning, claude_corrected_value, status'
-
-/** Types where the user supplies a photo and structured proposed_value is empty/`{}`. */
-export const PHOTO_ONLY_TYPES = new Set(['nutrition_facts', 'ingredients'])
-
-function isBlankLeaf(v: unknown): boolean {
-  if (v == null) return true
-  if (typeof v === 'string') return v.trim() === ''
-  if (typeof v === 'number') return !Number.isFinite(v)
-  if (typeof v === 'boolean') return false
-  if (Array.isArray(v)) return v.length === 0 || v.every(isBlankLeaf)
-  if (typeof v === 'object') {
-    const vals = Object.values(v as Record<string, unknown>)
-    return vals.length === 0 || vals.every(isBlankLeaf)
-  }
-  return false
-}
-
-/** True when approving as-is would apply nothing meaningful (§6.1 / empty-value guard). */
-export function isEmptyApplicableProposal(row: CorrectionReviewRow): boolean {
-  const ct = (row.correction_type ?? '').toLowerCase()
-  if (PHOTO_ONLY_TYPES.has(ct)) return true
-
-  if (ct === 'category') {
-    if (row.proposed_taxonomy_node_id != null) return false
-    const pv = row.proposed_value
-    const nodeId = pv?.taxonomy_node_id
-    return nodeId == null || nodeId === ''
-  }
-
-  if (ct === 'product_image') {
-    const url =
-      (row.proposed_value?.image_url as string | undefined) ??
-      row.evidence_image_url
-    return !url || String(url).trim() === ''
-  }
-
-  if (ct === 'price') {
-    return row.proposed_price_amount == null && isBlankLeaf(row.proposed_value)
-  }
-
-  return isBlankLeaf(row.proposed_value)
-}
-
-export function canApproveAsIs(row: CorrectionReviewRow): boolean {
-  return !isEmptyApplicableProposal(row)
-}
+  'id, product_id, created_at, correction_type, product_name_display, brand_name, current_category, current_value, proposed_value, extracted_value, extracted_at, extraction_error, human_corrected_value, user_notes, evidence_image_url, proposed_taxonomy_node_id, other_category_description, proposed_price_amount, proposed_price_store, proposed_price_unit, claude_decision, claude_confidence, claude_reasoning, claude_corrected_value, status'
 
 export async function getPendingCorrectionReviews(): Promise<CorrectionReviewRow[]> {
   const supabase = await createServerSupabaseClient()
@@ -115,7 +60,7 @@ export async function getPendingCorrectionReviews(): Promise<CorrectionReviewRow
     }
   }
 
-  const [{ data: products }, { data: nodes }] = await Promise.all([
+  const [{ data: products }, { data: nodes }, { data: variants }] = await Promise.all([
     supabase.from('products').select('product_id, image_url, taxonomy_node_id').in('product_id', productIds),
     nodeIds.size > 0
       ? supabase
@@ -127,9 +72,13 @@ export async function getPendingCorrectionReviews(): Promise<CorrectionReviewRow
           node_name_display: string | null
           path_names_csv: string | null
         }> }),
+    supabase
+      .from('sku_variants')
+      .select('sku_variant_id, product_id, variant_name_display, package_size_value, package_size_uom')
+      .in('product_id', productIds)
+      .order('sku_variant_id', { ascending: true }),
   ])
 
-  // Current category paths: resolve via product taxonomy when view only has display name
   const currentNodeIds = [
     ...new Set(
       (products ?? [])
@@ -164,6 +113,21 @@ export async function getPendingCorrectionReviews(): Promise<CorrectionReviewRow
     })
   }
 
+  const variantsByProduct = new Map<number, CorrectionReviewRow['variants']>()
+  for (const v of variants ?? []) {
+    const pid = v.product_id as number
+    const list = variantsByProduct.get(pid) ?? []
+    const size =
+      v.package_size_value != null
+        ? `${v.package_size_value}${v.package_size_uom ? ` ${v.package_size_uom}` : ''}`
+        : null
+    list.push({
+      sku_variant_id: v.sku_variant_id as number,
+      label: [v.variant_name_display, size].filter(Boolean).join(' · ') || `Variant ${v.sku_variant_id}`,
+    })
+    variantsByProduct.set(pid, list)
+  }
+
   return baseRows.map((row) => {
     const product = productById.get(row.product_id)
     let proposedNodeId = row.proposed_taxonomy_node_id != null
@@ -177,6 +141,7 @@ export async function getPendingCorrectionReviews(): Promise<CorrectionReviewRow
     const proposedNode = proposedNodeId != null ? nodeById.get(proposedNodeId) : null
     const currentNodeId = product?.taxonomy_node_id as number | null | undefined
     const currentNode = currentNodeId != null ? nodeById.get(currentNodeId) : null
+    const variantList = variantsByProduct.get(row.product_id) ?? []
 
     return {
       ...row,
@@ -186,21 +151,28 @@ export async function getPendingCorrectionReviews(): Promise<CorrectionReviewRow
       current_category_path: currentNode?.path_names_csv ?? null,
       current_category:
         row.current_category ?? currentNode?.node_name_display ?? null,
+      variant_count: variantList.length,
+      variants: variantList,
     }
   })
 }
 
 export async function reviewCorrectionSubmission(
   submissionId: string,
-  action: 'approve' | 'reject',
-  humanNotes?: string | null
+  decision: 'approved' | 'rejected' | 'overridden',
+  opts?: {
+    correctedValue?: Record<string, unknown> | null
+    skuVariantId?: number | null
+    notes?: string | null
+  }
 ): Promise<{ ok: boolean; error?: string }> {
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!base) return { ok: false, error: 'Supabase env not configured' }
-
   const supabase = await createServerSupabaseClient()
 
-  if (action === 'approve') {
+  if (decision === 'rejected' && (!opts?.notes || opts.notes.trim() === '')) {
+    return { ok: false, error: 'A reject reason is required.' }
+  }
+
+  if (decision === 'approved') {
     const { data: sub, error: loadErr } = await supabase
       .from('product_correction_submissions')
       .select('id, correction_type, proposed_value, proposed_taxonomy_node_id, proposed_price_amount, evidence_image_url, status')
@@ -223,6 +195,10 @@ export async function reviewCorrectionSubmission(
       current_category_path: null,
       current_value: null,
       proposed_value: (sub.proposed_value ?? {}) as Record<string, unknown>,
+      extracted_value: null,
+      extracted_at: null,
+      extraction_error: null,
+      human_corrected_value: null,
       user_notes: null,
       evidence_image_url: sub.evidence_image_url as string | null,
       product_image_url: null,
@@ -238,6 +214,8 @@ export async function reviewCorrectionSubmission(
       claude_reasoning: null,
       claude_corrected_value: null,
       status: sub.status as string | null,
+      variant_count: 0,
+      variants: [],
     }
 
     if (!canApproveAsIs(probe)) {
@@ -249,29 +227,83 @@ export async function reviewCorrectionSubmission(
     }
   }
 
-  if (action === 'reject' && (!humanNotes || humanNotes.trim() === '')) {
-    return { ok: false, error: 'A reject reason is required.' }
+  if (decision === 'overridden' && (!opts?.correctedValue || isBlankLeaf(opts.correctedValue))) {
+    return { ok: false, error: 'Override requires a non-empty corrected value.' }
   }
 
+  const { data, error } = await supabase.rpc('review_correction', {
+    p_submission_id: submissionId,
+    p_decision: decision,
+    p_corrected_value:
+      decision === 'overridden'
+        ? ((opts?.correctedValue ?? {}) as Json)
+        : undefined,
+    p_sku_variant_id: opts?.skuVariantId ?? undefined,
+    p_notes: opts?.notes?.trim() || undefined,
+  })
+
+  if (error) {
+    return { ok: false, error: error.message }
+  }
+  const body = data as { ok?: boolean; error?: string } | null
+  if (body && body.ok === false) {
+    return { ok: false, error: body.error ?? 'Review failed' }
+  }
+  return { ok: true }
+}
+
+export async function extractCorrectionLabel(
+  submissionId: string
+): Promise<{ ok: boolean; extracted_value?: Record<string, unknown>; error?: string }> {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!base) return { ok: false, error: 'Supabase env not configured' }
+
+  const supabase = await createServerSupabaseClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.access_token) return { ok: false, error: 'Not authenticated' }
 
-  const res = await fetch(`${base}/functions/v1/review_product_correction`, {
+  const res = await fetch(`${base}/functions/v1/extract_correction_label`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${session.access_token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      action,
-      submission_id: submissionId,
-      human_notes: humanNotes?.trim() || null,
-    }),
+    body: JSON.stringify({ submission_id: submissionId }),
   })
 
-  const body = (await res.json()) as { error?: string; status?: string }
+  const body = (await res.json()) as {
+    ok?: boolean
+    error?: string
+    extraction_error?: string
+    extracted_value?: Record<string, unknown>
+  }
   if (!res.ok || body.error) {
     return { ok: false, error: body.error ?? `HTTP ${res.status}` }
   }
-  return { ok: true }
+  if (body.ok === false) {
+    return { ok: false, error: body.extraction_error ?? 'Extraction failed' }
+  }
+  return { ok: true, extracted_value: body.extracted_value }
+}
+
+export async function searchTaxonomyNodes(query: string): Promise<TaxonomySearchHit[]> {
+  return searchTaxonomyNodesShared(query, 25)
+}
+
+export async function searchBrands(query: string): Promise<Array<{ brand_id: number; brand_name: string }>> {
+  const supabase = await createServerSupabaseClient()
+  const q = query.trim()
+  if (q.length < 1) return []
+  const { data, error } = await supabase
+    .from('brands')
+    .select('brand_id, brand_name')
+    .ilike('brand_name', `%${q}%`)
+    .eq('status', 'active')
+    .order('brand_name')
+    .limit(25)
+  if (error) {
+    console.error('[corrections] searchBrands', error)
+    return []
+  }
+  return (data ?? []) as Array<{ brand_id: number; brand_name: string }>
 }

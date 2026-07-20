@@ -25,21 +25,28 @@ interface Props {
 }
 
 export default function AdminProductsClient({ portalUser, categoryStats, milestoneAlerts }: Props) {
-  const supabase = createClient()
   const router = useRouter()
   const { enterAsBrand, loading: entering } = useEnterImpersonation()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<ProductResult[]>([])
   const [searching, setSearching] = useState(false)
+  const [productIdJump, setProductIdJump] = useState('')
 
   async function handleSearch(q: string) {
     setSearchQuery(q)
     if (q.trim().length < 2) { setSearchResults([]); return }
     setSearching(true)
-    const { data } = await supabase.rpc('search_products_admin', { p_query: q.trim() })
+    const { data } = await createClient().rpc('search_products_admin', { p_query: q.trim() })
     setSearching(false)
     setSearchResults((data ?? []) as ProductResult[])
+  }
+
+  function openById() {
+    const id = parseInt(productIdJump.trim(), 10)
+    if (!Number.isNaN(id) && id > 0) {
+      router.push(`/products/${id}`)
+    }
   }
 
   const milestoneLabel: Record<string, string> = {
@@ -65,26 +72,75 @@ export default function AdminProductsClient({ portalUser, categoryStats, milesto
 
       {/* Product search */}
       <div style={{ marginBottom: 32 }}>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={e => handleSearch(e.target.value)}
-          placeholder="Search products or brands..."
-          style={{
-            width: '100%',
-            padding: '12px 16px',
-            borderRadius: 'var(--r-sm)',
-            border: '1px solid var(--ink-10)',
-            background: 'var(--white)',
-            fontSize: 14,
-            color: 'var(--ink)',
-            fontFamily: 'var(--font-sans)',
-            outline: 'none',
-            boxSizing: 'border-box',
-          }}
-          onFocus={e => e.target.style.borderColor = 'var(--ink-30)'}
-          onBlur={e => e.target.style.borderColor = 'var(--ink-10)'}
-        />
+        <p style={{ fontSize: 13, color: 'var(--ink-50)', marginBottom: 12, lineHeight: 1.45 }}>
+          Search a product name or brand, open a milestone below, or jump by product ID.
+          Row click opens the master product page.
+        </p>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => handleSearch(e.target.value)}
+            placeholder="Search products or brands..."
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              borderRadius: 'var(--r-sm)',
+              border: '1px solid var(--ink-10)',
+              background: 'var(--white)',
+              fontSize: 14,
+              color: 'var(--ink)',
+              fontFamily: 'var(--font-sans)',
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+            onFocus={e => e.target.style.borderColor = 'var(--ink-30)'}
+            onBlur={e => e.target.style.borderColor = 'var(--ink-10)'}
+          />
+          <form
+            onSubmit={e => {
+              e.preventDefault()
+              openById()
+            }}
+            style={{ display: 'flex', gap: 6, flexShrink: 0 }}
+          >
+            <input
+              type="text"
+              inputMode="numeric"
+              value={productIdJump}
+              onChange={e => setProductIdJump(e.target.value)}
+              placeholder="Product ID"
+              style={{
+                width: 120,
+                padding: '12px 12px',
+                borderRadius: 'var(--r-sm)',
+                border: '1px solid var(--ink-10)',
+                background: 'var(--white)',
+                fontSize: 14,
+                color: 'var(--ink)',
+                fontFamily: 'var(--font-sans)',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+            <button
+              type="submit"
+              style={{
+                padding: '0 14px',
+                borderRadius: 'var(--r-sm)',
+                border: 'none',
+                background: 'var(--sage)',
+                color: 'white',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                fontFamily: 'var(--font-sans)',
+              }}
+            >
+              Open
+            </button>
+          </form>
+        </div>
 
         {/* Search results */}
         {(searchResults.length > 0 || searching) && (
@@ -101,13 +157,13 @@ export default function AdminProductsClient({ portalUser, categoryStats, milesto
             {searchResults.length > 0 && (
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 160px 100px 80px 90px 90px',
+                gridTemplateColumns: '1fr 160px 100px 80px 90px 90px 72px',
                 padding: '8px 20px',
                 background: 'var(--surface-1)',
                 borderBottom: '1px solid var(--ink-10)',
               }}>
-                {['Product', 'Brand', 'Category', 'Battles', 'Win rate', 'ELO'].map(h => (
-                  <div key={h} style={{ fontSize: 10, fontWeight: 500, color: 'var(--ink-30)', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: h === 'Product' || h === 'Brand' ? 'left' : 'right' }}>
+                {['Product', 'Brand', 'Category', 'Battles', 'Win rate', 'ELO', ''].map(h => (
+                  <div key={h || 'open'} style={{ fontSize: 10, fontWeight: 500, color: 'var(--ink-30)', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: h === 'Product' || h === 'Brand' || h === '' ? 'left' : 'right' }}>
                     {h}
                   </div>
                 ))}
@@ -118,7 +174,7 @@ export default function AdminProductsClient({ portalUser, categoryStats, milesto
                 key={product.product_id}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '1fr 160px 100px 80px 90px 90px',
+                  gridTemplateColumns: '1fr 160px 100px 80px 90px 90px 72px',
                   padding: '12px 20px',
                   borderBottom: i < searchResults.length - 1 ? '1px solid var(--ink-10)' : 'none',
                   alignItems: 'center',
@@ -159,8 +215,35 @@ export default function AdminProductsClient({ portalUser, categoryStats, milesto
                 <div style={{ fontSize: 13, fontFamily: 'var(--font-serif)', color: product.elo_score ? 'var(--ink)' : 'var(--ink-30)', textAlign: 'right' }}>
                   {product.elo_score ? Math.round(Number(product.elo_score)) : '—'}
                 </div>
+                <div style={{ textAlign: 'right' }}>
+                  <button
+                    type="button"
+                    onClick={e => {
+                      e.stopPropagation()
+                      router.push(`/products/${product.product_id}`)
+                    }}
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 500,
+                      color: 'var(--sage)',
+                      background: 'var(--sage-pale)',
+                      border: '1px solid rgba(62,107,74,0.2)',
+                      borderRadius: 6,
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-sans)',
+                    }}
+                  >
+                    Open
+                  </button>
+                </div>
               </div>
             ))}
+          </div>
+        )}
+        {!searching && searchQuery.trim().length >= 2 && searchResults.length === 0 && (
+          <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-30)' }}>
+            No products matched “{searchQuery}”. Try a product ID on the right.
           </div>
         )}
       </div>
