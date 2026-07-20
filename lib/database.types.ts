@@ -33991,20 +33991,20 @@ export type Database = {
       }
       publish_concept_mission: {
         Args: {
-          p_audience_definition?: string
+          p_audience_definition?: string | null
           p_brand_campaign_id: string
           p_brand_id: number
           p_category_intelligence_opt_in?: boolean
           p_concepts: Json
           p_created_by: string
-          p_expires_at?: string
+          p_expires_at?: string | null
           p_predictive_validity_opt_in?: boolean
           p_price_posture?: string
           p_products: Json
           p_questions: Json
           p_scoring_rounds?: number
           p_session_count?: number
-          p_session2_interval_hours?: number
+          p_session2_interval_hours?: number | null
           p_taxonomy_node_id: number
           p_title: string
         }
@@ -34017,7 +34017,7 @@ export type Database = {
           p_expires_at?: string
           p_focal_product_id: number
           p_node_id: number
-          p_target_completions?: number
+          p_target_completions?: number | null
           p_template_id: string
           p_title_override?: string
         }
