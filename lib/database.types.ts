@@ -33824,7 +33824,7 @@ export type Database = {
         Returns: boolean
       }
       list_operator_studies: {
-        Args: { p_brand_id?: number; p_include_finished?: boolean }
+        Args: { p_brand_id?: number | null; p_include_finished?: boolean }
         Returns: {
           brand_id: number
           brand_name: string
@@ -33844,7 +33844,7 @@ export type Database = {
         }[]
       }
       list_withdrawn_studies: {
-        Args: { p_brand_id?: number }
+        Args: { p_brand_id?: number | null }
         Returns: {
           brand_id: number
           brand_name: string
