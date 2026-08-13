@@ -1,6 +1,7 @@
 'use client'
 
 import type { QuestionResponse } from '@/lib/conceptReport/types'
+import { WtpDemandCurve } from './WtpDemandCurve'
 
 function shareEntries(q: QuestionResponse): { option: string; share: number; count: number }[] {
   const shares = q.aggregate.shares
@@ -211,7 +212,9 @@ function QuestionCard({ q, screening }: { q: QuestionResponse; screening?: boole
       ) : (
         <div style={{ height: 10 }} />
       )}
-      {kind === 'intent_scale' ? (
+      {q.question_type_code === 'concept_wtp' ? (
+        <WtpDemandCurve q={q} />
+      ) : kind === 'intent_scale' ? (
         <IntentStack q={q} />
       ) : (
         <CategoricalBars q={q} />
