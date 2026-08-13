@@ -32,9 +32,8 @@
   --cb-radius-pill: 999px;
   --cb-radius: var(--cb-radius-card);
 
-  /* Elevation — four recipes, all warm-neutral */
+  /* Elevation — card, popover, modal (the raised recipe retired with drag) */
   --cb-shadow-card: 0 1px 2px rgba(28, 38, 32, 0.04);
-  --cb-shadow-raised: 0 2px 8px rgba(28, 38, 32, 0.06);
   --cb-shadow-popover: 0 8px 24px rgba(28, 38, 32, 0.1);
   --cb-shadow-modal: 0 16px 48px rgba(28, 38, 32, 0.16);
   --cb-shadow: var(--cb-shadow-card);
@@ -91,10 +90,17 @@
   font-family: var(--font-sans);
   font-size: 14px;
   color: var(--cb-text);
+  /* `margin: 0 auto` disables cross-axis stretch inside the portal shell's column
+     flex `main`, so without an explicit width the section is shrink-to-fit and only
+     reaches 1160 while its content happens to be wide enough. Pin it. */
+  width: 100%;
   max-width: var(--cb-content-max);
   margin: 0 auto;
   padding: var(--cb-page-gutter) var(--cb-page-gutter)
-    calc(var(--cb-sticky-h) + var(--cb-space-xl));
+    /* measured dock height + its 16px bottom offset + 24px of tail. The last
+       section card already carries a 24px bottom margin, so the visible gap at
+       maximum scroll lands at ~48px without touching any section's geometry. */
+    calc(var(--cb-sticky-h) + var(--cb-space-lg) + var(--cb-space-xl));
 }
 
 .concept-builder .cb-page-title {
@@ -177,62 +183,152 @@
   background: var(--cb-sage);
 }
 
+/* ==========================================================================
+   Publishing dock
+   Was a full-width opaque band pinned to the viewport bottom, which the final
+   section scrolled behind. Now a transparent fixed shell containing a floating
+   panel aligned to the builder's content frame. Only the panel paints.
+   ========================================================================== */
 .concept-builder .cb-sticky {
   position: fixed;
   left: var(--cb-sidebar-w);
   right: 0;
-  bottom: 0;
+  bottom: var(--cb-space-lg);
   z-index: 40;
-  background: rgba(250, 248, 243, 0.98);
-  border-top: 1px solid var(--cb-border-soft);
-  padding: var(--cb-space-lg) 0;
+  background: transparent;
+  padding: 0 var(--cb-page-gutter);
+  /* The shell spans the workspace for positioning only — clicks pass through
+     everywhere except the dock itself. */
+  pointer-events: none;
 }
 
 .concept-builder .cb-sticky-inner {
-  max-width: var(--cb-content-max);
+  pointer-events: auto;
+  /* Content frame minus its gutters, so the dock's edges line up with the
+     section cards rather than with the viewport. */
+  max-width: calc(var(--cb-content-max) - (2 * var(--cb-page-gutter)));
   margin: 0 auto;
-  padding: 0 var(--cb-page-gutter);
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--cb-space-xl);
+  background: var(--cb-surface);
+  border: 1px solid var(--cb-border);
+  border-radius: var(--cb-radius-card);
+  box-shadow: var(--cb-shadow-card);
+  padding: var(--cb-space-lg);
+  display: grid;
+  grid-template-columns: minmax(200px, 220px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--cb-space-lg);
 }
 
-.concept-builder .cb-need-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* Left — a quiet summary, not a heading for the page. */
+.concept-builder .cb-dock-summary {
+  background: var(--cb-surface-muted);
+  border-radius: var(--cb-radius-card);
+  padding: var(--cb-space-lg);
+  align-self: stretch;
   display: flex;
   flex-direction: column;
-  gap: var(--cb-space-sm);
+  justify-content: center;
+  gap: var(--cb-space-xs);
 }
 
-.concept-builder .cb-need-list button {
-  display: inline-flex;
+.concept-builder .cb-dock-summary-head {
+  display: flex;
   align-items: center;
   gap: var(--cb-space-sm);
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cb-heading);
+}
+
+.concept-builder .cb-dock-summary-help {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--cb-secondary);
+}
+
+/* Middle — compact task rows, laid out horizontally instead of a tall list. */
+.concept-builder .cb-dock-tasks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cb-space-sm);
+  min-width: 0;
+}
+
+.concept-builder .cb-dock-task {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-space-sm);
+  min-height: 44px;
+  padding: var(--cb-space-sm) var(--cb-space-md);
+  background: var(--cb-surface);
+  border: 1px solid var(--cb-border);
+  border-radius: var(--cb-radius-control);
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
+  line-height: 1.35;
   color: var(--cb-text);
   text-align: left;
+  cursor: pointer;
+  min-width: 0;
 }
 
-.concept-builder .cb-need-list button:hover {
-  color: var(--cb-sage);
+.concept-builder .cb-dock-task:hover {
+  background: var(--cb-surface-muted);
+  border-color: var(--cb-border-strong);
 }
 
-.concept-builder .cb-need-dot {
-  width: 8px;
-  height: 8px;
+.concept-builder .cb-dock-task:focus-visible {
+  outline: none;
+  box-shadow: var(--cb-focus-ring);
+  border-color: var(--cb-sage);
+}
+
+.concept-builder .cb-dock-task-dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
   border-radius: var(--cb-radius-pill);
   background: var(--cb-amber-warning);
+}
+
+.concept-builder .cb-dock-overflow {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--cb-space-md);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--cb-secondary);
+}
+
+/* Right — unchanged actions, vertically centred. */
+.concept-builder .cb-dock-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-space-md);
   flex-shrink: 0;
 }
+
+/* Below the width where three zones stop being readable, the actions drop to
+   their own row. DOM order is unchanged, so tab order still reads
+   summary -> tasks -> Save -> Publish. */
+@media (max-width: 1180px) {
+  .concept-builder .cb-sticky-inner {
+    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  }
+  .concept-builder .cb-dock-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}
+
+
+
+
 
 .concept-builder .cb-btn {
   font-family: var(--font-sans);
@@ -340,144 +436,6 @@
   background: var(--cb-surface);
 }
 
-/* Section 1 — instructional workflow ribbon only */
-.concept-builder .cb-field-workflow {
-  /* ~34% / 5.5% / 34% / 26.5% */
-  display: grid;
-  grid-template-columns: minmax(0, 34fr) minmax(0, 5.5fr) minmax(0, 34fr) minmax(0, 26.5fr);
-  column-gap: 0;
-  align-items: center;
-  margin-bottom: var(--cb-space-xl);
-  padding: var(--cb-space-lg) var(--cb-space-xl);
-  background: var(--cb-surface-muted);
-  border: 1px solid var(--cb-border-soft);
-  border-radius: var(--cb-radius-card);
-  box-shadow: none;
-  font-family: var(--font-sans);
-}
-
-.concept-builder .cb-field-workflow-step {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--cb-space-md);
-  min-width: 0;
-  padding: 0 var(--cb-space-md) 0 0;
-}
-
-.concept-builder .cb-field-workflow-step:first-child {
-  padding-left: 0;
-}
-
-.concept-builder .cb-field-workflow-num {
-  width: 34px;
-  height: 34px;
-  margin-top: 0;
-  border-radius: var(--cb-radius-pill);
-  background: #243d2c;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  line-height: 1;
-  box-shadow: none;
-  border: none;
-}
-
-.concept-builder .cb-field-workflow-copy {
-  min-width: 0;
-  flex: 1;
-  padding-top: 0;
-}
-
-.concept-builder .cb-field-workflow-label {
-  font-size: 15px;
-  font-weight: 600;
-  color: #243d2c;
-  margin: 0 0 var(--cb-space-xs);
-  line-height: 20px;
-  letter-spacing: -0.01em;
-}
-
-.concept-builder .cb-field-workflow-help {
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--cb-secondary);
-  line-height: 1.5;
-  margin: 0;
-  max-width: 270px;
-}
-
-.concept-builder .cb-field-workflow-chevron {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-self: center;
-  width: 100%;
-  height: var(--cb-space-3xl);
-  padding: 0;
-  color: #8a968c;
-  border: none;
-  background: transparent;
-}
-
-.concept-builder .cb-field-workflow-chevron::before,
-.concept-builder .cb-field-workflow-chevron::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1px;
-  height: var(--cb-space-3xl);
-  background: var(--cb-border-soft);
-}
-
-.concept-builder .cb-field-workflow-chevron::before {
-  left: 0;
-}
-
-.concept-builder .cb-field-workflow-chevron::after {
-  right: 0;
-}
-
-.concept-builder .cb-field-workflow-chevron svg {
-  display: block;
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-}
-
-.concept-builder .cb-field-workflow-note {
-  display: flex;
-  align-items: center;
-  gap: var(--cb-space-sm);
-  padding: 0 0 0 var(--cb-space-lg);
-  border-left: 1px solid var(--cb-border-soft);
-  background: transparent;
-  min-width: 0;
-}
-
-.concept-builder .cb-field-workflow-note-icon {
-  flex-shrink: 0;
-  margin-top: 0;
-  color: var(--cb-amber);
-  font-size: 13px;
-  line-height: 1;
-  font-weight: 600;
-}
-
-.concept-builder .cb-field-workflow-note-text {
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--cb-text);
-  line-height: 1.5;
-  margin: 0;
-}
-
 .concept-builder .cb-field-grid {
   display: grid;
   grid-template-columns: minmax(320px, 0.45fr) minmax(420px, 0.55fr);
@@ -507,14 +465,25 @@
   min-width: 0;
 }
 
-/* Competitor rows are draggable: the one raised elevation, on hover only. */
-.concept-builder .cb-competitor-row {
-  box-shadow: none;
+/*
+ * The competitive set reads as one list object, not a stack of cards:
+ * one bordered surface, soft hairlines between members.
+ */
+.concept-builder .cb-comp-list {
+  background: var(--cb-surface);
+  border: 1px solid var(--cb-border);
+  border-radius: var(--cb-radius-card);
+  overflow: hidden;
 }
 
-.concept-builder .cb-competitor-row:hover {
-  box-shadow: var(--cb-shadow-raised);
+.concept-builder .cb-comp-row + .cb-comp-row {
+  border-top: 1px solid var(--cb-border-soft);
 }
+
+.concept-builder .cb-comp-row:hover {
+  background: var(--cb-surface-muted);
+}
+
 
 /* Column titles under the ribbon — application UI, not editorial */
 .concept-builder .cb-field-col-title {
@@ -690,31 +659,273 @@
   }
 }
 
-@media (max-width: 900px) {
-  .concept-builder .cb-field-workflow {
-    grid-template-columns: 1fr;
-    gap: var(--cb-space-lg);
-    padding: var(--cb-space-lg) var(--cb-space-xl);
-  }
 
-  .concept-builder .cb-field-workflow-chevron {
-    display: none;
-  }
+/* ==========================================================================
+   Section 0 — Setup
+   Section 0 Pass 1 put the mode cards on the Pass 3 system. Pass 2 cut the grid
+   to the two study types that can actually be chosen, so the disabled-card,
+   status-badge and auto-fill rules that existed only for the seven-card grid
+   are gone with them.
+   ========================================================================== */
 
-  .concept-builder .cb-field-workflow-step {
-    padding: 0;
-  }
+/* Two choices, deliberately — not a card gallery. */
+.cb-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cb-space-md);
+  align-items: stretch;
+}
 
-  .concept-builder .cb-field-workflow-help {
-    max-width: none;
+/* Cards stack below the width where the help copy starts to crowd. Measured,
+   not guessed — see the Pass 2 report. Uses the existing responsive vocabulary. */
+@media (max-width: 720px) {
+  .cb-mode-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
+}
 
-  .concept-builder .cb-field-workflow-note {
-    border-left: none;
-    border-top: 1px solid var(--cb-border-soft);
-    margin-left: 0;
-    padding: var(--cb-space-md) 0 0;
-    max-width: none;
-    align-items: flex-start;
-  }
+.cb-mode-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-xs);
+  text-align: left;
+  height: 100%;
+  padding: var(--cb-space-lg);
+  border: 1px solid var(--cb-border);
+  border-radius: var(--cb-radius-card);
+  background: var(--cb-surface);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+/* Hover derives from state — no imperative style writing on mouseleave. */
+.cb-mode-card:hover:not([aria-checked='true']) {
+  background: var(--cb-sage-hover);
+  border-color: var(--cb-sage);
+}
+
+/* The one canonical ring, same as every other control in the builder. */
+.cb-mode-card:focus-visible {
+  outline: none;
+  box-shadow: var(--cb-focus-ring);
+  border-color: var(--cb-sage);
+}
+
+.cb-mode-card[aria-checked='true'] {
+  background: var(--cb-sage-soft);
+  border-color: var(--cb-sage);
+}
+
+.cb-mode-card-label {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cb-heading);
+}
+
+.cb-mode-card-help {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--cb-secondary);
+}
+
+/* #65736A measures 4.43:1 on the sage-soft fill. On the chosen card the
+   description steps to the heading colour (10.49:1); size and weight still
+   carry the title/help hierarchy. */
+.cb-mode-card[aria-checked='true'] .cb-mode-card-help {
+  color: var(--cb-heading);
+}
+
+/* Roadmap — one quiet statement. No border, no surface, no pills, not a control. */
+.cb-mode-roadmap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cb-space-sm);
+  margin: var(--cb-space-md) 0 var(--cb-space-xl);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Both runs use the one secondary text colour — 4.98:1. The roadmap is
+   informational, not disabled, so it gets no contrast exemption. It stays
+   subordinate by being the smallest type in the section (12px against 15/600
+   card titles and 13px card help), not by being faint. */
+.cb-mode-roadmap-lead {
+  color: var(--cb-secondary);
+  font-weight: 500;
+}
+
+.cb-mode-roadmap-list {
+  color: var(--cb-secondary);
+  font-weight: 400;
+}
+
+/* Questionnaire wording — an override, not a permanent form field. */
+.cb-wording-trigger,
+.cb-wording-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-space-md);
+  margin: var(--cb-space-md) 0 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--cb-secondary);
+}
+
+.cb-wording-summary strong {
+  font-weight: 600;
+  color: var(--cb-heading);
+}
+
+/* Pass 3 removed the muted inset panel. The label, control and note are already
+   ordinary form flow; the container was the only inset surface in Section 0 and
+   made an escape hatch look like a required step. */
+.cb-wording-editor {
+  margin-top: var(--cb-space-lg);
+}
+
+.cb-wording-actions {
+  display: flex;
+  gap: var(--cb-space-lg);
+  margin-top: var(--cb-space-md);
+}
+
+.cb-field-note {
+  margin: 6px 0 0;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--cb-secondary);
+}
+
+/* Required-and-empty marker — one token, one radius, every field. */
+.cb-required-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--cb-radius-pill);
+  background: var(--cb-amber-warning);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* A 44x44 target around a 12px icon. The visible mark stays small; only the hit
+   area grows, and it does so without changing the 48px control. */
+.cb-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border: none;
+  background: transparent;
+  border-radius: var(--cb-radius-control);
+  color: var(--cb-secondary);
+  cursor: pointer;
+  padding: 0;
+}
+
+.cb-icon-btn:hover:not(:disabled) {
+  background: var(--cb-surface-muted);
+  color: var(--cb-heading);
+}
+
+.cb-icon-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--cb-focus-ring);
+}
+
+.cb-icon-btn:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* Inset variant for the control-embedded clear, kept inside the 48px field. */
+.cb-icon-btn-inset {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* --- Pass 3 --------------------------------------------------------------- */
+
+/* Quiet secondary utility. Optional does not mean unreadable: 4.98:1, a real
+   hover, and the canonical focus ring. Not tertiary, which fails contrast. */
+.cb-quiet-action {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cb-secondary);
+  cursor: pointer;
+  border-radius: var(--cb-radius-control);
+}
+
+.cb-quiet-action:hover {
+  color: var(--cb-heading);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cb-quiet-action:focus-visible {
+  outline: none;
+  box-shadow: var(--cb-focus-ring);
+}
+
+/* Confirmation dialog — the overlay, surface, radius and shadow already used by
+   the publish and verification dialogs. No new primitive. */
+.cb-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(20, 24, 20, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--cb-space-xl);
+}
+
+.cb-confirm-panel {
+  background: var(--cb-surface);
+  border-radius: var(--cb-radius-card);
+  box-shadow: var(--cb-shadow-modal);
+  max-width: 440px;
+  width: 100%;
+  padding: var(--cb-space-xl);
+}
+
+.cb-confirm-title {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--cb-heading);
+  margin: 0 0 var(--cb-space-sm);
+}
+
+.cb-confirm-body {
+  margin: 0 0 var(--cb-space-xl);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--cb-secondary);
+}
+
+.cb-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--cb-space-md);
+}
+
+/* The document is the scroll owner. Anchored blockers scroll fields into view,
+   so reserve the dock's measured height plus its offset and a little margin —
+   otherwise a bottom-of-page field lands underneath the dock. */
+html {
+  scroll-padding-bottom: calc(
+    var(--cb-sticky-h, 96px) + var(--cb-space-lg, 16px) + var(--cb-space-2xl, 32px)
+  );
 }

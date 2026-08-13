@@ -123,7 +123,7 @@ export default function ConceptArmImageUploader({
     <div>
       <style>{`@keyframes concept-spin{to{transform:rotate(360deg)}}`}</style>
       <div style={labelSm}>
-        Pack image{requiredHint ? ' (required)' : ''}
+        Pack image{requiredHint ? ' · Required' : ''}
       </div>
 
       <input

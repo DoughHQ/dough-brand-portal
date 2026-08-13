@@ -3,9 +3,6 @@ import type { BattleIntent, PricePosture, StimulusMode } from './types'
 /** Admin test brand — Dough HQ sandbox. */
 export const CONCEPT_DEFAULT_BRAND_ID = 20016372
 
-/** Temporary default taxonomy node until a picker ships. */
-export const CONCEPT_DEFAULT_TAXONOMY_NODE_ID = 9330054
-
 export const PACKAGING_TEMPLATE_CODE = 'S1_CONCEPT_PACKAGING'
 export const PRICE_TEMPLATE_CODE = 'S1_CONCEPT_PRICE'
 
@@ -105,5 +102,11 @@ export const PRICE_POSTURE_OPTIONS: {
   },
 ]
 
-export const MODE_IN_PROGRESS_NOTE =
-  'Question set in progress — packaging studies are live now.'
+/**
+ * Status label for study types that are not yet publishable.
+ *
+ * Replaces MODE_IN_PROGRESS_NOTE, which claimed "packaging studies are live
+ * now" — false, since Price is publishable too, and it was printed five times
+ * per render. Two words, true, and short enough not to dominate the grid.
+ */
+export const MODE_COMING_SOON_LABEL = 'Coming soon'

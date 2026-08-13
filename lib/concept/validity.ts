@@ -9,6 +9,17 @@ import {
 } from './templateConfig'
 import { uniquePairs } from './publish'
 import { isSignedStorageUrl } from './stimuliStorage'
+import {
+  MAX_CONCEPT_FIELD_SIZE,
+  competitorMinimum,
+  duplicateCompetitorIds,
+  getConceptFieldSize,
+  getFieldOverBy,
+  getRequiredCompetitorsRemaining,
+  isFieldDeadEnd,
+  resolvedCompetitors,
+} from './fieldSize'
+import { armLabelForIndex } from './defaults'
 
 export type OutstandingItem = {
   message: string
@@ -35,6 +46,17 @@ export type FieldValidity = {
   softOutstanding: OutstandingItem[]
   templateErrors: TemplateConfigError[]
   hasVerificationScreener: boolean
+  /** Seats used by the persisted draft (own variants + every competitor row). */
+  fieldSize: number
+  /** How far over the six-seat maximum this draft is, if at all. */
+  fieldOverBy: number
+  /** Real competitors still required by this study mode. */
+  competitorsMissing: number
+  /** Required competitors can no longer fit without removing something. */
+  fieldDeadEnd: boolean
+  fieldSizeOk: boolean
+  competitorsOk: boolean
+  duplicatesOk: boolean
 }
 
 /** Pairings per respondent = C(n,2) capped at scoring_rounds. */
@@ -73,36 +95,59 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
   }
 
   if (!draft.title.trim()) {
-    // Anchor follows the field: since the campaign/title consolidation the study
-    // name lives in the top card (concept-study-name), not in Section 1.
+    // Anchor follows the field. Since Section 0 Pass 2 the study name lives in
+    // Setup rather than a detached card, but the id travelled with the input, so
+    // `concept-study-name` still resolves — now inside Section 0.
     const msg = 'Give the study a name.'
     reasons.push(msg)
     outstanding.push({ message: msg, anchor: 'concept-study-name' })
   }
 
-  // Price studies need at least one real competitor — perceived-premium battles
-  // run the operator's product against real competitors (PRICE_REQUIRES_COMPETITORS).
-  const priceNeedsCompetitor =
-    draft.stimulusMode === 'price' && products.length < 1
-  if (priceNeedsCompetitor) {
-    const msg =
-      'A price study needs at least one real competitor to compare against.'
+  if (arms.length < 1) {
+    const msg = 'Add your product.'
     reasons.push(msg)
     outstanding.push({ message: msg, anchor: 'concept-field' })
   }
 
-  // Generic field-size gate. Skip when the price-specific competitor message already
-  // covers the hole (1 own arm + 0 products) so Still needed doesn't double up.
-  if (
-    total < 2 &&
-    !(priceNeedsCompetitor && arms.length >= 1)
-  ) {
-    const msg = 'A study needs at least two competitors.'
+  // ---- the six-seat field ----------------------------------------------------
+  // Own variants and real competitors share one pool of six seats.
+  const fieldSize = getConceptFieldSize(draft)
+  const fieldOverBy = getFieldOverBy(draft)
+  const competitorMin = competitorMinimum(draft.stimulusMode)
+  const competitorsMissing = getRequiredCompetitorsRemaining(draft)
+  const fieldDeadEnd = isFieldDeadEnd(draft)
+  const fieldSizeOk = fieldOverBy === 0
+
+  if (fieldOverBy > 0) {
+    const msg = `Remove ${fieldOverBy} item${fieldOverBy === 1 ? '' : 's'} — the field holds ${MAX_CONCEPT_FIELD_SIZE}`
     reasons.push(msg)
     outstanding.push({ message: msg, anchor: 'concept-field' })
   }
-  if (arms.length < 1) {
-    const msg = 'Add at least one of your own concept arms.'
+
+  if (competitorsMissing > 0) {
+    const msg = fieldDeadEnd
+      ? competitorsMissing === 1
+        ? 'Remove a variant to make room for 1 required competitor.'
+        : `Remove variants to make room for ${competitorsMissing} required competitors.`
+      : resolvedCompetitors(draft).length === 0
+        ? `Add at least ${competitorMin} competitor${competitorMin === 1 ? '' : 's'}`
+        : `Add ${competitorsMissing} more competitor${competitorsMissing === 1 ? '' : 's'}`
+    reasons.push(msg)
+    outstanding.push({ message: msg, anchor: 'concept-field' })
+  }
+
+  // Legacy modes carry no competitor minimum of their own, but a battle still needs
+  // two things to compare.
+  if (competitorMin === 0 && total < 2) {
+    const msg = 'A study needs at least two products in the field.'
+    reasons.push(msg)
+    outstanding.push({ message: msg, anchor: 'concept-field' })
+  }
+
+  const duplicateIds = duplicateCompetitorIds(draft)
+  const duplicatesOk = duplicateIds.length === 0
+  if (!duplicatesOk) {
+    const msg = `Remove duplicate competitor${duplicateIds.length === 1 ? '' : 's'}`
     reasons.push(msg)
     outstanding.push({ message: msg, anchor: 'concept-field' })
   }
@@ -169,12 +214,13 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
   )
   const intentsOk = armNamesOk && productIntentsOk
   if (!armNamesOk) {
-    const msg = 'Every concept arm needs a display name.'
+    const msg =
+      arms.length > 1 ? 'Give every variant a product name.' : 'Give your product a name.'
     reasons.push(msg)
     outstanding.push({ message: msg, anchor: 'concept-field' })
   }
   if (!productIntentsOk && products.length > 0) {
-    const msg = 'Every competitor needs a name and a role (direct competitor or job-to-be-done).'
+    const msg = 'Finish choosing a product for every competitor.'
     reasons.push(msg)
     outstanding.push({ message: msg, anchor: 'concept-field' })
   }
@@ -188,12 +234,16 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
       return !!ref && !isSignedStorageUrl(ref)
     })
   if (needsImages && !imagesOk) {
-    const msg =
-      draft.stimulusMode === 'price'
-        ? 'Price studies need a pack image on every concept arm.'
-        : 'Packaging studies need a pack image on every concept arm.'
-    reasons.push(msg)
-    outstanding.push({ message: msg, anchor: 'concept-field' })
+    arms.forEach((a, i) => {
+      const ref = a.image_url?.trim()
+      if (ref && !isSignedStorageUrl(ref)) return
+      const msg =
+        arms.length > 1
+          ? `Upload pack image for Variant ${a.arm_label || armLabelForIndex(i)}`
+          : 'Upload the pack image for your product'
+      reasons.push(msg)
+      outstanding.push({ message: msg, anchor: 'concept-field' })
+    })
   }
 
   const isTemplateMode =
@@ -240,9 +290,13 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     outstanding.push({ message: msg, anchor: 'concept-q-scoring_rounds' })
   }
 
+  const competitorsOk = competitorsMissing === 0
   const fieldOk =
-    total >= 2 &&
     arms.length >= 1 &&
+    fieldSizeOk &&
+    competitorsOk &&
+    duplicatesOk &&
+    (competitorMin > 0 || total >= 2) &&
     priceOk &&
     intentsOk &&
     imagesOk &&
@@ -278,6 +332,13 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     softOutstanding,
     templateErrors,
     hasVerificationScreener,
+    fieldSize,
+    fieldOverBy,
+    competitorsMissing,
+    fieldDeadEnd,
+    fieldSizeOk,
+    competitorsOk,
+    duplicatesOk,
   }
 }
 

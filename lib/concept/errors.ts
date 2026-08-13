@@ -11,6 +11,8 @@ export const CONCEPT_PUBLISH_HINT_MESSAGES: Record<string, string> = {
   S2_INTERVAL_TOO_SMALL: 'Two-session studies need at least a 12-hour wait.',
   INVALID_SCORING_ROUNDS: 'Battle rounds must be between 1 and 10.',
   FIELD_TOO_SMALL: 'A study needs at least two competitors.',
+  DUPLICATE_COMPETITOR:
+    'The same competitor is in the field twice. Remove one — a repeated product would battle itself.',
   NO_CONCEPT_ARM: 'Add at least one of your own concept arms.',
   PRICE_ASYMMETRY:
     'Every competitor must be priced the same way — all priced, or none.',
@@ -121,6 +123,7 @@ function sectionForCode(code: string): ConceptErrorSection {
   }
   if (
     code === 'FIELD_TOO_SMALL' ||
+    code === 'DUPLICATE_COMPETITOR' ||
     code === 'NO_CONCEPT_ARM' ||
     code === 'NO_CONCEPT_ARMS' ||
     code === 'PRICE_ASYMMETRY' ||

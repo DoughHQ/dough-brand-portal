@@ -5,18 +5,39 @@ import {
   searchTaxonomyNodesAction,
   type TaxonomyNodeInfo,
 } from './actions'
-import { labelSm } from './conceptStyles'
+import { inputBase, labelSm } from './conceptStyles'
 
 type Props = {
   selected: TaxonomyNodeInfo | null
+  /**
+   * §34 — the draft already knows a category is chosen before the taxonomy fetch
+   * resolves. Rendering the chip shell immediately keeps the section's height
+   * stable instead of swapping a search input for a chip on load.
+   */
+  pendingNodeId?: number | null
   required?: boolean
   onSelect: (node: TaxonomyNodeInfo) => void
   onClear: () => void
   error?: string | null
 }
 
+/** Small semantic close mark. Replaces an 18px text glyph masquerading as an icon. */
+function CloseIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden focusable="false">
+      <path
+        d="M3 3l6 6M9 3l-6 6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 export default function CategoryCombobox({
   selected,
+  pendingNodeId,
   required,
   onSelect,
   onClear,
@@ -94,7 +115,8 @@ export default function CategoryCombobox({
     }
   }
 
-  if (selected) {
+  if (selected || pendingNodeId != null) {
+    const pending = !selected
     return (
       <div id="concept-category">
         <div style={labelSm}>Category</div>
@@ -105,41 +127,37 @@ export default function CategoryCombobox({
                 fontFamily: 'var(--font-sans)',
                 fontSize: 15,
                 fontWeight: 600,
-                color: 'var(--ink-80)',
+                color: pending ? 'var(--cb-secondary)' : 'var(--cb-heading)',
               }}
             >
-              {selected.node_name_display}
+              {selected ? selected.node_name_display : 'Loading category…'}
             </div>
             <div
               style={{
                 fontFamily: 'var(--font-sans)',
                 fontSize: 12,
-                color: 'var(--ink-50)',
+                color: 'var(--cb-secondary)',
                 marginTop: 2,
+                minHeight: 16,
               }}
             >
-              {selected.breadcrumb}
+              {selected ? selected.breadcrumb : ''}
             </div>
           </div>
           <button
             type="button"
-            aria-label="Clear category"
+            className="cb-icon-btn"
+            // Distinct from the confirmation dialog's "Clear category" action, so
+            // the two never collide in the accessibility tree while it is open.
+            aria-label={selected ? `Clear category ${selected.node_name_display}` : 'Clear category'}
+            disabled={pending}
             onClick={onClear}
-            style={{
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              fontSize: 18,
-              lineHeight: 1,
-              color: 'var(--ink-30)',
-              padding: 6,
-            }}
           >
-            ×
+            <CloseIcon />
           </button>
         </div>
         {error ? (
-          <p role="alert" style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--red)' }}>
+          <p role="alert" style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--cb-error)' }}>
             {error}
           </p>
         ) : null}
@@ -147,25 +165,16 @@ export default function CategoryCombobox({
     )
   }
 
-  const showPanel = open && query.trim().length >= 2
+  // §35 — one character used to produce silence. The panel now opens as soon as
+  // the operator types, and says why it has nothing yet.
+  const typed = query.trim().length
+  const showPanel = open && typed >= 1
+  const belowThreshold = typed > 0 && typed < 2
 
   return (
     <div id="concept-category" ref={rootRef} className="cb-combobox">
       <label style={labelSm} htmlFor={inputId}>
-        {required ? (
-          <span
-            aria-hidden
-            style={{
-              display: 'inline-block',
-              width: 7,
-              height: 7,
-              borderRadius: '50%',
-              background: 'var(--amber)',
-              marginRight: 6,
-              verticalAlign: 'middle',
-            }}
-          />
-        ) : null}
+        {required ? <span aria-hidden className="cb-required-dot" /> : null}
         Category
       </label>
       <div style={{ position: 'relative' }}>
@@ -176,7 +185,7 @@ export default function CategoryCombobox({
             left: 14,
             top: '50%',
             transform: 'translateY(-50%)',
-            color: 'var(--ink-30)',
+            color: 'var(--cb-secondary)',
             pointerEvents: 'none',
             display: 'flex',
           }}
@@ -194,7 +203,7 @@ export default function CategoryCombobox({
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={
-            showPanel && results[activeIndex]
+            showPanel && !belowThreshold && results[activeIndex]
               ? `${listId}-${results[activeIndex]!.taxonomy_node_id}`
               : undefined
           }
@@ -207,57 +216,41 @@ export default function CategoryCombobox({
           onKeyDown={onKeyDown}
           placeholder="Search categories…"
           autoComplete="off"
-          style={{
-            width: '100%',
-            boxSizing: 'border-box',
-            height: 48,
-            border: '1px solid var(--ink-10)',
-            borderRadius: 'var(--r-sm)',
-            padding: '0 40px 0 40px',
-            fontFamily: 'var(--font-sans)',
-            fontSize: 14,
-            color: 'var(--ink)',
-            background: 'var(--white)',
-          }}
+          // Was a hand-copied duplicate of the shared control recipe, which could
+          // silently drift from it. Now it IS the shared recipe, with only the
+          // icon padding overridden.
+          style={{ ...inputBase, padding: '0 48px 0 40px' }}
         />
         {query ? (
           <button
             type="button"
+            className="cb-icon-btn cb-icon-btn-inset"
             aria-label="Clear search"
             onClick={() => {
               setQuery('')
               setResults([])
             }}
-            style={{
-              position: 'absolute',
-              right: 10,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              color: 'var(--ink-30)',
-              fontSize: 18,
-              lineHeight: 1,
-              padding: 4,
-            }}
           >
-            ×
+            <CloseIcon />
           </button>
         ) : null}
       </div>
-      <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--ink-50)' }}>
-        Search by category name. Field and questionnaire unlock after you pick one.
+      <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--cb-secondary)' }}>
+        Choose a study type and category to unlock Field, Questions, and Battle settings.
       </p>
 
       {showPanel ? (
         <div className="cb-combobox-panel" id={listId} role="listbox">
-          {loading ? (
-            <div style={{ padding: '14px 12px', fontSize: 13, color: 'var(--ink-50)' }}>
+          {belowThreshold ? (
+            <div style={{ padding: '14px 12px', fontSize: 13, color: 'var(--cb-secondary)' }}>
+              Type at least 2 characters
+            </div>
+          ) : loading ? (
+            <div style={{ padding: '14px 12px', fontSize: 13, color: 'var(--cb-secondary)' }}>
               Searching…
             </div>
           ) : results.length === 0 ? (
-            <div style={{ padding: '14px 12px', fontSize: 13, color: 'var(--ink-50)' }}>
+            <div style={{ padding: '14px 12px', fontSize: 13, color: 'var(--cb-secondary)' }}>
               No matching categories.
             </div>
           ) : (

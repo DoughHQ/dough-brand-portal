@@ -67,7 +67,7 @@ export const selectBase: CSSProperties = {
   ...inputBase,
   appearance: 'none' as const,
   backgroundImage:
-    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236E7C71' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E\")",
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2365736A' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E\")",
   backgroundRepeat: 'no-repeat',
   backgroundPosition: 'right 16px center',
   paddingRight: 40,
@@ -171,14 +171,6 @@ export const fieldCard: CSSProperties = {
   marginBottom: 12,
   boxShadow: 'none',
   cursor: 'grab',
-}
-
-/** Competitors carry more visual weight than concept arms — they are the real shelf bar. */
-export const competitorCard: CSSProperties = {
-  ...fieldCard,
-  padding: 16,
-  /* Elevation is owned by .cb-competitor-row so the hover rule can apply. */
-  boxShadow: undefined,
 }
 
 /** Competitor product image — the real image when we have one. */

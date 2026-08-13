@@ -150,10 +150,22 @@ export function defaultExpiresAt(days = 30): string {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
 }
 
+/**
+ * A fresh draft is genuinely empty.
+ *
+ * This used to seed two blank concept arms, which meant a study the operator had
+ * never touched already owed two product names and already occupied two of the
+ * six field seats. Section 1 owns creation now: the empty state invites
+ * "Add your product", and that action makes the first row.
+ *
+ * Every `conceptArms[0]` consumer was audited before this changed — publish's
+ * floor prompt, the draft floor default and FieldSection's leader all use
+ * optional chaining, and `defaultScoringRoundsForArms(0)` returns 1.
+ */
 export function createEmptyConceptDraft(
   partial?: Partial<ConceptStudyDraft>
 ): ConceptStudyDraft {
-  const arms = [newConceptArm(0), newConceptArm(1)]
+  const arms: ConceptArmRow[] = []
   return {
     draftId: id(),
     title: '',

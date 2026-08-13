@@ -16,7 +16,6 @@ import BattleSettingsSection from './BattleSettingsSection'
 import FieldSection from './FieldSection'
 import QuestionsSection from './QuestionsSection'
 import StudyTypeSection from './StudyTypeSection'
-import { inputBase, labelSm } from './conceptStyles'
 import './conceptBuilder.css'
 
 type Props = {
@@ -59,6 +58,8 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
   }, [validity.outstanding, validity.softOutstanding])
   const rootRef = useRef<HTMLDivElement>(null)
   const stickyRef = useRef<HTMLDivElement>(null)
+  // Purely presentational: how many blockers the dock shows. Never touches validity.
+  const [needsExpanded, setNeedsExpanded] = useState(false)
   const scoringTouched = useRef(false)
   const prevRecommended = useRef(
     defaultScoringRounds(
@@ -86,7 +87,11 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
     const root = rootRef.current
     if (!bar || !root) return
     const apply = () => {
-      root.style.setProperty('--cb-sticky-h', `${Math.ceil(bar.getBoundingClientRect().height)}px`)
+      const h = `${Math.ceil(bar.getBoundingClientRect().height)}px`
+      root.style.setProperty('--cb-sticky-h', h)
+      // The document is the scroll owner, so scroll-padding-bottom has to read
+      // the measured height from <html>, not from the builder root.
+      document.documentElement.style.setProperty('--cb-sticky-h', h)
     }
     apply()
     if (typeof ResizeObserver === 'undefined') return
@@ -262,6 +267,8 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
     })
   }
 
+  const ready = validity.readyToPublish && validity.softOutstanding.length === 0
+
   function scrollTo(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
@@ -363,38 +370,13 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
         </div>
       ) : null}
 
-      <div
-        style={{
-          background: 'var(--white)',
-          border: '1px solid var(--ink-10)',
-          borderRadius: 'var(--r-lg)',
-          padding: '24px 32px',
-          marginBottom: 24,
-          boxShadow: 'var(--cb-shadow-card)',
-        }}
-      >
-        <label style={labelSm} htmlFor="concept-study-name">
-          Study name
-        </label>
-        <input
-          id="concept-study-name"
-          className="cb-input"
-          value={draft.title}
-          onChange={(e) => persist({ ...draft, title: e.target.value })}
-          placeholder="e.g. Midnight snack concept — Q3"
-          style={inputBase}
-        />
-        {publishAttempted && sectionErrors.title ? (
-          <p role="alert" style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--red)' }}>
-            {sectionErrors.title}
-          </p>
-        ) : null}
-      </div>
-
+      {/* Study name moved into Section 0 (Pass 2). The `concept-study-name` id
+          travels with the input, so the sticky-footer anchor is unchanged. */}
       <StudyTypeSection
         draft={draft}
         onChange={persist}
         error={sectionErrors.mode ?? null}
+        titleError={sectionErrors.title ?? null}
         showErrors={publishAttempted}
       />
 
@@ -646,66 +628,70 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
         </div>
       ) : null}
 
+      {/* Publishing dock. Presentation only — `stickyNeeds` is the same
+          authoritative collection as before, and each row reuses the existing
+          anchor navigation. Collapsing/expanding never touches validity. */}
       <div className="cb-sticky" ref={stickyRef}>
         <div className="cb-sticky-inner">
-          <div style={{ minWidth: 0, flex: 1 }}>
-            {validity.readyToPublish && validity.softOutstanding.length === 0 ? (
-              <div
-                style={{
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: 'var(--sage)',
-                }}
-              >
-                Ready to publish
-              </div>
+          <div className="cb-dock-summary">
+            {ready ? (
+              <>
+                <span className="cb-dock-summary-head">
+                  <span className="cb-field-status-icon" data-tone="ok" aria-hidden>
+                    ✓
+                  </span>
+                  Ready to publish
+                </span>
+                <p className="cb-dock-summary-help">All required fields are complete.</p>
+              </>
             ) : (
               <>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: 'var(--ink-50)',
-                    marginBottom: 8,
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                  }}
-                >
+                <span className="cb-dock-summary-head">
+                  <span className="cb-field-status-icon" data-tone="warn" aria-hidden>
+                    !
+                  </span>
                   Still needed
-                </div>
-                <ul className="cb-need-list">
-                  {stickyNeeds.slice(0, 3).map((item) => (
-                    <li key={item.message}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (item.anchor) scrollTo(item.anchor)
-                        }}
-                      >
-                        <span className="cb-need-dot" aria-hidden />
-                        {item.message}
-                      </button>
-                    </li>
-                  ))}
-                  {stickyNeeds.length > 3 ? (
-                    <li
-                      style={{
-                        fontFamily: 'var(--font-sans)',
-                        fontSize: 13,
-                        color: 'var(--ink-50)',
-                        paddingLeft: 16,
-                      }}
-                    >
-                      +{stickyNeeds.length - 3} more
-                    </li>
-                  ) : null}
-                </ul>
+                </span>
+                <p className="cb-dock-summary-help">Complete these to publish your study.</p>
               </>
             )}
           </div>
-          <div style={{ display: 'flex', gap: 12, flexShrink: 0 }}>
+
+          {ready ? (
+            <div />
+          ) : (
+            <div className="cb-dock-tasks" id="cb-dock-tasks">
+              {(needsExpanded ? stickyNeeds : stickyNeeds.slice(0, 3)).map((item) => (
+                <button
+                  key={item.message}
+                  type="button"
+                  className="cb-dock-task"
+                  onClick={() => {
+                    if (item.anchor) scrollTo(item.anchor)
+                  }}
+                >
+                  <span className="cb-dock-task-dot" aria-hidden />
+                  {item.message}
+                </button>
+              ))}
+              {stickyNeeds.length > 3 ? (
+                <p className="cb-dock-overflow">
+                  {!needsExpanded ? <span>+{stickyNeeds.length - 3} more</span> : null}
+                  <button
+                    type="button"
+                    className="cb-quiet-action"
+                    aria-expanded={needsExpanded}
+                    aria-controls="cb-dock-tasks"
+                    onClick={() => setNeedsExpanded((v) => !v)}
+                  >
+                    {needsExpanded ? 'Show less' : 'View all'}
+                  </button>
+                </p>
+              ) : null}
+            </div>
+          )}
+
+          <div className="cb-dock-actions">
             <button
               type="button"
               className="cb-btn cb-btn-secondary"

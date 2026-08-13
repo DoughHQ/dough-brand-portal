@@ -14,6 +14,12 @@ type Props<T> = {
   getKey: (item: T) => string | number
   renderItem: (item: T) => ReactNode
   emptyLabel?: string
+  /** Optional second line under the empty label. */
+  emptyHint?: string
+  /** Optional override for the retry row copy. */
+  errorLabel?: string
+  /** Optional: render an item as present-but-unselectable (e.g. already chosen). */
+  isDisabled?: (item: T) => boolean
 }
 
 const panelStyle: CSSProperties = {
@@ -68,6 +74,9 @@ export default function SuggestionDropdown<T>({
   getKey,
   renderItem,
   emptyLabel = 'No matches — try a different name.',
+  emptyHint,
+  errorLabel = 'Search failed — tap to retry',
+  isDisabled,
 }: Props<T>) {
   if (status === 'idle') return null
 
@@ -85,19 +94,23 @@ export default function SuggestionDropdown<T>({
             onClick={onRetry}
             style={{ ...rowStyle, color: 'var(--red)', borderBottom: 'none' }}
           >
-            Search failed — tap to retry
+            {errorLabel}
           </button>
         </li>
       ) : null}
       {status === 'empty' ? (
         <li style={mutedRow} role="presentation">
-          {emptyLabel}
+          <div>{emptyLabel}</div>
+          {emptyHint ? (
+            <div style={{ marginTop: 4, color: 'var(--ink-30)' }}>{emptyHint}</div>
+          ) : null}
         </li>
       ) : null}
       {status === 'success'
         ? results.map((item, i) => {
             const key = getKey(item)
             const active = i === activeIndex
+            const off = isDisabled ? isDisabled(item) : false
             return (
               <li key={key} role="presentation">
                 <button
@@ -105,11 +118,16 @@ export default function SuggestionDropdown<T>({
                   id={`${id}-opt-${key}`}
                   role="option"
                   aria-selected={active}
+                  aria-disabled={off || undefined}
                   onMouseEnter={() => onActiveIndex(i)}
-                  onClick={() => onSelect(item)}
+                  onClick={() => {
+                    if (off) return
+                    onSelect(item)
+                  }}
                   style={{
                     ...rowStyle,
-                    background: active ? 'var(--cb-sage-soft)' : 'transparent',
+                    cursor: off ? 'default' : 'pointer',
+                    background: active && !off ? 'var(--cb-sage-soft)' : 'transparent',
                   }}
                 >
                   {renderItem(item)}
