@@ -4,6 +4,8 @@ import { useState } from 'react'
 import type { ConceptQuestionSlot, ConceptStudyDraft } from '@/lib/concept/types'
 import { defaultFloor, newScreener } from '@/lib/concept/defaults'
 import { formatPriceLabel } from '@/lib/concept/price'
+import PackagingQuestionnaireEditor from './PackagingQuestionnaireEditor'
+import PriceQuestionnaireEditor from './PriceQuestionnaireEditor'
 import {
   ghostLink,
   inputBase,
@@ -21,6 +23,9 @@ type Props = {
   draft: ConceptStudyDraft
   onChange: (next: ConceptStudyDraft) => void
   error?: string | null
+  disabled?: boolean
+  disabledReason?: string | null
+  onScoringTouched?: () => void
 }
 
 function TrashIcon() {
@@ -57,7 +62,7 @@ function StageHeader({
       }}
     >
       <div>
-        <div style={{ fontFamily: 'var(--font-serif)', fontSize: 16 }}>{title}</div>
+        <div style={{ fontFamily: 'var(--font-sans)', fontSize: 16, fontWeight: 600, color: 'var(--ink-80)' }}>{title}</div>
         {meta ? (
           <div style={{ fontSize: 11, color: 'var(--ink-30)', marginTop: 2 }}>{meta}</div>
         ) : null}
@@ -158,9 +163,7 @@ function QuestionEditor({
                 ...slot,
                 config: {
                   ...slot.config,
-                  qualify_rule: parts.length
-                    ? { op: 'in', value: parts }
-                    : null,
+                  qualify_rule: parts.length ? { op: 'in', value: parts } : null,
                 },
               })
             }}
@@ -173,7 +176,20 @@ function QuestionEditor({
   )
 }
 
-export default function QuestionsSection({ draft, onChange, error }: Props) {
+/** Hand-built questions — escape hatch until non-package templates exist. */
+function LegacyQuestionsBuilder({
+  draft,
+  onChange,
+  error,
+  disabled,
+  disabledReason,
+}: {
+  draft: ConceptStudyDraft
+  onChange: (next: ConceptStudyDraft) => void
+  error?: string | null
+  disabled?: boolean
+  disabledReason?: string | null
+}) {
   const [advancedOpen, setAdvancedOpen] = useState(false)
 
   function addScreener() {
@@ -212,82 +228,39 @@ export default function QuestionsSection({ draft, onChange, error }: Props) {
     )
 
   return (
-    <section style={sectionCard} id="concept-questions">
+    <section
+      style={{
+        ...sectionCard,
+        opacity: disabled ? 0.55 : 1,
+        pointerEvents: disabled ? 'none' : 'auto',
+      }}
+      id="concept-questions"
+      aria-disabled={disabled || undefined}
+    >
       <div style={sectionEyebrow}>Section 2</div>
       <h2 style={sectionTitle}>Questions</h2>
       <p style={sectionHelp}>
-        Respondent order is fixed: Screener → Battles → Diagnostics → Floor → Drift.
-        Options live in each question&apos;s config — never in answer_sets.
+        Hand-built questions (escape hatch). Packaging uses the questionnaire editor
+        instead.
       </p>
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 16,
-          marginBottom: 20,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div>
-          <div style={labelSm}>Sessions</div>
-          <div
-            role="group"
-            style={{
-              display: 'inline-flex',
-              border: '1px solid var(--ink-10)',
-              borderRadius: 'var(--r-sm)',
-              overflow: 'hidden',
-            }}
-          >
-            {([1, 2] as const).map((n) => {
-              const active = draft.sessionCount === n
-              return (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => onChange({ ...draft, sessionCount: n })}
-                  style={{
-                    border: 'none',
-                    borderRight: n === 1 ? '1px solid var(--ink-10)' : 'none',
-                    background: active ? 'var(--sage)' : 'var(--white)',
-                    color: active ? 'var(--white)' : 'var(--ink-50)',
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: 12,
-                    fontWeight: active ? 600 : 500,
-                    padding: '8px 16px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {n}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-        {draft.sessionCount === 2 ? (
-          <div>
-            <label style={labelSm} htmlFor="s2-interval">
-              Session-2 wait (hours, min 12)
-            </label>
-            <input
-              id="s2-interval"
-              type="number"
-              min={12}
-              value={draft.session2IntervalHours}
-              onChange={(e) =>
-                onChange({
-                  ...draft,
-                  session2IntervalHours: Math.max(12, Number(e.target.value) || 12),
-                })
-              }
-              style={{ ...inputBase, width: 120 }}
-            />
-          </div>
-        ) : null}
-      </div>
+      {disabled && disabledReason ? (
+        <p
+          role="status"
+          style={{
+            margin: '0 0 18px',
+            fontSize: 13,
+            color: 'var(--ink-50)',
+            background: 'var(--surface-1)',
+            border: '1px solid var(--ink-10)',
+            borderRadius: 'var(--r-md)',
+            padding: '10px 12px',
+          }}
+        >
+          {disabledReason}
+        </p>
+      ) : null}
 
-      {/* Screener */}
       <div style={stageCard}>
         <StageHeader
           title="Screener"
@@ -327,50 +300,17 @@ export default function QuestionsSection({ draft, onChange, error }: Props) {
         )}
       </div>
 
-      {/* Battles — locked */}
       <div style={stageLocked}>
-        <StageHeader
-          title="Battles"
-          meta="Locked · drives rounds"
-          action={
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                color: 'var(--amber)',
-              }}
-            >
-              Fixed
-            </span>
-          }
-        />
-        <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--ink-50)' }}>
+        <StageHeader title="Battles" meta="Locked · drives rounds" />
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-50)' }}>
           {draft.scoringRounds} rounds · A wins / B wins / neither / skip
         </p>
-        <label style={labelSm} htmlFor="scoring-rounds">
-          Scoring rounds (1–10)
-        </label>
-        <input
-          id="scoring-rounds"
-          type="number"
-          min={1}
-          max={10}
-          value={draft.scoringRounds}
-          onChange={(e) => {
-            const n = Math.min(10, Math.max(1, Number(e.target.value) || 1))
-            onChange({ ...draft, scoringRounds: n })
-          }}
-          style={{ ...inputBase, width: 100 }}
-        />
       </div>
 
-      {/* Diagnostics */}
       <div style={stageCard}>
         <StageHeader
           title="Diagnostics"
-          meta="After battles · keep options neutral"
+          meta="After battles"
           action={
             <button type="button" onClick={addDiagnostic} style={ghostLink}>
               + Add diagnostic
@@ -399,7 +339,6 @@ export default function QuestionsSection({ draft, onChange, error }: Props) {
         ))}
       </div>
 
-      {/* Floor */}
       <div style={stageCard}>
         <StageHeader title="Floor" meta="Purchase intent · 0…1" />
         {draft.floor === null ? (
@@ -427,35 +366,6 @@ export default function QuestionsSection({ draft, onChange, error }: Props) {
         )}
       </div>
 
-      {/* Drift */}
-      <div
-        style={{
-          ...stageCard,
-          opacity: draft.sessionCount === 2 ? 1 : 0.55,
-          pointerEvents: draft.sessionCount === 2 ? 'auto' : 'none',
-        }}
-      >
-        <StageHeader
-          title="Drift"
-          meta={
-            draft.sessionCount === 2
-              ? `Session 2 · after ${draft.session2IntervalHours}h`
-              : 'Requires 2 sessions'
-          }
-        />
-        {draft.sessionCount === 2 ? (
-          <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-50)' }}>
-            Session-2 battles replay preference after the wait — same A / B / neither / skip
-            outcomes. Published automatically when sessions = 2.
-          </p>
-        ) : (
-          <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-30)' }}>
-            Switch sessions to 2 to enable drift measurement.
-          </p>
-        )}
-      </div>
-
-      {/* Advanced */}
       <div style={{ marginTop: 8 }}>
         <button
           type="button"
@@ -474,80 +384,62 @@ export default function QuestionsSection({ draft, onChange, error }: Props) {
               background: 'var(--surface-1)',
             }}
           >
-            <label style={labelSm} htmlFor="audience">
-              Audience definition
-            </label>
-            <textarea
-              id="audience"
-              value={draft.audienceDefinition}
-              onChange={(e) => onChange({ ...draft, audienceDefinition: e.target.value })}
-              rows={2}
-              placeholder="Who should take this study?"
-              style={{ ...inputBase, marginBottom: 14, resize: 'vertical' }}
-            />
-
-            <label style={labelSm} htmlFor="taxonomy">
-              Taxonomy node id
-            </label>
-            <input
-              id="taxonomy"
-              type="number"
-              value={draft.taxonomyNodeId}
-              onChange={(e) =>
-                onChange({
-                  ...draft,
-                  taxonomyNodeId: Number(e.target.value) || draft.taxonomyNodeId,
-                })
-              }
-              style={{ ...inputBase, width: 160, marginBottom: 14 }}
-            />
-
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                fontSize: 13,
-                marginBottom: 10,
-                cursor: 'pointer',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={draft.predictiveValidityOptIn}
-                onChange={(e) =>
-                  onChange({ ...draft, predictiveValidityOptIn: e.target.checked })
-                }
-              />
-              Predictive validity opt-in
-            </label>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                fontSize: 13,
-                cursor: 'pointer',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={draft.categoryIntelligenceOptIn}
-                onChange={(e) =>
-                  onChange({ ...draft, categoryIntelligenceOptIn: e.target.checked })
-                }
-              />
-              Category intelligence opt-in
-            </label>
+            <p style={{ margin: 0, fontSize: 12, color: 'var(--ink-50)' }}>
+              Advanced controls for non-packaging modes will land with those
+              templates.
+            </p>
           </div>
         ) : null}
       </div>
 
       {error ? (
-        <p role="alert" style={{ margin: '14px 0 0', fontSize: 13, color: 'var(--red)' }}>
+        <p role="alert" style={{ margin: '12px 0 0', fontSize: 13, color: 'var(--red)' }}>
           {error}
         </p>
       ) : null}
     </section>
+  )
+}
+
+export default function QuestionsSection({
+  draft,
+  onChange,
+  error,
+  disabled,
+  disabledReason,
+  onScoringTouched,
+}: Props) {
+  if (draft.stimulusMode === 'package') {
+    return (
+      <PackagingQuestionnaireEditor
+        draft={draft}
+        onChange={onChange}
+        error={error}
+        disabled={disabled}
+        disabledReason={disabledReason}
+      />
+    )
+  }
+
+  if (draft.stimulusMode === 'price') {
+    return (
+      <PriceQuestionnaireEditor
+        draft={draft}
+        onChange={onChange}
+        error={error}
+        disabled={disabled}
+        disabledReason={disabledReason}
+      />
+    )
+  }
+
+  return (
+    <LegacyQuestionsBuilder
+      draft={draft}
+      onChange={onChange}
+      error={error}
+      disabled={disabled}
+      disabledReason={disabledReason}
+    />
   )
 }

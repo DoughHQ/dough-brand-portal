@@ -2,20 +2,22 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
-import type { ConceptStudyDraft } from '@/lib/concept/types'
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
+import type { ConceptPublishSuccessMeta, ConceptStudyDraft } from '@/lib/concept/types'
 import { createEmptyConceptDraft } from '@/lib/concept/defaults'
 import { deleteConceptDraft, saveConceptDraft } from '@/lib/concept/draftStore'
+import { defaultScoringRounds } from '@/lib/concept/publish'
 import { evaluateFieldValidity } from '@/lib/concept/validity'
 import {
   createConceptCampaignAction,
-  listBrandCampaignsAction,
-  publishConceptMissionAction,
-  type ConceptCampaignOption,
+  publishConceptStudyAction,
 } from './actions'
+import BattleSettingsSection from './BattleSettingsSection'
 import FieldSection from './FieldSection'
 import QuestionsSection from './QuestionsSection'
-import { ghostLink, inputBase, labelSm, pageShell, selectBase } from './conceptStyles'
+import StudyTypeSection from './StudyTypeSection'
+import { inputBase, labelSm } from './conceptStyles'
+import './conceptBuilder.css'
 
 type Props = {
   initialDraft: ConceptStudyDraft
@@ -24,18 +26,19 @@ type Props = {
 
 export default function ConceptStudyClient({ initialDraft, mode }: Props) {
   const router = useRouter()
-  const [draft, setDraft] = useState<ConceptStudyDraft>(initialDraft)
-  const [campaigns, setCampaigns] = useState<ConceptCampaignOption[]>([])
-  const [campaignMode, setCampaignMode] = useState<'existing' | 'create'>(
-    initialDraft.brandCampaignId ? 'existing' : 'create'
+  const [draft, setDraft] = useState<ConceptStudyDraft>(() =>
+    normalizeDraft(initialDraft)
   )
-  const [newCampaignName, setNewCampaignName] = useState('')
   const [pending, startTransition] = useTransition()
   const [saving, setSaving] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [publishMeta, setPublishMeta] = useState<ConceptPublishSuccessMeta | null>(null)
+  const [noVerificationOpen, setNoVerificationOpen] = useState(false)
+  const [publishAttempted, setPublishAttempted] = useState(false)
   const [sectionErrors, setSectionErrors] = useState<{
     title?: string
+    mode?: string
     field?: string
     questions?: string
     advanced?: string
@@ -43,17 +46,53 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
   }>({})
 
   const validity = useMemo(() => evaluateFieldValidity(draft), [draft])
+  const builderLocked = !draft.stimulusMode || draft.taxonomyNodeId == null
+  const lockReason = !draft.stimulusMode
+    ? 'Choose a study type and category above to unlock the field.'
+    : 'Choose a category above to unlock the field.'
+  const setupDone = !!draft.stimulusMode && draft.taxonomyNodeId != null
+  const fieldDone = validity.fieldOk && !!draft.title.trim()
+  const questionsDone = validity.templateOk
+  const stickyNeeds = useMemo(() => {
+    const items = [...validity.outstanding, ...validity.softOutstanding]
+    return items
+  }, [validity.outstanding, validity.softOutstanding])
+  const rootRef = useRef<HTMLDivElement>(null)
+  const stickyRef = useRef<HTMLDivElement>(null)
+  const scoringTouched = useRef(false)
+  const prevRecommended = useRef(
+    defaultScoringRounds(
+      initialDraft.conceptArms.length + initialDraft.products.length
+    )
+  )
 
-  useEffect(() => {
-    void listBrandCampaignsAction(draft.brandId).then(setCampaigns)
-  }, [draft.brandId])
+  const persist = useCallback((next: ConceptStudyDraft) => {
+    const normalized = normalizeDraft(next)
+    setDraft(normalized)
+    saveConceptDraft(normalized)
+  }, [])
 
-  // Persist new drafts immediately so refresh / back-nav doesn't lose the session.
   useEffect(() => {
     if (mode === 'new') {
-      saveConceptDraft(initialDraft)
+      saveConceptDraft(normalizeDraft(initialDraft))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once on mount
+  }, [])
+
+  // The sticky footer grows with the number of outstanding items. Publish its real
+  // height so the page can reserve exactly that much bottom space.
+  useEffect(() => {
+    const bar = stickyRef.current
+    const root = rootRef.current
+    if (!bar || !root) return
+    const apply = () => {
+      root.style.setProperty('--cb-sticky-h', `${Math.ceil(bar.getBoundingClientRect().height)}px`)
+    }
+    apply()
+    if (typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(apply)
+    ro.observe(bar)
+    return () => ro.disconnect()
   }, [])
 
   useEffect(() => {
@@ -62,13 +101,26 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
     return () => clearTimeout(t)
   }, [toast])
 
-  const persist = useCallback(
-    (next: ConceptStudyDraft) => {
-      setDraft(next)
+  // Keep scoring rounds at min(10, pairs) until the brand edits the control; always clamp down.
+  useEffect(() => {
+    const fieldSize = draft.conceptArms.length + draft.products.length
+    const recommended = defaultScoringRounds(fieldSize)
+    const prev = prevRecommended.current
+    prevRecommended.current = recommended
+
+    setDraft((current) => {
+      let nextRounds = current.scoringRounds
+      if (current.scoringRounds > recommended) {
+        nextRounds = recommended
+      } else if (!scoringTouched.current && current.scoringRounds === prev) {
+        nextRounds = recommended
+      }
+      if (nextRounds === current.scoringRounds) return current
+      const next = { ...current, scoringRounds: nextRounds }
       saveConceptDraft(next)
-    },
-    []
-  )
+      return next
+    })
+  }, [draft.conceptArms.length, draft.products.length])
 
   function saveDraft() {
     setSaving(true)
@@ -84,17 +136,21 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
   }
 
   async function ensureCampaign(): Promise<string | null> {
-    if (campaignMode === 'existing' && draft.brandCampaignId) {
+    // One study = one campaign. Reuse the campaign already created for this draft,
+    // otherwise create one named from the study name.
+    if (draft.brandCampaignId) {
       return draft.brandCampaignId
     }
-    const name =
-      newCampaignName.trim() ||
-      (draft.title.trim() ? `${draft.title.trim()} campaign` : 'Concept study campaign')
+    if (draft.taxonomyNodeId == null) {
+      setSectionErrors({ mode: 'Choose a category for this study.' })
+      document.getElementById('concept-category')?.scrollIntoView({ behavior: 'smooth' })
+      return null
+    }
     const created = await createConceptCampaignAction({
       brandId: draft.brandId,
-      campaignName: name,
+      campaignName: draft.title.trim() || 'Concept study',
       taxonomyNodeId: draft.taxonomyNodeId,
-      sessionCount: draft.sessionCount,
+      sessionCount: 1,
     })
     if (!created.ok) {
       setSectionErrors({ title: created.error })
@@ -102,31 +158,51 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
     }
     const next = { ...draft, brandCampaignId: created.campaignId }
     persist(next)
-    setCampaignMode('existing')
-    void listBrandCampaignsAction(draft.brandId).then(setCampaigns)
     return created.campaignId
   }
 
-  async function publish() {
+  function requestPublish() {
+    setPublishAttempted(true)
     setSectionErrors({})
-    if (!validity.priceOk) {
-      const msg =
-        validity.reasons.find((r) => r.includes('priced the same way')) ??
-        validity.reasons.find((r) => /price/i.test(r)) ??
-        'Every competitor must be priced the same way — all priced, or none.'
-      setSectionErrors({ field: msg, publish: msg })
-      document.getElementById('concept-field')?.scrollIntoView({ behavior: 'smooth' })
+    if (!draft.stimulusMode) {
+      const msg = 'Choose what you are testing before publishing.'
+      setSectionErrors({ mode: msg, publish: msg })
+      document.getElementById('concept-mode')?.scrollIntoView({ behavior: 'smooth' })
       return
     }
-    if (!validity.fieldOk || !validity.intentsOk) {
-      setSectionErrors({
-        field: validity.reasons[0] ?? 'Fix the field before publishing.',
-        publish: validity.reasons[0] ?? 'Fix the field before publishing.',
-      })
-      document.getElementById('concept-field')?.scrollIntoView({ behavior: 'smooth' })
+    if (draft.taxonomyNodeId == null) {
+      const msg = 'Choose a category for this study.'
+      setSectionErrors({ mode: msg, publish: msg })
+      document.getElementById('concept-category')?.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
+    if (!validity.readyToPublish) {
+      const first = validity.outstanding[0]
+      const msg = first?.message ?? validity.reasons[0] ?? 'Finish the study before publishing.'
+      const section = !validity.modeOk
+        ? 'mode'
+        : !validity.templateOk
+          ? 'questions'
+          : 'field'
+      setSectionErrors({ [section]: msg, publish: msg })
+      const anchor = first?.anchor ?? 'concept-field'
+      document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth' })
       return
     }
 
+    if (
+      (draft.stimulusMode === 'package' || draft.stimulusMode === 'price') &&
+      !validity.hasVerificationScreener
+    ) {
+      setNoVerificationOpen(true)
+      return
+    }
+
+    void publishConfirmed()
+  }
+
+  async function publishConfirmed() {
+    setNoVerificationOpen(false)
     setPublishing(true)
     try {
       const campaignId = await ensureCampaign()
@@ -138,27 +214,38 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
       const toPublish: ConceptStudyDraft = {
         ...draft,
         brandCampaignId: campaignId,
+        sessionCount: 1,
+        ...(draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
+          ? {
+              pricePosture: 'blind' as const,
+              conceptArms: draft.conceptArms.map((a) => ({ ...a, frozen_price: null })),
+              products: draft.products.map((p) => ({ ...p, frozen_price: null })),
+            }
+          : {}),
       }
-      const result = await publishConceptMissionAction(toPublish)
+      const result = await publishConceptStudyAction(toPublish)
       if (!result.ok) {
         setSectionErrors({
           [result.section]: result.error,
           publish: result.error,
         })
-        if (result.section === 'field') {
-          document.getElementById('concept-field')?.scrollIntoView({ behavior: 'smooth' })
-        } else if (result.section === 'questions') {
-          document.getElementById('concept-questions')?.scrollIntoView({ behavior: 'smooth' })
+        const anchor =
+          result.section === 'mode'
+            ? 'concept-mode'
+            : result.section === 'field'
+              ? 'concept-field'
+              : result.section === 'questions'
+                ? 'concept-questions'
+                : null
+        if (anchor) {
+          document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth' })
         }
         setPublishing(false)
         return
       }
 
-      deleteConceptDraft(draft.draftId)
-      setToast('Study published')
-      startTransition(() => {
-        router.push(`/studies/concept/${result.missionId}?published=1`)
-      })
+      setPublishing(false)
+      setPublishMeta(result.meta)
     } catch (err) {
       setSectionErrors({
         publish: err instanceof Error ? err.message : 'Publish failed.',
@@ -167,16 +254,26 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
     }
   }
 
-  const readyLook = validity.fieldOk && validity.priceOk && validity.intentsOk
+  function confirmPublished() {
+    if (!publishMeta) return
+    deleteConceptDraft(draft.draftId)
+    startTransition(() => {
+      router.push(`/studies/concept/${publishMeta.missionId}?published=1`)
+    })
+  }
+
+  function scrollTo(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   return (
-    <div style={pageShell}>
+    <div className="concept-builder" ref={rootRef}>
       <div
         style={{
           display: 'flex',
           alignItems: 'baseline',
           justifyContent: 'space-between',
-          marginBottom: 22,
+          marginBottom: 8,
           gap: 16,
         }}
       >
@@ -184,29 +281,70 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
           <Link
             href="/studies"
             style={{
-              fontSize: 12,
+              fontFamily: 'var(--font-sans)',
+              fontSize: 13,
+              fontWeight: 500,
               color: 'var(--ink-50)',
               textDecoration: 'none',
             }}
           >
             ← Studies
           </Link>
-          <h1
+          <h1 className="cb-page-title">Concept study</h1>
+          <p
             style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: 32,
-              fontWeight: 400,
-              letterSpacing: '-0.02em',
               margin: '8px 0 0',
+              fontFamily: 'var(--font-sans)',
+              fontSize: 14,
+              color: 'var(--ink-50)',
             }}
           >
-            Concept study
-          </h1>
-          <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--ink-50)' }}>
-            Operator console · brand {draft.brandId}
+            {draft.stimulusMode === 'package'
+              ? 'Packaging concept test'
+              : draft.stimulusMode === 'price'
+                ? 'Blind price concept test'
+                : 'Operator console'}
           </p>
         </div>
       </div>
+
+      <nav className="cb-progress" aria-label="Study builder steps">
+        {(
+          [
+            { id: 'concept-mode', label: 'Setup', done: setupDone, active: !setupDone },
+            {
+              id: 'concept-field',
+              label: 'Field',
+              done: setupDone && fieldDone,
+              active: setupDone && !fieldDone,
+            },
+            {
+              id: 'concept-questions',
+              label: 'Questionnaire',
+              done: setupDone && fieldDone && questionsDone,
+              active: setupDone && fieldDone && !questionsDone,
+            },
+            {
+              id: 'concept-questions',
+              label: 'Review',
+              done: validity.readyToPublish,
+              active: setupDone && fieldDone && questionsDone && !validity.readyToPublish,
+            },
+          ] as const
+        ).map((step, i) => (
+          <button
+            key={`${step.label}-${i}`}
+            type="button"
+            data-done={step.done}
+            data-active={step.active}
+            onClick={() => scrollTo(step.id)}
+          >
+            <span className="cb-progress-dot" aria-hidden />
+            {step.done ? '✓ ' : ''}
+            {step.label}
+          </button>
+        ))}
+      </nav>
 
       {toast ? (
         <div
@@ -218,163 +356,370 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
             background: 'var(--sage-soft)',
             border: '1px solid rgba(62, 107, 74, 0.2)',
             borderRadius: 'var(--r-md)',
-            padding: '10px 14px',
+            padding: '12px 16px',
           }}
         >
           {toast}
         </div>
       ) : null}
 
-      {/* Campaign picker */}
       <div
         style={{
           background: 'var(--white)',
           border: '1px solid var(--ink-10)',
           borderRadius: 'var(--r-lg)',
-          padding: '18px 22px',
-          marginBottom: 20,
+          padding: '24px 32px',
+          marginBottom: 24,
+          boxShadow: 'var(--cb-shadow-card)',
         }}
       >
-        <div style={labelSm}>Campaign</div>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-          <button
-            type="button"
-            onClick={() => setCampaignMode('create')}
-            style={{
-              ...ghostLink,
-              color: campaignMode === 'create' ? 'var(--sage)' : 'var(--ink-50)',
-              fontWeight: campaignMode === 'create' ? 600 : 500,
-            }}
-          >
-            Create new
-          </button>
-          <button
-            type="button"
-            onClick={() => setCampaignMode('existing')}
-            style={{
-              ...ghostLink,
-              color: campaignMode === 'existing' ? 'var(--sage)' : 'var(--ink-50)',
-              fontWeight: campaignMode === 'existing' ? 600 : 500,
-            }}
-          >
-            Use existing
-          </button>
-        </div>
-        {campaignMode === 'existing' ? (
-          <select
-            value={draft.brandCampaignId ?? ''}
-            onChange={(e) =>
-              persist({ ...draft, brandCampaignId: e.target.value || null })
-            }
-            style={selectBase}
-          >
-            <option value="">Select a campaign…</option>
-            {campaigns.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <input
-            value={newCampaignName}
-            onChange={(e) => setNewCampaignName(e.target.value)}
-            placeholder={
-              draft.title.trim()
-                ? `${draft.title.trim()} campaign`
-                : 'Campaign name (optional — defaults from title)'
-            }
-            style={inputBase}
-          />
-        )}
-        {sectionErrors.title ? (
-          <p role="alert" style={{ margin: '10px 0 0', fontSize: 13, color: 'var(--red)' }}>
+        <label style={labelSm} htmlFor="concept-study-name">
+          Study name
+        </label>
+        <input
+          id="concept-study-name"
+          className="cb-input"
+          value={draft.title}
+          onChange={(e) => persist({ ...draft, title: e.target.value })}
+          placeholder="e.g. Midnight snack concept — Q3"
+          style={inputBase}
+        />
+        {publishAttempted && sectionErrors.title ? (
+          <p role="alert" style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--red)' }}>
             {sectionErrors.title}
           </p>
         ) : null}
       </div>
 
+      <StudyTypeSection
+        draft={draft}
+        onChange={persist}
+        error={sectionErrors.mode ?? null}
+        showErrors={publishAttempted}
+      />
+
       <FieldSection
         draft={draft}
         onChange={persist}
         error={sectionErrors.field ?? null}
+        disabled={builderLocked}
+        disabledReason={builderLocked ? lockReason : null}
       />
+
       <QuestionsSection
         draft={draft}
         onChange={persist}
         error={sectionErrors.questions ?? null}
+        disabled={builderLocked}
+        disabledReason={builderLocked ? lockReason : null}
+        onScoringTouched={() => {
+          scoringTouched.current = true
+        }}
       />
 
-      {sectionErrors.publish && !sectionErrors.field && !sectionErrors.questions ? (
+      <BattleSettingsSection
+        draft={draft}
+        onChange={persist}
+        disabled={builderLocked}
+        disabledReason={builderLocked ? lockReason : null}
+        onScoringTouched={() => {
+          scoringTouched.current = true
+        }}
+      />
+
+      {sectionErrors.publish &&
+      !sectionErrors.field &&
+      !sectionErrors.questions &&
+      !sectionErrors.mode ? (
         <p role="alert" style={{ fontSize: 13, color: 'var(--red)', marginBottom: 16 }}>
           {sectionErrors.publish}
         </p>
       ) : null}
 
-      {/* Sticky publish bar */}
-      <div
-        style={{
-          position: 'fixed',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 40,
-          background: 'rgba(250, 248, 243, 0.92)',
-          backdropFilter: 'blur(10px)',
-          borderTop: '1px solid var(--ink-10)',
-          padding: '14px 28px',
-        }}
-      >
+      {noVerificationOpen ? (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="no-verification-title"
           style={{
-            maxWidth: 1080,
-            margin: '0 auto',
+            position: 'fixed',
+            inset: 0,
+            zIndex: 50,
+            background: 'rgba(20, 24, 20, 0.45)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 16,
+            justifyContent: 'center',
+            padding: 24,
           }}
         >
-          <div style={{ fontSize: 12, color: 'var(--ink-50)' }}>
-            {readyLook
-              ? 'Ready to publish'
-              : validity.reasons[0] ?? 'Finish the field to publish'}
+          <div
+            style={{
+              background: 'var(--white)',
+              borderRadius: 'var(--r-lg)',
+              maxWidth: 440,
+              width: '100%',
+              padding: 24,
+              boxShadow: 'var(--cb-shadow-modal)',
+            }}
+          >
+            <h2
+              id="no-verification-title"
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: 16,
+                fontWeight: 600,
+                color: 'var(--ink-80)',
+                margin: '0 0 8px',
+              }}
+            >
+              Publish without purchase verification?
+            </h2>
+            <p style={{ margin: '0 0 24px', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}>
+              You haven’t added verification brands. Respondents won’t be screened on
+              recent purchase — anyone in the category can qualify. You can still publish.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setNoVerificationOpen(false)
+                  document
+                    .getElementById('concept-q-verification_options')
+                    ?.scrollIntoView({ behavior: 'smooth' })
+                }}
+                style={{
+                  border: '1px solid var(--ink-10)',
+                  background: 'var(--white)',
+                  color: 'var(--ink)',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  minHeight: 36,
+                  padding: '0 16px',
+                  borderRadius: 'var(--r-sm)',
+                  cursor: 'pointer',
+                }}
+              >
+                Add brands
+              </button>
+              <button
+                type="button"
+                onClick={() => void publishConfirmed()}
+                disabled={publishing}
+                style={{
+                  border: 'none',
+                  background: 'var(--sage)',
+                  color: 'var(--white)',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  minHeight: 36,
+                  padding: '0 16px',
+                  borderRadius: 'var(--r-sm)',
+                  cursor: 'pointer',
+                  opacity: publishing ? 0.7 : 1,
+                }}
+              >
+                Publish anyway
+              </button>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+        </div>
+      ) : null}
+
+      {publishMeta ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="publish-confirm-title"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 50,
+            background: 'rgba(20, 24, 20, 0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+          }}
+        >
+          <div
+            style={{
+              background: 'var(--white)',
+              borderRadius: 'var(--r-lg)',
+              maxWidth: 480,
+              width: '100%',
+              padding: 24,
+              boxShadow: 'var(--cb-shadow-modal)',
+            }}
+          >
+            <h2
+              id="publish-confirm-title"
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: 16,
+                fontWeight: 600,
+                color: 'var(--ink-80)',
+                margin: '0 0 8px',
+              }}
+            >
+              Study published
+            </h2>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}>
+              Confirm the shape of what was created before leaving the builder.
+            </p>
+            <dl
+              style={{
+                margin: 0,
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '12px 16px',
+                fontSize: 13,
+              }}
+            >
+              <div>
+                <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
+                  Field size
+                </dt>
+                <dd style={{ margin: 0 }}>{publishMeta.field_size ?? '—'}</dd>
+              </div>
+              <div>
+                <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
+                  Unique pairs
+                </dt>
+                <dd style={{ margin: 0 }}>{publishMeta.unique_pairs ?? '—'}</dd>
+              </div>
+              <div>
+                <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
+                  Rounds / respondent
+                </dt>
+                <dd style={{ margin: 0 }}>{publishMeta.rounds_per_respondent ?? '—'}</dd>
+              </div>
+              <div>
+                <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
+                  Target completions
+                </dt>
+                <dd style={{ margin: 0 }}>{publishMeta.target_completions ?? '—'}</dd>
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
+                  Template
+                </dt>
+                <dd style={{ margin: 0 }}>{publishMeta.template_code ?? '—'}</dd>
+              </div>
+              {publishMeta.coverage_note ? (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
+                    Coverage
+                  </dt>
+                  <dd style={{ margin: 0, lineHeight: 1.4 }}>{publishMeta.coverage_note}</dd>
+                </div>
+              ) : null}
+            </dl>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
+              <button
+                type="button"
+                onClick={confirmPublished}
+                style={{
+                  border: 'none',
+                  background: 'var(--sage)',
+                  color: 'var(--white)',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  minHeight: 36,
+                  padding: '0 16px',
+                  borderRadius: 'var(--r-sm)',
+                  cursor: 'pointer',
+                }}
+              >
+                Continue to study
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="cb-sticky" ref={stickyRef}>
+        <div className="cb-sticky-inner">
+          <div style={{ minWidth: 0, flex: 1 }}>
+            {validity.readyToPublish && validity.softOutstanding.length === 0 ? (
+              <div
+                style={{
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: 'var(--sage)',
+                }}
+              >
+                Ready to publish
+              </div>
+            ) : (
+              <>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: 'var(--ink-50)',
+                    marginBottom: 8,
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Still needed
+                </div>
+                <ul className="cb-need-list">
+                  {stickyNeeds.slice(0, 3).map((item) => (
+                    <li key={item.message}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (item.anchor) scrollTo(item.anchor)
+                        }}
+                      >
+                        <span className="cb-need-dot" aria-hidden />
+                        {item.message}
+                      </button>
+                    </li>
+                  ))}
+                  {stickyNeeds.length > 3 ? (
+                    <li
+                      style={{
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: 13,
+                        color: 'var(--ink-50)',
+                        paddingLeft: 16,
+                      }}
+                    >
+                      +{stickyNeeds.length - 3} more
+                    </li>
+                  ) : null}
+                </ul>
+              </>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: 12, flexShrink: 0 }}>
             <button
               type="button"
+              className="cb-btn cb-btn-secondary"
               onClick={saveDraft}
-              disabled={saving || publishing || pending}
-              style={{
-                border: '1px solid var(--ink-10)',
-                background: 'var(--white)',
-                color: 'var(--ink)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 13,
-                fontWeight: 500,
-                padding: '10px 18px',
-                borderRadius: 'var(--r-sm)',
-                cursor: 'pointer',
-              }}
+              disabled={saving || publishing || pending || !!publishMeta}
             >
               {saving ? 'Saving…' : 'Save draft'}
             </button>
             <button
               type="button"
-              onClick={() => void publish()}
-              disabled={publishing || pending}
-              style={{
-                border: 'none',
-                background: readyLook ? 'var(--sage)' : 'var(--ink-30)',
-                color: 'var(--white)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 13,
-                fontWeight: 600,
-                padding: '10px 20px',
-                borderRadius: 'var(--r-sm)',
-                cursor: 'pointer',
-                opacity: publishing ? 0.7 : 1,
-              }}
+              className="cb-btn cb-btn-primary"
+              data-muted={!validity.readyToPublish || publishing}
+              onClick={() => requestPublish()}
+              disabled={publishing || pending || !!publishMeta}
             >
               {publishing ? 'Publishing…' : 'Publish study'}
             </button>
@@ -385,3 +730,39 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
   )
 }
 
+function normalizeDraft(draft: ConceptStudyDraft): ConceptStudyDraft {
+  const base = createEmptyConceptDraft()
+  const blindImageMode =
+    draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
+  const priceMode = draft.stimulusMode === 'price'
+  const rawArms = draft.conceptArms ?? base.conceptArms
+  // Standalone price keeps a single own product (composition will lift this).
+  const armsSource = priceMode ? rawArms.slice(0, 1) : rawArms
+  return {
+    ...base,
+    ...draft,
+    stimulusMode: draft.stimulusMode ?? null,
+    templateConfig: {
+      ...base.templateConfig,
+      ...(draft.templateConfig ?? {}),
+      price_answer_mode: draft.templateConfig?.price_answer_mode ?? 'bands',
+    },
+    taxonomyNodeId: draft.taxonomyNodeId ?? null,
+    targetCompletions: draft.targetCompletions ?? base.targetCompletions,
+    expiresAt: draft.expiresAt ?? base.expiresAt,
+    pricePosture: blindImageMode ? 'blind' : draft.pricePosture ?? base.pricePosture,
+    conceptArms: armsSource.map((arm, i) => ({
+      localId: arm.localId,
+      display_name: arm.display_name ?? '',
+      frozen_price: blindImageMode ? null : arm.frozen_price ?? null,
+      arm_label: arm.arm_label || String.fromCharCode(65 + i),
+      image_url: arm.image_url ?? null,
+      image_filename: arm.image_filename ?? null,
+      stimulus_payload: arm.stimulus_payload ?? {},
+    })),
+    products: (draft.products ?? []).map((p) =>
+      blindImageMode ? { ...p, frozen_price: null } : p
+    ),
+    sessionCount: blindImageMode ? 1 : draft.sessionCount ?? 1,
+  }
+}

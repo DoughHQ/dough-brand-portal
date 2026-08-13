@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
-import { getBrand, getOperatorDraftMissions } from '@/lib/queries'
+import { getBrand } from '@/lib/queries'
 import { getOperatorStudies } from '@/lib/studies/fetchOperatorStudies'
 import { getWithdrawnStudies } from '@/lib/studies/fetchWithdrawnStudies'
 import StudiesClient from './StudiesClient'
@@ -13,14 +13,11 @@ export default async function StudiesPage() {
   const { portalUser, effectiveBrandId, isImpersonating } = scope
 
   if (portalUser.role === 'dough_admin' && !isImpersonating) {
-    const [drafts, studies, withdrawn] = await Promise.all([
-      getOperatorDraftMissions(portalUser.auth_uid),
-      getOperatorStudies({ includeFinished: true }),
+    const [studies, withdrawn] = await Promise.all([
+      getOperatorStudies({ includeFinished: true, includeDrafts: true }),
       getWithdrawnStudies(),
     ])
-    return (
-      <AdminStudiesClient drafts={drafts} studies={studies} withdrawn={withdrawn} />
-    )
+    return <AdminStudiesClient studies={studies} withdrawn={withdrawn} />
   }
 
   const brand = await getBrand(effectiveBrandId)

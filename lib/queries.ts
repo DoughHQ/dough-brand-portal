@@ -474,6 +474,7 @@ export type AdminProductSearchResult = {
   win_rate_pct: number | null
   elo_score: number | null
   milestone: string
+  image_url: string | null
 }
 
 export async function searchProductsAdmin(query: string): Promise<AdminProductSearchResult[]> {

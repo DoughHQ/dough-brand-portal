@@ -42,6 +42,12 @@
   --space-3: 24px;
   --space-4: 32px;
 
+  /* Shell geometry + surface primitives (shared with the concept builder) */
+  --portal-sidebar-w: 220px;
+  --portal-surface-muted: #fbfaf7;
+  --portal-border-soft: rgba(36, 61, 44, 0.08);
+  --portal-radius-control: 10px;
+
   /* Radius */
   --radius-control: 6px;
   --radius-card: 8px;

@@ -2,13 +2,17 @@ import type {
   ConceptArmRow,
   ConceptQuestionSlot,
   ConceptStudyDraft,
+  PackagingTemplateConfig,
   PricePosture,
   ProductCompetitorRow,
 } from './types'
-import {
-  CONCEPT_DEFAULT_BRAND_ID,
-  CONCEPT_DEFAULT_TAXONOMY_NODE_ID,
-} from './constants'
+import { CONCEPT_DEFAULT_BRAND_ID } from './constants'
+
+function defaultScoringRoundsForArms(armCount: number): number {
+  if (armCount < 2) return 1
+  const pairs = (armCount * (armCount - 1)) / 2
+  return Math.min(10, Math.max(1, pairs))
+}
 
 function id(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -17,15 +21,21 @@ function id(): string {
   return `local_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
 }
 
+const ARM_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+export function armLabelForIndex(index: number): string {
+  if (index < ARM_LETTERS.length) return ARM_LETTERS[index]!
+  return `arm_${index + 1}`
+}
+
 export function newConceptArm(index: number): ConceptArmRow {
   return {
     localId: id(),
     display_name: '',
-    stimulus_type: 'full_concept',
     frozen_price: null,
-    battle_intent: 'own_concept_arm',
-    arm_label: `arm_${index + 1}`,
+    arm_label: armLabelForIndex(index),
     image_url: null,
+    image_filename: null,
     stimulus_payload: {},
   }
 }
@@ -38,7 +48,21 @@ export function newProductCompetitor(): ProductCompetitorRow {
     frozen_brand_name: '',
     frozen_image_url: null,
     frozen_price: null,
+    market_reference_price: null,
     battle_intent: 'direct_competitor',
+  }
+}
+
+export function emptyPackagingTemplateConfig(): PackagingTemplateConfig {
+  return {
+    category_plural: '',
+    pack_size: '',
+    price_display: '',
+    decoy_option: '',
+    verification_options: [],
+    legibility_options: [],
+    expected_price: '',
+    price_answer_mode: 'bands',
   }
 }
 
@@ -122,6 +146,10 @@ export function newScreener(): ConceptQuestionSlot {
   }
 }
 
+export function defaultExpiresAt(days = 30): string {
+  return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+}
+
 export function createEmptyConceptDraft(
   partial?: Partial<ConceptStudyDraft>
 ): ConceptStudyDraft {
@@ -131,11 +159,15 @@ export function createEmptyConceptDraft(
     title: '',
     brandId: CONCEPT_DEFAULT_BRAND_ID,
     brandCampaignId: null,
-    taxonomyNodeId: CONCEPT_DEFAULT_TAXONOMY_NODE_ID,
+    taxonomyNodeId: null,
+    stimulusMode: null,
+    templateConfig: emptyPackagingTemplateConfig(),
     pricePosture: 'realistic' as PricePosture,
     sessionCount: 1,
     session2IntervalHours: 24,
-    scoringRounds: 6,
+    scoringRounds: defaultScoringRoundsForArms(arms.length),
+    targetCompletions: 100,
+    expiresAt: defaultExpiresAt(30),
     conceptArms: arms,
     products: [],
     screeners: [],
@@ -161,12 +193,13 @@ export function cloneDraftAsNew(source: ConceptStudyDraft): ConceptStudyDraft {
     brandCampaignId: null,
     conceptArms: remap(source.conceptArms).map((a, i) => ({
       ...a,
-      arm_label: `arm_${i + 1}`,
+      arm_label: armLabelForIndex(i),
     })),
     products: remap(source.products),
     screeners: remap(source.screeners),
     diagnostics: remap(source.diagnostics),
     floor: source.floor ? { ...source.floor, localId: id() } : null,
+    templateConfig: { ...source.templateConfig },
     updatedAt: new Date().toISOString(),
     duplicatedFrom: source.draftId,
   }

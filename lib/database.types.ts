@@ -34010,6 +34010,33 @@ export type Database = {
         }
         Returns: Json
       }
+      publish_concept_study: {
+        Args: {
+          p_audience_definition?: string | null
+          p_brand_campaign_id: string
+          p_brand_id: number
+          p_concepts: Json
+          p_created_by: string
+          p_expires_at: string
+          p_price_posture?: string
+          p_products: Json
+          p_questions?: Json | null
+          p_scoring_rounds?: number
+          p_stimulus_mode: string
+          p_target_completions?: number | null
+          p_taxonomy_node_id: number
+          p_template_config?: Json | null
+          p_title: string
+        }
+        Returns: Json
+      }
+      build_concept_questions_from_template: {
+        Args: {
+          p_config: Json
+          p_template_code: string
+        }
+        Returns: Json
+      }
       publish_mission_from_template: {
         Args: {
           p_brand_campaign_id: string
@@ -34357,6 +34384,7 @@ export type Database = {
           brand_id: number
           brand_name: string
           elo_score: number
+          image_url: string | null
           l2_name: string
           l3_name: string
           milestone: string

@@ -4,24 +4,48 @@ import type {
   ConceptPublishQuestion,
   ConceptStudyDraft,
 } from './types'
-import { defaultFloor } from './defaults'
+import { defaultFloor, armLabelForIndex } from './defaults'
 import { formatPriceLabel, priceToWire } from './price'
 
-/** Map UI draft → wire payloads for publish_concept_mission. */
+/** Combinatorial pairs for a field of size n. */
+export function uniquePairs(n: number): number {
+  if (n < 2) return 0
+  return (n * (n - 1)) / 2
+}
+
+/** Default scoring rounds: min(10, pairs). */
+export function defaultScoringRounds(fieldSize: number): number {
+  const pairs = uniquePairs(fieldSize)
+  if (pairs < 1) return 1
+  return Math.min(10, pairs)
+}
+
+/**
+ * Map UI draft → wire payloads for publish_concept_study.
+ * For template modes (package / price), questions are omitted — caller sends null.
+ * Hand-built questions plumbing stays for non-template escape hatch.
+ */
 export function draftToPublishPayload(draft: ConceptStudyDraft): {
   concepts: ConceptPublishConcept[]
   products: ConceptPublishProduct[]
-  questions: ConceptPublishQuestion[]
+  questions: ConceptPublishQuestion[] | null
 } {
-  const concepts: ConceptPublishConcept[] = draft.conceptArms.map((arm, i) => ({
-    arm_label: arm.arm_label || `arm_${i + 1}`,
-    stimulus_type: arm.stimulus_type,
-    stimulus_payload: arm.stimulus_payload ?? {},
-    display_name: arm.display_name.trim(),
-    image_url: arm.image_url,
-    frozen_price: priceToWire(arm.frozen_price),
-    battle_intent: arm.battle_intent,
-  }))
+  const useTemplate =
+    draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
+
+  const concepts: ConceptPublishConcept[] = draft.conceptArms.map((arm, i) => {
+    const base: ConceptPublishConcept = {
+      arm_label: arm.arm_label || armLabelForIndex(i),
+      display_name: arm.display_name.trim(),
+      image_url: arm.image_url?.trim() || null,
+      frozen_price: priceToWire(arm.frozen_price),
+      stimulus_payload: arm.stimulus_payload ?? {},
+    }
+    if (!useTemplate && draft.stimulusMode) {
+      base.stimulus_type = draft.stimulusMode
+    }
+    return base
+  })
 
   const products: ConceptPublishProduct[] = draft.products
     .filter((p) => p.product_id != null)
@@ -31,8 +55,13 @@ export function draftToPublishPayload(draft: ConceptStudyDraft): {
       frozen_brand_name: p.frozen_brand_name.trim(),
       frozen_image_url: p.frozen_image_url,
       frozen_price: priceToWire(p.frozen_price),
+      market_reference_price: priceToWire(p.market_reference_price),
       battle_intent: p.battle_intent,
     }))
+
+  if (useTemplate) {
+    return { concepts, products, questions: null }
+  }
 
   const questions: ConceptPublishQuestion[] = []
   let pos = 0
