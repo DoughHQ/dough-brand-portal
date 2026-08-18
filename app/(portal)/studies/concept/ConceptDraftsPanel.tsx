@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import type { ConceptStudyDraft } from '@/lib/concept/types'
 import {
   deleteConceptDraft,
@@ -10,28 +10,98 @@ import {
   saveConceptDraft,
 } from '@/lib/concept/draftStore'
 import { cloneDraftAsNew } from '@/lib/concept/defaults'
-
-const ghostBtn: CSSProperties = {
-  border: 'none',
-  background: 'transparent',
-  cursor: 'pointer',
-  fontFamily: 'var(--font-sans)',
-  fontSize: 12,
-  fontWeight: 500,
-  padding: '4px 0',
-  color: 'var(--ink-50)',
-}
+import RowOverflowMenu from '../components/RowOverflowMenu'
 
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.floor(diff / 60000)
   if (mins < 60) return `${Math.max(0, mins)}m ago`
   const hrs = Math.floor(mins / 60)
-  if (hrs < 48) return `${hrs}h ago`
+  if (hrs < 24) return `${hrs}h ago`
+  if (hrs < 48) return 'Yesterday'
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export default function ConceptDraftsPanel() {
+const cardShell: CSSProperties = {
+  background: 'var(--white)',
+  border: '1px solid var(--ink-10)',
+  borderRadius: 12,
+  padding: '18px 20px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 16,
+  minHeight: 76,
+}
+
+function CreateCard({
+  icon,
+  title,
+  description,
+  action,
+}: {
+  icon: ReactNode
+  title: string
+  description: string
+  action: ReactNode
+}) {
+  return (
+    <div style={cardShell}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+        <div
+          aria-hidden
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            background: 'var(--sage-soft, var(--sage-pale))',
+            color: 'var(--sage-dark)',
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: 14,
+            fontWeight: 600,
+            flexShrink: 0,
+          }}
+        >
+          {icon}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{title}</div>
+          <div
+            style={{
+              fontSize: 13,
+              color: 'var(--ink-50)',
+              marginTop: 2,
+              lineHeight: 1.4,
+            }}
+          >
+            {description}
+          </div>
+        </div>
+      </div>
+      <div style={{ flexShrink: 0 }}>{action}</div>
+    </div>
+  )
+}
+
+const ctaLink: CSSProperties = {
+  fontSize: 13,
+  fontWeight: 600,
+  color: 'var(--sage)',
+  textDecoration: 'none',
+  whiteSpace: 'nowrap',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  fontFamily: 'var(--font-sans)',
+  padding: 0,
+}
+
+type Props = {
+  onCreateProductTest: () => void
+}
+
+export default function ConceptDraftsPanel({ onCreateProductTest }: Props) {
   const router = useRouter()
   const [drafts, setDrafts] = useState<ConceptStudyDraft[]>([])
 
@@ -56,119 +126,122 @@ export default function ConceptDraftsPanel() {
   }
 
   return (
-    <section style={{ marginTop: 36 }}>
+    <section style={{ marginBottom: 28 }}>
       <div
         style={{
           display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          marginBottom: 14,
-          gap: 12,
+          flexDirection: 'column',
+          gap: 10,
         }}
       >
-        <div>
-          <h3
-            style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: 20,
-              fontWeight: 400,
-              color: 'var(--ink)',
-              margin: 0,
-            }}
-          >
-            Concept drafts
-          </h3>
-          <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--ink-30)' }}>
-            Local to this browser until publish
-          </p>
-        </div>
-        <Link
-          href="/studies/concept/new"
-          style={{
-            display: 'inline-block',
-            background: 'var(--sage)',
-            color: 'var(--white)',
-            fontSize: 12,
-            fontWeight: 600,
-            padding: '8px 14px',
-            borderRadius: 'var(--r-sm)',
-            textDecoration: 'none',
-            fontFamily: 'var(--font-sans)',
-          }}
-        >
-          New concept study
-        </Link>
+        <CreateCard
+          icon="◇"
+          title="Create concept test"
+          description="Validate packaging and concepts before you ship."
+          action={
+            <Link href="/studies/concept/new" style={ctaLink}>
+              Create →
+            </Link>
+          }
+        />
+        <CreateCard
+          icon="◎"
+          title="Create product test"
+          description="Commission a study from any product in the catalog."
+          action={
+            <button type="button" onClick={onCreateProductTest} style={ctaLink}>
+              Create →
+            </button>
+          }
+        />
       </div>
 
-      {drafts.length === 0 ? (
-        <div
-          style={{
-            border: '1px dashed var(--ink-10)',
-            borderRadius: 'var(--r-md)',
-            padding: '22px 18px',
-            color: 'var(--ink-30)',
-            fontSize: 13,
-          }}
-        >
-          No concept drafts yet.{' '}
-          <Link href="/studies/concept/new" style={{ color: 'var(--sage)' }}>
-            Create one
-          </Link>
-        </div>
-      ) : (
-        <div
-          style={{
-            border: '1px solid var(--ink-10)',
-            borderRadius: 'var(--r-md)',
-            overflow: 'hidden',
-            background: 'var(--white)',
-          }}
-        >
-          {drafts.map((d, i) => (
+      {drafts.length > 0 ? (
+        <div style={{ marginTop: 16 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
+              marginBottom: 8,
+              gap: 12,
+            }}
+          >
             <div
-              key={d.draftId}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 16,
-                padding: '14px 16px',
-                borderTop: i === 0 ? 'none' : '1px solid var(--ink-10)',
+                fontSize: 12,
+                fontWeight: 600,
+                color: 'var(--ink-50)',
+                letterSpacing: '0.02em',
               }}
             >
-              <div style={{ minWidth: 0 }}>
-                <Link
-                  href={`/studies/concept/${d.draftId}/edit`}
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: 'var(--ink)',
-                    textDecoration: 'none',
-                  }}
-                >
-                  {d.title.trim() || 'Untitled concept study'}
-                </Link>
-                <div style={{ fontSize: 12, color: 'var(--ink-30)', marginTop: 3 }}>
-                  {d.conceptArms.length + d.products.length} competitors · edited{' '}
-                  {relativeTime(d.updatedAt)}
+              Concept drafts in progress
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--ink-30)' }}>
+              Local to this browser until publish
+            </div>
+          </div>
+          <div
+            style={{
+              border: '1px solid var(--ink-10)',
+              borderRadius: 12,
+              overflow: 'hidden',
+              background: 'var(--white)',
+            }}
+          >
+            {drafts.map((d, i) => (
+              <div
+                key={d.draftId}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 16,
+                  padding: '14px 16px',
+                  borderTop: i === 0 ? 'none' : '1px solid var(--ink-10)',
+                }}
+              >
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <Link
+                    href={`/studies/concept/${d.draftId}/edit`}
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: 'var(--ink)',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    {d.title.trim() || 'Untitled concept study'}
+                  </Link>
+                  <div style={{ fontSize: 12, color: 'var(--ink-50)', marginTop: 3 }}>
+                    {d.conceptArms.length + d.products.length} competitors · edited{' '}
+                    {relativeTime(d.updatedAt)}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/studies/concept/${d.draftId}/edit`)}
+                    style={ctaLink}
+                  >
+                    Continue →
+                  </button>
+                  <RowOverflowMenu
+                    actions={[
+                      { label: 'Duplicate', onClick: () => duplicate(d) },
+                      {
+                        label: 'Delete',
+                        tone: 'danger',
+                        onClick: () => remove(d.draftId),
+                      },
+                    ]}
+                  />
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 14, flexShrink: 0 }}>
-                <button type="button" onClick={() => duplicate(d)} style={ghostBtn}>
-                  Duplicate
-                </button>
-                <button
-                  type="button"
-                  onClick={() => remove(d.draftId)}
-                  style={{ ...ghostBtn, color: 'var(--red)' }}
-                >
-                  Delete draft
-                </button>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      )}
+      ) : null}
     </section>
   )
 }

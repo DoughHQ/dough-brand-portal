@@ -3,9 +3,10 @@
 import type { CSSProperties } from 'react'
 import type { BattleIntent } from '@/lib/concept/types'
 
+/** Page shell — prefer wrapping with className="concept-builder" + CSS. */
 export const pageShell: CSSProperties = {
   fontFamily: 'var(--font-sans)',
-  maxWidth: 1080,
+  maxWidth: 1160,
   margin: '0 auto',
   padding: '28px 28px 120px',
   color: 'var(--ink)',
@@ -15,17 +16,19 @@ export const sectionCard: CSSProperties = {
   background: 'var(--white)',
   border: '1px solid var(--ink-10)',
   borderRadius: 'var(--r-lg)',
-  padding: '28px 28px 24px',
-  marginBottom: 20,
+  padding: 32,
+  marginBottom: 24,
+  boxShadow: 'var(--cb-shadow-card)',
 }
 
 export const sectionEyebrow: CSSProperties = {
-  fontSize: 10,
-  fontWeight: 600,
-  letterSpacing: '0.12em',
+  fontFamily: 'var(--font-sans)',
+  fontSize: 12,
+  fontWeight: 500,
+  letterSpacing: '0.1em',
   textTransform: 'uppercase',
-  color: 'var(--ink-30)',
-  marginBottom: 6,
+  color: 'var(--ink-50)',
+  marginBottom: 8,
 }
 
 export const sectionTitle: CSSProperties = {
@@ -33,25 +36,28 @@ export const sectionTitle: CSSProperties = {
   fontSize: 26,
   fontWeight: 400,
   letterSpacing: '-0.02em',
-  margin: '0 0 6px',
-  color: 'var(--ink)',
+  margin: '0 0 8px',
+  color: 'var(--ink-80)',
 }
 
 export const sectionHelp: CSSProperties = {
-  fontSize: 13,
+  fontFamily: 'var(--font-sans)',
+  fontSize: 14,
   color: 'var(--ink-50)',
-  margin: '0 0 22px',
+  margin: '0 0 24px',
   lineHeight: 1.45,
+  maxWidth: 640,
 }
 
 export const inputBase: CSSProperties = {
   width: '100%',
   boxSizing: 'border-box',
+  height: 48,
   border: '1px solid var(--ink-10)',
   borderRadius: 'var(--r-sm)',
-  padding: '9px 11px',
+  padding: '0 16px',
   fontFamily: 'var(--font-sans)',
-  fontSize: 13,
+  fontSize: 14,
   color: 'var(--ink)',
   background: 'var(--white)',
   outline: 'none',
@@ -61,18 +67,19 @@ export const selectBase: CSSProperties = {
   ...inputBase,
   appearance: 'none' as const,
   backgroundImage:
-    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a847c' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E\")",
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2365736A' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E\")",
   backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'right 10px center',
-  paddingRight: 28,
+  backgroundPosition: 'right 16px center',
+  paddingRight: 40,
 }
 
 export const labelSm: CSSProperties = {
   display: 'block',
-  fontSize: 11,
+  fontFamily: 'var(--font-sans)',
+  fontSize: 12,
   fontWeight: 500,
   color: 'var(--ink-50)',
-  marginBottom: 5,
+  marginBottom: 8,
 }
 
 export const ghostLink: CSSProperties = {
@@ -80,69 +87,120 @@ export const ghostLink: CSSProperties = {
   background: 'transparent',
   cursor: 'pointer',
   fontFamily: 'var(--font-sans)',
-  fontSize: 12,
-  fontWeight: 500,
+  fontSize: 13,
+  fontWeight: 600,
   color: 'var(--sage)',
-  padding: '6px 0',
+  padding: '8px 0',
 }
 
 export const trashBtn: CSSProperties = {
   border: 'none',
   background: 'transparent',
   cursor: 'pointer',
-  color: 'var(--ink-30)',
+  fontFamily: 'var(--font-sans)',
+  fontSize: 13,
+  color: 'var(--ink-50)',
   padding: 4,
   lineHeight: 1,
   flexShrink: 0,
+}
+
+export const columnHeader: CSSProperties = {
+  fontFamily: 'var(--font-sans)',
+  fontSize: 15,
+  fontWeight: 600,
+  color: 'var(--ink-80)',
+  marginBottom: 2,
+}
+
+export const columnMeta: CSSProperties = {
+  fontFamily: 'var(--font-sans)',
+  fontSize: 12,
+  color: 'var(--ink-30)',
 }
 
 export function intentTagStyle(intent: BattleIntent): CSSProperties {
   if (intent === 'own_concept_arm') {
     return {
       display: 'inline-block',
+      fontFamily: 'var(--font-sans)',
       fontSize: 10,
       fontWeight: 600,
       letterSpacing: '0.04em',
       textTransform: 'uppercase',
       color: 'var(--sage)',
       background: 'var(--sage-soft)',
-      borderRadius: 4,
+      borderRadius: 'var(--cb-radius-pill)',
       padding: '3px 7px',
     }
   }
   if (intent === 'jtbd_incumbent') {
     return {
       display: 'inline-block',
+      fontFamily: 'var(--font-sans)',
       fontSize: 10,
       fontWeight: 600,
       letterSpacing: '0.04em',
       textTransform: 'uppercase',
       color: 'var(--amber)',
       background: 'var(--amber-pale)',
-      borderRadius: 4,
+      borderRadius: 'var(--cb-radius-pill)',
       padding: '3px 7px',
     }
   }
   return {
     display: 'inline-block',
+    fontFamily: 'var(--font-sans)',
     fontSize: 10,
     fontWeight: 600,
     letterSpacing: '0.04em',
     textTransform: 'uppercase',
     color: 'var(--ink-80)',
     background: 'var(--surface-1)',
-    borderRadius: 4,
+    borderRadius: 'var(--cb-radius-pill)',
     padding: '3px 7px',
   }
 }
 
-export const competitorCard: CSSProperties = {
+/** Base field card — shared by concept arms and competitors; both columns read larger. */
+export const fieldCard: CSSProperties = {
   border: '1px solid var(--ink-10)',
-  borderRadius: 'var(--r-md)',
-  padding: '14px 14px 12px',
-  background: 'var(--cream)',
-  marginBottom: 10,
+  borderRadius: 'var(--r-lg)',
+  padding: 24,
+  background: 'var(--white)',
+  marginBottom: 12,
+  boxShadow: 'none',
   cursor: 'grab',
+}
+
+/** Competitor product image — the real image when we have one. */
+export const competitorThumb: CSSProperties = {
+  width: '100%',
+  height: 140,
+  objectFit: 'contain',
+  display: 'block',
+  background: 'var(--surface-1)',
+  border: '1px solid var(--ink-10)',
+  borderRadius: 'var(--cb-radius-media)',
+}
+
+/** Default shown when a competitor has no image yet. */
+export const competitorThumbPlaceholder: CSSProperties = {
+  width: '100%',
+  height: 140,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  textAlign: 'center',
+  padding: '0 12px',
+  background: 'var(--surface-1)',
+  border: 'var(--cb-border-dashed)',
+  borderRadius: 'var(--cb-radius-media)',
+  color: 'var(--ink-30)',
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
 }
 
 export const stageCard: CSSProperties = {
@@ -156,6 +214,6 @@ export const stageCard: CSSProperties = {
 export const stageLocked: CSSProperties = {
   ...stageCard,
   borderColor: 'rgba(192, 120, 24, 0.45)',
-  background: 'linear-gradient(180deg, #fffdf8 0%, var(--cream) 100%)',
+  background: 'var(--cb-surface-muted)',
   boxShadow: 'inset 3px 0 0 var(--amber)',
 }

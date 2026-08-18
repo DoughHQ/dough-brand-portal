@@ -65,16 +65,16 @@ export default function PortalLayoutClient({
   return (
     <div className={dark ? 'dark' : ''} style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)', fontFamily: 'var(--font-sans)' }}>
 
-      <aside style={{ width: 220, minWidth: 220, background: 'var(--white)', borderRight: '1px solid var(--ink-10)', display: 'flex', flexDirection: 'column', position: 'fixed', inset: '0 auto 0 0', zIndex: 200 }}>
+      <aside style={{ width: 'var(--portal-sidebar-w)', minWidth: 'var(--portal-sidebar-w)', background: 'var(--white)', borderRight: '1px solid var(--portal-border-soft)', display: 'flex', flexDirection: 'column', position: 'fixed', inset: '0 auto 0 0', zIndex: 200 }}>
 
-        <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid var(--ink-10)' }}>
+        <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid var(--portal-border-soft)' }}>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: 20, fontWeight: 500, color: 'var(--sage)', letterSpacing: '-0.3px' }}>
             dough<span style={{ color: 'var(--ink-30)', fontWeight: 400 }}>.</span>
           </div>
           <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '1.4px', textTransform: 'uppercase', color: 'var(--ink-30)', marginTop: 2 }}>Brand Intelligence</div>
         </div>
 
-        <div style={{ margin: '12px 10px', padding: '10px', borderRadius: 'var(--r-md)', background: 'var(--surface-1)', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ margin: '12px 10px', padding: '10px', borderRadius: 'var(--portal-radius-control)', background: 'var(--portal-surface-muted)', display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--sage)', display: 'grid', placeItems: 'center', fontFamily: 'var(--font-serif)', fontSize: 13, fontWeight: 500, color: 'white', flexShrink: 0 }}>
             {sidebarBrandInitial}
           </div>
@@ -88,7 +88,7 @@ export default function PortalLayoutClient({
           <div style={{
             margin: '0 10px 4px',
             padding: '8px 10px',
-            borderRadius: 'var(--r-sm)',
+            borderRadius: 'var(--portal-radius-control)',
             background: isImpersonating ? 'var(--amber-pale)' : 'transparent',
             border: isImpersonating ? '1px solid rgba(192,120,24,0.2)' : '1px solid transparent',
           }}>
@@ -127,73 +127,113 @@ export default function PortalLayoutClient({
           </div>
         )}
 
-        <nav style={{ flex: 1, padding: '4px 10px', display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {[
-            { label: 'Studies',       href: '/studies' },
-            { label: 'Dashboard',     href: '/dashboard' },
-            { label: 'Momentum',      href: '/momentum' },
-            { label: 'Products',      href: '/products' },
-            { label: 'Who Loves You', href: '/audience' },
-            { label: 'Occasions',     href: '/occasions' },
-            { label: 'Launch IHUT',   href: '/ihut' },
-            { label: 'Reports',       href: '/reports' },
-            ...(isAdmin
-              ? [
-                  { label: 'Corrections', href: '/admin/corrections' },
-                  { label: 'Compare Groups', href: '/admin/compare-groups' },
-                ]
-              : []),
-          ].map(item => {
-            const active = pathname === item.href || pathname.startsWith(item.href + '/')
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
+        <nav style={{ flex: 1, padding: '10px 10px 12px', display: 'flex', flexDirection: 'column', gap: 22, overflowY: 'auto' }}>
+          {(
+            [
+              {
+                group: 'Overview',
+                items: [
+                  { label: 'Dashboard', href: '/dashboard' },
+                ],
+              },
+              {
+                group: 'Research',
+                items: [
+                  { label: 'Studies', href: '/studies' },
+                  { label: 'Products', href: '/products' },
+                  { label: 'Launch IHUT', href: '/ihut' },
+                ],
+              },
+              {
+                group: 'Analytics',
+                items: [
+                  { label: 'Reports', href: '/reports' },
+                  ...(isAdmin
+                    ? [
+                        { label: 'Corrections', href: '/admin/corrections' },
+                        { label: 'Compare Groups', href: '/admin/compare-groups' },
+                      ]
+                    : []),
+                ],
+              },
+            ] as const
+          ).map((section) => (
+            <div key={section.group}>
+                  <div
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 9,
-                  padding: '8px 10px',
-                  borderRadius: 'var(--r-sm)',
-                  fontSize: 13,
-                  fontWeight: active ? 500 : 400,
-                  color: active ? 'var(--sage)' : 'var(--ink-50)',
-                  background: active ? 'var(--sage-pale)' : 'transparent',
-                  textDecoration: 'none',
-                  transition: 'background 0.12s var(--ease), color 0.12s var(--ease)',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: 'var(--ink-50)',
+                  padding: '0 10px',
+                  marginBottom: 8,
                 }}
               >
-                {item.label}
-                {item.label === 'Products' && claimedCount > 0 && (
-                  <span style={{
-                    marginLeft: 'auto',
-                    background: 'var(--amber)',
-                    color: 'white',
-                    fontSize: 10,
-                    fontWeight: 500,
-                    padding: '1px 6px',
-                    borderRadius: 10,
-                  }}>
-                    {claimedCount}
-                  </span>
-                )}
-              </Link>
-            )
-          })}
+                {section.group}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {section.items.map((item) => {
+                  const active =
+                    pathname === item.href || pathname.startsWith(item.href + '/')
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 9,
+                        padding: '9px 10px',
+                        borderRadius: 'var(--portal-radius-control)',
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: 13,
+                        fontWeight: active ? 600 : 500,
+                        color: active ? 'var(--ink)' : 'var(--ink-80)',
+                        opacity: 1,
+                        background: active ? 'var(--sage-soft)' : 'transparent',
+                        textDecoration: 'none',
+                        transition: 'background 0.12s var(--ease)',
+                        boxShadow: active ? 'inset 3px 0 0 var(--sage)' : 'none',
+                      }}
+                    >
+                      {item.label}
+                      {item.label === 'Products' && claimedCount > 0 && (
+                        <span
+                          style={{
+                            marginLeft: 'auto',
+                            background: 'var(--amber)',
+                            color: 'white',
+                            fontSize: 10,
+                            fontWeight: 500,
+                            padding: '1px 6px',
+                            borderRadius: 999,
+                          }}
+                        >
+                          {claimedCount}
+                        </span>
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        <div style={{ padding: '12px 10px', borderTop: '1px solid var(--ink-10)', display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <div onClick={() => setDark(!dark)} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 10px', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 400, color: 'var(--ink-50)', cursor: 'pointer' }}>
+        <div style={{ padding: '12px 10px', borderTop: '1px solid var(--portal-border-soft)', display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <div onClick={() => setDark(!dark)} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 10px', borderRadius: 'var(--portal-radius-control)', fontSize: 12, fontWeight: 400, color: 'var(--ink-50)', cursor: 'pointer' }}>
             {dark ? 'Light mode' : 'Dark mode'}
           </div>
-          <div onClick={handleSignOut} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 10px', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 400, color: 'var(--ink-50)', cursor: 'pointer' }}>
+          <div onClick={handleSignOut} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 10px', borderRadius: 'var(--portal-radius-control)', fontSize: 12, fontWeight: 400, color: 'var(--ink-50)', cursor: 'pointer' }}>
             Sign out
           </div>
         </div>
 
       </aside>
 
-      <main style={{ marginLeft: 220, flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <main style={{ marginLeft: 'var(--portal-sidebar-w)', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         {children}
       </main>
 

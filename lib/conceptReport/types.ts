@@ -113,12 +113,62 @@ export type SignalKind =
   | 'free_text'
   | string
 
+/** One price band in a WTP distribution. */
+export type WtpBand = {
+  band_id: string
+  label: string | null
+  low: number | null
+  high: number | null
+  count: number
+}
+
+/** A point on the reservation-price demand curve: share who'd pay at least `price`. */
+export type WtpDemandPoint = {
+  price: number
+  share_would_pay_gte: number
+}
+
+export type WtpModalBand = {
+  label: string | null
+  low: number | null
+  high: number | null
+}
+
+/** Per-arm willingness-to-pay report (from concept_wtp_arm_report). */
+export type WtpArmReport = {
+  n_answers: number | null
+  n_priced: number | null
+  n_reject: number | null
+  rejection_rate: number | null
+  below_reporting_floor: boolean
+  reporting_floor: number | null
+  modal_band: WtpModalBand | null
+  band_distribution: WtpBand[]
+  demand_curve: WtpDemandPoint[]
+  presentation_rule: string | null
+  cap_note: string | null
+  suppression_note: string | null
+  note: string | null
+}
+
+export type WtpArm = {
+  combatant_ref: number | null
+  display_name: string | null
+  report: WtpArmReport
+}
+
 export type QuestionAggregate = {
   n_answers: number | null
   distribution: Record<string, number>
   shares: Record<string, number>
   framing?: string | null
   presentation_rule?: string | null
+  /** WTP branch (concept_wtp, signal = per_arm_reservation_price). */
+  wtp_signal?: string | null
+  wtp_reporting_floor?: number | null
+  wtp_overall?: WtpArmReport | null
+  wtp_by_arm?: WtpArm[] | null
+  wtp_interpretation?: string | null
 }
 
 export type QuestionResponse = {
