@@ -7,7 +7,7 @@ import type { ConceptPublishSuccessMeta, ConceptStudyDraft } from '@/lib/concept
 import { createEmptyConceptDraft } from '@/lib/concept/defaults'
 import { deleteConceptDraft, saveConceptDraft } from '@/lib/concept/draftStore'
 import { defaultScoringRounds } from '@/lib/concept/publish'
-import { evaluateFieldValidity } from '@/lib/concept/validity'
+import { evaluateFieldValidity, type ConceptPublishFailure } from '@/lib/concept/validity'
 import {
   createConceptCampaignAction,
   publishConceptStudyAction,
@@ -43,6 +43,7 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
     advanced?: string
     publish?: string
   }>({})
+  const [publishFailure, setPublishFailure] = useState<ConceptPublishFailure | null>(null)
 
   const validity = useMemo(() => evaluateFieldValidity(draft), [draft])
   const builderLocked = !draft.stimulusMode || draft.taxonomyNodeId == null
@@ -169,6 +170,7 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
   function requestPublish() {
     setPublishAttempted(true)
     setSectionErrors({})
+    setPublishFailure(null)
     if (!draft.stimulusMode) {
       const msg = 'Choose what you are testing before publishing.'
       setSectionErrors({ mode: msg, publish: msg })
@@ -233,6 +235,11 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
         setSectionErrors({
           [result.section]: result.error,
           publish: result.error,
+        })
+        setPublishFailure({
+          hint: result.hint,
+          productId: result.productId ?? null,
+          upc: result.upc ?? null,
         })
         const anchor =
           result.section === 'mode'
@@ -384,6 +391,7 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
         draft={draft}
         onChange={persist}
         error={sectionErrors.field ?? null}
+        publishFailure={publishFailure}
         disabled={builderLocked}
         disabledReason={builderLocked ? lockReason : null}
       />

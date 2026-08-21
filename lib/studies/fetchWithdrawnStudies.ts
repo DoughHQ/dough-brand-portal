@@ -9,9 +9,10 @@ export async function getWithdrawnStudies(options?: {
   brandId?: number | null
 }): Promise<WithdrawnStudyRow[]> {
   const supabase = await createServerSupabaseClient()
-  const { data, error } = await supabase.rpc('list_withdrawn_studies', {
-    p_brand_id: options?.brandId ?? null,
-  })
+  const { data, error } = await supabase.rpc(
+    'list_withdrawn_studies',
+    options?.brandId != null ? { p_brand_id: options.brandId } : {}
+  )
 
   if (error) throw new Error(error.message)
 

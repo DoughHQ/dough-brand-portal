@@ -16,9 +16,13 @@ export const CONCEPT_PUBLISH_HINT_MESSAGES: Record<string, string> = {
   NO_CONCEPT_ARM: 'Add at least one of your own concept arms.',
   PRICE_ASYMMETRY:
     'Every competitor must be priced the same way — all priced, or none.',
-  MISSING_BATTLE_INTENT:
-    'Every competitor needs a role (competitor / job-to-be-done / your arm).',
+  MISSING_BATTLE_INTENT: 'Every competitor needs a role.',
   INVALID_BATTLE_INTENT: "That competitor role isn't valid.",
+  UPC_REQUIRED: 'Identify the exact SKU for every real-product competitor.',
+  UPC_INVALID: 'That UPC is not a valid barcode.',
+  UPC_PRODUCT_MISMATCH: 'That UPC does not belong to this competitor.',
+  DUPLICATE_FIELD_UPC:
+    'Two competitors share the same UPC. Pick a different SKU for one of them.',
   NO_BATTLE_QUESTION: "The battle stage is missing — this shouldn't happen; reload.",
   CAMPAIGN_NOT_FOUND: 'Pick or create a campaign for this study.',
   NOT_A_BRAND_PORTAL_USER: "You don't have access to that brand.",
@@ -62,48 +66,98 @@ export function humanizeConceptPublishHint(
   return { text, section: sectionForCode(code ?? raw) }
 }
 
+export type ConceptResolvedError = {
+  text: string
+  section: ConceptErrorSection
+  code: string | null
+  productId: number | null
+  upc: string | null
+}
+
+function locatorFromUnknown(value: unknown): {
+  productId: number | null
+  upc: string | null
+} {
+  if (value == null) return { productId: null, upc: null }
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    const rec = value as Record<string, unknown>
+    const rawId = rec.product_id
+    const productId =
+      typeof rawId === 'number' && Number.isFinite(rawId)
+        ? rawId
+        : typeof rawId === 'string' && rawId.trim() && Number.isFinite(Number(rawId))
+          ? Number(rawId)
+          : null
+    const upc = typeof rec.upc === 'string' && rec.upc.trim() ? rec.upc.trim() : null
+    return { productId, upc }
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (!trimmed) return { productId: null, upc: null }
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        return locatorFromUnknown(JSON.parse(trimmed) as unknown)
+      } catch {
+        // fall through
+      }
+    }
+    const pid = trimmed.match(/product_id["'\s:=]+(\d+)/i)
+    const upc = trimmed.match(/\bupc["'\s:=]+["']?(\d{8,14})/i)
+    return {
+      productId: pid ? Number(pid[1]) : null,
+      upc: upc ? upc[1]! : null,
+    }
+  }
+  return { productId: null, upc: null }
+}
+
+function resolved(
+  text: string,
+  section: ConceptErrorSection,
+  code: string | null,
+  locator: { productId: number | null; upc: string | null } = {
+    productId: null,
+    upc: null,
+  }
+): ConceptResolvedError {
+  return { text, section, code, productId: locator.productId, upc: locator.upc }
+}
+
 /** Prefer wrapper `detail` for returned errors; map HINT codes only for thrown ones. */
 export function resolvePublishError(args: {
   returned?: { error?: unknown; detail?: unknown } | null
-  thrown?: { message?: string; hint?: string } | null
-}): { text: string; section: ConceptErrorSection; code: string | null } {
+  thrown?: { message?: string; hint?: string; details?: string } | null
+}): ConceptResolvedError {
   if (args.returned) {
     const code =
       typeof args.returned.error === 'string' ? args.returned.error : null
-    const detail =
+    const locator = locatorFromUnknown(args.returned.detail)
+    const detailString =
       typeof args.returned.detail === 'string' && args.returned.detail.trim()
         ? args.returned.detail.trim()
         : null
-    if (detail) {
-      return {
-        text: detail,
-        section: sectionForCode(code ?? ''),
-        code,
-      }
+    const detailLooksLikeJson =
+      !!detailString && (detailString.startsWith('{') || detailString.startsWith('['))
+    if (detailString && !detailLooksLikeJson) {
+      return resolved(detailString, sectionForCode(code ?? ''), code, locator)
     }
     if (code) {
-      return {
-        text: code,
-        section: sectionForCode(code),
-        code,
-      }
+      const mapped = CONCEPT_PUBLISH_HINT_MESSAGES[code]
+      return resolved(mapped ?? code, sectionForCode(code), code, locator)
     }
   }
 
   if (args.thrown) {
+    const locator = locatorFromUnknown(args.thrown.details)
     const hint =
       typeof args.thrown.hint === 'string' && args.thrown.hint.trim()
         ? args.thrown.hint.trim()
         : null
     const humanized = humanizeConceptPublishHint(hint, args.thrown.message)
-    return { text: humanized.text, section: humanized.section, code: hint }
+    return resolved(humanized.text, humanized.section, hint, locator)
   }
 
-  return {
-    text: 'Something went wrong. Please try again.',
-    section: 'publish',
-    code: null,
-  }
+  return resolved('Something went wrong. Please try again.', 'publish', null)
 }
 
 function sectionForCode(code: string): ConceptErrorSection {
@@ -129,6 +183,10 @@ function sectionForCode(code: string): ConceptErrorSection {
     code === 'PRICE_ASYMMETRY' ||
     code === 'MISSING_BATTLE_INTENT' ||
     code === 'INVALID_BATTLE_INTENT' ||
+    code === 'UPC_REQUIRED' ||
+    code === 'UPC_INVALID' ||
+    code === 'UPC_PRODUCT_MISMATCH' ||
+    code === 'DUPLICATE_FIELD_UPC' ||
     code === 'INVALID_PRICE_POSTURE' ||
     code === 'CONCEPT_STIMULUS_MISMATCH'
   ) {

@@ -30,7 +30,10 @@ export async function rpcPublishConceptStudy(
   supabase: Client,
   args: PublishConceptStudyArgs
 ) {
-  return supabase.rpc('publish_concept_study', args)
+  return supabase.rpc('publish_concept_study', {
+    ...args,
+    p_audience_definition: args.p_audience_definition ?? undefined,
+  })
 }
 
 export async function rpcBuildConceptQuestionsFromTemplate(

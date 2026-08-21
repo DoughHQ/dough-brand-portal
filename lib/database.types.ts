@@ -39,6 +39,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      _fn_backup_20260723: {
+        Row: {
+          definition: string | null
+          proname: string | null
+          taken_at: string | null
+        }
+        Insert: {
+          definition?: string | null
+          proname?: string | null
+          taken_at?: string | null
+        }
+        Update: {
+          definition?: string | null
+          proname?: string | null
+          taken_at?: string | null
+        }
+        Relationships: []
+      }
       activity_log: {
         Row: {
           created_at: string
@@ -178,6 +196,45 @@ export type Database = {
         }
         Relationships: []
       }
+      bacon_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      bacon_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
       badge_award_events: {
         Row: {
           awarded_at: string
@@ -257,27 +314,6 @@ export type Database = {
             foreignKeyName: "badge_award_events_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "badge_award_events_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "badge_award_events_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "badge_award_events_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -300,6 +336,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "badge_award_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -484,27 +527,6 @@ export type Database = {
             foreignKeyName: "basket_allocation_defaults_l1_node_id_fkey"
             columns: ["l1_node_id"]
             isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "basket_allocation_defaults_l1_node_id_fkey"
-            columns: ["l1_node_id"]
-            isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "basket_allocation_defaults_l1_node_id_fkey"
-            columns: ["l1_node_id"]
-            isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "basket_allocation_defaults_l1_node_id_fkey"
-            columns: ["l1_node_id"]
-            isOneToOne: true
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -527,6 +549,13 @@ export type Database = {
             columns: ["l1_node_id"]
             isOneToOne: true
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "basket_allocation_defaults_l1_node_id_fkey"
+            columns: ["l1_node_id"]
+            isOneToOne: true
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -626,13 +655,6 @@ export type Database = {
             foreignKeyName: "basket_slot_score_components_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "basket_slot_score_components_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -696,13 +718,28 @@ export type Database = {
             foreignKeyName: "basket_slot_score_components_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "basket_slot_score_components_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "basket_slot_score_components_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
       }
       battle_rounds: {
         Row: {
+          audience: string
           battle_city: string | null
           battle_context: string | null
           battle_latitude: number | null
@@ -710,6 +747,7 @@ export type Database = {
           battle_region: string | null
           battle_round_id: number
           battle_type: string
+          compare_group_id: number | null
           day_of_week: number | null
           decided_at: string | null
           decision_ms: number | null
@@ -735,9 +773,11 @@ export type Database = {
           opponent_role: string | null
           opponent_scan_corroborated: boolean | null
           opponent_selection_strategy: string | null
+          opponent_taxonomy_l3_node_id: number | null
           outcome: string
           override_source: string | null
           presented_at: string | null
+          presented_position: string | null
           primary_battles_before: number | null
           primary_elo_before: number | null
           primary_elo_confidence_before: number | null
@@ -746,6 +786,7 @@ export type Database = {
           primary_product_id: number
           provenance_class: Database["public"]["Enums"]["battle_provenance_class"]
           question_prompt_id: number | null
+          reason_event_id: number | null
           round_number: number | null
           round_role: string
           scoring_session_id: number | null
@@ -758,6 +799,7 @@ export type Database = {
           user_id: number
         }
         Insert: {
+          audience?: string
           battle_city?: string | null
           battle_context?: string | null
           battle_latitude?: number | null
@@ -765,6 +807,7 @@ export type Database = {
           battle_region?: string | null
           battle_round_id?: number
           battle_type?: string
+          compare_group_id?: number | null
           day_of_week?: number | null
           decided_at?: string | null
           decision_ms?: number | null
@@ -790,9 +833,11 @@ export type Database = {
           opponent_role?: string | null
           opponent_scan_corroborated?: boolean | null
           opponent_selection_strategy?: string | null
+          opponent_taxonomy_l3_node_id?: number | null
           outcome: string
           override_source?: string | null
           presented_at?: string | null
+          presented_position?: string | null
           primary_battles_before?: number | null
           primary_elo_before?: number | null
           primary_elo_confidence_before?: number | null
@@ -801,6 +846,7 @@ export type Database = {
           primary_product_id: number
           provenance_class?: Database["public"]["Enums"]["battle_provenance_class"]
           question_prompt_id?: number | null
+          reason_event_id?: number | null
           round_number?: number | null
           round_role?: string
           scoring_session_id?: number | null
@@ -813,6 +859,7 @@ export type Database = {
           user_id: number
         }
         Update: {
+          audience?: string
           battle_city?: string | null
           battle_context?: string | null
           battle_latitude?: number | null
@@ -820,6 +867,7 @@ export type Database = {
           battle_region?: string | null
           battle_round_id?: number
           battle_type?: string
+          compare_group_id?: number | null
           day_of_week?: number | null
           decided_at?: string | null
           decision_ms?: number | null
@@ -845,9 +893,11 @@ export type Database = {
           opponent_role?: string | null
           opponent_scan_corroborated?: boolean | null
           opponent_selection_strategy?: string | null
+          opponent_taxonomy_l3_node_id?: number | null
           outcome?: string
           override_source?: string | null
           presented_at?: string | null
+          presented_position?: string | null
           primary_battles_before?: number | null
           primary_elo_before?: number | null
           primary_elo_confidence_before?: number | null
@@ -856,6 +906,7 @@ export type Database = {
           primary_product_id?: number
           provenance_class?: Database["public"]["Enums"]["battle_provenance_class"]
           question_prompt_id?: number | null
+          reason_event_id?: number | null
           round_number?: number | null
           round_role?: string
           scoring_session_id?: number | null
@@ -868,6 +919,13 @@ export type Database = {
           user_id?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "battle_rounds_compare_group_id_fkey"
+            columns: ["compare_group_id"]
+            isOneToOne: false
+            referencedRelation: "compare_groups"
+            referencedColumns: ["compare_group_id"]
+          },
           {
             foreignKeyName: "battle_rounds_mission_claim_id_fkey"
             columns: ["mission_claim_id"]
@@ -886,13 +944,6 @@ export type Database = {
             foreignKeyName: "battle_rounds_opponent_product_id_fkey"
             columns: ["opponent_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
-            columns: ["opponent_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -956,15 +1007,57 @@ export type Database = {
             foreignKeyName: "battle_rounds_opponent_product_id_fkey"
             columns: ["opponent_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "battle_rounds_primary_product_id_fkey"
-            columns: ["primary_product_id"]
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_taxonomy_l3_node_id_fkey"
+            columns: ["opponent_taxonomy_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_taxonomy_l3_node_id_fkey"
+            columns: ["opponent_taxonomy_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_taxonomy_l3_node_id_fkey"
+            columns: ["opponent_taxonomy_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_taxonomy_l3_node_id_fkey"
+            columns: ["opponent_taxonomy_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_taxonomy_l3_node_id_fkey"
+            columns: ["opponent_taxonomy_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "battle_rounds_primary_product_id_fkey"
@@ -1033,7 +1126,21 @@ export type Database = {
             foreignKeyName: "battle_rounds_primary_product_id_fkey"
             columns: ["primary_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -1044,32 +1151,18 @@ export type Database = {
             referencedColumns: ["question_prompt_id"]
           },
           {
+            foreignKeyName: "battle_rounds_reason_event_id_fkey"
+            columns: ["reason_event_id"]
+            isOneToOne: false
+            referencedRelation: "user_product_reason_events"
+            referencedColumns: ["reason_event_id"]
+          },
+          {
             foreignKeyName: "battle_rounds_scoring_session_id_fkey"
             columns: ["scoring_session_id"]
             isOneToOne: false
             referencedRelation: "user_scoring_sessions"
             referencedColumns: ["scoring_session_id"]
-          },
-          {
-            foreignKeyName: "battle_rounds_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "battle_rounds_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "battle_rounds_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
           },
           {
             foreignKeyName: "battle_rounds_taxonomy_l2_node_id_fkey"
@@ -1100,25 +1193,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
+            foreignKeyName: "battle_rounds_taxonomy_l2_node_id_fkey"
+            columns: ["taxonomy_l2_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
@@ -1146,6 +1225,13 @@ export type Database = {
             columns: ["taxonomy_l3_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
+            columns: ["taxonomy_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -1168,6 +1254,331 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      beans_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      beans_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      beans2_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      beans2_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      beans3_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      beans3_plan_20260813: {
+        Row: {
+          from_name: string | null
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_name?: string | null
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_name?: string | null
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      bonebroth_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      bonebroth_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      box_fulfillments: {
+        Row: {
+          abandon_deadline: string | null
+          box_id: string
+          carrier: string | null
+          claimed_at: string
+          completed_at: string | null
+          confirmed_at: string | null
+          consent_version: string | null
+          consented_at: string | null
+          created_at: string
+          delivered_at: string | null
+          dings_reliability: boolean
+          id: string
+          mission_claim_id: string
+          session_1_completed_at: string | null
+          session_2_available_at: string | null
+          session_2_completed_at: string | null
+          shipped_at: string | null
+          shipping_address_id: number | null
+          state: Database["public"]["Enums"]["box_fulfillment_state"]
+          terminal_reason: string | null
+          tracking_ref: string | null
+          updated_at: string
+          user_id: number
+        }
+        Insert: {
+          abandon_deadline?: string | null
+          box_id: string
+          carrier?: string | null
+          claimed_at?: string
+          completed_at?: string | null
+          confirmed_at?: string | null
+          consent_version?: string | null
+          consented_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          dings_reliability?: boolean
+          id?: string
+          mission_claim_id: string
+          session_1_completed_at?: string | null
+          session_2_available_at?: string | null
+          session_2_completed_at?: string | null
+          shipped_at?: string | null
+          shipping_address_id?: number | null
+          state?: Database["public"]["Enums"]["box_fulfillment_state"]
+          terminal_reason?: string | null
+          tracking_ref?: string | null
+          updated_at?: string
+          user_id: number
+        }
+        Update: {
+          abandon_deadline?: string | null
+          box_id?: string
+          carrier?: string | null
+          claimed_at?: string
+          completed_at?: string | null
+          confirmed_at?: string | null
+          consent_version?: string | null
+          consented_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          dings_reliability?: boolean
+          id?: string
+          mission_claim_id?: string
+          session_1_completed_at?: string | null
+          session_2_available_at?: string | null
+          session_2_completed_at?: string | null
+          shipped_at?: string | null
+          shipping_address_id?: number | null
+          state?: Database["public"]["Enums"]["box_fulfillment_state"]
+          terminal_reason?: string | null
+          tracking_ref?: string | null
+          updated_at?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "box_fulfillments_box_id_fkey"
+            columns: ["box_id"]
+            isOneToOne: false
+            referencedRelation: "sampling_boxes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "box_fulfillments_mission_claim_id_fkey"
+            columns: ["mission_claim_id"]
+            isOneToOne: true
+            referencedRelation: "mission_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "box_fulfillments_mission_claim_id_fkey"
+            columns: ["mission_claim_id"]
+            isOneToOne: true
+            referencedRelation: "v_mission_claims_base"
+            referencedColumns: ["claim_id"]
+          },
+          {
+            foreignKeyName: "box_fulfillments_shipping_address_id_fkey"
+            columns: ["shipping_address_id"]
+            isOneToOne: false
+            referencedRelation: "user_shipping_addresses"
+            referencedColumns: ["shipping_address_id"]
+          },
+          {
+            foreignKeyName: "box_fulfillments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_archetype_display"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "box_fulfillments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_current_level"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "box_fulfillments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      box_status_events: {
+        Row: {
+          actor_auth_id: string | null
+          box_id: string
+          created_at: string
+          from_status: Database["public"]["Enums"]["box_status"]
+          id: string
+          reason: string | null
+          to_status: Database["public"]["Enums"]["box_status"]
+        }
+        Insert: {
+          actor_auth_id?: string | null
+          box_id: string
+          created_at?: string
+          from_status: Database["public"]["Enums"]["box_status"]
+          id?: string
+          reason?: string | null
+          to_status: Database["public"]["Enums"]["box_status"]
+        }
+        Update: {
+          actor_auth_id?: string | null
+          box_id?: string
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["box_status"]
+          id?: string
+          reason?: string | null
+          to_status?: Database["public"]["Enums"]["box_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "box_status_events_box_id_fkey"
+            columns: ["box_id"]
+            isOneToOne: false
+            referencedRelation: "sampling_boxes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1212,13 +1623,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "brand_aliases_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
           {
             foreignKeyName: "brand_aliases_brand_id_fkey"
             columns: ["brand_id"]
@@ -1289,13 +1693,6 @@ export type Database = {
           users_change_pct?: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "brand_analytics_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
           {
             foreignKeyName: "brand_analytics_brand_id_fkey"
             columns: ["brand_id"]
@@ -1397,13 +1794,6 @@ export type Database = {
             foreignKeyName: "brand_campaigns_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_campaigns_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -1456,13 +1846,6 @@ export type Database = {
             foreignKeyName: "brand_canonical_map_canonical_brand_id_fkey"
             columns: ["canonical_brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_canonical_map_canonical_brand_id_fkey"
-            columns: ["canonical_brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -1478,13 +1861,6 @@ export type Database = {
             columns: ["canonical_brand_id"]
             isOneToOne: false
             referencedRelation: "product_scan_view"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_canonical_map_fragment_brand_id_fkey"
-            columns: ["fragment_brand_id"]
-            isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
             referencedColumns: ["brand_id"]
           },
           {
@@ -1595,13 +1971,6 @@ export type Database = {
             foreignKeyName: "brand_competitive_snapshots_focal_brand_id_fkey"
             columns: ["focal_brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_competitive_snapshots_focal_brand_id_fkey"
-            columns: ["focal_brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -1651,13 +2020,6 @@ export type Database = {
             foreignKeyName: "brand_data_requests_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_data_requests_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -1674,13 +2036,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_data_requests_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "brand_data_requests_product_id_fkey"
@@ -1749,7 +2104,21 @@ export type Database = {
             foreignKeyName: "brand_data_requests_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_data_requests_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_data_requests_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -1937,13 +2306,6 @@ export type Database = {
             foreignKeyName: "brand_intelligence_snapshots_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_intelligence_snapshots_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -1960,27 +2322,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_intelligence_snapshots_category_l1_node_id_fkey"
-            columns: ["category_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "brand_intelligence_snapshots_category_l1_node_id_fkey"
-            columns: ["category_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "brand_intelligence_snapshots_category_l1_node_id_fkey"
-            columns: ["category_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
           },
           {
             foreignKeyName: "brand_intelligence_snapshots_category_l1_node_id_fkey"
@@ -2011,18 +2352,18 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
+            foreignKeyName: "brand_intelligence_snapshots_category_l1_node_id_fkey"
+            columns: ["category_l1_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
             foreignKeyName: "brand_intelligence_snapshots_compare_group_id_fkey"
             columns: ["compare_group_id"]
             isOneToOne: false
             referencedRelation: "compare_groups"
             referencedColumns: ["compare_group_id"]
-          },
-          {
-            foreignKeyName: "brand_intelligence_snapshots_top_product_id_fkey"
-            columns: ["top_product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "brand_intelligence_snapshots_top_product_id_fkey"
@@ -2091,10 +2432,361 @@ export type Database = {
             foreignKeyName: "brand_intelligence_snapshots_top_product_id_fkey"
             columns: ["top_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_intelligence_snapshots_top_product_id_fkey"
+            columns: ["top_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
+          {
+            foreignKeyName: "brand_intelligence_snapshots_top_product_id_fkey"
+            columns: ["top_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
         ]
+      }
+      brand_merge_map_20260730: {
+        Row: {
+          created_at: string
+          lose_brand_id: number
+          lose_products: number
+          merge_key: string
+          win_brand_id: number
+          win_products: number
+        }
+        Insert: {
+          created_at?: string
+          lose_brand_id: number
+          lose_products: number
+          merge_key: string
+          win_brand_id: number
+          win_products: number
+        }
+        Update: {
+          created_at?: string
+          lose_brand_id?: number
+          lose_products?: number
+          merge_key?: string
+          win_brand_id?: number
+          win_products?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_merge_map_20260730_lose_brand_id_fkey"
+            columns: ["lose_brand_id"]
+            isOneToOne: true
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_merge_map_20260730_lose_brand_id_fkey"
+            columns: ["lose_brand_id"]
+            isOneToOne: true
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_merge_map_20260730_lose_brand_id_fkey"
+            columns: ["lose_brand_id"]
+            isOneToOne: true
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_merge_map_20260730_win_brand_id_fkey"
+            columns: ["win_brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_merge_map_20260730_win_brand_id_fkey"
+            columns: ["win_brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_merge_map_20260730_win_brand_id_fkey"
+            columns: ["win_brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
+          },
+        ]
+      }
+      brand_merge_product_backup_20260730: {
+        Row: {
+          col: string
+          new_brand_id: number
+          old_brand_id: number
+          product_id: number
+        }
+        Insert: {
+          col: string
+          new_brand_id: number
+          old_brand_id: number
+          product_id: number
+        }
+        Update: {
+          col?: string
+          new_brand_id?: number
+          old_brand_id?: number
+          product_id?: number
+        }
+        Relationships: []
+      }
+      brand_merge_proof_backup_20260730: {
+        Row: {
+          brand_id: number | null
+          brand_name: string | null
+          brand_name_normalized: string | null
+          brand_proof_id: number | null
+          captured_at: string | null
+          created_at: string | null
+          data_source: string | null
+          deleted_at: string | null
+          deletion_reason: string | null
+          enrichment_run_id: string | null
+          founded_year: number | null
+          has_animal_derived_inputs: boolean | null
+          hq_city: string | null
+          hq_country: string | null
+          hq_state: string | null
+          human_reviewed_at: string | null
+          human_reviewed_by: string | null
+          is_b_corp: boolean | null
+          is_cooperative: boolean | null
+          is_deleted: boolean | null
+          is_employee_owned: boolean | null
+          is_independent: boolean | null
+          is_minority_owned: boolean | null
+          is_nonprofit: boolean | null
+          is_woman_owned: boolean | null
+          last_enriched_at: string | null
+          llm_confidence: number | null
+          llm_model_version: string | null
+          llm_reasoning: string | null
+          merge_role: string | null
+          needs_human_review: boolean | null
+          ot1_country_of_origin: string | null
+          ot1_origin_granularity: number | null
+          ot2_ingredient_origin_disclosed: number | null
+          ot3_certifications_origin: string[] | null
+          ot4_dates_harvest_vintage: number | null
+          p1_energy_use: number | null
+          p1_inputs_policy: number | null
+          p1_soil_land_practices: number | null
+          p1_waste_wastewater: number | null
+          p1_water_management: number | null
+          p2_materials_components: number | null
+          p2_pcr_reuse_refill: number | null
+          p2_recyclability_guidance: number | null
+          p3_boundary_disclosed: number | null
+          p3_footprint_metric_disclosed: number | null
+          p3_verification_assurance: number | null
+          p4_chain_of_custody_method: number | null
+          p4_deforestation_policy: number | null
+          p4_high_risk_inputs_identified: number | null
+          parent_company: string | null
+          r1_policy_exists: boolean | null
+          r1_scope_stated: number | null
+          r1_standards_list: number | null
+          r2_audit_body_named: boolean | null
+          r2_audit_frequency: number | null
+          r2_audit_scope: number | null
+          r3_living_wage_commitment: number | null
+          r3_wage_data_disclosed: boolean | null
+          r4_child_labour_policy: number | null
+          r4_forced_labour_policy: number | null
+          r5_mechanism_accessible: number | null
+          r5_mechanism_exists: boolean | null
+          r6_antibiotics_hormones_policy: number | null
+          r6_welfare_cert_verifiable: boolean | null
+          r6_welfare_standards: number | null
+          score_version: string | null
+          source_urls: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          brand_id?: number | null
+          brand_name?: string | null
+          brand_name_normalized?: string | null
+          brand_proof_id?: number | null
+          captured_at?: string | null
+          created_at?: string | null
+          data_source?: string | null
+          deleted_at?: string | null
+          deletion_reason?: string | null
+          enrichment_run_id?: string | null
+          founded_year?: number | null
+          has_animal_derived_inputs?: boolean | null
+          hq_city?: string | null
+          hq_country?: string | null
+          hq_state?: string | null
+          human_reviewed_at?: string | null
+          human_reviewed_by?: string | null
+          is_b_corp?: boolean | null
+          is_cooperative?: boolean | null
+          is_deleted?: boolean | null
+          is_employee_owned?: boolean | null
+          is_independent?: boolean | null
+          is_minority_owned?: boolean | null
+          is_nonprofit?: boolean | null
+          is_woman_owned?: boolean | null
+          last_enriched_at?: string | null
+          llm_confidence?: number | null
+          llm_model_version?: string | null
+          llm_reasoning?: string | null
+          merge_role?: string | null
+          needs_human_review?: boolean | null
+          ot1_country_of_origin?: string | null
+          ot1_origin_granularity?: number | null
+          ot2_ingredient_origin_disclosed?: number | null
+          ot3_certifications_origin?: string[] | null
+          ot4_dates_harvest_vintage?: number | null
+          p1_energy_use?: number | null
+          p1_inputs_policy?: number | null
+          p1_soil_land_practices?: number | null
+          p1_waste_wastewater?: number | null
+          p1_water_management?: number | null
+          p2_materials_components?: number | null
+          p2_pcr_reuse_refill?: number | null
+          p2_recyclability_guidance?: number | null
+          p3_boundary_disclosed?: number | null
+          p3_footprint_metric_disclosed?: number | null
+          p3_verification_assurance?: number | null
+          p4_chain_of_custody_method?: number | null
+          p4_deforestation_policy?: number | null
+          p4_high_risk_inputs_identified?: number | null
+          parent_company?: string | null
+          r1_policy_exists?: boolean | null
+          r1_scope_stated?: number | null
+          r1_standards_list?: number | null
+          r2_audit_body_named?: boolean | null
+          r2_audit_frequency?: number | null
+          r2_audit_scope?: number | null
+          r3_living_wage_commitment?: number | null
+          r3_wage_data_disclosed?: boolean | null
+          r4_child_labour_policy?: number | null
+          r4_forced_labour_policy?: number | null
+          r5_mechanism_accessible?: number | null
+          r5_mechanism_exists?: boolean | null
+          r6_antibiotics_hormones_policy?: number | null
+          r6_welfare_cert_verifiable?: boolean | null
+          r6_welfare_standards?: number | null
+          score_version?: string | null
+          source_urls?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          brand_id?: number | null
+          brand_name?: string | null
+          brand_name_normalized?: string | null
+          brand_proof_id?: number | null
+          captured_at?: string | null
+          created_at?: string | null
+          data_source?: string | null
+          deleted_at?: string | null
+          deletion_reason?: string | null
+          enrichment_run_id?: string | null
+          founded_year?: number | null
+          has_animal_derived_inputs?: boolean | null
+          hq_city?: string | null
+          hq_country?: string | null
+          hq_state?: string | null
+          human_reviewed_at?: string | null
+          human_reviewed_by?: string | null
+          is_b_corp?: boolean | null
+          is_cooperative?: boolean | null
+          is_deleted?: boolean | null
+          is_employee_owned?: boolean | null
+          is_independent?: boolean | null
+          is_minority_owned?: boolean | null
+          is_nonprofit?: boolean | null
+          is_woman_owned?: boolean | null
+          last_enriched_at?: string | null
+          llm_confidence?: number | null
+          llm_model_version?: string | null
+          llm_reasoning?: string | null
+          merge_role?: string | null
+          needs_human_review?: boolean | null
+          ot1_country_of_origin?: string | null
+          ot1_origin_granularity?: number | null
+          ot2_ingredient_origin_disclosed?: number | null
+          ot3_certifications_origin?: string[] | null
+          ot4_dates_harvest_vintage?: number | null
+          p1_energy_use?: number | null
+          p1_inputs_policy?: number | null
+          p1_soil_land_practices?: number | null
+          p1_waste_wastewater?: number | null
+          p1_water_management?: number | null
+          p2_materials_components?: number | null
+          p2_pcr_reuse_refill?: number | null
+          p2_recyclability_guidance?: number | null
+          p3_boundary_disclosed?: number | null
+          p3_footprint_metric_disclosed?: number | null
+          p3_verification_assurance?: number | null
+          p4_chain_of_custody_method?: number | null
+          p4_deforestation_policy?: number | null
+          p4_high_risk_inputs_identified?: number | null
+          parent_company?: string | null
+          r1_policy_exists?: boolean | null
+          r1_scope_stated?: number | null
+          r1_standards_list?: number | null
+          r2_audit_body_named?: boolean | null
+          r2_audit_frequency?: number | null
+          r2_audit_scope?: number | null
+          r3_living_wage_commitment?: number | null
+          r3_wage_data_disclosed?: boolean | null
+          r4_child_labour_policy?: number | null
+          r4_forced_labour_policy?: number | null
+          r5_mechanism_accessible?: number | null
+          r5_mechanism_exists?: boolean | null
+          r6_antibiotics_hormones_policy?: number | null
+          r6_welfare_cert_verifiable?: boolean | null
+          r6_welfare_standards?: number | null
+          score_version?: string | null
+          source_urls?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      brand_merge_suppress_backup_20260730: {
+        Row: {
+          captured_at: string
+          old_brand_id: number
+          old_is_suppressed: boolean
+          old_suppression_reason: string | null
+          product_id: number
+          product_name_normalized: string | null
+          win_brand_id: number
+        }
+        Insert: {
+          captured_at?: string
+          old_brand_id: number
+          old_is_suppressed: boolean
+          old_suppression_reason?: string | null
+          product_id: number
+          product_name_normalized?: string | null
+          win_brand_id: number
+        }
+        Update: {
+          captured_at?: string
+          old_brand_id?: number
+          old_is_suppressed?: boolean
+          old_suppression_reason?: string | null
+          product_id?: number
+          product_name_normalized?: string | null
+          win_brand_id?: number
+        }
+        Relationships: []
       }
       brand_mission_reports: {
         Row: {
@@ -2192,13 +2884,6 @@ export type Database = {
             foreignKeyName: "brand_mission_reports_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_mission_reports_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -2229,13 +2914,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "brand_campaigns"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "brand_mission_reports_focal_product_id_fkey"
-            columns: ["focal_product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "brand_mission_reports_focal_product_id_fkey"
@@ -2304,7 +2982,21 @@ export type Database = {
             foreignKeyName: "brand_mission_reports_focal_product_id_fkey"
             columns: ["focal_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_mission_reports_focal_product_id_fkey"
+            columns: ["focal_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_mission_reports_focal_product_id_fkey"
+            columns: ["focal_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -2369,13 +3061,6 @@ export type Database = {
             foreignKeyName: "brand_ownership_history_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_ownership_history_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -2425,13 +3110,6 @@ export type Database = {
           started_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "brand_portal_impersonation_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
           {
             foreignKeyName: "brand_portal_impersonation_brand_id_fkey"
             columns: ["brand_id"]
@@ -2530,13 +3208,6 @@ export type Database = {
             foreignKeyName: "brand_portal_invitations_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_portal_invitations_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -2601,13 +3272,6 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "brand_portal_sessions_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
           {
             foreignKeyName: "brand_portal_sessions_brand_id_fkey"
             columns: ["brand_id"]
@@ -2725,13 +3389,6 @@ export type Database = {
             foreignKeyName: "brand_portal_subscriptions_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_portal_subscriptions_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: true
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -2807,13 +3464,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "brand_portal_users_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
           {
             foreignKeyName: "brand_portal_users_brand_id_fkey"
             columns: ["brand_id"]
@@ -2903,13 +3553,6 @@ export type Database = {
           verified_method?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "brand_portal_verification_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
           {
             foreignKeyName: "brand_portal_verification_brand_id_fkey"
             columns: ["brand_id"]
@@ -3050,13 +3693,6 @@ export type Database = {
             foreignKeyName: "brand_product_intelligence_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_product_intelligence_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -3073,13 +3709,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_product_intelligence_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "brand_product_intelligence_product_id_fkey"
@@ -3148,29 +3777,22 @@ export type Database = {
             foreignKeyName: "brand_product_intelligence_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_intelligence_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "brand_product_intelligence_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
+            foreignKeyName: "brand_product_intelligence_product_id_fkey"
+            columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "brand_product_intelligence_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "brand_product_intelligence_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "brand_product_intelligence_taxonomy_node_id_fkey"
@@ -3198,6 +3820,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "brand_product_intelligence_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -3310,13 +3939,6 @@ export type Database = {
             foreignKeyName: "brand_product_skus_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_product_skus_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -3361,13 +3983,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "sku_variants"
             referencedColumns: ["sku_variant_id"]
-          },
-          {
-            foreignKeyName: "brand_product_skus_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "brand_product_skus_product_id_fkey"
@@ -3436,7 +4051,21 @@ export type Database = {
             foreignKeyName: "brand_product_skus_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_skus_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_skus_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -3653,28 +4282,21 @@ export type Database = {
           {
             foreignKeyName: "fk_brand_proof_profile_brand_id"
             columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "fk_brand_proof_profile_brand_id"
-            columns: ["brand_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
           {
             foreignKeyName: "fk_brand_proof_profile_brand_id"
             columns: ["brand_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "product_packaging_signal"
             referencedColumns: ["brand_id"]
           },
           {
             foreignKeyName: "fk_brand_proof_profile_brand_id"
             columns: ["brand_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
           },
@@ -3737,13 +4359,6 @@ export type Database = {
             foreignKeyName: "brand_rival_relationships_brand_id_a_fkey"
             columns: ["brand_id_a"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_rival_relationships_brand_id_a_fkey"
-            columns: ["brand_id_a"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -3759,13 +4374,6 @@ export type Database = {
             columns: ["brand_id_a"]
             isOneToOne: false
             referencedRelation: "product_scan_view"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_rival_relationships_brand_id_b_fkey"
-            columns: ["brand_id_b"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
             referencedColumns: ["brand_id"]
           },
           {
@@ -3788,27 +4396,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_rival_relationships_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "brand_rival_relationships_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "brand_rival_relationships_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
           },
           {
             foreignKeyName: "brand_rival_relationships_taxonomy_node_id_fkey"
@@ -3836,6 +4423,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "brand_rival_relationships_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -4077,13 +4671,6 @@ export type Database = {
             foreignKeyName: "brands_canonical_brand_id_fkey"
             columns: ["canonical_brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brands_canonical_brand_id_fkey"
-            columns: ["canonical_brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -4116,6 +4703,99 @@ export type Database = {
             referencedColumns: ["parent_brand_id"]
           },
         ]
+      }
+      bread_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      bread_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      breadedfish_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      breadedfish_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      brkfst_dupe_20260813_backup: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
       }
       campaign_wallets: {
         Row: {
@@ -4180,13 +4860,6 @@ export type Database = {
             foreignKeyName: "campaign_wallets_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "campaign_wallets_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -4219,6 +4892,168 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      candy_migration_20260818_node_backup: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          backed_up_at: string | null
+          basket_section: string | null
+          card_type: string | null
+          compare_group_node_id: number | null
+          created_at: string | null
+          domain_code: string | null
+          hero_image_url: string | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_brand_agnostic: boolean | null
+          is_compare_enabled: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_description: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          path_ids_csv: string | null
+          path_names_csv: string | null
+          replenishment_frequency: string | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          status: string | null
+          store_flow_order: number | null
+          suppress_health_scoring: boolean | null
+          suppress_in_collection: boolean | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+          variety_label: string | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          backed_up_at?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          backed_up_at?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Relationships: []
+      }
+      canned_pasta_backup_20260813: {
+        Row: {
+          old_reclassified_from_node_id: number | null
+          old_taxonomy_node_id: number | null
+          product_id: number
+          product_name_display: string | null
+        }
+        Insert: {
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id: number
+          product_name_display?: string | null
+        }
+        Update: {
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number
+          product_name_display?: string | null
+        }
+        Relationships: []
+      }
+      canned_pasta_plan_20260813: {
+        Row: {
+          from_node: number | null
+          nm: string | null
+          product_id: number
+          target_node_id: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          nm?: string | null
+          product_id: number
+          target_node_id?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number
+          target_node_id?: number | null
+        }
+        Relationships: []
       }
       capabilities: {
         Row: {
@@ -4365,13 +5200,6 @@ export type Database = {
             foreignKeyName: "cart_generation_items_recommended_product_id_fkey"
             columns: ["recommended_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "cart_generation_items_recommended_product_id_fkey"
-            columns: ["recommended_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -4435,34 +5263,27 @@ export type Database = {
             foreignKeyName: "cart_generation_items_recommended_product_id_fkey"
             columns: ["recommended_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "cart_generation_items_recommended_product_id_fkey"
+            columns: ["recommended_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "cart_generation_items_recommended_product_id_fkey"
+            columns: ["recommended_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "cart_generation_items_taxonomy_l1_node_id_fkey"
             columns: ["taxonomy_l1_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "cart_generation_items_taxonomy_l1_node_id_fkey"
-            columns: ["taxonomy_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "cart_generation_items_taxonomy_l1_node_id_fkey"
-            columns: ["taxonomy_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "cart_generation_items_taxonomy_l1_node_id_fkey"
-            columns: ["taxonomy_l1_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -4488,25 +5309,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "cart_generation_items_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
+            foreignKeyName: "cart_generation_items_taxonomy_l1_node_id_fkey"
+            columns: ["taxonomy_l1_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "cart_generation_items_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "cart_generation_items_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "cart_generation_items_taxonomy_l2_node_id_fkey"
@@ -4537,25 +5344,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "cart_generation_items_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
+            foreignKeyName: "cart_generation_items_taxonomy_l2_node_id_fkey"
+            columns: ["taxonomy_l2_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "cart_generation_items_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "cart_generation_items_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "cart_generation_items_taxonomy_l3_node_id_fkey"
@@ -4583,6 +5376,13 @@ export type Database = {
             columns: ["taxonomy_l3_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "cart_generation_items_taxonomy_l3_node_id_fkey"
+            columns: ["taxonomy_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -4610,13 +5410,6 @@ export type Database = {
             foreignKeyName: "cart_generation_items_user_swapped_to_product_id_fkey"
             columns: ["user_swapped_to_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "cart_generation_items_user_swapped_to_product_id_fkey"
-            columns: ["user_swapped_to_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -4680,7 +5473,21 @@ export type Database = {
             foreignKeyName: "cart_generation_items_user_swapped_to_product_id_fkey"
             columns: ["user_swapped_to_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "cart_generation_items_user_swapped_to_product_id_fkey"
+            columns: ["user_swapped_to_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "cart_generation_items_user_swapped_to_product_id_fkey"
+            columns: ["user_swapped_to_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -4906,13 +5713,6 @@ export type Database = {
             foreignKeyName: "category_anchors_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "category_anchors_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -4976,29 +5776,22 @@ export type Database = {
             foreignKeyName: "category_anchors_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "category_anchors_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "category_anchors_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
+            foreignKeyName: "category_anchors_product_id_fkey"
+            columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "category_anchors_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "category_anchors_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "category_anchors_taxonomy_node_id_fkey"
@@ -5026,6 +5819,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "category_anchors_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -5121,27 +5921,6 @@ export type Database = {
             foreignKeyName: "category_difficulty_overrides_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "category_difficulty_overrides_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "category_difficulty_overrides_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "category_difficulty_overrides_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: true
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -5164,6 +5943,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: true
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "category_difficulty_overrides_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: true
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -5240,6 +6026,561 @@ export type Database = {
         }
         Relationships: []
       }
+      ch_audit_20260813: {
+        Row: {
+          cls: string | null
+          flag_reason: string | null
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+          to_node: number | null
+        }
+        Insert: {
+          cls?: string | null
+          flag_reason?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Update: {
+          cls?: string | null
+          flag_reason?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      ch_audit2_20260813: {
+        Row: {
+          cls: string | null
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+        }
+        Insert: {
+          cls?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Update: {
+          cls?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      ch_plan_20260813: {
+        Row: {
+          chunk: number | null
+          evict: string | null
+          flag_reason: string | null
+          fmt: string | null
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+          to_node: number | null
+          variety: string | null
+        }
+        Insert: {
+          chunk?: number | null
+          evict?: string | null
+          flag_reason?: string | null
+          fmt?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+          variety?: string | null
+        }
+        Update: {
+          chunk?: number | null
+          evict?: string | null
+          flag_reason?: string | null
+          fmt?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+          variety?: string | null
+        }
+        Relationships: []
+      }
+      ch_scope_20260813: {
+        Row: {
+          fmt: string | null
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+          variety: string | null
+        }
+        Insert: {
+          fmt?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          variety?: string | null
+        }
+        Update: {
+          fmt?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          variety?: string | null
+        }
+        Relationships: []
+      }
+      chipfix_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_flag: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_flag?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_flag?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      chipfix_plan_20260813: {
+        Row: {
+          flag: string | null
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          flag?: string | null
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          flag?: string | null
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      chips_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      chips_halfnode_20260816_node_backup: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          basket_section: string | null
+          card_type: string | null
+          compare_group_node_id: number | null
+          created_at: string | null
+          domain_code: string | null
+          hero_image_url: string | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_brand_agnostic: boolean | null
+          is_compare_enabled: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_description: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          path_ids_csv: string | null
+          path_names_csv: string | null
+          replenishment_frequency: string | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          status: string | null
+          store_flow_order: number | null
+          suppress_health_scoring: boolean | null
+          suppress_in_collection: boolean | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+          variety_label: string | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Relationships: []
+      }
+      chips_halfnode_20260816_product_backup: {
+        Row: {
+          product_id: number | null
+          reclassified_from_node_id: number | null
+          snapshot_at: string | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          product_id?: number | null
+          reclassified_from_node_id?: number | null
+          snapshot_at?: string | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          product_id?: number | null
+          reclassified_from_node_id?: number | null
+          snapshot_at?: string | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: []
+      }
+      chips_plan_20260813: {
+        Row: {
+          from_node: number | null
+          is_chip: boolean | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          is_chip?: boolean | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          is_chip?: boolean | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      chips_wavysv_20260816_backup: {
+        Row: {
+          product_id: number | null
+          reclassified_from_node_id: number | null
+          snapshot_at: string | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          product_id?: number | null
+          reclassified_from_node_id?: number | null
+          snapshot_at?: string | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          product_id?: number | null
+          reclassified_from_node_id?: number | null
+          snapshot_at?: string | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: []
+      }
+      chips_wavysv_20260816_node_backup: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          basket_section: string | null
+          card_type: string | null
+          compare_group_node_id: number | null
+          created_at: string | null
+          domain_code: string | null
+          hero_image_url: string | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_brand_agnostic: boolean | null
+          is_compare_enabled: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_description: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          path_ids_csv: string | null
+          path_names_csv: string | null
+          replenishment_frequency: string | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          status: string | null
+          store_flow_order: number | null
+          suppress_health_scoring: boolean | null
+          suppress_in_collection: boolean | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+          variety_label: string | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Relationships: []
+      }
+      chipsweep_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      chipsweep_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      chiptwin_20260813: {
+        Row: {
+          cluster: string | null
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+          to_node: number | null
+        }
+        Insert: {
+          cluster?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Update: {
+          cluster?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      chiptwin_read_20260813: {
+        Row: {
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
       compare_group_edges: {
         Row: {
           compare_group_edge_id: number
@@ -5305,9 +6646,8 @@ export type Database = {
           compare_group_id: number
           compare_group_membership_id: number
           created_at: string
-          effective_from: string | null
+          effective_from: string
           effective_to: string | null
-          is_default_for_node: boolean
           priority: number | null
           taxonomy_node_id: number
           updated_at: string
@@ -5316,9 +6656,8 @@ export type Database = {
           compare_group_id: number
           compare_group_membership_id?: never
           created_at?: string
-          effective_from?: string | null
+          effective_from?: string
           effective_to?: string | null
-          is_default_for_node?: boolean
           priority?: number | null
           taxonomy_node_id: number
           updated_at?: string
@@ -5327,9 +6666,8 @@ export type Database = {
           compare_group_id?: number
           compare_group_membership_id?: never
           created_at?: string
-          effective_from?: string | null
+          effective_from?: string
           effective_to?: string | null
-          is_default_for_node?: boolean
           priority?: number | null
           taxonomy_node_id?: number
           updated_at?: string
@@ -5341,27 +6679,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "compare_groups"
             referencedColumns: ["compare_group_id"]
-          },
-          {
-            foreignKeyName: "compare_group_membership_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "compare_group_membership_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "compare_group_membership_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
           },
           {
             foreignKeyName: "compare_group_membership_taxonomy_node_id_fkey"
@@ -5391,6 +6708,233 @@ export type Database = {
             referencedRelation: "taxonomy_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
+          {
+            foreignKeyName: "compare_group_membership_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+        ]
+      }
+      compare_group_reasons: {
+        Row: {
+          compare_group_id: number
+          created_at: string
+          is_active: boolean
+          question_prompt_id: number | null
+          reason_id: number
+          reason_text: string
+          reason_type: string
+          sort_order: number | null
+        }
+        Insert: {
+          compare_group_id: number
+          created_at?: string
+          is_active?: boolean
+          question_prompt_id?: number | null
+          reason_id?: never
+          reason_text: string
+          reason_type: string
+          sort_order?: number | null
+        }
+        Update: {
+          compare_group_id?: number
+          created_at?: string
+          is_active?: boolean
+          question_prompt_id?: number | null
+          reason_id?: never
+          reason_text?: string
+          reason_type?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compare_group_reasons_compare_group_id_fkey"
+            columns: ["compare_group_id"]
+            isOneToOne: false
+            referencedRelation: "compare_groups"
+            referencedColumns: ["compare_group_id"]
+          },
+          {
+            foreignKeyName: "compare_group_reasons_question_prompt_id_fkey"
+            columns: ["question_prompt_id"]
+            isOneToOne: false
+            referencedRelation: "question_prompts"
+            referencedColumns: ["question_prompt_id"]
+          },
+        ]
+      }
+      compare_group_revisions: {
+        Row: {
+          actor_auth_uid: string | null
+          actor_db_role: string
+          actor_kind: string
+          actor_portal_user_id: string | null
+          actor_role_snapshot: string | null
+          actor_user_id: number | null
+          change_type: string
+          changed_at: string
+          compare_group_id: number
+          field_name: string | null
+          new_value: Json | null
+          note: string | null
+          old_value: Json | null
+          revision_id: number
+          txid: number
+          version_after: number | null
+        }
+        Insert: {
+          actor_auth_uid?: string | null
+          actor_db_role?: string
+          actor_kind?: string
+          actor_portal_user_id?: string | null
+          actor_role_snapshot?: string | null
+          actor_user_id?: number | null
+          change_type: string
+          changed_at?: string
+          compare_group_id: number
+          field_name?: string | null
+          new_value?: Json | null
+          note?: string | null
+          old_value?: Json | null
+          revision_id?: never
+          txid?: number
+          version_after?: number | null
+        }
+        Update: {
+          actor_auth_uid?: string | null
+          actor_db_role?: string
+          actor_kind?: string
+          actor_portal_user_id?: string | null
+          actor_role_snapshot?: string | null
+          actor_user_id?: number | null
+          change_type?: string
+          changed_at?: string
+          compare_group_id?: number
+          field_name?: string | null
+          new_value?: Json | null
+          note?: string | null
+          old_value?: Json | null
+          revision_id?: never
+          txid?: number
+          version_after?: number | null
+        }
+        Relationships: []
+      }
+      compare_group_successors: {
+        Row: {
+          effective_at: string
+          old_group_id: number
+          successor_group_id: number
+          successor_row_id: number
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          effective_at?: string
+          old_group_id: number
+          successor_group_id: number
+          successor_row_id?: never
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          effective_at?: string
+          old_group_id?: number
+          successor_group_id?: number
+          successor_row_id?: never
+          taxonomy_node_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compare_group_successors_old_group_id_fkey"
+            columns: ["old_group_id"]
+            isOneToOne: false
+            referencedRelation: "compare_groups"
+            referencedColumns: ["compare_group_id"]
+          },
+          {
+            foreignKeyName: "compare_group_successors_successor_group_id_fkey"
+            columns: ["successor_group_id"]
+            isOneToOne: false
+            referencedRelation: "compare_groups"
+            referencedColumns: ["compare_group_id"]
+          },
+          {
+            foreignKeyName: "compare_group_successors_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "compare_group_successors_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "compare_group_successors_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "compare_group_successors_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "compare_group_successors_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+        ]
+      }
+      compare_group_time_priors: {
+        Row: {
+          compare_group_id: number
+          created_at: string
+          day_of_week: number
+          hour_of_day: number
+          id: number
+          source: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          compare_group_id: number
+          created_at?: string
+          day_of_week: number
+          hour_of_day: number
+          id?: never
+          source?: string
+          updated_at?: string
+          weight: number
+        }
+        Update: {
+          compare_group_id?: number
+          created_at?: string
+          day_of_week?: number
+          hour_of_day?: number
+          id?: never
+          source?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compare_group_time_priors_compare_group_id_fkey"
+            columns: ["compare_group_id"]
+            isOneToOne: false
+            referencedRelation: "compare_groups"
+            referencedColumns: ["compare_group_id"]
+          },
         ]
       }
       compare_groups: {
@@ -5405,10 +6949,13 @@ export type Database = {
           created_at: string
           group_strategy: string
           is_public: boolean
+          layer: string
           min_items_target_n: number | null
+          recency_halflife_days: number
           status: string
           updated_at: string
           version: number
+          zone_id: number | null
         }
         Insert: {
           battle_level?: number | null
@@ -5421,10 +6968,13 @@ export type Database = {
           created_at?: string
           group_strategy?: string
           is_public?: boolean
+          layer?: string
           min_items_target_n?: number | null
+          recency_halflife_days?: number
           status?: string
           updated_at?: string
           version?: number
+          zone_id?: number | null
         }
         Update: {
           battle_level?: number | null
@@ -5437,12 +6987,23 @@ export type Database = {
           created_at?: string
           group_strategy?: string
           is_public?: boolean
+          layer?: string
           min_items_target_n?: number | null
+          recency_halflife_days?: number
           status?: string
           updated_at?: string
           version?: number
+          zone_id?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "compare_groups_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "compare_groups"
+            referencedColumns: ["compare_group_id"]
+          },
+        ]
       }
       compare_set_policies: {
         Row: {
@@ -5536,8 +7097,24 @@ export type Database = {
           },
         ]
       }
+      compound_fix_20260813: {
+        Row: {
+          nm: string | null
+          product_id: number | null
+        }
+        Insert: {
+          nm?: string | null
+          product_id?: number | null
+        }
+        Update: {
+          nm?: string | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
       concept_battle_outcomes: {
         Row: {
+          battle_question_id: string | null
           combatant_ref_a: number
           combatant_ref_b: number
           concept_session_id: string
@@ -5556,6 +7133,7 @@ export type Database = {
           winner_ref: number | null
         }
         Insert: {
+          battle_question_id?: string | null
           combatant_ref_a: number
           combatant_ref_b: number
           concept_session_id: string
@@ -5574,6 +7152,7 @@ export type Database = {
           winner_ref?: number | null
         }
         Update: {
+          battle_question_id?: string | null
           combatant_ref_a?: number
           combatant_ref_b?: number
           concept_session_id?: string
@@ -5592,6 +7171,13 @@ export type Database = {
           winner_ref?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "concept_battle_outcomes_battle_question_id_fkey"
+            columns: ["battle_question_id"]
+            isOneToOne: false
+            referencedRelation: "protocol_questions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "concept_battle_outcomes_concept_session_id_fkey"
             columns: ["concept_session_id"]
@@ -5613,10 +7199,32 @@ export type Database = {
             referencedRelation: "v_mission_claims_base"
             referencedColumns: ["claim_id"]
           },
+          {
+            foreignKeyName: "concept_battle_outcomes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "concept_battle_outcomes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "concept_battle_outcomes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       concept_field_pairings: {
         Row: {
+          battle_question_id: string | null
           combatant_ref_a: number
           combatant_ref_b: number
           concept_session_id: string
@@ -5629,6 +7237,7 @@ export type Database = {
           user_id: number
         }
         Insert: {
+          battle_question_id?: string | null
           combatant_ref_a: number
           combatant_ref_b: number
           concept_session_id: string
@@ -5641,6 +7250,7 @@ export type Database = {
           user_id: number
         }
         Update: {
+          battle_question_id?: string | null
           combatant_ref_a?: number
           combatant_ref_b?: number
           concept_session_id?: string
@@ -5653,6 +7263,13 @@ export type Database = {
           user_id?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "concept_field_pairings_battle_question_id_fkey"
+            columns: ["battle_question_id"]
+            isOneToOne: false
+            referencedRelation: "protocol_questions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "concept_field_pairings_concept_session_id_fkey"
             columns: ["concept_session_id"]
@@ -5673,6 +7290,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_mission_claims_base"
             referencedColumns: ["claim_id"]
+          },
+          {
+            foreignKeyName: "concept_field_pairings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "concept_field_pairings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "concept_field_pairings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -5787,6 +7425,7 @@ export type Database = {
           created_at: string
           current_round_number: number
           deleted_at: string | null
+          diagnostic_focal_ref: number | null
           ended_at: string | null
           id: string
           max_rounds: number | null
@@ -5801,6 +7440,7 @@ export type Database = {
           created_at?: string
           current_round_number?: number
           deleted_at?: string | null
+          diagnostic_focal_ref?: number | null
           ended_at?: string | null
           id?: string
           max_rounds?: number | null
@@ -5815,6 +7455,7 @@ export type Database = {
           created_at?: string
           current_round_number?: number
           deleted_at?: string | null
+          diagnostic_focal_ref?: number | null
           ended_at?: string | null
           id?: string
           max_rounds?: number | null
@@ -5840,7 +7481,94 @@ export type Database = {
             referencedRelation: "v_mission_claims_base"
             referencedColumns: ["claim_id"]
           },
+          {
+            foreignKeyName: "concept_scoring_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "concept_scoring_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "concept_scoring_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
         ]
+      }
+      conflict_sample_20260813: {
+        Row: {
+          band: string | null
+          majority_node: number | null
+          majority_pct: number | null
+          n_products: number | null
+          nm: string | null
+        }
+        Insert: {
+          band?: string | null
+          majority_node?: number | null
+          majority_pct?: number | null
+          n_products?: number | null
+          nm?: string | null
+        }
+        Update: {
+          band?: string | null
+          majority_node?: number | null
+          majority_pct?: number | null
+          n_products?: number | null
+          nm?: string | null
+        }
+        Relationships: []
+      }
+      conflict_sample2_20260813: {
+        Row: {
+          majority_node: number | null
+          majority_pct: number | null
+          n_products: number | null
+          nm: string | null
+        }
+        Insert: {
+          majority_node?: number | null
+          majority_pct?: number | null
+          n_products?: number | null
+          nm?: string | null
+        }
+        Update: {
+          majority_node?: number | null
+          majority_pct?: number | null
+          n_products?: number | null
+          nm?: string | null
+        }
+        Relationships: []
+      }
+      conflict_sample3_20260813: {
+        Row: {
+          majority_node: number | null
+          majority_pct: number | null
+          n_products: number | null
+          nm: string | null
+        }
+        Insert: {
+          majority_node?: number | null
+          majority_pct?: number | null
+          n_products?: number | null
+          nm?: string | null
+        }
+        Update: {
+          majority_node?: number | null
+          majority_pct?: number | null
+          n_products?: number | null
+          nm?: string | null
+        }
+        Relationships: []
       }
       conglomerates: {
         Row: {
@@ -5909,6 +7637,1122 @@ export type Database = {
             referencedColumns: ["conglomerate_id"]
           },
         ]
+      }
+      cookies_cleanup_20260813_backup: {
+        Row: {
+          brand_id: number | null
+          is_suppressed: boolean | null
+          old_reclassified_from_node_id: number | null
+          old_taxonomy_node_id: number | null
+          product_id: number
+          product_name_display: string | null
+          status: string | null
+        }
+        Insert: {
+          brand_id?: number | null
+          is_suppressed?: boolean | null
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id: number
+          product_name_display?: string | null
+          status?: string | null
+        }
+        Update: {
+          brand_id?: number | null
+          is_suppressed?: boolean | null
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number
+          product_name_display?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      cookies_cleanup_20260813_plan: {
+        Row: {
+          product_id: number
+          target_node_id: number | null
+        }
+        Insert: {
+          product_id: number
+          target_node_id?: number | null
+        }
+        Update: {
+          product_id?: number
+          target_node_id?: number | null
+        }
+        Relationships: []
+      }
+      cookies_merge_20260816_anchor_backup: {
+        Row: {
+          anchor_tier: number | null
+          created_at: string | null
+          display_label: string | null
+          flag_for_review: boolean | null
+          flag_reason: string | null
+          id: number | null
+          product_id: number | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          anchor_tier?: number | null
+          created_at?: string | null
+          display_label?: string | null
+          flag_for_review?: boolean | null
+          flag_reason?: string | null
+          id?: number | null
+          product_id?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          anchor_tier?: number | null
+          created_at?: string | null
+          display_label?: string | null
+          flag_for_review?: boolean | null
+          flag_reason?: string | null
+          id?: number | null
+          product_id?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: []
+      }
+      cookies_merge_20260816_cgm_backup: {
+        Row: {
+          compare_group_id: number | null
+          compare_group_membership_id: number | null
+          created_at: string | null
+          effective_from: string | null
+          effective_to: string | null
+          priority: number | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          compare_group_id?: number | null
+          compare_group_membership_id?: number | null
+          created_at?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          priority?: number | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          compare_group_id?: number | null
+          compare_group_membership_id?: number | null
+          created_at?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          priority?: number | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      cookies_merge_20260816_facet_backup: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          facet_rank: number | null
+          facet_source: string | null
+          facet_type: string | null
+          facet_type_id: number | null
+          facet_value: string | null
+          facet_value_id: number | null
+          product_id: number | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          facet_rank?: number | null
+          facet_source?: string | null
+          facet_type?: string | null
+          facet_type_id?: number | null
+          facet_value?: string | null
+          facet_value_id?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          facet_rank?: number | null
+          facet_source?: string | null
+          facet_type?: string | null
+          facet_type_id?: number | null
+          facet_value?: string | null
+          facet_value_id?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      cookies_merge_20260816_m1_anchor_state: {
+        Row: {
+          anchor_tier: number | null
+          created_at: string | null
+          display_label: string | null
+          flag_for_review: boolean | null
+          flag_reason: string | null
+          id: number | null
+          product_id: number | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          anchor_tier?: number | null
+          created_at?: string | null
+          display_label?: string | null
+          flag_for_review?: boolean | null
+          flag_reason?: string | null
+          id?: number | null
+          product_id?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          anchor_tier?: number | null
+          created_at?: string | null
+          display_label?: string | null
+          flag_for_review?: boolean | null
+          flag_reason?: string | null
+          id?: number | null
+          product_id?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: []
+      }
+      cookies_merge_20260816_m1_cgm_state: {
+        Row: {
+          compare_group_id: number | null
+          compare_group_membership_id: number | null
+          created_at: string | null
+          effective_from: string | null
+          effective_to: string | null
+          priority: number | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          compare_group_id?: number | null
+          compare_group_membership_id?: number | null
+          created_at?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          priority?: number | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          compare_group_id?: number | null
+          compare_group_membership_id?: number | null
+          created_at?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          priority?: number | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      cookies_merge_20260816_m1_node_state: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          basket_section: string | null
+          card_type: string | null
+          compare_group_node_id: number | null
+          created_at: string | null
+          domain_code: string | null
+          hero_image_url: string | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_brand_agnostic: boolean | null
+          is_compare_enabled: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_description: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          path_ids_csv: string | null
+          path_names_csv: string | null
+          replenishment_frequency: string | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          status: string | null
+          store_flow_order: number | null
+          suppress_health_scoring: boolean | null
+          suppress_in_collection: boolean | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+          variety_label: string | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Relationships: []
+      }
+      cookies_merge_20260816_m1_product_node_map: {
+        Row: {
+          product_id: number | null
+          reclassified_from_node_id: number | null
+          snapshot_at: string | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          product_id?: number | null
+          reclassified_from_node_id?: number | null
+          snapshot_at?: string | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          product_id?: number | null
+          reclassified_from_node_id?: number | null
+          snapshot_at?: string | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: []
+      }
+      cookies_merge_20260816_m1_score_state: {
+        Row: {
+          benchmark_p10_calories: number | null
+          benchmark_p10_carbs: number | null
+          benchmark_p10_fat: number | null
+          benchmark_p10_fiber: number | null
+          benchmark_p10_net_carbs: number | null
+          benchmark_p10_protein: number | null
+          benchmark_p10_sat_fat: number | null
+          benchmark_p10_sodium: number | null
+          benchmark_p90_calories: number | null
+          benchmark_p90_carbs: number | null
+          benchmark_p90_fat: number | null
+          benchmark_p90_fiber: number | null
+          benchmark_p90_net_carbs: number | null
+          benchmark_p90_protein: number | null
+          benchmark_p90_sat_fat: number | null
+          benchmark_p90_sodium: number | null
+          calories_percentile: number | null
+          calories_score: number | null
+          carb_percentile: number | null
+          carb_score: number | null
+          category_mean_health: number | null
+          category_mean_taste: number | null
+          compare_group_id: number | null
+          compare_group_n: number | null
+          compare_scope_type: string | null
+          computed_at: string | null
+          confidence_weight: number | null
+          created_at: string | null
+          fat_percentile: number | null
+          fat_score: number | null
+          fiber_percentile: number | null
+          fiber_score: number | null
+          health_display_score: number | null
+          health_low_confidence: boolean | null
+          health_percentile: number | null
+          health_score_mean: number | null
+          health_score_raw: number | null
+          health_signals_available: number | null
+          is_current: boolean | null
+          lens_type: string | null
+          n_health_macros_scored: number | null
+          net_carbs_score: number | null
+          overall_score: number | null
+          pct_calories: number | null
+          pct_fiber: number | null
+          pct_net_carbs: number | null
+          pct_protein: number | null
+          pct_sat_fat: number | null
+          pct_total_carbs: number | null
+          pct_total_fat: number | null
+          price_score: number | null
+          product_id: number | null
+          product_score_aggregate_id: number | null
+          proofe_score_mean: number | null
+          protein_percentile: number | null
+          protein_score: number | null
+          ruleset_version: string | null
+          saturated_fat_score: number | null
+          score_confidence: string | null
+          sodium_percentile: number | null
+          sodium_score: number | null
+          sugar_percentile: number | null
+          sugar_score: number | null
+          taste_display_score: number | null
+          taste_elo_battles: number | null
+          taste_elo_score: number | null
+          taste_elo_snapshot_30d_ago: number | null
+          taste_elo_snapshot_7d_ago: number | null
+          taste_elo_stderr: number | null
+          taste_elo_updated_at: string | null
+          taste_elo_velocity_30d: number | null
+          taste_elo_velocity_7d: number | null
+          taste_elo_velocity_updated_at: string | null
+          taste_percentile: number | null
+          taste_score_mean: number | null
+          taste_score_n_ratings: number | null
+          taxonomy_node_id: number | null
+          trending_rank: number | null
+          updated_at: string | null
+          value_score: number | null
+        }
+        Insert: {
+          benchmark_p10_calories?: number | null
+          benchmark_p10_carbs?: number | null
+          benchmark_p10_fat?: number | null
+          benchmark_p10_fiber?: number | null
+          benchmark_p10_net_carbs?: number | null
+          benchmark_p10_protein?: number | null
+          benchmark_p10_sat_fat?: number | null
+          benchmark_p10_sodium?: number | null
+          benchmark_p90_calories?: number | null
+          benchmark_p90_carbs?: number | null
+          benchmark_p90_fat?: number | null
+          benchmark_p90_fiber?: number | null
+          benchmark_p90_net_carbs?: number | null
+          benchmark_p90_protein?: number | null
+          benchmark_p90_sat_fat?: number | null
+          benchmark_p90_sodium?: number | null
+          calories_percentile?: number | null
+          calories_score?: number | null
+          carb_percentile?: number | null
+          carb_score?: number | null
+          category_mean_health?: number | null
+          category_mean_taste?: number | null
+          compare_group_id?: number | null
+          compare_group_n?: number | null
+          compare_scope_type?: string | null
+          computed_at?: string | null
+          confidence_weight?: number | null
+          created_at?: string | null
+          fat_percentile?: number | null
+          fat_score?: number | null
+          fiber_percentile?: number | null
+          fiber_score?: number | null
+          health_display_score?: number | null
+          health_low_confidence?: boolean | null
+          health_percentile?: number | null
+          health_score_mean?: number | null
+          health_score_raw?: number | null
+          health_signals_available?: number | null
+          is_current?: boolean | null
+          lens_type?: string | null
+          n_health_macros_scored?: number | null
+          net_carbs_score?: number | null
+          overall_score?: number | null
+          pct_calories?: number | null
+          pct_fiber?: number | null
+          pct_net_carbs?: number | null
+          pct_protein?: number | null
+          pct_sat_fat?: number | null
+          pct_total_carbs?: number | null
+          pct_total_fat?: number | null
+          price_score?: number | null
+          product_id?: number | null
+          product_score_aggregate_id?: number | null
+          proofe_score_mean?: number | null
+          protein_percentile?: number | null
+          protein_score?: number | null
+          ruleset_version?: string | null
+          saturated_fat_score?: number | null
+          score_confidence?: string | null
+          sodium_percentile?: number | null
+          sodium_score?: number | null
+          sugar_percentile?: number | null
+          sugar_score?: number | null
+          taste_display_score?: number | null
+          taste_elo_battles?: number | null
+          taste_elo_score?: number | null
+          taste_elo_snapshot_30d_ago?: number | null
+          taste_elo_snapshot_7d_ago?: number | null
+          taste_elo_stderr?: number | null
+          taste_elo_updated_at?: string | null
+          taste_elo_velocity_30d?: number | null
+          taste_elo_velocity_7d?: number | null
+          taste_elo_velocity_updated_at?: string | null
+          taste_percentile?: number | null
+          taste_score_mean?: number | null
+          taste_score_n_ratings?: number | null
+          taxonomy_node_id?: number | null
+          trending_rank?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+        }
+        Update: {
+          benchmark_p10_calories?: number | null
+          benchmark_p10_carbs?: number | null
+          benchmark_p10_fat?: number | null
+          benchmark_p10_fiber?: number | null
+          benchmark_p10_net_carbs?: number | null
+          benchmark_p10_protein?: number | null
+          benchmark_p10_sat_fat?: number | null
+          benchmark_p10_sodium?: number | null
+          benchmark_p90_calories?: number | null
+          benchmark_p90_carbs?: number | null
+          benchmark_p90_fat?: number | null
+          benchmark_p90_fiber?: number | null
+          benchmark_p90_net_carbs?: number | null
+          benchmark_p90_protein?: number | null
+          benchmark_p90_sat_fat?: number | null
+          benchmark_p90_sodium?: number | null
+          calories_percentile?: number | null
+          calories_score?: number | null
+          carb_percentile?: number | null
+          carb_score?: number | null
+          category_mean_health?: number | null
+          category_mean_taste?: number | null
+          compare_group_id?: number | null
+          compare_group_n?: number | null
+          compare_scope_type?: string | null
+          computed_at?: string | null
+          confidence_weight?: number | null
+          created_at?: string | null
+          fat_percentile?: number | null
+          fat_score?: number | null
+          fiber_percentile?: number | null
+          fiber_score?: number | null
+          health_display_score?: number | null
+          health_low_confidence?: boolean | null
+          health_percentile?: number | null
+          health_score_mean?: number | null
+          health_score_raw?: number | null
+          health_signals_available?: number | null
+          is_current?: boolean | null
+          lens_type?: string | null
+          n_health_macros_scored?: number | null
+          net_carbs_score?: number | null
+          overall_score?: number | null
+          pct_calories?: number | null
+          pct_fiber?: number | null
+          pct_net_carbs?: number | null
+          pct_protein?: number | null
+          pct_sat_fat?: number | null
+          pct_total_carbs?: number | null
+          pct_total_fat?: number | null
+          price_score?: number | null
+          product_id?: number | null
+          product_score_aggregate_id?: number | null
+          proofe_score_mean?: number | null
+          protein_percentile?: number | null
+          protein_score?: number | null
+          ruleset_version?: string | null
+          saturated_fat_score?: number | null
+          score_confidence?: string | null
+          sodium_percentile?: number | null
+          sodium_score?: number | null
+          sugar_percentile?: number | null
+          sugar_score?: number | null
+          taste_display_score?: number | null
+          taste_elo_battles?: number | null
+          taste_elo_score?: number | null
+          taste_elo_snapshot_30d_ago?: number | null
+          taste_elo_snapshot_7d_ago?: number | null
+          taste_elo_stderr?: number | null
+          taste_elo_updated_at?: string | null
+          taste_elo_velocity_30d?: number | null
+          taste_elo_velocity_7d?: number | null
+          taste_elo_velocity_updated_at?: string | null
+          taste_percentile?: number | null
+          taste_score_mean?: number | null
+          taste_score_n_ratings?: number | null
+          taxonomy_node_id?: number | null
+          trending_rank?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+        }
+        Relationships: []
+      }
+      cookies_merge_20260816_m1_spot_state: {
+        Row: {
+          context_hint: string | null
+          created_at: string | null
+          fit_weight: number | null
+          is_active: boolean | null
+          mapping_id: number | null
+          mapping_source: string | null
+          pool_priority: number | null
+          spot_role_id: number | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          context_hint?: string | null
+          created_at?: string | null
+          fit_weight?: number | null
+          is_active?: boolean | null
+          mapping_id?: number | null
+          mapping_source?: string | null
+          pool_priority?: number | null
+          spot_role_id?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          context_hint?: string | null
+          created_at?: string | null
+          fit_weight?: number | null
+          is_active?: boolean | null
+          mapping_id?: number | null
+          mapping_source?: string | null
+          pool_priority?: number | null
+          spot_role_id?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: []
+      }
+      cookies_merge_20260816_node_backup: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          basket_section: string | null
+          card_type: string | null
+          compare_group_node_id: number | null
+          created_at: string | null
+          domain_code: string | null
+          hero_image_url: string | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_brand_agnostic: boolean | null
+          is_compare_enabled: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_description: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          path_ids_csv: string | null
+          path_names_csv: string | null
+          replenishment_frequency: string | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          status: string | null
+          store_flow_order: number | null
+          suppress_health_scoring: boolean | null
+          suppress_in_collection: boolean | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+          variety_label: string | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Relationships: []
+      }
+      cookies_merge_20260816_product_backup: {
+        Row: {
+          brand_id: number | null
+          product_id: number | null
+          product_name_clean: string | null
+          product_name_short: string | null
+          reclassified_from_node_id: number | null
+          snapshot_at: string | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          brand_id?: number | null
+          product_id?: number | null
+          product_name_clean?: string | null
+          product_name_short?: string | null
+          reclassified_from_node_id?: number | null
+          snapshot_at?: string | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          brand_id?: number | null
+          product_id?: number | null
+          product_name_clean?: string | null
+          product_name_short?: string | null
+          reclassified_from_node_id?: number | null
+          snapshot_at?: string | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: []
+      }
+      cookies_merge_20260816_score_backup: {
+        Row: {
+          benchmark_p10_calories: number | null
+          benchmark_p10_carbs: number | null
+          benchmark_p10_fat: number | null
+          benchmark_p10_fiber: number | null
+          benchmark_p10_net_carbs: number | null
+          benchmark_p10_protein: number | null
+          benchmark_p10_sat_fat: number | null
+          benchmark_p10_sodium: number | null
+          benchmark_p90_calories: number | null
+          benchmark_p90_carbs: number | null
+          benchmark_p90_fat: number | null
+          benchmark_p90_fiber: number | null
+          benchmark_p90_net_carbs: number | null
+          benchmark_p90_protein: number | null
+          benchmark_p90_sat_fat: number | null
+          benchmark_p90_sodium: number | null
+          calories_percentile: number | null
+          calories_score: number | null
+          carb_percentile: number | null
+          carb_score: number | null
+          category_mean_health: number | null
+          category_mean_taste: number | null
+          compare_group_id: number | null
+          compare_group_n: number | null
+          compare_scope_type: string | null
+          computed_at: string | null
+          confidence_weight: number | null
+          created_at: string | null
+          fat_percentile: number | null
+          fat_score: number | null
+          fiber_percentile: number | null
+          fiber_score: number | null
+          health_display_score: number | null
+          health_low_confidence: boolean | null
+          health_percentile: number | null
+          health_score_mean: number | null
+          health_score_raw: number | null
+          health_signals_available: number | null
+          is_current: boolean | null
+          lens_type: string | null
+          n_health_macros_scored: number | null
+          net_carbs_score: number | null
+          overall_score: number | null
+          pct_calories: number | null
+          pct_fiber: number | null
+          pct_net_carbs: number | null
+          pct_protein: number | null
+          pct_sat_fat: number | null
+          pct_total_carbs: number | null
+          pct_total_fat: number | null
+          price_score: number | null
+          product_id: number | null
+          product_score_aggregate_id: number | null
+          proofe_score_mean: number | null
+          protein_percentile: number | null
+          protein_score: number | null
+          ruleset_version: string | null
+          saturated_fat_score: number | null
+          score_confidence: string | null
+          sodium_percentile: number | null
+          sodium_score: number | null
+          sugar_percentile: number | null
+          sugar_score: number | null
+          taste_display_score: number | null
+          taste_elo_battles: number | null
+          taste_elo_score: number | null
+          taste_elo_snapshot_30d_ago: number | null
+          taste_elo_snapshot_7d_ago: number | null
+          taste_elo_stderr: number | null
+          taste_elo_updated_at: string | null
+          taste_elo_velocity_30d: number | null
+          taste_elo_velocity_7d: number | null
+          taste_elo_velocity_updated_at: string | null
+          taste_percentile: number | null
+          taste_score_mean: number | null
+          taste_score_n_ratings: number | null
+          taxonomy_node_id: number | null
+          trending_rank: number | null
+          updated_at: string | null
+          value_score: number | null
+        }
+        Insert: {
+          benchmark_p10_calories?: number | null
+          benchmark_p10_carbs?: number | null
+          benchmark_p10_fat?: number | null
+          benchmark_p10_fiber?: number | null
+          benchmark_p10_net_carbs?: number | null
+          benchmark_p10_protein?: number | null
+          benchmark_p10_sat_fat?: number | null
+          benchmark_p10_sodium?: number | null
+          benchmark_p90_calories?: number | null
+          benchmark_p90_carbs?: number | null
+          benchmark_p90_fat?: number | null
+          benchmark_p90_fiber?: number | null
+          benchmark_p90_net_carbs?: number | null
+          benchmark_p90_protein?: number | null
+          benchmark_p90_sat_fat?: number | null
+          benchmark_p90_sodium?: number | null
+          calories_percentile?: number | null
+          calories_score?: number | null
+          carb_percentile?: number | null
+          carb_score?: number | null
+          category_mean_health?: number | null
+          category_mean_taste?: number | null
+          compare_group_id?: number | null
+          compare_group_n?: number | null
+          compare_scope_type?: string | null
+          computed_at?: string | null
+          confidence_weight?: number | null
+          created_at?: string | null
+          fat_percentile?: number | null
+          fat_score?: number | null
+          fiber_percentile?: number | null
+          fiber_score?: number | null
+          health_display_score?: number | null
+          health_low_confidence?: boolean | null
+          health_percentile?: number | null
+          health_score_mean?: number | null
+          health_score_raw?: number | null
+          health_signals_available?: number | null
+          is_current?: boolean | null
+          lens_type?: string | null
+          n_health_macros_scored?: number | null
+          net_carbs_score?: number | null
+          overall_score?: number | null
+          pct_calories?: number | null
+          pct_fiber?: number | null
+          pct_net_carbs?: number | null
+          pct_protein?: number | null
+          pct_sat_fat?: number | null
+          pct_total_carbs?: number | null
+          pct_total_fat?: number | null
+          price_score?: number | null
+          product_id?: number | null
+          product_score_aggregate_id?: number | null
+          proofe_score_mean?: number | null
+          protein_percentile?: number | null
+          protein_score?: number | null
+          ruleset_version?: string | null
+          saturated_fat_score?: number | null
+          score_confidence?: string | null
+          sodium_percentile?: number | null
+          sodium_score?: number | null
+          sugar_percentile?: number | null
+          sugar_score?: number | null
+          taste_display_score?: number | null
+          taste_elo_battles?: number | null
+          taste_elo_score?: number | null
+          taste_elo_snapshot_30d_ago?: number | null
+          taste_elo_snapshot_7d_ago?: number | null
+          taste_elo_stderr?: number | null
+          taste_elo_updated_at?: string | null
+          taste_elo_velocity_30d?: number | null
+          taste_elo_velocity_7d?: number | null
+          taste_elo_velocity_updated_at?: string | null
+          taste_percentile?: number | null
+          taste_score_mean?: number | null
+          taste_score_n_ratings?: number | null
+          taxonomy_node_id?: number | null
+          trending_rank?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+        }
+        Update: {
+          benchmark_p10_calories?: number | null
+          benchmark_p10_carbs?: number | null
+          benchmark_p10_fat?: number | null
+          benchmark_p10_fiber?: number | null
+          benchmark_p10_net_carbs?: number | null
+          benchmark_p10_protein?: number | null
+          benchmark_p10_sat_fat?: number | null
+          benchmark_p10_sodium?: number | null
+          benchmark_p90_calories?: number | null
+          benchmark_p90_carbs?: number | null
+          benchmark_p90_fat?: number | null
+          benchmark_p90_fiber?: number | null
+          benchmark_p90_net_carbs?: number | null
+          benchmark_p90_protein?: number | null
+          benchmark_p90_sat_fat?: number | null
+          benchmark_p90_sodium?: number | null
+          calories_percentile?: number | null
+          calories_score?: number | null
+          carb_percentile?: number | null
+          carb_score?: number | null
+          category_mean_health?: number | null
+          category_mean_taste?: number | null
+          compare_group_id?: number | null
+          compare_group_n?: number | null
+          compare_scope_type?: string | null
+          computed_at?: string | null
+          confidence_weight?: number | null
+          created_at?: string | null
+          fat_percentile?: number | null
+          fat_score?: number | null
+          fiber_percentile?: number | null
+          fiber_score?: number | null
+          health_display_score?: number | null
+          health_low_confidence?: boolean | null
+          health_percentile?: number | null
+          health_score_mean?: number | null
+          health_score_raw?: number | null
+          health_signals_available?: number | null
+          is_current?: boolean | null
+          lens_type?: string | null
+          n_health_macros_scored?: number | null
+          net_carbs_score?: number | null
+          overall_score?: number | null
+          pct_calories?: number | null
+          pct_fiber?: number | null
+          pct_net_carbs?: number | null
+          pct_protein?: number | null
+          pct_sat_fat?: number | null
+          pct_total_carbs?: number | null
+          pct_total_fat?: number | null
+          price_score?: number | null
+          product_id?: number | null
+          product_score_aggregate_id?: number | null
+          proofe_score_mean?: number | null
+          protein_percentile?: number | null
+          protein_score?: number | null
+          ruleset_version?: string | null
+          saturated_fat_score?: number | null
+          score_confidence?: string | null
+          sodium_percentile?: number | null
+          sodium_score?: number | null
+          sugar_percentile?: number | null
+          sugar_score?: number | null
+          taste_display_score?: number | null
+          taste_elo_battles?: number | null
+          taste_elo_score?: number | null
+          taste_elo_snapshot_30d_ago?: number | null
+          taste_elo_snapshot_7d_ago?: number | null
+          taste_elo_stderr?: number | null
+          taste_elo_updated_at?: string | null
+          taste_elo_velocity_30d?: number | null
+          taste_elo_velocity_7d?: number | null
+          taste_elo_velocity_updated_at?: string | null
+          taste_percentile?: number | null
+          taste_score_mean?: number | null
+          taste_score_n_ratings?: number | null
+          taxonomy_node_id?: number | null
+          trending_rank?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+        }
+        Relationships: []
+      }
+      cookies_tier2_backup_20260813: {
+        Row: {
+          classification_flagged: boolean | null
+          classification_flagged_reason: string | null
+          old_reclassified_from_node_id: number | null
+          old_taxonomy_node_id: number | null
+          product_id: number
+          product_name_display: string | null
+        }
+        Insert: {
+          classification_flagged?: boolean | null
+          classification_flagged_reason?: string | null
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id: number
+          product_name_display?: string | null
+        }
+        Update: {
+          classification_flagged?: boolean | null
+          classification_flagged_reason?: string | null
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number
+          product_name_display?: string | null
+        }
+        Relationships: []
+      }
+      cookies_tier2_plan_20260813: {
+        Row: {
+          nm: string | null
+          product_id: number
+          target_node_id: number | null
+        }
+        Insert: {
+          nm?: string | null
+          product_id: number
+          target_node_id?: number | null
+        }
+        Update: {
+          nm?: string | null
+          product_id?: number
+          target_node_id?: number | null
+        }
+        Relationships: []
+      }
+      crab_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      crab_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
       }
       daily_active_users: {
         Row: {
@@ -5986,6 +8830,24 @@ export type Database = {
         }
         Relationships: []
       }
+      dietary_constraints: {
+        Row: {
+          constraint_code: string
+          created_at: string
+          label: string
+        }
+        Insert: {
+          constraint_code: string
+          created_at?: string
+          label: string
+        }
+        Update: {
+          constraint_code?: string
+          created_at?: string
+          label?: string
+        }
+        Relationships: []
+      }
       dietary_flag_definitions: {
         Row: {
           category: string
@@ -6010,6 +8872,33 @@ export type Database = {
           emoji?: string
           flag_code?: string
           label?: string
+        }
+        Relationships: []
+      }
+      dm_scope_20260813: {
+        Row: {
+          cls: string | null
+          flag_reason: string | null
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+          to_node: number | null
+        }
+        Insert: {
+          cls?: string | null
+          flag_reason?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Update: {
+          cls?: string | null
+          flag_reason?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
         }
         Relationships: []
       }
@@ -6220,13 +9109,6 @@ export type Database = {
             foreignKeyName: "external_product_snapshots_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "external_product_snapshots_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -6290,7 +9172,21 @@ export type Database = {
             foreignKeyName: "external_product_snapshots_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "external_product_snapshots_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "external_product_snapshots_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -6429,6 +9325,108 @@ export type Database = {
           },
         ]
       }
+      fishfillet_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      fishfillet_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      flour_move_20260813_backup: {
+        Row: {
+          old_reclassified_from_node_id: number | null
+          old_taxonomy_node_id: number | null
+          product_id: number
+          product_name_display: string | null
+        }
+        Insert: {
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id: number
+          product_name_display?: string | null
+        }
+        Update: {
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number
+          product_name_display?: string | null
+        }
+        Relationships: []
+      }
+      flour_node_backup_20260813: {
+        Row: {
+          classification_flagged: boolean | null
+          old_reclassified_from_node_id: number | null
+          old_taxonomy_node_id: number | null
+          product_id: number
+          product_name_display: string | null
+        }
+        Insert: {
+          classification_flagged?: boolean | null
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id: number
+          product_name_display?: string | null
+        }
+        Update: {
+          classification_flagged?: boolean | null
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number
+          product_name_display?: string | null
+        }
+        Relationships: []
+      }
+      flour_node_plan_20260813: {
+        Row: {
+          nm: string | null
+          product_id: number
+          target_node_id: number | null
+        }
+        Insert: {
+          nm?: string | null
+          product_id: number
+          target_node_id?: number | null
+        }
+        Update: {
+          nm?: string | null
+          product_id?: number
+          target_node_id?: number | null
+        }
+        Relationships: []
+      }
       forced_rank_results: {
         Row: {
           battled_pairs_agree: number
@@ -6529,6 +9527,9 @@ export type Database = {
           product_id: number
           recipient_scope: string
           sender_elo_score: number | null
+          sender_l3_node_id: number | null
+          sender_l3_rank: number | null
+          sender_l3_total: number | null
           sender_node_battle_count: number | null
           sender_node_tried_count: number | null
           specific_user_ids: number[]
@@ -6549,6 +9550,9 @@ export type Database = {
           product_id: number
           recipient_scope?: string
           sender_elo_score?: number | null
+          sender_l3_node_id?: number | null
+          sender_l3_rank?: number | null
+          sender_l3_total?: number | null
           sender_node_battle_count?: number | null
           sender_node_tried_count?: number | null
           specific_user_ids?: number[]
@@ -6569,6 +9573,9 @@ export type Database = {
           product_id?: number
           recipient_scope?: string
           sender_elo_score?: number | null
+          sender_l3_node_id?: number | null
+          sender_l3_rank?: number | null
+          sender_l3_total?: number | null
           sender_node_battle_count?: number | null
           sender_node_tried_count?: number | null
           specific_user_ids?: number[]
@@ -6617,13 +9624,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "friend_product_recommendations_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "friend_product_recommendations_product_id_fkey"
@@ -6692,10 +9692,110 @@ export type Database = {
             foreignKeyName: "friend_product_recommendations_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "friend_product_recommendations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
+          {
+            foreignKeyName: "friend_product_recommendations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "friend_product_recommendations_sender_l3_node_id_fkey"
+            columns: ["sender_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "friend_product_recommendations_sender_l3_node_id_fkey"
+            columns: ["sender_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "friend_product_recommendations_sender_l3_node_id_fkey"
+            columns: ["sender_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "friend_product_recommendations_sender_l3_node_id_fkey"
+            columns: ["sender_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "friend_product_recommendations_sender_l3_node_id_fkey"
+            columns: ["sender_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
         ]
+      }
+      fs_plan_20260813: {
+        Row: {
+          from_node: number | null
+          identity: string | null
+          ing: string | null
+          nm: string | null
+          product_id: number | null
+          sweetener: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          identity?: string | null
+          ing?: string | null
+          nm?: string | null
+          product_id?: number | null
+          sweetener?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          identity?: string | null
+          ing?: string | null
+          nm?: string | null
+          product_id?: number | null
+          sweetener?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      fs_scope_20260813: {
+        Row: {
+          from_node: number | null
+          ing: string | null
+          nm: string | null
+          product_id: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          ing?: string | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          ing?: string | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Relationships: []
       }
       game_definitions: {
         Row: {
@@ -6890,6 +9990,36 @@ export type Database = {
           },
         ]
       }
+      gf_flag_fix_20260816_backup: {
+        Row: {
+          daf_before: boolean | null
+          daf_conf_before: number | null
+          nm: string | null
+          product_id: number | null
+          psa_before: boolean | null
+          psi_before: boolean | null
+          snapshot_at: string | null
+        }
+        Insert: {
+          daf_before?: boolean | null
+          daf_conf_before?: number | null
+          nm?: string | null
+          product_id?: number | null
+          psa_before?: boolean | null
+          psi_before?: boolean | null
+          snapshot_at?: string | null
+        }
+        Update: {
+          daf_before?: boolean | null
+          daf_conf_before?: number | null
+          nm?: string | null
+          product_id?: number | null
+          psa_before?: boolean | null
+          psi_before?: boolean | null
+          snapshot_at?: string | null
+        }
+        Relationships: []
+      }
       ghost_agent_recommendations: {
         Row: {
           algorithm_version: number
@@ -6946,13 +10076,6 @@ export type Database = {
           week_of?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "ghost_agent_recommendations_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
           {
             foreignKeyName: "ghost_agent_recommendations_product_id_fkey"
             columns: ["product_id"]
@@ -7020,7 +10143,21 @@ export type Database = {
             foreignKeyName: "ghost_agent_recommendations_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "ghost_agent_recommendations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "ghost_agent_recommendations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -7214,13 +10351,6 @@ export type Database = {
             foreignKeyName: "grocery_list_slots_recommended_product_id_fkey"
             columns: ["recommended_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "grocery_list_slots_recommended_product_id_fkey"
-            columns: ["recommended_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -7284,34 +10414,27 @@ export type Database = {
             foreignKeyName: "grocery_list_slots_recommended_product_id_fkey"
             columns: ["recommended_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "grocery_list_slots_recommended_product_id_fkey"
+            columns: ["recommended_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "grocery_list_slots_recommended_product_id_fkey"
+            columns: ["recommended_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "grocery_list_slots_taxonomy_l1_node_id_fkey"
             columns: ["taxonomy_l1_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "grocery_list_slots_taxonomy_l1_node_id_fkey"
-            columns: ["taxonomy_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "grocery_list_slots_taxonomy_l1_node_id_fkey"
-            columns: ["taxonomy_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "grocery_list_slots_taxonomy_l1_node_id_fkey"
-            columns: ["taxonomy_l1_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -7337,25 +10460,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "grocery_list_slots_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
+            foreignKeyName: "grocery_list_slots_taxonomy_l1_node_id_fkey"
+            columns: ["taxonomy_l1_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "grocery_list_slots_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "grocery_list_slots_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "grocery_list_slots_taxonomy_l2_node_id_fkey"
@@ -7386,25 +10495,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "grocery_list_slots_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
+            foreignKeyName: "grocery_list_slots_taxonomy_l2_node_id_fkey"
+            columns: ["taxonomy_l2_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "grocery_list_slots_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "grocery_list_slots_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "grocery_list_slots_taxonomy_node_id_fkey"
@@ -7432,6 +10527,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "grocery_list_slots_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -7576,27 +10678,6 @@ export type Database = {
             foreignKeyName: "health_score_benchmarks_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "health_score_benchmarks_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "health_score_benchmarks_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "health_score_benchmarks_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -7621,7 +10702,563 @@ export type Database = {
             referencedRelation: "taxonomy_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
+          {
+            foreignKeyName: "health_score_benchmarks_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
         ]
+      }
+      icecream_merge_anchor_backup_20260813: {
+        Row: {
+          anchor_tier: number | null
+          created_at: string | null
+          display_label: string | null
+          flag_for_review: boolean | null
+          flag_reason: string | null
+          id: number | null
+          product_id: number | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          anchor_tier?: number | null
+          created_at?: string | null
+          display_label?: string | null
+          flag_for_review?: boolean | null
+          flag_reason?: string | null
+          id?: number | null
+          product_id?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          anchor_tier?: number | null
+          created_at?: string | null
+          display_label?: string | null
+          flag_for_review?: boolean | null
+          flag_reason?: string | null
+          id?: number | null
+          product_id?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: []
+      }
+      icecream_merge_benchmark_backup_20260813: {
+        Row: {
+          benchmark_id: number | null
+          compare_group_id: number | null
+          compare_scope_type: string | null
+          computed_at: string | null
+          created_at: string | null
+          has_sufficient_n: boolean | null
+          macro: string | null
+          n_products: number | null
+          p10_value: number | null
+          p50_value: number | null
+          p90_value: number | null
+          ruleset_version: string | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          benchmark_id?: number | null
+          compare_group_id?: number | null
+          compare_scope_type?: string | null
+          computed_at?: string | null
+          created_at?: string | null
+          has_sufficient_n?: boolean | null
+          macro?: string | null
+          n_products?: number | null
+          p10_value?: number | null
+          p50_value?: number | null
+          p90_value?: number | null
+          ruleset_version?: string | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          benchmark_id?: number | null
+          compare_group_id?: number | null
+          compare_scope_type?: string | null
+          computed_at?: string | null
+          created_at?: string | null
+          has_sufficient_n?: boolean | null
+          macro?: string | null
+          n_products?: number | null
+          p10_value?: number | null
+          p50_value?: number | null
+          p90_value?: number | null
+          ruleset_version?: string | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      icecream_merge_cgm_backup_20260813: {
+        Row: {
+          compare_group_id: number | null
+          compare_group_membership_id: number | null
+          created_at: string | null
+          effective_from: string | null
+          effective_to: string | null
+          priority: number | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          compare_group_id?: number | null
+          compare_group_membership_id?: number | null
+          created_at?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          priority?: number | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          compare_group_id?: number | null
+          compare_group_membership_id?: number | null
+          created_at?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          priority?: number | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      icecream_merge_map_20260813: {
+        Row: {
+          confidence: number | null
+          facet_type_code: string
+          facet_value_code: string
+          facet_value_display: string
+          product_count_before: number | null
+          source_node_id: number
+          source_node_name: string
+          target_node_id: number
+        }
+        Insert: {
+          confidence?: number | null
+          facet_type_code: string
+          facet_value_code: string
+          facet_value_display: string
+          product_count_before?: number | null
+          source_node_id: number
+          source_node_name: string
+          target_node_id: number
+        }
+        Update: {
+          confidence?: number | null
+          facet_type_code?: string
+          facet_value_code?: string
+          facet_value_display?: string
+          product_count_before?: number | null
+          source_node_id?: number
+          source_node_name?: string
+          target_node_id?: number
+        }
+        Relationships: []
+      }
+      icecream_merge_node_backup_20260813: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          basket_section: string | null
+          card_type: string | null
+          compare_group_node_id: number | null
+          created_at: string | null
+          domain_code: string | null
+          hero_image_url: string | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_brand_agnostic: boolean | null
+          is_compare_enabled: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_description: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          path_ids_csv: string | null
+          path_names_csv: string | null
+          replenishment_frequency: string | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          status: string | null
+          store_flow_order: number | null
+          suppress_health_scoring: boolean | null
+          suppress_in_collection: boolean | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+          variety_label: string | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Relationships: []
+      }
+      icecream_merge_product_backup_20260813: {
+        Row: {
+          brand_id: number | null
+          is_suppressed: boolean | null
+          old_reclassified_from_node_id: number | null
+          old_taxonomy_node_id: number | null
+          product_id: number
+          product_name_display: string | null
+          row_version: number | null
+          status: string | null
+        }
+        Insert: {
+          brand_id?: number | null
+          is_suppressed?: boolean | null
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id: number
+          product_name_display?: string | null
+          row_version?: number | null
+          status?: string | null
+        }
+        Update: {
+          brand_id?: number | null
+          is_suppressed?: boolean | null
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number
+          product_name_display?: string | null
+          row_version?: number | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      icecream_merge_score_backup_20260813: {
+        Row: {
+          benchmark_p10_calories: number | null
+          benchmark_p10_carbs: number | null
+          benchmark_p10_fat: number | null
+          benchmark_p10_fiber: number | null
+          benchmark_p10_net_carbs: number | null
+          benchmark_p10_protein: number | null
+          benchmark_p10_sat_fat: number | null
+          benchmark_p10_sodium: number | null
+          benchmark_p90_calories: number | null
+          benchmark_p90_carbs: number | null
+          benchmark_p90_fat: number | null
+          benchmark_p90_fiber: number | null
+          benchmark_p90_net_carbs: number | null
+          benchmark_p90_protein: number | null
+          benchmark_p90_sat_fat: number | null
+          benchmark_p90_sodium: number | null
+          calories_percentile: number | null
+          calories_score: number | null
+          carb_percentile: number | null
+          carb_score: number | null
+          category_mean_health: number | null
+          category_mean_taste: number | null
+          compare_group_id: number | null
+          compare_group_n: number | null
+          compare_scope_type: string | null
+          computed_at: string | null
+          confidence_weight: number | null
+          created_at: string | null
+          fat_percentile: number | null
+          fat_score: number | null
+          fiber_percentile: number | null
+          fiber_score: number | null
+          health_display_score: number | null
+          health_low_confidence: boolean | null
+          health_percentile: number | null
+          health_score_mean: number | null
+          health_score_raw: number | null
+          health_signals_available: number | null
+          is_current: boolean | null
+          lens_type: string | null
+          n_health_macros_scored: number | null
+          net_carbs_score: number | null
+          overall_score: number | null
+          pct_calories: number | null
+          pct_fiber: number | null
+          pct_net_carbs: number | null
+          pct_protein: number | null
+          pct_sat_fat: number | null
+          pct_total_carbs: number | null
+          pct_total_fat: number | null
+          price_score: number | null
+          product_id: number | null
+          product_score_aggregate_id: number | null
+          proofe_score_mean: number | null
+          protein_percentile: number | null
+          protein_score: number | null
+          ruleset_version: string | null
+          saturated_fat_score: number | null
+          score_confidence: string | null
+          sodium_percentile: number | null
+          sodium_score: number | null
+          sugar_percentile: number | null
+          sugar_score: number | null
+          taste_display_score: number | null
+          taste_elo_battles: number | null
+          taste_elo_score: number | null
+          taste_elo_snapshot_30d_ago: number | null
+          taste_elo_snapshot_7d_ago: number | null
+          taste_elo_stderr: number | null
+          taste_elo_updated_at: string | null
+          taste_elo_velocity_30d: number | null
+          taste_elo_velocity_7d: number | null
+          taste_elo_velocity_updated_at: string | null
+          taste_percentile: number | null
+          taste_score_mean: number | null
+          taste_score_n_ratings: number | null
+          taxonomy_node_id: number | null
+          trending_rank: number | null
+          updated_at: string | null
+          value_score: number | null
+        }
+        Insert: {
+          benchmark_p10_calories?: number | null
+          benchmark_p10_carbs?: number | null
+          benchmark_p10_fat?: number | null
+          benchmark_p10_fiber?: number | null
+          benchmark_p10_net_carbs?: number | null
+          benchmark_p10_protein?: number | null
+          benchmark_p10_sat_fat?: number | null
+          benchmark_p10_sodium?: number | null
+          benchmark_p90_calories?: number | null
+          benchmark_p90_carbs?: number | null
+          benchmark_p90_fat?: number | null
+          benchmark_p90_fiber?: number | null
+          benchmark_p90_net_carbs?: number | null
+          benchmark_p90_protein?: number | null
+          benchmark_p90_sat_fat?: number | null
+          benchmark_p90_sodium?: number | null
+          calories_percentile?: number | null
+          calories_score?: number | null
+          carb_percentile?: number | null
+          carb_score?: number | null
+          category_mean_health?: number | null
+          category_mean_taste?: number | null
+          compare_group_id?: number | null
+          compare_group_n?: number | null
+          compare_scope_type?: string | null
+          computed_at?: string | null
+          confidence_weight?: number | null
+          created_at?: string | null
+          fat_percentile?: number | null
+          fat_score?: number | null
+          fiber_percentile?: number | null
+          fiber_score?: number | null
+          health_display_score?: number | null
+          health_low_confidence?: boolean | null
+          health_percentile?: number | null
+          health_score_mean?: number | null
+          health_score_raw?: number | null
+          health_signals_available?: number | null
+          is_current?: boolean | null
+          lens_type?: string | null
+          n_health_macros_scored?: number | null
+          net_carbs_score?: number | null
+          overall_score?: number | null
+          pct_calories?: number | null
+          pct_fiber?: number | null
+          pct_net_carbs?: number | null
+          pct_protein?: number | null
+          pct_sat_fat?: number | null
+          pct_total_carbs?: number | null
+          pct_total_fat?: number | null
+          price_score?: number | null
+          product_id?: number | null
+          product_score_aggregate_id?: number | null
+          proofe_score_mean?: number | null
+          protein_percentile?: number | null
+          protein_score?: number | null
+          ruleset_version?: string | null
+          saturated_fat_score?: number | null
+          score_confidence?: string | null
+          sodium_percentile?: number | null
+          sodium_score?: number | null
+          sugar_percentile?: number | null
+          sugar_score?: number | null
+          taste_display_score?: number | null
+          taste_elo_battles?: number | null
+          taste_elo_score?: number | null
+          taste_elo_snapshot_30d_ago?: number | null
+          taste_elo_snapshot_7d_ago?: number | null
+          taste_elo_stderr?: number | null
+          taste_elo_updated_at?: string | null
+          taste_elo_velocity_30d?: number | null
+          taste_elo_velocity_7d?: number | null
+          taste_elo_velocity_updated_at?: string | null
+          taste_percentile?: number | null
+          taste_score_mean?: number | null
+          taste_score_n_ratings?: number | null
+          taxonomy_node_id?: number | null
+          trending_rank?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+        }
+        Update: {
+          benchmark_p10_calories?: number | null
+          benchmark_p10_carbs?: number | null
+          benchmark_p10_fat?: number | null
+          benchmark_p10_fiber?: number | null
+          benchmark_p10_net_carbs?: number | null
+          benchmark_p10_protein?: number | null
+          benchmark_p10_sat_fat?: number | null
+          benchmark_p10_sodium?: number | null
+          benchmark_p90_calories?: number | null
+          benchmark_p90_carbs?: number | null
+          benchmark_p90_fat?: number | null
+          benchmark_p90_fiber?: number | null
+          benchmark_p90_net_carbs?: number | null
+          benchmark_p90_protein?: number | null
+          benchmark_p90_sat_fat?: number | null
+          benchmark_p90_sodium?: number | null
+          calories_percentile?: number | null
+          calories_score?: number | null
+          carb_percentile?: number | null
+          carb_score?: number | null
+          category_mean_health?: number | null
+          category_mean_taste?: number | null
+          compare_group_id?: number | null
+          compare_group_n?: number | null
+          compare_scope_type?: string | null
+          computed_at?: string | null
+          confidence_weight?: number | null
+          created_at?: string | null
+          fat_percentile?: number | null
+          fat_score?: number | null
+          fiber_percentile?: number | null
+          fiber_score?: number | null
+          health_display_score?: number | null
+          health_low_confidence?: boolean | null
+          health_percentile?: number | null
+          health_score_mean?: number | null
+          health_score_raw?: number | null
+          health_signals_available?: number | null
+          is_current?: boolean | null
+          lens_type?: string | null
+          n_health_macros_scored?: number | null
+          net_carbs_score?: number | null
+          overall_score?: number | null
+          pct_calories?: number | null
+          pct_fiber?: number | null
+          pct_net_carbs?: number | null
+          pct_protein?: number | null
+          pct_sat_fat?: number | null
+          pct_total_carbs?: number | null
+          pct_total_fat?: number | null
+          price_score?: number | null
+          product_id?: number | null
+          product_score_aggregate_id?: number | null
+          proofe_score_mean?: number | null
+          protein_percentile?: number | null
+          protein_score?: number | null
+          ruleset_version?: string | null
+          saturated_fat_score?: number | null
+          score_confidence?: string | null
+          sodium_percentile?: number | null
+          sodium_score?: number | null
+          sugar_percentile?: number | null
+          sugar_score?: number | null
+          taste_display_score?: number | null
+          taste_elo_battles?: number | null
+          taste_elo_score?: number | null
+          taste_elo_snapshot_30d_ago?: number | null
+          taste_elo_snapshot_7d_ago?: number | null
+          taste_elo_stderr?: number | null
+          taste_elo_updated_at?: string | null
+          taste_elo_velocity_30d?: number | null
+          taste_elo_velocity_7d?: number | null
+          taste_elo_velocity_updated_at?: string | null
+          taste_percentile?: number | null
+          taste_score_mean?: number | null
+          taste_score_n_ratings?: number | null
+          taxonomy_node_id?: number | null
+          trending_rank?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+        }
+        Relationships: []
       }
       ihut_campaigns: {
         Row: {
@@ -7746,13 +11383,6 @@ export type Database = {
             foreignKeyName: "ihut_campaigns_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -7769,13 +11399,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "ihut_campaigns_product_id_fkey"
@@ -7844,7 +11467,21 @@ export type Database = {
             foreignKeyName: "ihut_campaigns_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "ihut_campaigns_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "ihut_campaigns_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -8004,6 +11641,63 @@ export type Database = {
           last_verified_at?: string
           pku_warning?: boolean
           regulatory_note?: string | null
+        }
+        Relationships: []
+      }
+      ingredient_origin: {
+        Row: {
+          class: string
+          note: string | null
+          pattern: string
+        }
+        Insert: {
+          class: string
+          note?: string | null
+          pattern: string
+        }
+        Update: {
+          class?: string
+          note?: string | null
+          pattern?: string
+        }
+        Relationships: []
+      }
+      jerky_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      jerky_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
         }
         Relationships: []
       }
@@ -8307,6 +12001,45 @@ export type Database = {
           },
         ]
       }
+      meatsnack_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      meatsnack_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
       methodology_versions: {
         Row: {
           created_at: string
@@ -8331,6 +12064,30 @@ export type Database = {
           effective_from?: string
           id?: string
           validation_rules?: Json
+        }
+        Relationships: []
+      }
+      milk_final_20260813: {
+        Row: {
+          flag_reason: string | null
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+          to_node: number | null
+        }
+        Insert: {
+          flag_reason?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Update: {
+          flag_reason?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
         }
         Relationships: []
       }
@@ -8383,13 +12140,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_mission_funnel"
             referencedColumns: ["mission_id"]
-          },
-          {
-            foreignKeyName: "mission_accepted_products_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "mission_accepted_products_product_id_fkey"
@@ -8458,7 +12208,21 @@ export type Database = {
             foreignKeyName: "mission_accepted_products_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_accepted_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_accepted_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -8521,6 +12285,13 @@ export type Database = {
             referencedColumns: ["battle_round_id"]
           },
           {
+            foreignKeyName: "mission_battle_attributions_battle_round_id_fkey"
+            columns: ["battle_round_id"]
+            isOneToOne: false
+            referencedRelation: "v_battle_rounds_ranked"
+            referencedColumns: ["battle_round_id"]
+          },
+          {
             foreignKeyName: "mission_battle_attributions_claim_id_fkey"
             columns: ["claim_id"]
             isOneToOne: false
@@ -8538,13 +12309,6 @@ export type Database = {
             foreignKeyName: "mission_battle_attributions_mission_product_id_fkey"
             columns: ["mission_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "mission_battle_attributions_mission_product_id_fkey"
-            columns: ["mission_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -8608,14 +12372,21 @@ export type Database = {
             foreignKeyName: "mission_battle_attributions_mission_product_id_fkey"
             columns: ["mission_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_battle_attributions_mission_product_id_fkey"
+            columns: ["mission_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "mission_battle_attributions_opponent_product_id_fkey"
-            columns: ["opponent_product_id"]
+            foreignKeyName: "mission_battle_attributions_mission_product_id_fkey"
+            columns: ["mission_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -8685,7 +12456,21 @@ export type Database = {
             foreignKeyName: "mission_battle_attributions_opponent_product_id_fkey"
             columns: ["opponent_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_battle_attributions_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_battle_attributions_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -8756,27 +12541,6 @@ export type Database = {
             foreignKeyName: "mission_battle_configs_category_scope_node_id_fkey"
             columns: ["category_scope_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "mission_battle_configs_category_scope_node_id_fkey"
-            columns: ["category_scope_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "mission_battle_configs_category_scope_node_id_fkey"
-            columns: ["category_scope_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "mission_battle_configs_category_scope_node_id_fkey"
-            columns: ["category_scope_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -8799,6 +12563,13 @@ export type Database = {
             columns: ["category_scope_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "mission_battle_configs_category_scope_node_id_fkey"
+            columns: ["category_scope_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -9059,6 +12830,7 @@ export type Database = {
           frozen_price: number | null
           id: string
           kind: string
+          market_reference_price: number | null
           mission_id: string
           product_id: number | null
           updated_at: string
@@ -9077,6 +12849,7 @@ export type Database = {
           frozen_price?: number | null
           id?: string
           kind: string
+          market_reference_price?: number | null
           mission_id: string
           product_id?: number | null
           updated_at?: string
@@ -9095,6 +12868,7 @@ export type Database = {
           frozen_price?: number | null
           id?: string
           kind?: string
+          market_reference_price?: number | null
           mission_id?: string
           product_id?: number | null
           updated_at?: string
@@ -9177,13 +12951,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "mission_concepts_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
           {
             foreignKeyName: "mission_concepts_brand_id_fkey"
             columns: ["brand_id"]
@@ -9308,51 +13075,72 @@ export type Database = {
       }
       mission_eligibility_rules: {
         Row: {
+          allowed_genders: string[] | null
           created_at: string
           exclude_existing_pantry: boolean | null
           exclude_prior_battlers: boolean | null
           id: string
+          max_age: number | null
           max_category_battles: number | null
           max_days_since_last_purchase: number | null
           min_account_age_days: number | null
           min_activity_streak: number | null
+          min_age: number | null
           min_category_battles: number | null
+          min_category_level: number | null
+          min_category_tries: number | null
           min_total_battles: number | null
           mission_id: string
+          qualifying_taxonomy_node_id: number | null
+          required_dietary_flags: string[] | null
           required_taxonomy_nodes: number[] | null
           target_countries: string[] | null
           target_states: string[] | null
           updated_at: string
         }
         Insert: {
+          allowed_genders?: string[] | null
           created_at?: string
           exclude_existing_pantry?: boolean | null
           exclude_prior_battlers?: boolean | null
           id?: string
+          max_age?: number | null
           max_category_battles?: number | null
           max_days_since_last_purchase?: number | null
           min_account_age_days?: number | null
           min_activity_streak?: number | null
+          min_age?: number | null
           min_category_battles?: number | null
+          min_category_level?: number | null
+          min_category_tries?: number | null
           min_total_battles?: number | null
           mission_id: string
+          qualifying_taxonomy_node_id?: number | null
+          required_dietary_flags?: string[] | null
           required_taxonomy_nodes?: number[] | null
           target_countries?: string[] | null
           target_states?: string[] | null
           updated_at?: string
         }
         Update: {
+          allowed_genders?: string[] | null
           created_at?: string
           exclude_existing_pantry?: boolean | null
           exclude_prior_battlers?: boolean | null
           id?: string
+          max_age?: number | null
           max_category_battles?: number | null
           max_days_since_last_purchase?: number | null
           min_account_age_days?: number | null
           min_activity_streak?: number | null
+          min_age?: number | null
           min_category_battles?: number | null
+          min_category_level?: number | null
+          min_category_tries?: number | null
           min_total_battles?: number | null
           mission_id?: string
+          qualifying_taxonomy_node_id?: number | null
+          required_dietary_flags?: string[] | null
           required_taxonomy_nodes?: number[] | null
           target_countries?: string[] | null
           target_states?: string[] | null
@@ -9379,6 +13167,41 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "v_mission_funnel"
             referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "mission_eligibility_rules_qualifying_taxonomy_node_id_fkey"
+            columns: ["qualifying_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "mission_eligibility_rules_qualifying_taxonomy_node_id_fkey"
+            columns: ["qualifying_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "mission_eligibility_rules_qualifying_taxonomy_node_id_fkey"
+            columns: ["qualifying_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "mission_eligibility_rules_qualifying_taxonomy_node_id_fkey"
+            columns: ["qualifying_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "mission_eligibility_rules_qualifying_taxonomy_node_id_fkey"
+            columns: ["qualifying_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
         ]
       }
@@ -9553,13 +13376,6 @@ export type Database = {
             foreignKeyName: "mission_evidence_accepted_product_id_fkey"
             columns: ["accepted_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "mission_evidence_accepted_product_id_fkey"
-            columns: ["accepted_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -9623,7 +13439,21 @@ export type Database = {
             foreignKeyName: "mission_evidence_accepted_product_id_fkey"
             columns: ["accepted_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_evidence_accepted_product_id_fkey"
+            columns: ["accepted_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_evidence_accepted_product_id_fkey"
+            columns: ["accepted_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -9653,6 +13483,56 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "retailers"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_occasion_candidates: {
+        Row: {
+          created_at: string
+          mission_id: string
+          sort_order: number
+          spot_role_id: number
+        }
+        Insert: {
+          created_at?: string
+          mission_id: string
+          sort_order?: number
+          spot_role_id: number
+        }
+        Update: {
+          created_at?: string
+          mission_id?: string
+          sort_order?: number
+          spot_role_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_occasion_candidates_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_occasion_candidates_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_export_summary"
+            referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "mission_occasion_candidates_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_funnel"
+            referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "mission_occasion_candidates_spot_role_id_fkey"
+            columns: ["spot_role_id"]
+            isOneToOne: false
+            referencedRelation: "spot_roles"
+            referencedColumns: ["spot_role_id"]
           },
         ]
       }
@@ -9719,13 +13599,6 @@ export type Database = {
             foreignKeyName: "mission_opponent_panel_opponent_product_id_fkey"
             columns: ["opponent_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "mission_opponent_panel_opponent_product_id_fkey"
-            columns: ["opponent_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -9789,7 +13662,21 @@ export type Database = {
             foreignKeyName: "mission_opponent_panel_opponent_product_id_fkey"
             columns: ["opponent_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_opponent_panel_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_opponent_panel_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -9886,13 +13773,6 @@ export type Database = {
             foreignKeyName: "mission_post_completion_tracking_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "mission_post_completion_tracking_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -9956,7 +13836,21 @@ export type Database = {
             foreignKeyName: "mission_post_completion_tracking_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_post_completion_tracking_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_post_completion_tracking_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -10054,13 +13948,6 @@ export type Database = {
             foreignKeyName: "mission_preference_signals_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "mission_preference_signals_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -10124,7 +14011,21 @@ export type Database = {
             foreignKeyName: "mission_preference_signals_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_preference_signals_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_preference_signals_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -10243,6 +14144,7 @@ export type Database = {
           response_latency_ms: number | null
           response_value: Json
           session_number: number
+          subject_combatant_ref: number | null
           user_id: number | null
         }
         Insert: {
@@ -10267,6 +14169,7 @@ export type Database = {
           response_latency_ms?: number | null
           response_value: Json
           session_number: number
+          subject_combatant_ref?: number | null
           user_id?: number | null
         }
         Update: {
@@ -10291,6 +14194,7 @@ export type Database = {
           response_latency_ms?: number | null
           response_value?: Json
           session_number?: number
+          subject_combatant_ref?: number | null
           user_id?: number | null
         }
         Relationships: [
@@ -10481,6 +14385,88 @@ export type Database = {
           },
         ]
       }
+      mission_sponsors: {
+        Row: {
+          brand_id: number
+          contribution_amount_cents: number | null
+          contribution_share: number | null
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_primary: boolean
+          mission_id: string
+          shared_disclosure_consented: boolean
+          updated_at: string
+        }
+        Insert: {
+          brand_id: number
+          contribution_amount_cents?: number | null
+          contribution_share?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_primary?: boolean
+          mission_id: string
+          shared_disclosure_consented?: boolean
+          updated_at?: string
+        }
+        Update: {
+          brand_id?: number
+          contribution_amount_cents?: number | null
+          contribution_share?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_primary?: boolean
+          mission_id?: string
+          shared_disclosure_consented?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_sponsors_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "mission_sponsors_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "mission_sponsors_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "mission_sponsors_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_sponsors_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_export_summary"
+            referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "mission_sponsors_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_funnel"
+            referencedColumns: ["mission_id"]
+          },
+        ]
+      }
       mission_status_log: {
         Row: {
           claim_id: string
@@ -10666,7 +14652,9 @@ export type Database = {
           brand_campaign_id: string | null
           campaign_objective: string
           completion_criteria: Json
+          completion_grace_minutes: number
           completions_delivered: number
+          concept_stimulus_mode: string | null
           created_at: string
           created_by: string
           deleted_at: string | null
@@ -10701,6 +14689,7 @@ export type Database = {
           starts_at: string
           status: Database["public"]["Enums"]["mission_status"]
           target_completions: number | null
+          target_reached_at: string | null
           targeting_mode: Database["public"]["Enums"]["mission_targeting_mode"]
           taxonomy_node_id: number | null
           title: string
@@ -10714,7 +14703,9 @@ export type Database = {
           brand_campaign_id?: string | null
           campaign_objective?: string
           completion_criteria?: Json
+          completion_grace_minutes?: number
           completions_delivered?: number
+          concept_stimulus_mode?: string | null
           created_at?: string
           created_by: string
           deleted_at?: string | null
@@ -10749,6 +14740,7 @@ export type Database = {
           starts_at: string
           status?: Database["public"]["Enums"]["mission_status"]
           target_completions?: number | null
+          target_reached_at?: string | null
           targeting_mode?: Database["public"]["Enums"]["mission_targeting_mode"]
           taxonomy_node_id?: number | null
           title: string
@@ -10762,7 +14754,9 @@ export type Database = {
           brand_campaign_id?: string | null
           campaign_objective?: string
           completion_criteria?: Json
+          completion_grace_minutes?: number
           completions_delivered?: number
+          concept_stimulus_mode?: string | null
           created_at?: string
           created_by?: string
           deleted_at?: string | null
@@ -10797,6 +14791,7 @@ export type Database = {
           starts_at?: string
           status?: Database["public"]["Enums"]["mission_status"]
           target_completions?: number | null
+          target_reached_at?: string | null
           targeting_mode?: Database["public"]["Enums"]["mission_targeting_mode"]
           taxonomy_node_id?: number | null
           title?: string
@@ -10832,13 +14827,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "mission_templates"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "missions_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "missions_product_id_fkey"
@@ -10907,7 +14895,21 @@ export type Database = {
             foreignKeyName: "missions_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "missions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "missions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -10916,27 +14918,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "spot_roles"
             referencedColumns: ["spot_role_id"]
-          },
-          {
-            foreignKeyName: "missions_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "missions_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "missions_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
           },
           {
             foreignKeyName: "missions_taxonomy_node_id_fkey"
@@ -10966,7 +14947,374 @@ export type Database = {
             referencedRelation: "taxonomy_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
+          {
+            foreignKeyName: "missions_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
         ]
+      }
+      name_node_conflict_20260813: {
+        Row: {
+          majority_copies: number | null
+          majority_node: number | null
+          majority_pct: number | null
+          n_nodes: number | null
+          n_products: number | null
+          nm: string | null
+        }
+        Insert: {
+          majority_copies?: number | null
+          majority_node?: number | null
+          majority_pct?: number | null
+          n_nodes?: number | null
+          n_products?: number | null
+          nm?: string | null
+        }
+        Update: {
+          majority_copies?: number | null
+          majority_node?: number | null
+          majority_pct?: number | null
+          n_nodes?: number | null
+          n_products?: number | null
+          nm?: string | null
+        }
+        Relationships: []
+      }
+      newnodes_20260813_backup: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          target: string | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          target?: string | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          target?: string | null
+        }
+        Relationships: []
+      }
+      node_diet_origin: {
+        Row: {
+          animal_type: string
+          created_at: string
+          note: string | null
+          taxonomy_node_id: number
+        }
+        Insert: {
+          animal_type: string
+          created_at?: string
+          note?: string | null
+          taxonomy_node_id: number
+        }
+        Update: {
+          animal_type?: string
+          created_at?: string
+          note?: string | null
+          taxonomy_node_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "node_diet_origin_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: true
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "node_diet_origin_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: true
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "node_diet_origin_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: true
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "node_diet_origin_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: true
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "node_diet_origin_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: true
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+        ]
+      }
+      node_purity_v2_20260813: {
+        Row: {
+          id: number
+          on_concept: number | null
+          purity: number | null
+          total: number | null
+        }
+        Insert: {
+          id: number
+          on_concept?: number | null
+          purity?: number | null
+          total?: number | null
+        }
+        Update: {
+          id?: number
+          on_concept?: number | null
+          purity?: number | null
+          total?: number | null
+        }
+        Relationships: []
+      }
+      nodebatch_20260813: {
+        Row: {
+          batch: number | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          batch?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          batch?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: []
+      }
+      nodemismatch_20260813: {
+        Row: {
+          product_id: number | null
+          product_name_display: string | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          product_id?: number | null
+          product_name_display?: string | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          product_id?: number | null
+          product_name_display?: string | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: []
+      }
+      nodeword_20260813: {
+        Row: {
+          stem: string | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          stem?: string | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          stem?: string | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: []
+      }
+      oat_chewy_merge_20260813_backup: {
+        Row: {
+          old_reclassified_from_node_id: number | null
+          old_taxonomy_node_id: number | null
+          product_id: number
+          product_name_display: string | null
+          status: string | null
+        }
+        Insert: {
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id: number
+          product_name_display?: string | null
+          status?: string | null
+        }
+        Update: {
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number
+          product_name_display?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      oat_chewy_merge_20260813_node_backup: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          basket_section: string | null
+          card_type: string | null
+          compare_group_node_id: number | null
+          created_at: string | null
+          domain_code: string | null
+          hero_image_url: string | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_brand_agnostic: boolean | null
+          is_compare_enabled: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_description: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          path_ids_csv: string | null
+          path_names_csv: string | null
+          replenishment_frequency: string | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          status: string | null
+          store_flow_order: number | null
+          suppress_health_scoring: boolean | null
+          suppress_in_collection: boolean | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+          variety_label: string | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Relationships: []
+      }
+      occasion_answers: {
+        Row: {
+          answered_at: string
+          battle_session_id: number | null
+          compare_group_id: number | null
+          created_at: string
+          day_of_week: number | null
+          hour_of_day: number | null
+          is_other: boolean
+          occasion_answer_id: number
+          other_text: string | null
+          product_id: number
+          surface: string
+          taxonomy_l3_node_id: number | null
+          user_id: number
+        }
+        Insert: {
+          answered_at?: string
+          battle_session_id?: number | null
+          compare_group_id?: number | null
+          created_at?: string
+          day_of_week?: number | null
+          hour_of_day?: number | null
+          is_other?: boolean
+          occasion_answer_id?: never
+          other_text?: string | null
+          product_id: number
+          surface?: string
+          taxonomy_l3_node_id?: number | null
+          user_id: number
+        }
+        Update: {
+          answered_at?: string
+          battle_session_id?: number | null
+          compare_group_id?: number | null
+          created_at?: string
+          day_of_week?: number | null
+          hour_of_day?: number | null
+          is_other?: boolean
+          occasion_answer_id?: never
+          other_text?: string | null
+          product_id?: number
+          surface?: string
+          taxonomy_l3_node_id?: number | null
+          user_id?: number
+        }
+        Relationships: []
       }
       occasion_taxonomy_anchors: {
         Row: {
@@ -11024,27 +15372,6 @@ export type Database = {
             foreignKeyName: "occasion_taxonomy_anchors_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "occasion_taxonomy_anchors_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "occasion_taxonomy_anchors_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "occasion_taxonomy_anchors_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -11067,6 +15394,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "occasion_taxonomy_anchors_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -11185,6 +15519,33 @@ export type Database = {
         }
         Relationships: []
       }
+      other_node_assignability_20260813: {
+        Row: {
+          evicted: number | null
+          id: number
+          node: string | null
+          pct_evicted: number | null
+          still_in: number | null
+          was_assignable: boolean | null
+        }
+        Insert: {
+          evicted?: number | null
+          id: number
+          node?: string | null
+          pct_evicted?: number | null
+          still_in?: number | null
+          was_assignable?: boolean | null
+        }
+        Update: {
+          evicted?: number | null
+          id?: number
+          node?: string | null
+          pct_evicted?: number | null
+          still_in?: number | null
+          was_assignable?: boolean | null
+        }
+        Relationships: []
+      }
       parent_brands: {
         Row: {
           corporate_brand_name: string | null
@@ -11258,6 +15619,321 @@ export type Database = {
             referencedColumns: ["parent_brand_id"]
           },
         ]
+      }
+      payout_batches: {
+        Row: {
+          created_at: string
+          id: string
+          item_count: number
+          last_response: Json | null
+          paypal_batch_id: string | null
+          reconciled_at: string | null
+          sender_batch_id: string
+          status: string
+          submitted_at: string | null
+          total_cents: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_count?: number
+          last_response?: Json | null
+          paypal_batch_id?: string | null
+          reconciled_at?: string | null
+          sender_batch_id: string
+          status?: string
+          submitted_at?: string | null
+          total_cents?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_count?: number
+          last_response?: Json | null
+          paypal_batch_id?: string | null
+          reconciled_at?: string | null
+          sender_batch_id?: string
+          status?: string
+          submitted_at?: string | null
+          total_cents?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payout_ledger: {
+        Row: {
+          accrued_at: string
+          amount_cents: number
+          batch_id: string | null
+          created_at: string
+          currency: string
+          eligible_at: string | null
+          failed_at: string | null
+          failure_code: string | null
+          failure_message: string | null
+          hold_reason: string | null
+          id: string
+          idempotency_key: string
+          mission_claim_id: string | null
+          paid_at: string | null
+          payout_identity_id: string | null
+          paypal_item_id: string | null
+          sent_at: string | null
+          session_number: number | null
+          status: string
+          updated_at: string
+          user_id: number
+        }
+        Insert: {
+          accrued_at?: string
+          amount_cents: number
+          batch_id?: string | null
+          created_at?: string
+          currency?: string
+          eligible_at?: string | null
+          failed_at?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
+          hold_reason?: string | null
+          id?: string
+          idempotency_key: string
+          mission_claim_id?: string | null
+          paid_at?: string | null
+          payout_identity_id?: string | null
+          paypal_item_id?: string | null
+          sent_at?: string | null
+          session_number?: number | null
+          status?: string
+          updated_at?: string
+          user_id: number
+        }
+        Update: {
+          accrued_at?: string
+          amount_cents?: number
+          batch_id?: string | null
+          created_at?: string
+          currency?: string
+          eligible_at?: string | null
+          failed_at?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
+          hold_reason?: string | null
+          id?: string
+          idempotency_key?: string
+          mission_claim_id?: string | null
+          paid_at?: string | null
+          payout_identity_id?: string | null
+          paypal_item_id?: string | null
+          sent_at?: string | null
+          session_number?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_ledger_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "payout_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payout_ledger_mission_claim_id_fkey"
+            columns: ["mission_claim_id"]
+            isOneToOne: false
+            referencedRelation: "mission_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payout_ledger_mission_claim_id_fkey"
+            columns: ["mission_claim_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_claims_base"
+            referencedColumns: ["claim_id"]
+          },
+          {
+            foreignKeyName: "payout_ledger_payout_identity_id_fkey"
+            columns: ["payout_identity_id"]
+            isOneToOne: false
+            referencedRelation: "user_payout_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payout_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "payout_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "payout_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      payout_phone_registry: {
+        Row: {
+          claim_attempts: number
+          first_claimed_at: string
+          first_claimed_by_user_id: number
+          phone_e164: string
+        }
+        Insert: {
+          claim_attempts?: number
+          first_claimed_at?: string
+          first_claimed_by_user_id: number
+          phone_e164: string
+        }
+        Update: {
+          claim_attempts?: number
+          first_claimed_at?: string
+          first_claimed_by_user_id?: number
+          phone_e164?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_phone_registry_first_claimed_by_user_id_fkey"
+            columns: ["first_claimed_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "payout_phone_registry_first_claimed_by_user_id_fkey"
+            columns: ["first_claimed_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "payout_phone_registry_first_claimed_by_user_id_fkey"
+            columns: ["first_claimed_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      pb_dupe_merge_20260813_backup: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      pbdeli_plan_20260813: {
+        Row: {
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      pbseafood_plan_20260813: {
+        Row: {
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      peeled_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      peeled_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      ping_20260813: {
+        Row: {
+          ing: string | null
+          product_id: number | null
+        }
+        Insert: {
+          ing?: string | null
+          product_id?: number | null
+        }
+        Update: {
+          ing?: string | null
+          product_id?: number | null
+        }
+        Relationships: []
       }
       pipeline_job_log: {
         Row: {
@@ -11337,27 +16013,6 @@ export type Database = {
             foreignKeyName: "platform_benchmarks_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "platform_benchmarks_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "platform_benchmarks_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "platform_benchmarks_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -11380,6 +16035,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "platform_benchmarks_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -11640,27 +16302,6 @@ export type Database = {
             foreignKeyName: "plu_codes_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "plu_codes_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "plu_codes_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "plu_codes_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -11685,7 +16326,245 @@ export type Database = {
             referencedRelation: "taxonomy_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
+          {
+            foreignKeyName: "plu_codes_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
         ]
+      }
+      pm_base_20260813: {
+        Row: {
+          all_bases: string | null
+          base1: string | null
+          from_node: number | null
+          n_bases: number | null
+          nm: string | null
+          product_id: number | null
+          was_inside: boolean | null
+        }
+        Insert: {
+          all_bases?: string | null
+          base1?: string | null
+          from_node?: number | null
+          n_bases?: number | null
+          nm?: string | null
+          product_id?: number | null
+          was_inside?: boolean | null
+        }
+        Update: {
+          all_bases?: string | null
+          base1?: string | null
+          from_node?: number | null
+          n_bases?: number | null
+          nm?: string | null
+          product_id?: number | null
+          was_inside?: boolean | null
+        }
+        Relationships: []
+      }
+      pm_cand_20260813: {
+        Row: {
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      pm_fix2_20260813: {
+        Row: {
+          base1: string | null
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+          to_node: number | null
+        }
+        Insert: {
+          base1?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Update: {
+          base1?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      pm_plan_20260813: {
+        Row: {
+          all_bases: string | null
+          base1: string | null
+          bev_pos: boolean | null
+          culin_pos: boolean | null
+          flag_reason: string | null
+          from_node: number | null
+          n_bases: number | null
+          nm: string | null
+          product_id: number | null
+          rule: string | null
+          to_node: number | null
+          was_inside: boolean | null
+        }
+        Insert: {
+          all_bases?: string | null
+          base1?: string | null
+          bev_pos?: boolean | null
+          culin_pos?: boolean | null
+          flag_reason?: string | null
+          from_node?: number | null
+          n_bases?: number | null
+          nm?: string | null
+          product_id?: number | null
+          rule?: string | null
+          to_node?: number | null
+          was_inside?: boolean | null
+        }
+        Update: {
+          all_bases?: string | null
+          base1?: string | null
+          bev_pos?: boolean | null
+          culin_pos?: boolean | null
+          flag_reason?: string | null
+          from_node?: number | null
+          n_bases?: number | null
+          nm?: string | null
+          product_id?: number | null
+          rule?: string | null
+          to_node?: number | null
+          was_inside?: boolean | null
+        }
+        Relationships: []
+      }
+      pm_scope_20260813: {
+        Row: {
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+          was_inside: boolean | null
+        }
+        Insert: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          was_inside?: boolean | null
+        }
+        Update: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          was_inside?: boolean | null
+        }
+        Relationships: []
+      }
+      popcorn_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      popcorn_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      popcornfix_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      popcornfix_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      powder_merge_20260813_backup: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
       }
       produce_battle_rounds: {
         Row: {
@@ -11869,27 +16748,6 @@ export type Database = {
             foreignKeyName: "produce_battle_sessions_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "produce_battle_sessions_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "produce_battle_sessions_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "produce_battle_sessions_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -11912,6 +16770,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "produce_battle_sessions_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -12030,13 +16895,6 @@ export type Database = {
             foreignKeyName: "product_additives_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_additives_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -12100,7 +16958,21 @@ export type Database = {
             foreignKeyName: "product_additives_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_additives_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_additives_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -12207,13 +17079,6 @@ export type Database = {
             foreignKeyName: "product_brand_facts_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -12230,13 +17095,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "product_brand_facts_product_id_fkey"
@@ -12305,7 +17163,21 @@ export type Database = {
             foreignKeyName: "product_brand_facts_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_brand_facts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_brand_facts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -12380,13 +17252,6 @@ export type Database = {
             foreignKeyName: "product_certifications_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_certifications_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -12450,7 +17315,21 @@ export type Database = {
             foreignKeyName: "product_certifications_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_certifications_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_certifications_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -12509,13 +17388,6 @@ export type Database = {
             foreignKeyName: "product_claims_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_claims_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -12579,7 +17451,21 @@ export type Database = {
             foreignKeyName: "product_claims_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_claims_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_claims_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -12686,13 +17572,6 @@ export type Database = {
             foreignKeyName: "product_compare_group_assignments_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_compare_group_assignments_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -12756,7 +17635,21 @@ export type Database = {
             foreignKeyName: "product_compare_group_assignments_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_compare_group_assignments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_compare_group_assignments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -12897,13 +17790,6 @@ export type Database = {
             foreignKeyName: "product_correction_submissions_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_correction_submissions_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -12967,29 +17853,22 @@ export type Database = {
             foreignKeyName: "product_correction_submissions_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_correction_submissions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "product_correction_submissions_proposed_taxonomy_node_id_fkey"
-            columns: ["proposed_taxonomy_node_id"]
+            foreignKeyName: "product_correction_submissions_product_id_fkey"
+            columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "product_correction_submissions_proposed_taxonomy_node_id_fkey"
-            columns: ["proposed_taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "product_correction_submissions_proposed_taxonomy_node_id_fkey"
-            columns: ["proposed_taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "product_correction_submissions_proposed_taxonomy_node_id_fkey"
@@ -13020,6 +17899,13 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
+            foreignKeyName: "product_correction_submissions_proposed_taxonomy_node_id_fkey"
+            columns: ["proposed_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
             foreignKeyName: "product_correction_submissions_reviewed_by_portal_user_id_fkey"
             columns: ["reviewed_by_portal_user_id"]
             isOneToOne: false
@@ -13028,14 +17914,131 @@ export type Database = {
           },
         ]
       }
+      product_diet_derived: {
+        Row: {
+          animal_category: string | null
+          computed_at: string
+          has_ingredients: boolean
+          product_id: number
+          vegan_state: string
+          vegetarian_state: string
+        }
+        Insert: {
+          animal_category?: string | null
+          computed_at?: string
+          has_ingredients: boolean
+          product_id: number
+          vegan_state: string
+          vegetarian_state: string
+        }
+        Update: {
+          animal_category?: string | null
+          computed_at?: string
+          has_ingredients?: boolean
+          product_id?: number
+          vegan_state?: string
+          vegetarian_state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_diet_derived_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_diet_derived_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_diet_derived_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_diet_derived_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_diet_derived_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_diet_derived_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_diet_derived_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_diet_derived_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_diet_derived_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_diet_derived_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_diet_derived_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_diet_derived_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+        ]
+      }
       product_dietary_allergen_flags: {
         Row: {
           computed_at: string | null
           computed_from_sku_variant_id: number | null
+          contains_artificial_color: boolean | null
+          contains_artificial_flavor: boolean | null
           contains_eggs: boolean | null
           contains_fish: boolean | null
+          contains_hfcs: boolean | null
           contains_milk: boolean | null
+          contains_palm_oil: boolean | null
           contains_peanuts: boolean | null
+          contains_seed_oil: boolean | null
           contains_sesame: boolean | null
           contains_shellfish: boolean | null
           contains_soybeans: boolean | null
@@ -13069,10 +18072,15 @@ export type Database = {
         Insert: {
           computed_at?: string | null
           computed_from_sku_variant_id?: number | null
+          contains_artificial_color?: boolean | null
+          contains_artificial_flavor?: boolean | null
           contains_eggs?: boolean | null
           contains_fish?: boolean | null
+          contains_hfcs?: boolean | null
           contains_milk?: boolean | null
+          contains_palm_oil?: boolean | null
           contains_peanuts?: boolean | null
+          contains_seed_oil?: boolean | null
           contains_sesame?: boolean | null
           contains_shellfish?: boolean | null
           contains_soybeans?: boolean | null
@@ -13106,10 +18114,15 @@ export type Database = {
         Update: {
           computed_at?: string | null
           computed_from_sku_variant_id?: number | null
+          contains_artificial_color?: boolean | null
+          contains_artificial_flavor?: boolean | null
           contains_eggs?: boolean | null
           contains_fish?: boolean | null
+          contains_hfcs?: boolean | null
           contains_milk?: boolean | null
+          contains_palm_oil?: boolean | null
           contains_peanuts?: boolean | null
+          contains_seed_oil?: boolean | null
           contains_sesame?: boolean | null
           contains_shellfish?: boolean | null
           contains_soybeans?: boolean | null
@@ -13145,13 +18158,6 @@ export type Database = {
             foreignKeyName: "product_dietary_allergen_flags_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_dietary_allergen_flags_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: true
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -13215,7 +18221,21 @@ export type Database = {
             foreignKeyName: "product_dietary_allergen_flags_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: true
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_dietary_allergen_flags_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_dietary_allergen_flags_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -13346,13 +18366,6 @@ export type Database = {
             foreignKeyName: "product_discovery_queue_ai_brand_id_fkey"
             columns: ["ai_brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "product_discovery_queue_ai_brand_id_fkey"
-            columns: ["ai_brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -13369,27 +18382,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "product_discovery_queue_ai_l2_node_id_fkey"
-            columns: ["ai_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "product_discovery_queue_ai_l2_node_id_fkey"
-            columns: ["ai_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "product_discovery_queue_ai_l2_node_id_fkey"
-            columns: ["ai_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
           },
           {
             foreignKeyName: "product_discovery_queue_ai_l2_node_id_fkey"
@@ -13420,25 +18412,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "product_discovery_queue_ai_l3_node_id_fkey"
-            columns: ["ai_l3_node_id"]
+            foreignKeyName: "product_discovery_queue_ai_l2_node_id_fkey"
+            columns: ["ai_l2_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "product_discovery_queue_ai_l3_node_id_fkey"
-            columns: ["ai_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "product_discovery_queue_ai_l3_node_id_fkey"
-            columns: ["ai_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "product_discovery_queue_ai_l3_node_id_fkey"
@@ -13466,6 +18444,13 @@ export type Database = {
             columns: ["ai_l3_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "product_discovery_queue_ai_l3_node_id_fkey"
+            columns: ["ai_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -13493,13 +18478,6 @@ export type Database = {
             foreignKeyName: "product_discovery_queue_promoted_product_id_fkey"
             columns: ["promoted_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_discovery_queue_promoted_product_id_fkey"
-            columns: ["promoted_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -13563,14 +18541,21 @@ export type Database = {
             foreignKeyName: "product_discovery_queue_promoted_product_id_fkey"
             columns: ["promoted_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_discovery_queue_promoted_product_id_fkey"
+            columns: ["promoted_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "product_discovery_queue_stub_product_id_fkey"
-            columns: ["stub_product_id"]
+            foreignKeyName: "product_discovery_queue_promoted_product_id_fkey"
+            columns: ["promoted_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -13640,7 +18625,21 @@ export type Database = {
             foreignKeyName: "product_discovery_queue_stub_product_id_fkey"
             columns: ["stub_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_discovery_queue_stub_product_id_fkey"
+            columns: ["stub_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_discovery_queue_stub_product_id_fkey"
+            columns: ["stub_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -13669,13 +18668,6 @@ export type Database = {
             foreignKeyName: "product_embeddings_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_embeddings_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -13739,7 +18731,21 @@ export type Database = {
             foreignKeyName: "product_embeddings_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_embeddings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_embeddings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -13855,13 +18861,6 @@ export type Database = {
             foreignKeyName: "product_events_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_events_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -13925,7 +18924,21 @@ export type Database = {
             foreignKeyName: "product_events_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -14004,13 +19017,6 @@ export type Database = {
             foreignKeyName: "product_facets_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_facets_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -14074,7 +19080,21 @@ export type Database = {
             foreignKeyName: "product_facets_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_facets_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_facets_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -14163,13 +19183,6 @@ export type Database = {
             foreignKeyName: "product_feedback_events_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "product_feedback_events_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -14186,13 +19199,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "product_feedback_events_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "product_feedback_events_product_id_fkey"
@@ -14261,7 +19267,21 @@ export type Database = {
             foreignKeyName: "product_feedback_events_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_feedback_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_feedback_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -14322,6 +19342,302 @@ export type Database = {
           },
         ]
       }
+      product_field_history: {
+        Row: {
+          actor_db_role: string
+          actor_kind: string
+          actor_portal_user_id: string | null
+          actor_user_id: number | null
+          changed_at: string
+          entity_id: number
+          entity_type: string
+          evidence_rung: Database["public"]["Enums"]["evidence_rung"] | null
+          field_name: string
+          history_id: number
+          new_value: Json | null
+          old_value: Json | null
+          product_id: number | null
+          source_type: string | null
+          txid: number
+        }
+        Insert: {
+          actor_db_role?: string
+          actor_kind: string
+          actor_portal_user_id?: string | null
+          actor_user_id?: number | null
+          changed_at?: string
+          entity_id: number
+          entity_type: string
+          evidence_rung?: Database["public"]["Enums"]["evidence_rung"] | null
+          field_name: string
+          history_id?: never
+          new_value?: Json | null
+          old_value?: Json | null
+          product_id?: number | null
+          source_type?: string | null
+          txid?: number
+        }
+        Update: {
+          actor_db_role?: string
+          actor_kind?: string
+          actor_portal_user_id?: string | null
+          actor_user_id?: number | null
+          changed_at?: string
+          entity_id?: number
+          entity_type?: string
+          evidence_rung?: Database["public"]["Enums"]["evidence_rung"] | null
+          field_name?: string
+          history_id?: never
+          new_value?: Json | null
+          old_value?: Json | null
+          product_id?: number | null
+          source_type?: string | null
+          txid?: number
+        }
+        Relationships: []
+      }
+      product_images: {
+        Row: {
+          byte_size: number | null
+          captured_at: string | null
+          captured_by_user_id: number | null
+          content_sha256: string | null
+          created_at: string
+          deleted_at: string | null
+          evidence_rung: Database["public"]["Enums"]["evidence_rung"]
+          image_role: Database["public"]["Enums"]["product_image_role"]
+          is_primary: boolean
+          mime_type: string | null
+          product_id: number
+          product_image_id: number
+          public_url: string
+          row_version: number
+          sku_variant_id: number | null
+          source_type: string
+          staging_scan_id: number | null
+          storage_bucket: string
+          storage_path: string
+          superseded_by_id: number | null
+          updated_at: string
+          uploaded_by_portal_user_id: string | null
+        }
+        Insert: {
+          byte_size?: number | null
+          captured_at?: string | null
+          captured_by_user_id?: number | null
+          content_sha256?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          evidence_rung: Database["public"]["Enums"]["evidence_rung"]
+          image_role: Database["public"]["Enums"]["product_image_role"]
+          is_primary?: boolean
+          mime_type?: string | null
+          product_id: number
+          product_image_id?: never
+          public_url: string
+          row_version?: number
+          sku_variant_id?: number | null
+          source_type: string
+          staging_scan_id?: number | null
+          storage_bucket?: string
+          storage_path: string
+          superseded_by_id?: number | null
+          updated_at?: string
+          uploaded_by_portal_user_id?: string | null
+        }
+        Update: {
+          byte_size?: number | null
+          captured_at?: string | null
+          captured_by_user_id?: number | null
+          content_sha256?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          evidence_rung?: Database["public"]["Enums"]["evidence_rung"]
+          image_role?: Database["public"]["Enums"]["product_image_role"]
+          is_primary?: boolean
+          mime_type?: string | null
+          product_id?: number
+          product_image_id?: never
+          public_url?: string
+          row_version?: number
+          sku_variant_id?: number | null
+          source_type?: string
+          staging_scan_id?: number | null
+          storage_bucket?: string
+          storage_path?: string
+          superseded_by_id?: number | null
+          updated_at?: string
+          uploaded_by_portal_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_captured_by_user_id_fkey"
+            columns: ["captured_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "product_images_captured_by_user_id_fkey"
+            columns: ["captured_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "product_images_captured_by_user_id_fkey"
+            columns: ["captured_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_sku_variant_id_fkey"
+            columns: ["sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["sku_variant_id"]
+          },
+          {
+            foreignKeyName: "product_images_sku_variant_id_fkey"
+            columns: ["sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_skus_view"
+            referencedColumns: ["sku_variant_id"]
+          },
+          {
+            foreignKeyName: "product_images_sku_variant_id_fkey"
+            columns: ["sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "sku_detail_view"
+            referencedColumns: ["sku_variant_id"]
+          },
+          {
+            foreignKeyName: "product_images_sku_variant_id_fkey"
+            columns: ["sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "sku_variants"
+            referencedColumns: ["sku_variant_id"]
+          },
+          {
+            foreignKeyName: "product_images_staging_scan_id_fkey"
+            columns: ["staging_scan_id"]
+            isOneToOne: false
+            referencedRelation: "staging_scans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_images_superseded_by_id_fkey"
+            columns: ["superseded_by_id"]
+            isOneToOne: false
+            referencedRelation: "product_images"
+            referencedColumns: ["product_image_id"]
+          },
+          {
+            foreignKeyName: "product_images_uploaded_by_portal_user_id_fkey"
+            columns: ["uploaded_by_portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "brand_portal_users"
+            referencedColumns: ["portal_user_id"]
+          },
+        ]
+      }
+      product_ingredient_coverage: {
+        Row: {
+          product_id: number
+        }
+        Insert: {
+          product_id: number
+        }
+        Update: {
+          product_id?: number
+        }
+        Relationships: []
+      }
       product_milestone_alerts: {
         Row: {
           alert_id: number
@@ -14367,13 +19683,6 @@ export type Database = {
             foreignKeyName: "product_milestone_alerts_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "product_milestone_alerts_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -14390,13 +19699,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "product_milestone_alerts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "product_milestone_alerts_product_id_fkey"
@@ -14465,7 +19767,21 @@ export type Database = {
             foreignKeyName: "product_milestone_alerts_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_milestone_alerts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_milestone_alerts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -14557,13 +19873,6 @@ export type Database = {
             foreignKeyName: "product_pricing_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_pricing_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -14627,7 +19936,21 @@ export type Database = {
             foreignKeyName: "product_pricing_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_pricing_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_pricing_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -14735,13 +20058,6 @@ export type Database = {
             foreignKeyName: "product_pricing_intelligence_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_pricing_intelligence_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: true
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -14805,7 +20121,21 @@ export type Database = {
             foreignKeyName: "product_pricing_intelligence_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: true
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_pricing_intelligence_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_pricing_intelligence_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -14957,13 +20287,6 @@ export type Database = {
             foreignKeyName: "product_processing_flags_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_processing_flags_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: true
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -15027,7 +20350,21 @@ export type Database = {
             foreignKeyName: "product_processing_flags_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: true
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_processing_flags_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_processing_flags_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -15089,13 +20426,6 @@ export type Database = {
             foreignKeyName: "product_proof_claims_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_proof_claims_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -15159,7 +20489,21 @@ export type Database = {
             foreignKeyName: "product_proof_claims_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_proof_claims_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_proof_claims_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -15233,13 +20577,6 @@ export type Database = {
             foreignKeyName: "product_proof_sub_metric_scores_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_proof_sub_metric_scores_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -15303,7 +20640,21 @@ export type Database = {
             foreignKeyName: "product_proof_sub_metric_scores_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_proof_sub_metric_scores_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_proof_sub_metric_scores_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -15359,13 +20710,6 @@ export type Database = {
             foreignKeyName: "product_safety_warnings_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_safety_warnings_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -15429,7 +20773,21 @@ export type Database = {
             foreignKeyName: "product_safety_warnings_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_safety_warnings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_safety_warnings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -15721,13 +21079,6 @@ export type Database = {
             foreignKeyName: "product_score_aggregates_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_score_aggregates_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -15791,29 +21142,22 @@ export type Database = {
             foreignKeyName: "product_score_aggregates_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_score_aggregates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "product_score_aggregates_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
+            foreignKeyName: "product_score_aggregates_product_id_fkey"
+            columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "product_score_aggregates_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "product_score_aggregates_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "product_score_aggregates_taxonomy_node_id_fkey"
@@ -15841,6 +21185,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "product_score_aggregates_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -15935,13 +21286,6 @@ export type Database = {
             foreignKeyName: "product_search_attributes_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_search_attributes_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: true
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -16005,7 +21349,21 @@ export type Database = {
             foreignKeyName: "product_search_attributes_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: true
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_search_attributes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_search_attributes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -16169,13 +21527,6 @@ export type Database = {
             foreignKeyName: "product_search_index_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_search_index_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: true
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -16239,7 +21590,21 @@ export type Database = {
             foreignKeyName: "product_search_index_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: true
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_search_index_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_search_index_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -16258,9 +21623,11 @@ export type Database = {
           canonical_price_updated_at: string | null
           canonical_product_id: number | null
           card_type: string
+          classification_fail_reason: string | null
           classification_flagged: boolean
           classification_flagged_at: string | null
           classification_flagged_reason: string | null
+          classification_state: string | null
           confirmation_count: number
           created_at: string | null
           data_request_count: number
@@ -16316,6 +21683,7 @@ export type Database = {
           reclassification_requested_at: string | null
           reclassified_from_node_id: number | null
           requested_category_hint: string | null
+          row_version: number
           search_index_dirty: boolean
           status: string | null
           suppression_reason: string | null
@@ -16344,9 +21712,11 @@ export type Database = {
           canonical_price_updated_at?: string | null
           canonical_product_id?: number | null
           card_type?: string
+          classification_fail_reason?: string | null
           classification_flagged?: boolean
           classification_flagged_at?: string | null
           classification_flagged_reason?: string | null
+          classification_state?: string | null
           confirmation_count?: number
           created_at?: string | null
           data_request_count?: number
@@ -16402,6 +21772,7 @@ export type Database = {
           reclassification_requested_at?: string | null
           reclassified_from_node_id?: number | null
           requested_category_hint?: string | null
+          row_version?: number
           search_index_dirty?: boolean
           status?: string | null
           suppression_reason?: string | null
@@ -16430,9 +21801,11 @@ export type Database = {
           canonical_price_updated_at?: string | null
           canonical_product_id?: number | null
           card_type?: string
+          classification_fail_reason?: string | null
           classification_flagged?: boolean
           classification_flagged_at?: string | null
           classification_flagged_reason?: string | null
+          classification_state?: string | null
           confirmation_count?: number
           created_at?: string | null
           data_request_count?: number
@@ -16488,6 +21861,7 @@ export type Database = {
           reclassification_requested_at?: string | null
           reclassified_from_node_id?: number | null
           requested_category_hint?: string | null
+          row_version?: number
           search_index_dirty?: boolean
           status?: string | null
           suppression_reason?: string | null
@@ -16578,27 +21952,6 @@ export type Database = {
             foreignKeyName: "fk_products_reclassified_from_node"
             columns: ["reclassified_from_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "fk_products_reclassified_from_node"
-            columns: ["reclassified_from_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "fk_products_reclassified_from_node"
-            columns: ["reclassified_from_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "fk_products_reclassified_from_node"
-            columns: ["reclassified_from_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -16624,11 +21977,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "products_brand_id_fkey"
-            columns: ["brand_id"]
+            foreignKeyName: "fk_products_reclassified_from_node"
+            columns: ["reclassified_from_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "products_brand_id_fkey"
@@ -16650,13 +22003,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "products_canonical_product_id_fkey"
-            columns: ["canonical_product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "products_canonical_product_id_fkey"
@@ -16725,7 +22071,21 @@ export type Database = {
             foreignKeyName: "products_canonical_product_id_fkey"
             columns: ["canonical_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "products_canonical_product_id_fkey"
+            columns: ["canonical_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "products_canonical_product_id_fkey"
+            columns: ["canonical_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -16781,27 +22141,6 @@ export type Database = {
             foreignKeyName: "products_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -16827,11 +22166,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "products_trade_brand_id_fkey"
-            columns: ["trade_brand_id"]
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "products_trade_brand_id_fkey"
@@ -17003,6 +22342,258 @@ export type Database = {
             referencedColumns: ["code"]
           },
         ]
+      }
+      psa_dedupe_backup_20260818: {
+        Row: {
+          backed_up_at: string | null
+          benchmark_p10_calories: number | null
+          benchmark_p10_carbs: number | null
+          benchmark_p10_fat: number | null
+          benchmark_p10_fiber: number | null
+          benchmark_p10_net_carbs: number | null
+          benchmark_p10_protein: number | null
+          benchmark_p10_sat_fat: number | null
+          benchmark_p10_sodium: number | null
+          benchmark_p90_calories: number | null
+          benchmark_p90_carbs: number | null
+          benchmark_p90_fat: number | null
+          benchmark_p90_fiber: number | null
+          benchmark_p90_net_carbs: number | null
+          benchmark_p90_protein: number | null
+          benchmark_p90_sat_fat: number | null
+          benchmark_p90_sodium: number | null
+          calories_percentile: number | null
+          calories_score: number | null
+          carb_percentile: number | null
+          carb_score: number | null
+          category_mean_health: number | null
+          category_mean_taste: number | null
+          compare_group_id: number | null
+          compare_group_n: number | null
+          compare_scope_type: string | null
+          computed_at: string | null
+          confidence_weight: number | null
+          created_at: string | null
+          fat_percentile: number | null
+          fat_score: number | null
+          fiber_percentile: number | null
+          fiber_score: number | null
+          health_display_score: number | null
+          health_low_confidence: boolean | null
+          health_percentile: number | null
+          health_score_mean: number | null
+          health_score_raw: number | null
+          health_signals_available: number | null
+          is_current: boolean | null
+          lens_type: string | null
+          n_health_macros_scored: number | null
+          net_carbs_score: number | null
+          overall_score: number | null
+          pct_calories: number | null
+          pct_fiber: number | null
+          pct_net_carbs: number | null
+          pct_protein: number | null
+          pct_sat_fat: number | null
+          pct_total_carbs: number | null
+          pct_total_fat: number | null
+          price_score: number | null
+          product_id: number | null
+          product_score_aggregate_id: number | null
+          proofe_score_mean: number | null
+          protein_percentile: number | null
+          protein_score: number | null
+          ruleset_version: string | null
+          saturated_fat_score: number | null
+          score_confidence: string | null
+          sodium_percentile: number | null
+          sodium_score: number | null
+          sugar_percentile: number | null
+          sugar_score: number | null
+          taste_display_score: number | null
+          taste_elo_battles: number | null
+          taste_elo_score: number | null
+          taste_elo_snapshot_30d_ago: number | null
+          taste_elo_snapshot_7d_ago: number | null
+          taste_elo_stderr: number | null
+          taste_elo_updated_at: string | null
+          taste_elo_velocity_30d: number | null
+          taste_elo_velocity_7d: number | null
+          taste_elo_velocity_updated_at: string | null
+          taste_percentile: number | null
+          taste_score_mean: number | null
+          taste_score_n_ratings: number | null
+          taxonomy_node_id: number | null
+          trending_rank: number | null
+          updated_at: string | null
+          value_score: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          benchmark_p10_calories?: number | null
+          benchmark_p10_carbs?: number | null
+          benchmark_p10_fat?: number | null
+          benchmark_p10_fiber?: number | null
+          benchmark_p10_net_carbs?: number | null
+          benchmark_p10_protein?: number | null
+          benchmark_p10_sat_fat?: number | null
+          benchmark_p10_sodium?: number | null
+          benchmark_p90_calories?: number | null
+          benchmark_p90_carbs?: number | null
+          benchmark_p90_fat?: number | null
+          benchmark_p90_fiber?: number | null
+          benchmark_p90_net_carbs?: number | null
+          benchmark_p90_protein?: number | null
+          benchmark_p90_sat_fat?: number | null
+          benchmark_p90_sodium?: number | null
+          calories_percentile?: number | null
+          calories_score?: number | null
+          carb_percentile?: number | null
+          carb_score?: number | null
+          category_mean_health?: number | null
+          category_mean_taste?: number | null
+          compare_group_id?: number | null
+          compare_group_n?: number | null
+          compare_scope_type?: string | null
+          computed_at?: string | null
+          confidence_weight?: number | null
+          created_at?: string | null
+          fat_percentile?: number | null
+          fat_score?: number | null
+          fiber_percentile?: number | null
+          fiber_score?: number | null
+          health_display_score?: number | null
+          health_low_confidence?: boolean | null
+          health_percentile?: number | null
+          health_score_mean?: number | null
+          health_score_raw?: number | null
+          health_signals_available?: number | null
+          is_current?: boolean | null
+          lens_type?: string | null
+          n_health_macros_scored?: number | null
+          net_carbs_score?: number | null
+          overall_score?: number | null
+          pct_calories?: number | null
+          pct_fiber?: number | null
+          pct_net_carbs?: number | null
+          pct_protein?: number | null
+          pct_sat_fat?: number | null
+          pct_total_carbs?: number | null
+          pct_total_fat?: number | null
+          price_score?: number | null
+          product_id?: number | null
+          product_score_aggregate_id?: number | null
+          proofe_score_mean?: number | null
+          protein_percentile?: number | null
+          protein_score?: number | null
+          ruleset_version?: string | null
+          saturated_fat_score?: number | null
+          score_confidence?: string | null
+          sodium_percentile?: number | null
+          sodium_score?: number | null
+          sugar_percentile?: number | null
+          sugar_score?: number | null
+          taste_display_score?: number | null
+          taste_elo_battles?: number | null
+          taste_elo_score?: number | null
+          taste_elo_snapshot_30d_ago?: number | null
+          taste_elo_snapshot_7d_ago?: number | null
+          taste_elo_stderr?: number | null
+          taste_elo_updated_at?: string | null
+          taste_elo_velocity_30d?: number | null
+          taste_elo_velocity_7d?: number | null
+          taste_elo_velocity_updated_at?: string | null
+          taste_percentile?: number | null
+          taste_score_mean?: number | null
+          taste_score_n_ratings?: number | null
+          taxonomy_node_id?: number | null
+          trending_rank?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          benchmark_p10_calories?: number | null
+          benchmark_p10_carbs?: number | null
+          benchmark_p10_fat?: number | null
+          benchmark_p10_fiber?: number | null
+          benchmark_p10_net_carbs?: number | null
+          benchmark_p10_protein?: number | null
+          benchmark_p10_sat_fat?: number | null
+          benchmark_p10_sodium?: number | null
+          benchmark_p90_calories?: number | null
+          benchmark_p90_carbs?: number | null
+          benchmark_p90_fat?: number | null
+          benchmark_p90_fiber?: number | null
+          benchmark_p90_net_carbs?: number | null
+          benchmark_p90_protein?: number | null
+          benchmark_p90_sat_fat?: number | null
+          benchmark_p90_sodium?: number | null
+          calories_percentile?: number | null
+          calories_score?: number | null
+          carb_percentile?: number | null
+          carb_score?: number | null
+          category_mean_health?: number | null
+          category_mean_taste?: number | null
+          compare_group_id?: number | null
+          compare_group_n?: number | null
+          compare_scope_type?: string | null
+          computed_at?: string | null
+          confidence_weight?: number | null
+          created_at?: string | null
+          fat_percentile?: number | null
+          fat_score?: number | null
+          fiber_percentile?: number | null
+          fiber_score?: number | null
+          health_display_score?: number | null
+          health_low_confidence?: boolean | null
+          health_percentile?: number | null
+          health_score_mean?: number | null
+          health_score_raw?: number | null
+          health_signals_available?: number | null
+          is_current?: boolean | null
+          lens_type?: string | null
+          n_health_macros_scored?: number | null
+          net_carbs_score?: number | null
+          overall_score?: number | null
+          pct_calories?: number | null
+          pct_fiber?: number | null
+          pct_net_carbs?: number | null
+          pct_protein?: number | null
+          pct_sat_fat?: number | null
+          pct_total_carbs?: number | null
+          pct_total_fat?: number | null
+          price_score?: number | null
+          product_id?: number | null
+          product_score_aggregate_id?: number | null
+          proofe_score_mean?: number | null
+          protein_percentile?: number | null
+          protein_score?: number | null
+          ruleset_version?: string | null
+          saturated_fat_score?: number | null
+          score_confidence?: string | null
+          sodium_percentile?: number | null
+          sodium_score?: number | null
+          sugar_percentile?: number | null
+          sugar_score?: number | null
+          taste_display_score?: number | null
+          taste_elo_battles?: number | null
+          taste_elo_score?: number | null
+          taste_elo_snapshot_30d_ago?: number | null
+          taste_elo_snapshot_7d_ago?: number | null
+          taste_elo_stderr?: number | null
+          taste_elo_updated_at?: string | null
+          taste_elo_velocity_30d?: number | null
+          taste_elo_velocity_7d?: number | null
+          taste_elo_velocity_updated_at?: string | null
+          taste_percentile?: number | null
+          taste_score_mean?: number | null
+          taste_score_n_ratings?: number | null
+          taxonomy_node_id?: number | null
+          trending_rank?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+        }
+        Relationships: []
       }
       purveyor_conversations: {
         Row: {
@@ -17242,13 +22833,6 @@ export type Database = {
             foreignKeyName: "question_product_selections_focal_product_id_fkey"
             columns: ["focal_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "question_product_selections_focal_product_id_fkey"
-            columns: ["focal_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -17312,7 +22896,21 @@ export type Database = {
             foreignKeyName: "question_product_selections_focal_product_id_fkey"
             columns: ["focal_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "question_product_selections_focal_product_id_fkey"
+            columns: ["focal_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "question_product_selections_focal_product_id_fkey"
+            columns: ["focal_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -17758,13 +23356,6 @@ export type Database = {
             foreignKeyName: "receipt_line_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "receipt_line_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -17828,7 +23419,21 @@ export type Database = {
             foreignKeyName: "receipt_line_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "receipt_line_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "receipt_line_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -18066,13 +23671,6 @@ export type Database = {
             foreignKeyName: "reclassification_queue_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "reclassification_queue_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -18136,7 +23734,21 @@ export type Database = {
             foreignKeyName: "reclassification_queue_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "reclassification_queue_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "reclassification_queue_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -18210,13 +23822,6 @@ export type Database = {
             foreignKeyName: "recommendation_impressions_clicked_product_id_fkey"
             columns: ["clicked_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "recommendation_impressions_clicked_product_id_fkey"
-            columns: ["clicked_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -18280,7 +23885,21 @@ export type Database = {
             foreignKeyName: "recommendation_impressions_clicked_product_id_fkey"
             columns: ["clicked_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "recommendation_impressions_clicked_product_id_fkey"
+            columns: ["clicked_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "recommendation_impressions_clicked_product_id_fkey"
+            columns: ["clicked_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -18350,13 +23969,6 @@ export type Database = {
           threshold_met?: boolean | null
         }
         Relationships: [
-          {
-            foreignKeyName: "report_access_log_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
           {
             foreignKeyName: "report_access_log_brand_id_fkey"
             columns: ["brand_id"]
@@ -18472,27 +24084,6 @@ export type Database = {
             foreignKeyName: "report_catalog_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "report_catalog_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "report_catalog_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "report_catalog_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -18515,6 +24106,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "report_catalog_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -18548,13 +24146,6 @@ export type Database = {
           report_catalog_id?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "report_purchases_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
           {
             foreignKeyName: "report_purchases_brand_id_fkey"
             columns: ["brand_id"]
@@ -18640,6 +24231,109 @@ export type Database = {
             referencedColumns: ["key"]
           },
         ]
+      }
+      sampling_boxes: {
+        Row: {
+          abandon_window_days: number
+          blind_sponsor: boolean
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          frozen_field: Json
+          id: string
+          locked_at: string | null
+          mission_id: string
+          physical_units: number
+          session_count: number
+          session2_interval_hours: number | null
+          sourcing_notes: string | null
+          status: Database["public"]["Enums"]["box_status"]
+          unit_cost_cents: number | null
+          units_delivered: number
+          units_shipped: number
+          updated_at: string
+        }
+        Insert: {
+          abandon_window_days?: number
+          blind_sponsor?: boolean
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          frozen_field?: Json
+          id?: string
+          locked_at?: string | null
+          mission_id: string
+          physical_units: number
+          session_count?: number
+          session2_interval_hours?: number | null
+          sourcing_notes?: string | null
+          status?: Database["public"]["Enums"]["box_status"]
+          unit_cost_cents?: number | null
+          units_delivered?: number
+          units_shipped?: number
+          updated_at?: string
+        }
+        Update: {
+          abandon_window_days?: number
+          blind_sponsor?: boolean
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          frozen_field?: Json
+          id?: string
+          locked_at?: string | null
+          mission_id?: string
+          physical_units?: number
+          session_count?: number
+          session2_interval_hours?: number | null
+          sourcing_notes?: string | null
+          status?: Database["public"]["Enums"]["box_status"]
+          unit_cost_cents?: number | null
+          units_delivered?: number
+          units_shipped?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sampling_boxes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sampling_boxes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "v_mission_export_summary"
+            referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "sampling_boxes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "v_mission_funnel"
+            referencedColumns: ["mission_id"]
+          },
+        ]
+      }
+      sandwich_plan_20260813: {
+        Row: {
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Relationships: []
       }
       scan_events: {
         Row: {
@@ -18744,13 +24438,6 @@ export type Database = {
             foreignKeyName: "scan_events_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "scan_events_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -18814,7 +24501,21 @@ export type Database = {
             foreignKeyName: "scan_events_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "scan_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "scan_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -18877,27 +24578,6 @@ export type Database = {
             foreignKeyName: "scan_events_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "scan_events_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "scan_events_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "scan_events_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -18920,6 +24600,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "scan_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -19132,27 +24819,6 @@ export type Database = {
             foreignKeyName: "score_pipeline_runs_node_id_fkey"
             columns: ["node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "score_pipeline_runs_node_id_fkey"
-            columns: ["node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "score_pipeline_runs_node_id_fkey"
-            columns: ["node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "score_pipeline_runs_node_id_fkey"
-            columns: ["node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -19175,6 +24841,13 @@ export type Database = {
             columns: ["node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "score_pipeline_runs_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -19281,6 +24954,45 @@ export type Database = {
             referencedColumns: ["dimension_code"]
           },
         ]
+      }
+      seafoodjunk_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      seafoodjunk_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
       }
       search_autocomplete: {
         Row: {
@@ -19411,13 +25123,6 @@ export type Database = {
             foreignKeyName: "fk_search_events_top_result_product"
             columns: ["top_result_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "fk_search_events_top_result_product"
-            columns: ["top_result_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -19481,14 +25186,21 @@ export type Database = {
             foreignKeyName: "fk_search_events_top_result_product"
             columns: ["top_result_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "fk_search_events_top_result_product"
+            columns: ["top_result_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "search_events_tapped_product_id_fkey"
-            columns: ["tapped_product_id"]
+            foreignKeyName: "fk_search_events_top_result_product"
+            columns: ["top_result_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -19558,7 +25270,21 @@ export type Database = {
             foreignKeyName: "search_events_tapped_product_id_fkey"
             columns: ["tapped_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "search_events_tapped_product_id_fkey"
+            columns: ["tapped_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "search_events_tapped_product_id_fkey"
+            columns: ["tapped_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -19680,6 +25406,24 @@ export type Database = {
         }
         Relationships: []
       }
+      seitan_plan_20260813: {
+        Row: {
+          nm: string | null
+          product_id: number | null
+          to_node: number | null
+        }
+        Insert: {
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Update: {
+          nm?: string | null
+          product_id?: number | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
       session_events: {
         Row: {
           app_version: string | null
@@ -19792,6 +25536,266 @@ export type Database = {
         }
         Relationships: []
       }
+      shells_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      shells_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      shopping_trip_items: {
+        Row: {
+          checked_at: string | null
+          created_at: string
+          product_id: number
+          quantity_unit: string | null
+          quantity_value: number | null
+          taxonomy_l1_node_id: number | null
+          trip_id: number
+          trip_item_id: number
+        }
+        Insert: {
+          checked_at?: string | null
+          created_at?: string
+          product_id: number
+          quantity_unit?: string | null
+          quantity_value?: number | null
+          taxonomy_l1_node_id?: number | null
+          trip_id: number
+          trip_item_id?: never
+        }
+        Update: {
+          checked_at?: string | null
+          created_at?: string
+          product_id?: number
+          quantity_unit?: string | null
+          quantity_value?: number | null
+          taxonomy_l1_node_id?: number | null
+          trip_id?: number
+          trip_item_id?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_trip_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "shopping_trip_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "shopping_trip_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "shopping_trip_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "shopping_trip_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "shopping_trip_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "shopping_trip_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "shopping_trip_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "shopping_trip_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "shopping_trip_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "shopping_trip_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "shopping_trip_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "shopping_trip_items_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "user_shopping_trips"
+            referencedColumns: ["trip_id"]
+          },
+        ]
+      }
+      short_cut_backup_20260813: {
+        Row: {
+          old_reclassified_from_node_id: number | null
+          old_taxonomy_node_id: number | null
+          product_id: number
+          product_name_display: string | null
+        }
+        Insert: {
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id: number
+          product_name_display?: string | null
+        }
+        Update: {
+          old_reclassified_from_node_id?: number | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number
+          product_name_display?: string | null
+        }
+        Relationships: []
+      }
+      short_cut_plan_20260813: {
+        Row: {
+          nm: string | null
+          product_id: number
+          target_node_id: number | null
+        }
+        Insert: {
+          nm?: string | null
+          product_id: number
+          target_node_id?: number | null
+        }
+        Update: {
+          nm?: string | null
+          product_id?: number
+          target_node_id?: number | null
+        }
+        Relationships: []
+      }
+      shrimp_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      shrimpclean_backup_20260813: {
+        Row: {
+          backed_up_at: string | null
+          old_node: number | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_node?: number | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      shrimpclean_plan_20260813: {
+        Row: {
+          from_node: number | null
+          product_id: number | null
+          product_name_display: string | null
+          to_node: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
       sku_identifiers: {
         Row: {
           confidence: number | null
@@ -19853,13 +25857,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "sku_identifiers_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "sku_identifiers_product_id_fkey"
@@ -19928,7 +25925,21 @@ export type Database = {
             foreignKeyName: "sku_identifiers_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_identifiers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_identifiers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -20070,7 +26081,9 @@ export type Database = {
       }
       sku_ingredients: {
         Row: {
+          allergens_contains: string[] | null
           allergens_contains_text_raw: string | null
+          allergens_may_contain: string[] | null
           allergens_may_contain_text_raw: string | null
           created_at: string | null
           external_product_snapshot_id: number | null
@@ -20078,13 +26091,16 @@ export type Database = {
           ingredients_text_raw: string
           is_human_verified: boolean
           is_verified: boolean | null
+          row_version: number
           sku_ingredients_id: number
           sku_variant_id: number
           source_type: string | null
           updated_at: string | null
         }
         Insert: {
+          allergens_contains?: string[] | null
           allergens_contains_text_raw?: string | null
+          allergens_may_contain?: string[] | null
           allergens_may_contain_text_raw?: string | null
           created_at?: string | null
           external_product_snapshot_id?: number | null
@@ -20092,13 +26108,16 @@ export type Database = {
           ingredients_text_raw: string
           is_human_verified?: boolean
           is_verified?: boolean | null
+          row_version?: number
           sku_ingredients_id?: number
           sku_variant_id: number
           source_type?: string | null
           updated_at?: string | null
         }
         Update: {
+          allergens_contains?: string[] | null
           allergens_contains_text_raw?: string | null
+          allergens_may_contain?: string[] | null
           allergens_may_contain_text_raw?: string | null
           created_at?: string | null
           external_product_snapshot_id?: number | null
@@ -20106,6 +26125,7 @@ export type Database = {
           ingredients_text_raw?: string
           is_human_verified?: boolean
           is_verified?: boolean | null
+          row_version?: number
           sku_ingredients_id?: number
           sku_variant_id?: number
           source_type?: string | null
@@ -20162,6 +26182,7 @@ export type Database = {
           polyunsaturated_fat_g: number | null
           potassium_mg: number | null
           protein_g: number | null
+          row_version: number
           saturated_fat_g: number | null
           serving_size_uom: string | null
           serving_size_value: number | null
@@ -20199,6 +26220,7 @@ export type Database = {
           polyunsaturated_fat_g?: number | null
           potassium_mg?: number | null
           protein_g?: number | null
+          row_version?: number
           saturated_fat_g?: number | null
           serving_size_uom?: string | null
           serving_size_value?: number | null
@@ -20236,6 +26258,7 @@ export type Database = {
           polyunsaturated_fat_g?: number | null
           potassium_mg?: number | null
           protein_g?: number | null
+          row_version?: number
           saturated_fat_g?: number | null
           serving_size_uom?: string | null
           serving_size_value?: number | null
@@ -20402,13 +26425,6 @@ export type Database = {
             foreignKeyName: "sku_nutrition_facts_normalized_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "sku_nutrition_facts_normalized_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: true
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -20472,7 +26488,21 @@ export type Database = {
             foreignKeyName: "sku_nutrition_facts_normalized_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: true
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_nutrition_facts_normalized_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_nutrition_facts_normalized_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -20534,6 +26564,7 @@ export type Database = {
           package_size_value: number | null
           package_type: string | null
           product_id: number
+          row_version: number
           sku_variant_id: number
           status: string | null
           updated_at: string | null
@@ -20554,6 +26585,7 @@ export type Database = {
           package_size_value?: number | null
           package_type?: string | null
           product_id: number
+          row_version?: number
           sku_variant_id?: number
           status?: string | null
           updated_at?: string | null
@@ -20574,6 +26606,7 @@ export type Database = {
           package_size_value?: number | null
           package_type?: string | null
           product_id?: number
+          row_version?: number
           sku_variant_id?: number
           status?: string | null
           updated_at?: string | null
@@ -20581,13 +26614,6 @@ export type Database = {
           variant_name_raw?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "sku_variants_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
           {
             foreignKeyName: "sku_variants_product_id_fkey"
             columns: ["product_id"]
@@ -20655,10 +26681,102 @@ export type Database = {
             foreignKeyName: "sku_variants_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
         ]
+      }
+      so_plan_20260813: {
+        Row: {
+          caffeine: string | null
+          evict: string | null
+          flag_reason: string | null
+          flavour: string | null
+          from_node: number | null
+          functional: string | null
+          ing: string | null
+          is_craft: boolean | null
+          nm: string | null
+          product_id: number | null
+          sweetener: string | null
+          to_node: number | null
+        }
+        Insert: {
+          caffeine?: string | null
+          evict?: string | null
+          flag_reason?: string | null
+          flavour?: string | null
+          from_node?: number | null
+          functional?: string | null
+          ing?: string | null
+          is_craft?: boolean | null
+          nm?: string | null
+          product_id?: number | null
+          sweetener?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          caffeine?: string | null
+          evict?: string | null
+          flag_reason?: string | null
+          flavour?: string | null
+          from_node?: number | null
+          functional?: string | null
+          ing?: string | null
+          is_craft?: boolean | null
+          nm?: string | null
+          product_id?: number | null
+          sweetener?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      so_scope_20260813: {
+        Row: {
+          flavour: string | null
+          from_node: number | null
+          is_caffeine_free: boolean | null
+          is_craft_ish: boolean | null
+          is_diet: boolean | null
+          is_prebiotic: boolean | null
+          nm: string | null
+          product_id: number | null
+        }
+        Insert: {
+          flavour?: string | null
+          from_node?: number | null
+          is_caffeine_free?: boolean | null
+          is_craft_ish?: boolean | null
+          is_diet?: boolean | null
+          is_prebiotic?: boolean | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Update: {
+          flavour?: string | null
+          from_node?: number | null
+          is_caffeine_free?: boolean | null
+          is_craft_ish?: boolean | null
+          is_diet?: boolean | null
+          is_prebiotic?: boolean | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Relationships: []
       }
       spot_role_compare_groups: {
         Row: {
@@ -20941,27 +27059,6 @@ export type Database = {
             foreignKeyName: "fk_staging_scans_ai_l2_node"
             columns: ["ai_l2_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "fk_staging_scans_ai_l2_node"
-            columns: ["ai_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "fk_staging_scans_ai_l2_node"
-            columns: ["ai_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "fk_staging_scans_ai_l2_node"
-            columns: ["ai_l2_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -20987,25 +27084,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "fk_staging_scans_ai_l3_node"
-            columns: ["ai_l3_node_id"]
+            foreignKeyName: "fk_staging_scans_ai_l2_node"
+            columns: ["ai_l2_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "fk_staging_scans_ai_l3_node"
-            columns: ["ai_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "fk_staging_scans_ai_l3_node"
-            columns: ["ai_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "fk_staging_scans_ai_l3_node"
@@ -21036,25 +27119,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "fk_staging_scans_first_battle_l2"
-            columns: ["first_battle_l2_node_id"]
+            foreignKeyName: "fk_staging_scans_ai_l3_node"
+            columns: ["ai_l3_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "fk_staging_scans_first_battle_l2"
-            columns: ["first_battle_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "fk_staging_scans_first_battle_l2"
-            columns: ["first_battle_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "fk_staging_scans_first_battle_l2"
@@ -21085,11 +27154,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "fk_staging_scans_promoted_product"
-            columns: ["promoted_product_id"]
+            foreignKeyName: "fk_staging_scans_first_battle_l2"
+            columns: ["first_battle_l2_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "fk_staging_scans_promoted_product"
@@ -21158,7 +27227,21 @@ export type Database = {
             foreignKeyName: "fk_staging_scans_promoted_product"
             columns: ["promoted_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "fk_staging_scans_promoted_product"
+            columns: ["promoted_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "fk_staging_scans_promoted_product"
+            columns: ["promoted_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -21186,13 +27269,6 @@ export type Database = {
             foreignKeyName: "staging_scans_enrichment_target_product_id_fkey"
             columns: ["enrichment_target_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "staging_scans_enrichment_target_product_id_fkey"
-            columns: ["enrichment_target_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -21256,7 +27332,21 @@ export type Database = {
             foreignKeyName: "staging_scans_enrichment_target_product_id_fkey"
             columns: ["enrichment_target_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "staging_scans_enrichment_target_product_id_fkey"
+            columns: ["enrichment_target_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "staging_scans_enrichment_target_product_id_fkey"
+            columns: ["enrichment_target_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -21390,27 +27480,6 @@ export type Database = {
             foreignKeyName: "taxonomy_node_centroids_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_node_centroids_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_node_centroids_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: true
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_node_centroids_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: true
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -21433,6 +27502,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: true
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_node_centroids_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: true
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -21483,27 +27559,6 @@ export type Database = {
             foreignKeyName: "taxonomy_node_spot_mappings_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_node_spot_mappings_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_node_spot_mappings_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_node_spot_mappings_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -21528,6 +27583,13 @@ export type Database = {
             referencedRelation: "taxonomy_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
+          {
+            foreignKeyName: "taxonomy_node_spot_mappings_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
         ]
       }
       taxonomy_nodes: {
@@ -21535,6 +27597,7 @@ export type Database = {
           ancestor_l0_node_id: number | null
           ancestor_l1_node_id: number | null
           ancestor_l2_node_id: number | null
+          banner_image_url: string | null
           basket_section: string | null
           card_type: string | null
           compare_group_node_id: number | null
@@ -21573,6 +27636,7 @@ export type Database = {
           ancestor_l0_node_id?: number | null
           ancestor_l1_node_id?: number | null
           ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
           basket_section?: string | null
           card_type?: string | null
           compare_group_node_id?: number | null
@@ -21611,6 +27675,7 @@ export type Database = {
           ancestor_l0_node_id?: number | null
           ancestor_l1_node_id?: number | null
           ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
           basket_section?: string | null
           card_type?: string | null
           compare_group_node_id?: number | null
@@ -21650,27 +27715,6 @@ export type Database = {
             foreignKeyName: "taxonomy_nodes_ancestor_l0_node_id_fkey"
             columns: ["ancestor_l0_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_ancestor_l0_node_id_fkey"
-            columns: ["ancestor_l0_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_ancestor_l0_node_id_fkey"
-            columns: ["ancestor_l0_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_ancestor_l0_node_id_fkey"
-            columns: ["ancestor_l0_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -21696,25 +27740,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
-            columns: ["ancestor_l1_node_id"]
+            foreignKeyName: "taxonomy_nodes_ancestor_l0_node_id_fkey"
+            columns: ["ancestor_l0_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
-            columns: ["ancestor_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
-            columns: ["ancestor_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
@@ -21745,25 +27775,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
-            columns: ["ancestor_l2_node_id"]
+            foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
+            columns: ["ancestor_l1_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
-            columns: ["ancestor_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
-            columns: ["ancestor_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
@@ -21794,25 +27810,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "taxonomy_nodes_compare_group_node_id_fkey"
-            columns: ["compare_group_node_id"]
+            foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
+            columns: ["ancestor_l2_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_compare_group_node_id_fkey"
-            columns: ["compare_group_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_compare_group_node_id_fkey"
-            columns: ["compare_group_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "taxonomy_nodes_compare_group_node_id_fkey"
@@ -21843,25 +27845,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "taxonomy_nodes_parent_taxonomy_node_id_fkey"
-            columns: ["parent_taxonomy_node_id"]
+            foreignKeyName: "taxonomy_nodes_compare_group_node_id_fkey"
+            columns: ["compare_group_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_parent_taxonomy_node_id_fkey"
-            columns: ["parent_taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_parent_taxonomy_node_id_fkey"
-            columns: ["parent_taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "taxonomy_nodes_parent_taxonomy_node_id_fkey"
@@ -21892,25 +27880,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "taxonomy_nodes_root_taxonomy_node_id_fkey"
-            columns: ["root_taxonomy_node_id"]
+            foreignKeyName: "taxonomy_nodes_parent_taxonomy_node_id_fkey"
+            columns: ["parent_taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_root_taxonomy_node_id_fkey"
-            columns: ["root_taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_root_taxonomy_node_id_fkey"
-            columns: ["root_taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "taxonomy_nodes_root_taxonomy_node_id_fkey"
@@ -21938,9 +27912,40 @@ export type Database = {
             columns: ["root_taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_root_taxonomy_node_id_fkey"
+            columns: ["root_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
+      }
+      us_states: {
+        Row: {
+          created_at: string
+          is_active: boolean
+          kind: string
+          state_code: string
+          state_name: string
+        }
+        Insert: {
+          created_at?: string
+          is_active?: boolean
+          kind?: string
+          state_code: string
+          state_name: string
+        }
+        Update: {
+          created_at?: string
+          is_active?: boolean
+          kind?: string
+          state_code?: string
+          state_name?: string
+        }
+        Relationships: []
       }
       user_anchor_queue: {
         Row: {
@@ -21983,13 +27988,6 @@ export type Database = {
           user_id?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "user_anchor_queue_anchor_product_id_fkey"
-            columns: ["anchor_product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
           {
             foreignKeyName: "user_anchor_queue_anchor_product_id_fkey"
             columns: ["anchor_product_id"]
@@ -22057,7 +28055,21 @@ export type Database = {
             foreignKeyName: "user_anchor_queue_anchor_product_id_fkey"
             columns: ["anchor_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_anchor_queue_anchor_product_id_fkey"
+            columns: ["anchor_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_anchor_queue_anchor_product_id_fkey"
+            columns: ["anchor_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -22066,27 +28078,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_feedback_events"
             referencedColumns: ["feedback_event_id"]
-          },
-          {
-            foreignKeyName: "user_anchor_queue_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_anchor_queue_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_anchor_queue_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
           },
           {
             foreignKeyName: "user_anchor_queue_taxonomy_node_id_fkey"
@@ -22114,6 +28105,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_anchor_queue_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -22381,13 +28379,6 @@ export type Database = {
             foreignKeyName: "user_basket_extras_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_basket_extras_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -22451,7 +28442,21 @@ export type Database = {
             foreignKeyName: "user_basket_extras_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_basket_extras_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_basket_extras_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -22706,478 +28711,6 @@ export type Database = {
           },
         ]
       }
-      user_cart_slots: {
-        Row: {
-          basket_section_default: string | null
-          basket_section_user: string | null
-          budget_ceiling_cents: number | null
-          care_tier: string
-          care_tier_battles_snapshot: number | null
-          champion_elo_score: number | null
-          champion_set_at: string | null
-          champion_set_by: string | null
-          champion_streak_start: string | null
-          confidence_label: string | null
-          context_type: string
-          created_at: string | null
-          current_champion_product_id: number | null
-          default_quantity: number
-          deleted_at: string | null
-          frequency: string | null
-          id: number
-          is_enabled: boolean | null
-          label_suggestion: string | null
-          label_suggestion_accepted: boolean
-          label_suggestion_dismissed: boolean
-          label_suggestion_shown_at: string | null
-          previous_champion_product_id: number | null
-          priority: string | null
-          rotation_next_open_at: string | null
-          rotation_window_days: number | null
-          section_sort_order: number
-          slot_declared_at: string | null
-          slot_declared_origin: string | null
-          slot_label_default: string | null
-          slot_label_user: string | null
-          slot_origin: string | null
-          spot_role_id: number | null
-          taxonomy_l1_node_id: number | null
-          taxonomy_l2_node_id: number | null
-          taxonomy_l3_node_id: number
-          tenure_type: string
-          updated_at: string | null
-          user_confirmation_count: number | null
-          user_id: number
-          user_override_count: number | null
-          vault_score_snapshot: number | null
-        }
-        Insert: {
-          basket_section_default?: string | null
-          basket_section_user?: string | null
-          budget_ceiling_cents?: number | null
-          care_tier?: string
-          care_tier_battles_snapshot?: number | null
-          champion_elo_score?: number | null
-          champion_set_at?: string | null
-          champion_set_by?: string | null
-          champion_streak_start?: string | null
-          confidence_label?: string | null
-          context_type: string
-          created_at?: string | null
-          current_champion_product_id?: number | null
-          default_quantity?: number
-          deleted_at?: string | null
-          frequency?: string | null
-          id?: number
-          is_enabled?: boolean | null
-          label_suggestion?: string | null
-          label_suggestion_accepted?: boolean
-          label_suggestion_dismissed?: boolean
-          label_suggestion_shown_at?: string | null
-          previous_champion_product_id?: number | null
-          priority?: string | null
-          rotation_next_open_at?: string | null
-          rotation_window_days?: number | null
-          section_sort_order?: number
-          slot_declared_at?: string | null
-          slot_declared_origin?: string | null
-          slot_label_default?: string | null
-          slot_label_user?: string | null
-          slot_origin?: string | null
-          spot_role_id?: number | null
-          taxonomy_l1_node_id?: number | null
-          taxonomy_l2_node_id?: number | null
-          taxonomy_l3_node_id: number
-          tenure_type?: string
-          updated_at?: string | null
-          user_confirmation_count?: number | null
-          user_id: number
-          user_override_count?: number | null
-          vault_score_snapshot?: number | null
-        }
-        Update: {
-          basket_section_default?: string | null
-          basket_section_user?: string | null
-          budget_ceiling_cents?: number | null
-          care_tier?: string
-          care_tier_battles_snapshot?: number | null
-          champion_elo_score?: number | null
-          champion_set_at?: string | null
-          champion_set_by?: string | null
-          champion_streak_start?: string | null
-          confidence_label?: string | null
-          context_type?: string
-          created_at?: string | null
-          current_champion_product_id?: number | null
-          default_quantity?: number
-          deleted_at?: string | null
-          frequency?: string | null
-          id?: number
-          is_enabled?: boolean | null
-          label_suggestion?: string | null
-          label_suggestion_accepted?: boolean
-          label_suggestion_dismissed?: boolean
-          label_suggestion_shown_at?: string | null
-          previous_champion_product_id?: number | null
-          priority?: string | null
-          rotation_next_open_at?: string | null
-          rotation_window_days?: number | null
-          section_sort_order?: number
-          slot_declared_at?: string | null
-          slot_declared_origin?: string | null
-          slot_label_default?: string | null
-          slot_label_user?: string | null
-          slot_origin?: string | null
-          spot_role_id?: number | null
-          taxonomy_l1_node_id?: number | null
-          taxonomy_l2_node_id?: number | null
-          taxonomy_l3_node_id?: number
-          tenure_type?: string
-          updated_at?: string | null
-          user_confirmation_count?: number | null
-          user_id?: number
-          user_override_count?: number | null
-          vault_score_snapshot?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_cart_slots_context_type_fkey"
-            columns: ["context_type"]
-            isOneToOne: false
-            referencedRelation: "cart_contexts"
-            referencedColumns: ["context_type"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_current_champion_product_id_fkey"
-            columns: ["current_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_current_champion_product_id_fkey"
-            columns: ["current_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "mv_top_cpg_products"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_current_champion_product_id_fkey"
-            columns: ["current_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_decision_velocity"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_current_champion_product_id_fkey"
-            columns: ["current_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_momentum_signal"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_current_champion_product_id_fkey"
-            columns: ["current_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_packaging_signal"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_current_champion_product_id_fkey"
-            columns: ["current_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_price_view"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_current_champion_product_id_fkey"
-            columns: ["current_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_ranked"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_current_champion_product_id_fkey"
-            columns: ["current_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_scan_view"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_current_champion_product_id_fkey"
-            columns: ["current_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_time_preference"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_current_champion_product_id_fkey"
-            columns: ["current_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_current_champion_product_id_fkey"
-            columns: ["current_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "user_produce_passport"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_previous_champion_product_id_fkey"
-            columns: ["previous_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_previous_champion_product_id_fkey"
-            columns: ["previous_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "mv_top_cpg_products"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_previous_champion_product_id_fkey"
-            columns: ["previous_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_decision_velocity"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_previous_champion_product_id_fkey"
-            columns: ["previous_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_momentum_signal"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_previous_champion_product_id_fkey"
-            columns: ["previous_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_packaging_signal"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_previous_champion_product_id_fkey"
-            columns: ["previous_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_price_view"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_previous_champion_product_id_fkey"
-            columns: ["previous_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_ranked"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_previous_champion_product_id_fkey"
-            columns: ["previous_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_scan_view"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_previous_champion_product_id_fkey"
-            columns: ["previous_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "product_time_preference"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_previous_champion_product_id_fkey"
-            columns: ["previous_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_previous_champion_product_id_fkey"
-            columns: ["previous_champion_product_id"]
-            isOneToOne: false
-            referencedRelation: "user_produce_passport"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_spot_role_id_fkey"
-            columns: ["spot_role_id"]
-            isOneToOne: false
-            referencedRelation: "spot_roles"
-            referencedColumns: ["spot_role_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l1_node_id_fkey"
-            columns: ["taxonomy_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l1_node_id_fkey"
-            columns: ["taxonomy_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l1_node_id_fkey"
-            columns: ["taxonomy_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l1_node_id_fkey"
-            columns: ["taxonomy_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "category_cooccurrence"
-            referencedColumns: ["category_a_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l1_node_id_fkey"
-            columns: ["taxonomy_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "category_cooccurrence"
-            referencedColumns: ["category_b_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l1_node_id_fkey"
-            columns: ["taxonomy_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "product_consideration_set"
-            referencedColumns: ["competitor_taxonomy_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l1_node_id_fkey"
-            columns: ["taxonomy_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "taxonomy_nodes"
-            referencedColumns: ["taxonomy_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "category_cooccurrence"
-            referencedColumns: ["category_a_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "category_cooccurrence"
-            referencedColumns: ["category_b_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "product_consideration_set"
-            referencedColumns: ["competitor_taxonomy_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "taxonomy_nodes"
-            referencedColumns: ["taxonomy_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "category_cooccurrence"
-            referencedColumns: ["category_a_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "category_cooccurrence"
-            referencedColumns: ["category_b_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "product_consideration_set"
-            referencedColumns: ["competitor_taxonomy_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "taxonomy_nodes"
-            referencedColumns: ["taxonomy_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_discovery_leaderboard"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_level_summary"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
       user_category_badges: {
         Row: {
           award_trigger: string | null
@@ -23232,27 +28765,6 @@ export type Database = {
             foreignKeyName: "user_category_badges_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_category_badges_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_category_badges_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "user_category_badges_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -23275,6 +28787,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_category_badges_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -23339,27 +28858,6 @@ export type Database = {
             foreignKeyName: "user_category_mastery_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_category_mastery_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_category_mastery_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "user_category_mastery_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -23382,6 +28880,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_category_mastery_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -23515,27 +29020,6 @@ export type Database = {
             foreignKeyName: "user_comparison_events_compare_set_taxonomy_node_id_fkey"
             columns: ["compare_set_taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_comparison_events_compare_set_taxonomy_node_id_fkey"
-            columns: ["compare_set_taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_comparison_events_compare_set_taxonomy_node_id_fkey"
-            columns: ["compare_set_taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "user_comparison_events_compare_set_taxonomy_node_id_fkey"
-            columns: ["compare_set_taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -23561,11 +29045,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "user_comparison_events_other_product_id_fkey"
-            columns: ["other_product_id"]
+            foreignKeyName: "user_comparison_events_compare_set_taxonomy_node_id_fkey"
+            columns: ["compare_set_taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "user_comparison_events_other_product_id_fkey"
@@ -23634,14 +29118,21 @@ export type Database = {
             foreignKeyName: "user_comparison_events_other_product_id_fkey"
             columns: ["other_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_comparison_events_other_product_id_fkey"
+            columns: ["other_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "user_comparison_events_target_product_id_fkey"
-            columns: ["target_product_id"]
+            foreignKeyName: "user_comparison_events_other_product_id_fkey"
+            columns: ["other_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -23711,7 +29202,21 @@ export type Database = {
             foreignKeyName: "user_comparison_events_target_product_id_fkey"
             columns: ["target_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_comparison_events_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_comparison_events_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -23826,6 +29331,7 @@ export type Database = {
           collected_by_type: string
           collection_method: string
           created_at: string
+          date_of_birth: string | null
           deleted_at: string | null
           effective_from: string
           effective_to: string | null
@@ -23846,6 +29352,7 @@ export type Database = {
           collected_by_type?: string
           collection_method?: string
           created_at?: string
+          date_of_birth?: string | null
           deleted_at?: string | null
           effective_from?: string
           effective_to?: string | null
@@ -23866,6 +29373,7 @@ export type Database = {
           collected_by_type?: string
           collection_method?: string
           created_at?: string
+          date_of_birth?: string | null
           deleted_at?: string | null
           effective_from?: string
           effective_to?: string | null
@@ -23897,6 +29405,53 @@ export type Database = {
           },
           {
             foreignKeyName: "user_demographics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_dietary_constraints: {
+        Row: {
+          constraint_code: string
+          created_at: string
+          user_id: number
+        }
+        Insert: {
+          constraint_code: string
+          created_at?: string
+          user_id: number
+        }
+        Update: {
+          constraint_code?: string
+          created_at?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_dietary_constraints_constraint_code_fkey"
+            columns: ["constraint_code"]
+            isOneToOne: false
+            referencedRelation: "dietary_constraints"
+            referencedColumns: ["constraint_code"]
+          },
+          {
+            foreignKeyName: "user_dietary_constraints_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_dietary_constraints_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_dietary_constraints_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -23951,6 +29506,7 @@ export type Database = {
         Row: {
           created_at: string
           deleted_at: string | null
+          follow_source: string | null
           id: number
           requester_id: number
           resolved_at: string | null
@@ -23960,6 +29516,7 @@ export type Database = {
         Insert: {
           created_at?: string
           deleted_at?: string | null
+          follow_source?: string | null
           id?: number
           requester_id: number
           resolved_at?: string | null
@@ -23969,6 +29526,7 @@ export type Database = {
         Update: {
           created_at?: string
           deleted_at?: string | null
+          follow_source?: string | null
           id?: number
           requester_id?: number
           resolved_at?: string | null
@@ -24029,6 +29587,7 @@ export type Database = {
           follower_id: number
           is_blocked: boolean
           is_muted: boolean
+          relationship_origin: string
           updated_at: string
         }
         Insert: {
@@ -24039,6 +29598,7 @@ export type Database = {
           follower_id: number
           is_blocked?: boolean
           is_muted?: boolean
+          relationship_origin?: string
           updated_at?: string
         }
         Update: {
@@ -24049,6 +29609,7 @@ export type Database = {
           follower_id?: number
           is_blocked?: boolean
           is_muted?: boolean
+          relationship_origin?: string
           updated_at?: string
         }
         Relationships: [
@@ -24231,6 +29792,239 @@ export type Database = {
           },
         ]
       }
+      user_job_elo: {
+        Row: {
+          battles_lost: number
+          battles_total: number
+          battles_won: number
+          compare_group_id: number
+          component_id: number | null
+          computed_at: string | null
+          computed_from_round_id: number | null
+          created_at: string
+          deleted_at: string | null
+          elo_score: number
+          elo_score_previous: number | null
+          first_rated_at: string | null
+          global_elo_at_seed: number | null
+          job_rank: number | null
+          job_total: number | null
+          last_battle_at: string | null
+          maturity: number
+          product_id: number
+          provenance_class: Database["public"]["Enums"]["battle_provenance_class"]
+          rank_comparable: boolean
+          seed_elo: number
+          seed_source: string
+          times_been_opponent: number
+          updated_at: string
+          user_id: number
+          user_job_elo_id: number
+        }
+        Insert: {
+          battles_lost?: number
+          battles_total?: number
+          battles_won?: number
+          compare_group_id: number
+          component_id?: number | null
+          computed_at?: string | null
+          computed_from_round_id?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          elo_score?: number
+          elo_score_previous?: number | null
+          first_rated_at?: string | null
+          global_elo_at_seed?: number | null
+          job_rank?: number | null
+          job_total?: number | null
+          last_battle_at?: string | null
+          maturity?: number
+          product_id: number
+          provenance_class: Database["public"]["Enums"]["battle_provenance_class"]
+          rank_comparable?: boolean
+          seed_elo?: number
+          seed_source?: string
+          times_been_opponent?: number
+          updated_at?: string
+          user_id: number
+          user_job_elo_id?: never
+        }
+        Update: {
+          battles_lost?: number
+          battles_total?: number
+          battles_won?: number
+          compare_group_id?: number
+          component_id?: number | null
+          computed_at?: string | null
+          computed_from_round_id?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          elo_score?: number
+          elo_score_previous?: number | null
+          first_rated_at?: string | null
+          global_elo_at_seed?: number | null
+          job_rank?: number | null
+          job_total?: number | null
+          last_battle_at?: string | null
+          maturity?: number
+          product_id?: number
+          provenance_class?: Database["public"]["Enums"]["battle_provenance_class"]
+          rank_comparable?: boolean
+          seed_elo?: number
+          seed_source?: string
+          times_been_opponent?: number
+          updated_at?: string
+          user_id?: number
+          user_job_elo_id?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_job_elo_compare_group_id_fkey"
+            columns: ["compare_group_id"]
+            isOneToOne: false
+            referencedRelation: "compare_groups"
+            referencedColumns: ["compare_group_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_job_elo_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_job_elo_recompute_queue: {
+        Row: {
+          compare_group_id: number
+          enqueued_at: string
+          error_text: string | null
+          id: number
+          processed_at: string | null
+          provenance_class: Database["public"]["Enums"]["battle_provenance_class"]
+          reason: string
+          user_id: number
+        }
+        Insert: {
+          compare_group_id: number
+          enqueued_at?: string
+          error_text?: string | null
+          id?: never
+          processed_at?: string | null
+          provenance_class: Database["public"]["Enums"]["battle_provenance_class"]
+          reason: string
+          user_id: number
+        }
+        Update: {
+          compare_group_id?: number
+          enqueued_at?: string
+          error_text?: string | null
+          id?: never
+          processed_at?: string | null
+          provenance_class?: Database["public"]["Enums"]["battle_provenance_class"]
+          reason?: string
+          user_id?: number
+        }
+        Relationships: []
+      }
       user_l1_mastery: {
         Row: {
           categories_explored: number
@@ -24273,27 +30067,6 @@ export type Database = {
             foreignKeyName: "fk_user_l1_mastery_l1_node"
             columns: ["l1_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "fk_user_l1_mastery_l1_node"
-            columns: ["l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "fk_user_l1_mastery_l1_node"
-            columns: ["l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "fk_user_l1_mastery_l1_node"
-            columns: ["l1_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -24316,6 +30089,13 @@ export type Database = {
             columns: ["l1_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "fk_user_l1_mastery_l1_node"
+            columns: ["l1_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -24344,6 +30124,7 @@ export type Database = {
       user_list_items: {
         Row: {
           added_at: string | null
+          checked_at: string | null
           created_at: string | null
           deleted_at: string | null
           is_checked: boolean
@@ -24364,6 +30145,7 @@ export type Database = {
         }
         Insert: {
           added_at?: string | null
+          checked_at?: string | null
           created_at?: string | null
           deleted_at?: string | null
           is_checked?: boolean
@@ -24384,6 +30166,7 @@ export type Database = {
         }
         Update: {
           added_at?: string | null
+          checked_at?: string | null
           created_at?: string | null
           deleted_at?: string | null
           is_checked?: boolean
@@ -24403,13 +30186,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "user_list_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
           {
             foreignKeyName: "user_list_items_product_id_fkey"
             columns: ["product_id"]
@@ -24477,7 +30253,21 @@ export type Database = {
             foreignKeyName: "user_list_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_list_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_list_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -24637,13 +30427,6 @@ export type Database = {
             foreignKeyName: "user_occasion_profile_champion_product_id_fkey"
             columns: ["champion_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_occasion_profile_champion_product_id_fkey"
-            columns: ["champion_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -24707,7 +30490,21 @@ export type Database = {
             foreignKeyName: "user_occasion_profile_champion_product_id_fkey"
             columns: ["champion_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_occasion_profile_champion_product_id_fkey"
+            columns: ["champion_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_occasion_profile_champion_product_id_fkey"
+            columns: ["champion_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -24808,7 +30605,7 @@ export type Database = {
           },
         ]
       }
-      user_occasion_slots: {
+      user_occasion_slots_deprecated_v1: {
         Row: {
           anchor_id: number | null
           battles_contributed: number
@@ -24944,27 +30741,6 @@ export type Database = {
             foreignKeyName: "user_occasion_slots_champion_l3_node_id_fkey"
             columns: ["champion_l3_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_occasion_slots_champion_l3_node_id_fkey"
-            columns: ["champion_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_occasion_slots_champion_l3_node_id_fkey"
-            columns: ["champion_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "user_occasion_slots_champion_l3_node_id_fkey"
-            columns: ["champion_l3_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -24990,11 +30766,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "user_occasion_slots_champion_product_id_fkey"
-            columns: ["champion_product_id"]
+            foreignKeyName: "user_occasion_slots_champion_l3_node_id_fkey"
+            columns: ["champion_l3_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "user_occasion_slots_champion_product_id_fkey"
@@ -25063,7 +30839,21 @@ export type Database = {
             foreignKeyName: "user_occasion_slots_champion_product_id_fkey"
             columns: ["champion_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_occasion_slots_champion_product_id_fkey"
+            columns: ["champion_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_occasion_slots_champion_product_id_fkey"
+            columns: ["champion_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -25091,13 +30881,6 @@ export type Database = {
             foreignKeyName: "user_occasion_slots_previous_product_id_fkey"
             columns: ["previous_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_occasion_slots_previous_product_id_fkey"
-            columns: ["previous_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -25161,7 +30944,21 @@ export type Database = {
             foreignKeyName: "user_occasion_slots_previous_product_id_fkey"
             columns: ["previous_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_occasion_slots_previous_product_id_fkey"
+            columns: ["previous_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_occasion_slots_previous_product_id_fkey"
+            columns: ["previous_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -25599,6 +31396,70 @@ export type Database = {
           },
         ]
       }
+      user_payout_identities: {
+        Row: {
+          created_at: string
+          id: string
+          line_type: string | null
+          phone_e164: string
+          rail: string
+          revoked_at: string | null
+          status: string
+          updated_at: string
+          user_id: number
+          verification_method: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          line_type?: string | null
+          phone_e164: string
+          rail?: string
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: number
+          verification_method?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          line_type?: string | null
+          phone_e164?: string
+          rail?: string
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: number
+          verification_method?: string | null
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_payout_identities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_payout_identities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_payout_identities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       user_pinned_products: {
         Row: {
           battle_count_at_pin: number
@@ -25628,13 +31489,6 @@ export type Database = {
           user_id?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "user_pinned_products_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
           {
             foreignKeyName: "user_pinned_products_product_id_fkey"
             columns: ["product_id"]
@@ -25702,7 +31556,21 @@ export type Database = {
             foreignKeyName: "user_pinned_products_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_pinned_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_pinned_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -25898,27 +31766,6 @@ export type Database = {
             foreignKeyName: "user_plu_elo_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_plu_elo_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_plu_elo_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "user_plu_elo_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -25941,6 +31788,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_plu_elo_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -26002,13 +31856,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["plu_code"]
-          },
-          {
-            foreignKeyName: "user_plu_finds_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "user_plu_finds_product_id_fkey"
@@ -26077,7 +31924,21 @@ export type Database = {
             foreignKeyName: "user_plu_finds_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_plu_finds_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_plu_finds_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -26177,6 +32038,7 @@ export type Database = {
           restriction_code: string
           selected_at: string | null
           source_type: string | null
+          strictness: string | null
           updated_at: string | null
         }
         Insert: {
@@ -26188,6 +32050,7 @@ export type Database = {
           restriction_code: string
           selected_at?: string | null
           source_type?: string | null
+          strictness?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -26199,6 +32062,7 @@ export type Database = {
           restriction_code?: string
           selected_at?: string | null
           source_type?: string | null
+          strictness?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -26343,13 +32207,6 @@ export type Database = {
             foreignKeyName: "user_product_elo_last_opponent_product_id_fkey"
             columns: ["last_opponent_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_last_opponent_product_id_fkey"
-            columns: ["last_opponent_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -26413,14 +32270,21 @@ export type Database = {
             foreignKeyName: "user_product_elo_last_opponent_product_id_fkey"
             columns: ["last_opponent_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_elo_last_opponent_product_id_fkey"
+            columns: ["last_opponent_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "user_product_elo_product_id_fkey"
-            columns: ["product_id"]
+            foreignKeyName: "user_product_elo_last_opponent_product_id_fkey"
+            columns: ["last_opponent_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -26490,29 +32354,22 @@ export type Database = {
             foreignKeyName: "user_product_elo_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "user_product_elo_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
+            foreignKeyName: "user_product_elo_product_id_fkey"
+            columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_taxonomy_l2_node_id_fkey"
-            columns: ["taxonomy_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "user_product_elo_taxonomy_l2_node_id_fkey"
@@ -26543,25 +32400,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
+            foreignKeyName: "user_product_elo_taxonomy_l2_node_id_fkey"
+            columns: ["taxonomy_l2_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
@@ -26589,6 +32432,13 @@ export type Database = {
             columns: ["taxonomy_l3_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
+            columns: ["taxonomy_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -26723,13 +32573,6 @@ export type Database = {
             foreignKeyName: "user_product_experiences_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_product_experiences_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -26793,7 +32636,21 @@ export type Database = {
             foreignKeyName: "user_product_experiences_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -26812,6 +32669,219 @@ export type Database = {
           },
           {
             foreignKeyName: "user_product_experiences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_product_reason_events: {
+        Row: {
+          audience: string
+          chosen_kind: string
+          chosen_reason_id: number | null
+          created_at: string
+          event_type: string
+          exploration_reason_id: number | null
+          free_text: string | null
+          presented_reason_ids: number[]
+          product_id: number
+          reason_event_id: number
+          scoring_session_id: number | null
+          source_app_id: string | null
+          taxonomy_node_id: number | null
+          user_id: number
+        }
+        Insert: {
+          audience?: string
+          chosen_kind: string
+          chosen_reason_id?: number | null
+          created_at?: string
+          event_type?: string
+          exploration_reason_id?: number | null
+          free_text?: string | null
+          presented_reason_ids?: number[]
+          product_id: number
+          reason_event_id?: never
+          scoring_session_id?: number | null
+          source_app_id?: string | null
+          taxonomy_node_id?: number | null
+          user_id: number
+        }
+        Update: {
+          audience?: string
+          chosen_kind?: string
+          chosen_reason_id?: number | null
+          created_at?: string
+          event_type?: string
+          exploration_reason_id?: number | null
+          free_text?: string | null
+          presented_reason_ids?: number[]
+          product_id?: number
+          reason_event_id?: never
+          scoring_session_id?: number | null
+          source_app_id?: string | null
+          taxonomy_node_id?: number | null
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_product_reason_events_chosen_reason_id_fkey"
+            columns: ["chosen_reason_id"]
+            isOneToOne: false
+            referencedRelation: "compare_group_reasons"
+            referencedColumns: ["reason_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_exploration_reason_id_fkey"
+            columns: ["exploration_reason_id"]
+            isOneToOne: false
+            referencedRelation: "compare_group_reasons"
+            referencedColumns: ["reason_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_scoring_session_id_fkey"
+            columns: ["scoring_session_id"]
+            isOneToOne: false
+            referencedRelation: "user_scoring_sessions"
+            referencedColumns: ["scoring_session_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_product_reason_events_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -26855,13 +32925,6 @@ export type Database = {
             foreignKeyName: "upta_product_fk"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "upta_product_fk"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -26925,7 +32988,21 @@ export type Database = {
             foreignKeyName: "upta_product_fk"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "upta_product_fk"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "upta_product_fk"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -26964,8 +33041,10 @@ export type Database = {
           current_battle_win_streak: number
           default_top_list_id: number | null
           deleted_at: string | null
+          diet_filter_settings: Json
           dietary_filter_mode: string | null
           dietary_flags: string[] | null
+          dietary_preferences: string[]
           dietary_restrictions: string[] | null
           dietary_strictness: string | null
           display_name: string | null
@@ -26992,6 +33071,7 @@ export type Database = {
           health_w_total_carbs: number | null
           health_w_total_fat: number | null
           home_region: string | null
+          home_state_code: string | null
           inference_battle_count: number | null
           inferred_weight_health: number | null
           inferred_weight_price: number | null
@@ -27059,8 +33139,10 @@ export type Database = {
           current_battle_win_streak?: number
           default_top_list_id?: number | null
           deleted_at?: string | null
+          diet_filter_settings?: Json
           dietary_filter_mode?: string | null
           dietary_flags?: string[] | null
+          dietary_preferences?: string[]
           dietary_restrictions?: string[] | null
           dietary_strictness?: string | null
           display_name?: string | null
@@ -27087,6 +33169,7 @@ export type Database = {
           health_w_total_carbs?: number | null
           health_w_total_fat?: number | null
           home_region?: string | null
+          home_state_code?: string | null
           inference_battle_count?: number | null
           inferred_weight_health?: number | null
           inferred_weight_price?: number | null
@@ -27154,8 +33237,10 @@ export type Database = {
           current_battle_win_streak?: number
           default_top_list_id?: number | null
           deleted_at?: string | null
+          diet_filter_settings?: Json
           dietary_filter_mode?: string | null
           dietary_flags?: string[] | null
+          dietary_preferences?: string[]
           dietary_restrictions?: string[] | null
           dietary_strictness?: string | null
           display_name?: string | null
@@ -27182,6 +33267,7 @@ export type Database = {
           health_w_total_carbs?: number | null
           health_w_total_fat?: number | null
           home_region?: string | null
+          home_state_code?: string | null
           inference_battle_count?: number | null
           inferred_weight_health?: number | null
           inferred_weight_price?: number | null
@@ -27244,13 +33330,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_top_lists"
             referencedColumns: ["top_list_id"]
-          },
-          {
-            foreignKeyName: "fk_user_profiles_first_battle_product"
-            columns: ["first_battle_product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "fk_user_profiles_first_battle_product"
@@ -27319,7 +33398,21 @@ export type Database = {
             foreignKeyName: "fk_user_profiles_first_battle_product"
             columns: ["first_battle_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "fk_user_profiles_first_battle_product"
+            columns: ["first_battle_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "fk_user_profiles_first_battle_product"
+            columns: ["first_battle_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -27342,6 +33435,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_profiles_home_state_code_fkey"
+            columns: ["home_state_code"]
+            isOneToOne: false
+            referencedRelation: "us_states"
+            referencedColumns: ["state_code"]
           },
           {
             foreignKeyName: "user_profiles_user_id_fkey"
@@ -27500,13 +33600,6 @@ export type Database = {
             foreignKeyName: "user_ratings_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_ratings_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -27570,7 +33663,21 @@ export type Database = {
             foreignKeyName: "user_ratings_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_ratings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_ratings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -27692,7 +33799,7 @@ export type Database = {
           id: number
           last_battled_at: string | null
           list_tags: string[]
-          list_type: string
+          list_type: string | null
           note: string | null
           pantry_eligible_at: string | null
           pantry_promoted_at: string | null
@@ -27703,7 +33810,6 @@ export type Database = {
           tried_at: string | null
           updated_at: string
           user_id: number
-          vault_eligible_at: string | null
         }
         Insert: {
           battle_count?: number | null
@@ -27714,7 +33820,7 @@ export type Database = {
           id?: number
           last_battled_at?: string | null
           list_tags?: string[]
-          list_type?: string
+          list_type?: string | null
           note?: string | null
           pantry_eligible_at?: string | null
           pantry_promoted_at?: string | null
@@ -27725,7 +33831,6 @@ export type Database = {
           tried_at?: string | null
           updated_at?: string
           user_id: number
-          vault_eligible_at?: string | null
         }
         Update: {
           battle_count?: number | null
@@ -27736,7 +33841,7 @@ export type Database = {
           id?: number
           last_battled_at?: string | null
           list_tags?: string[]
-          list_type?: string
+          list_type?: string | null
           note?: string | null
           pantry_eligible_at?: string | null
           pantry_promoted_at?: string | null
@@ -27747,16 +33852,8 @@ export type Database = {
           tried_at?: string | null
           updated_at?: string
           user_id?: number
-          vault_eligible_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "user_saved_products_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
           {
             foreignKeyName: "user_saved_products_product_id_fkey"
             columns: ["product_id"]
@@ -27824,7 +33921,21 @@ export type Database = {
             foreignKeyName: "user_saved_products_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_saved_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_saved_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -28005,27 +34116,6 @@ export type Database = {
             foreignKeyName: "user_scoring_sessions_compare_set_taxonomy_node_id_used_fkey"
             columns: ["compare_set_taxonomy_node_id_used"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_scoring_sessions_compare_set_taxonomy_node_id_used_fkey"
-            columns: ["compare_set_taxonomy_node_id_used"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_scoring_sessions_compare_set_taxonomy_node_id_used_fkey"
-            columns: ["compare_set_taxonomy_node_id_used"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "user_scoring_sessions_compare_set_taxonomy_node_id_used_fkey"
-            columns: ["compare_set_taxonomy_node_id_used"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -28051,11 +34141,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "user_scoring_sessions_last_opponent_product_id_fkey"
-            columns: ["last_opponent_product_id"]
+            foreignKeyName: "user_scoring_sessions_compare_set_taxonomy_node_id_used_fkey"
+            columns: ["compare_set_taxonomy_node_id_used"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "user_scoring_sessions_last_opponent_product_id_fkey"
@@ -28124,7 +34214,21 @@ export type Database = {
             foreignKeyName: "user_scoring_sessions_last_opponent_product_id_fkey"
             columns: ["last_opponent_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_scoring_sessions_last_opponent_product_id_fkey"
+            columns: ["last_opponent_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_scoring_sessions_last_opponent_product_id_fkey"
+            columns: ["last_opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -28145,13 +34249,6 @@ export type Database = {
             foreignKeyName: "user_scoring_sessions_target_product_id_fkey"
             columns: ["target_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_scoring_sessions_target_product_id_fkey"
-            columns: ["target_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -28215,7 +34312,21 @@ export type Database = {
             foreignKeyName: "user_scoring_sessions_target_product_id_fkey"
             columns: ["target_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_scoring_sessions_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_scoring_sessions_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -28501,27 +34612,6 @@ export type Database = {
             foreignKeyName: "user_top_lists_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_top_lists_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_top_lists_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "user_top_lists_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -28544,6 +34634,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_top_lists_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -28884,13 +34981,6 @@ export type Database = {
             foreignKeyName: "fk_users_first_battle_product"
             columns: ["first_battle_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "fk_users_first_battle_product"
-            columns: ["first_battle_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -28954,7 +35044,21 @@ export type Database = {
             foreignKeyName: "fk_users_first_battle_product"
             columns: ["first_battle_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "fk_users_first_battle_product"
+            columns: ["first_battle_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "fk_users_first_battle_product"
+            columns: ["first_battle_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -28979,6 +35083,99 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      yo_plan_20260813: {
+        Row: {
+          base: string | null
+          chunk: number | null
+          evict: string | null
+          flag_reason: string | null
+          from_node: number | null
+          is_drinkable: boolean | null
+          is_kids: boolean | null
+          nm: string | null
+          product_id: number | null
+          style: string | null
+          to_node: number | null
+        }
+        Insert: {
+          base?: string | null
+          chunk?: number | null
+          evict?: string | null
+          flag_reason?: string | null
+          from_node?: number | null
+          is_drinkable?: boolean | null
+          is_kids?: boolean | null
+          nm?: string | null
+          product_id?: number | null
+          style?: string | null
+          to_node?: number | null
+        }
+        Update: {
+          base?: string | null
+          chunk?: number | null
+          evict?: string | null
+          flag_reason?: string | null
+          from_node?: number | null
+          is_drinkable?: boolean | null
+          is_kids?: boolean | null
+          nm?: string | null
+          product_id?: number | null
+          style?: string | null
+          to_node?: number | null
+        }
+        Relationships: []
+      }
+      yo_scope_20260813: {
+        Row: {
+          base: string | null
+          fat: string | null
+          flav: string | null
+          fmt: string | null
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+          style: string | null
+        }
+        Insert: {
+          base?: string | null
+          fat?: string | null
+          flav?: string | null
+          fmt?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          style?: string | null
+        }
+        Update: {
+          base?: string | null
+          fat?: string | null
+          flav?: string | null
+          fmt?: string | null
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+          style?: string | null
+        }
+        Relationships: []
+      }
+      yofix_20260813: {
+        Row: {
+          from_node: number | null
+          nm: string | null
+          product_id: number | null
+        }
+        Insert: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Update: {
+          from_node?: number | null
+          nm?: string | null
+          product_id?: number | null
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -29019,13 +35216,6 @@ export type Database = {
             foreignKeyName: "brand_campaigns_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_campaigns_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -29042,13 +35232,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_mission_reports_focal_product_id_fkey"
-            columns: ["focal_product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "brand_mission_reports_focal_product_id_fkey"
@@ -29117,7 +35300,21 @@ export type Database = {
             foreignKeyName: "brand_mission_reports_focal_product_id_fkey"
             columns: ["focal_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_mission_reports_focal_product_id_fkey"
+            columns: ["focal_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_mission_reports_focal_product_id_fkey"
+            columns: ["focal_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -29147,27 +35344,6 @@ export type Database = {
             foreignKeyName: "product_score_aggregates_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "product_score_aggregates_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "product_score_aggregates_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "product_score_aggregates_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -29193,25 +35369,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
-            columns: ["ancestor_l2_node_id"]
+            foreignKeyName: "product_score_aggregates_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
-            columns: ["ancestor_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
-            columns: ["ancestor_l2_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
@@ -29239,6 +35401,13 @@ export type Database = {
             columns: ["ancestor_l2_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
+            columns: ["ancestor_l2_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -29256,26 +35425,6 @@ export type Database = {
           products_with_data: number | null
           total_battles: number | null
           total_products: number | null
-        }
-        Relationships: []
-      }
-      brand_slot_ownership: {
-        Row: {
-          avg_champion_days: number | null
-          brand_id: number | null
-          brand_name: string | null
-          l1_department: string | null
-          l1_node_id: number | null
-          l2_aisle: string | null
-          l2_node_id: number | null
-          l3_category: string | null
-          l3_node_id: number | null
-          product_id: number | null
-          product_name_display: string | null
-          slot_ownership_pct: number | null
-          slots_owned: number | null
-          total_slot_holders: number | null
-          user_confirmed_count: number | null
         }
         Relationships: []
       }
@@ -29327,27 +35476,6 @@ export type Database = {
             foreignKeyName: "products_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -29370,6 +35498,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -29403,13 +35538,6 @@ export type Database = {
           user_notes: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "product_correction_submissions_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
           {
             foreignKeyName: "product_correction_submissions_product_id_fkey"
             columns: ["product_id"]
@@ -29477,29 +35605,22 @@ export type Database = {
             foreignKeyName: "product_correction_submissions_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_correction_submissions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "product_correction_submissions_proposed_taxonomy_node_id_fkey"
-            columns: ["proposed_taxonomy_node_id"]
+            foreignKeyName: "product_correction_submissions_product_id_fkey"
+            columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "product_correction_submissions_proposed_taxonomy_node_id_fkey"
-            columns: ["proposed_taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "product_correction_submissions_proposed_taxonomy_node_id_fkey"
-            columns: ["proposed_taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "product_correction_submissions_proposed_taxonomy_node_id_fkey"
@@ -29527,6 +35648,13 @@ export type Database = {
             columns: ["proposed_taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "product_correction_submissions_proposed_taxonomy_node_id_fkey"
+            columns: ["proposed_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -29578,13 +35706,6 @@ export type Database = {
             foreignKeyName: "products_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "products_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -29601,27 +35722,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
           },
           {
             foreignKeyName: "products_taxonomy_node_id_fkey"
@@ -29652,25 +35752,11 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
           {
-            foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
-            columns: ["ancestor_l1_node_id"]
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
-            columns: ["ancestor_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
-            columns: ["ancestor_l1_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
@@ -29698,6 +35784,13 @@ export type Database = {
             columns: ["ancestor_l1_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
+            columns: ["ancestor_l1_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -29773,6 +35866,102 @@ export type Database = {
           },
         ]
       }
+      product_allergen_status: {
+        Row: {
+          allergens: string[] | null
+          product_id: number | null
+          read_variants: number | null
+          status: string | null
+          unread_variants: number | null
+          variant_rows: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+        ]
+      }
       product_consideration_set: {
         Row: {
           avg_decision_ms: number | null
@@ -29791,13 +35980,6 @@ export type Database = {
             foreignKeyName: "battle_rounds_opponent_product_id_fkey"
             columns: ["competitor_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
-            columns: ["competitor_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -29861,14 +36043,21 @@ export type Database = {
             foreignKeyName: "battle_rounds_opponent_product_id_fkey"
             columns: ["competitor_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["competitor_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "battle_rounds_primary_product_id_fkey"
-            columns: ["product_id"]
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["competitor_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -29938,7 +36127,21 @@ export type Database = {
             foreignKeyName: "battle_rounds_primary_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -29958,27 +36161,6 @@ export type Database = {
           total_battles: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
           {
             foreignKeyName: "products_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
@@ -30007,6 +36189,13 @@ export type Database = {
             referencedRelation: "taxonomy_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
         ]
       }
       product_geo_scores: {
@@ -30021,13 +36210,6 @@ export type Database = {
           wins: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "battle_rounds_primary_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
           {
             foreignKeyName: "battle_rounds_primary_product_id_fkey"
             columns: ["product_id"]
@@ -30095,29 +36277,22 @@ export type Database = {
             foreignKeyName: "battle_rounds_primary_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
@@ -30145,6 +36320,13 @@ export type Database = {
             columns: ["taxonomy_l3_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
+            columns: ["taxonomy_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -30169,27 +36351,6 @@ export type Database = {
             foreignKeyName: "products_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -30212,6 +36373,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -30237,27 +36405,6 @@ export type Database = {
             foreignKeyName: "products_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -30280,6 +36427,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -30334,13 +36488,6 @@ export type Database = {
             foreignKeyName: "products_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "products_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["brand_id"]
           },
@@ -30357,27 +36504,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
           },
           {
             foreignKeyName: "products_taxonomy_node_id_fkey"
@@ -30405,6 +36531,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -30449,27 +36582,6 @@ export type Database = {
             foreignKeyName: "products_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "products_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -30492,6 +36604,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -30537,13 +36656,6 @@ export type Database = {
           variant_name_display?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "sku_variants_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
           {
             foreignKeyName: "sku_variants_product_id_fkey"
             columns: ["product_id"]
@@ -30611,7 +36723,21 @@ export type Database = {
             foreignKeyName: "sku_variants_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
         ]
@@ -30636,22 +36762,72 @@ export type Database = {
             foreignKeyName: "products_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
           },
           {
             foreignKeyName: "products_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
           },
           {
             foreignKeyName: "products_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+        ]
+      }
+      products_renderable: {
+        Row: {
+          brand_display_name: string | null
+          brand_id: number | null
+          brand_logo_url: string | null
+          category_name: string | null
+          created_at: string | null
+          display_name: string | null
+          image_url: string | null
+          product_id: number | null
+          taxonomy_node_id: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
           },
           {
             foreignKeyName: "products_taxonomy_node_id_fkey"
@@ -30679,6 +36855,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
@@ -30730,13 +36913,6 @@ export type Database = {
             foreignKeyName: "sku_variants_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "sku_variants_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -30800,69 +36976,22 @@ export type Database = {
             foreignKeyName: "sku_variants_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
-        ]
-      }
-      slot_population_stats: {
-        Row: {
-          aisle_name: string | null
-          category_name: string | null
-          slots_with_champion: number | null
-          taxonomy_l3_node_id: number | null
-          unique_champions: number | null
-          users_with_slot: number | null
-        }
-        Relationships: [
           {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
+            foreignKeyName: "sku_variants_product_id_fkey"
+            columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "category_cooccurrence"
-            referencedColumns: ["category_a_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "category_cooccurrence"
-            referencedColumns: ["category_b_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "product_consideration_set"
-            referencedColumns: ["competitor_taxonomy_node_id"]
-          },
-          {
-            foreignKeyName: "user_cart_slots_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "taxonomy_nodes"
-            referencedColumns: ["taxonomy_node_id"]
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
           },
         ]
       }
@@ -30918,27 +37047,6 @@ export type Database = {
             foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
             columns: ["taxonomy_l3_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -30961,6 +37069,13 @@ export type Database = {
             columns: ["taxonomy_l3_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
+            columns: ["taxonomy_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -31001,27 +37116,6 @@ export type Database = {
             foreignKeyName: "user_anchor_queue_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_anchor_queue_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_anchor_queue_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
-          {
-            foreignKeyName: "user_anchor_queue_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
             referencedRelation: "category_cooccurrence"
             referencedColumns: ["category_a_id"]
           },
@@ -31044,6 +37138,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_anchor_queue_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -31092,13 +37193,6 @@ export type Database = {
             foreignKeyName: "user_product_elo_product_id_fkey"
             columns: ["top_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_product_id_fkey"
-            columns: ["top_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -31162,29 +37256,22 @@ export type Database = {
             foreignKeyName: "user_product_elo_product_id_fkey"
             columns: ["top_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_elo_product_id_fkey"
+            columns: ["top_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
+            foreignKeyName: "user_product_elo_product_id_fkey"
+            columns: ["top_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
@@ -31212,6 +37299,13 @@ export type Database = {
             columns: ["taxonomy_l3_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
+            columns: ["taxonomy_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -31249,6 +37343,7 @@ export type Database = {
           last_battle_at: string | null
           next_level_tries_required: number | null
           product_id: number | null
+          product_name: string | null
           product_name_display: string | null
           rank_in_category: number | null
           score_display: number | null
@@ -31259,13 +37354,6 @@ export type Database = {
           user_percentile: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "user_product_elo_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
           {
             foreignKeyName: "user_product_elo_product_id_fkey"
             columns: ["product_id"]
@@ -31333,29 +37421,22 @@ export type Database = {
             foreignKeyName: "user_product_elo_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
+            foreignKeyName: "user_product_elo_product_id_fkey"
+            columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
-            columns: ["taxonomy_l3_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
@@ -31383,6 +37464,13 @@ export type Database = {
             columns: ["taxonomy_l3_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_product_elo_taxonomy_l3_node_id_fkey"
+            columns: ["taxonomy_l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -31499,6 +37587,155 @@ export type Database = {
         }
         Relationships: []
       }
+      user_loops_complete: {
+        Row: {
+          l3_node_id: number | null
+          product_id: number | null
+          user_id: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["l3_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_product_experiences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       user_produce_passport: {
         Row: {
           category_name: string | null
@@ -31520,27 +37757,6 @@ export type Database = {
           user_id: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "plu_codes_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "plu_codes_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "plu_codes_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
-          },
           {
             foreignKeyName: "plu_codes_taxonomy_node_id_fkey"
             columns: ["taxonomy_node_id"]
@@ -31567,6 +37783,13 @@ export type Database = {
             columns: ["taxonomy_node_id"]
             isOneToOne: false
             referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "plu_codes_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
           {
@@ -31614,13 +37837,6 @@ export type Database = {
             foreignKeyName: "user_product_elo_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "user_product_elo_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -31684,7 +37900,21 @@ export type Database = {
             foreignKeyName: "user_product_elo_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "user_product_elo_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -31726,13 +37956,6 @@ export type Database = {
             foreignKeyName: "battle_rounds_primary_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "battle_rounds_primary_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -31796,7 +38019,21 @@ export type Database = {
             foreignKeyName: "battle_rounds_primary_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -31838,13 +38075,6 @@ export type Database = {
             foreignKeyName: "scan_events_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "scan_events_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -31908,7 +38138,21 @@ export type Database = {
             foreignKeyName: "scan_events_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "scan_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "scan_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -31967,6 +38211,584 @@ export type Database = {
           },
         ]
       }
+      v_allergen_filter: {
+        Row: {
+          allergen: string | null
+          ingredients_verified: boolean | null
+          product_id: number | null
+          product_name_display: string | null
+          status: string | null
+          taxonomy_node_id: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "products_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+        ]
+      }
+      v_battle_rounds_ranked: {
+        Row: {
+          battle_round_id: number | null
+          compare_group_id: number | null
+          node_at_battle_time: number | null
+          opponent_elo_before: number | null
+          opponent_product_id: number | null
+          opponent_selection_strategy: string | null
+          outcome: string | null
+          pool_claim_verified: boolean | null
+          pool_name: string | null
+          presented_at: string | null
+          primary_elo_before: number | null
+          primary_elo_delta: number | null
+          primary_product_id: number | null
+          provenance_class:
+            | Database["public"]["Enums"]["battle_provenance_class"]
+            | null
+          question_prompt_id: number | null
+          user_id: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_rounds_compare_group_id_fkey"
+            columns: ["compare_group_id"]
+            isOneToOne: false
+            referencedRelation: "compare_groups"
+            referencedColumns: ["compare_group_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_question_prompt_id_fkey"
+            columns: ["question_prompt_id"]
+            isOneToOne: false
+            referencedRelation: "question_prompts"
+            referencedColumns: ["question_prompt_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
+            columns: ["node_at_battle_time"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
+            columns: ["node_at_battle_time"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
+            columns: ["node_at_battle_time"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
+            columns: ["node_at_battle_time"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_taxonomy_l3_node_id_fkey"
+            columns: ["node_at_battle_time"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      v_browse_nodes: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l0_node_id_fkey"
+            columns: ["ancestor_l0_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l0_node_id_fkey"
+            columns: ["ancestor_l0_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l0_node_id_fkey"
+            columns: ["ancestor_l0_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l0_node_id_fkey"
+            columns: ["ancestor_l0_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l0_node_id_fkey"
+            columns: ["ancestor_l0_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
+            columns: ["ancestor_l1_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
+            columns: ["ancestor_l1_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
+            columns: ["ancestor_l1_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
+            columns: ["ancestor_l1_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l1_node_id_fkey"
+            columns: ["ancestor_l1_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
+            columns: ["ancestor_l2_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
+            columns: ["ancestor_l2_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
+            columns: ["ancestor_l2_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
+            columns: ["ancestor_l2_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_ancestor_l2_node_id_fkey"
+            columns: ["ancestor_l2_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_parent_taxonomy_node_id_fkey"
+            columns: ["parent_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_parent_taxonomy_node_id_fkey"
+            columns: ["parent_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_parent_taxonomy_node_id_fkey"
+            columns: ["parent_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_parent_taxonomy_node_id_fkey"
+            columns: ["parent_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_parent_taxonomy_node_id_fkey"
+            columns: ["parent_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_root_taxonomy_node_id_fkey"
+            columns: ["root_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_root_taxonomy_node_id_fkey"
+            columns: ["root_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_root_taxonomy_node_id_fkey"
+            columns: ["root_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_root_taxonomy_node_id_fkey"
+            columns: ["root_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "taxonomy_nodes_root_taxonomy_node_id_fkey"
+            columns: ["root_taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+        ]
+      }
+      v_compare_group_battle_facts: {
+        Row: {
+          battle_round_id: number | null
+          battle_type: string | null
+          compare_group_id: number | null
+          day_of_week: number | null
+          decided_at: string | null
+          elo_before: number | null
+          elo_delta: number | null
+          hour_of_day: number | null
+          lost: boolean | null
+          outcome: string | null
+          product_id: number | null
+          skipped: boolean | null
+          slot: string | null
+          taxonomy_l3_node_id: number | null
+          user_id: number | null
+          versus_product_id: number | null
+          won: boolean | null
+        }
+        Relationships: []
+      }
+      v_deprecated_node_redirects: {
+        Row: {
+          deprecated_node_id: number | null
+          note: string | null
+          target_node_id: number | null
+        }
+        Relationships: []
+      }
       v_mission_claims_base: {
         Row: {
           battles_seeded: boolean | null
@@ -32007,13 +38829,6 @@ export type Database = {
           xp_awarded: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "brand_campaigns_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["brand_id"]
-          },
           {
             foreignKeyName: "brand_campaigns_brand_id_fkey"
             columns: ["brand_id"]
@@ -32102,13 +38917,6 @@ export type Database = {
             foreignKeyName: "missions_product_id_fkey"
             columns: ["mission_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "missions_product_id_fkey"
-            columns: ["mission_product_id"]
-            isOneToOne: false
             referencedRelation: "mv_top_cpg_products"
             referencedColumns: ["product_id"]
           },
@@ -32172,29 +38980,22 @@ export type Database = {
             foreignKeyName: "missions_product_id_fkey"
             columns: ["mission_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "missions_product_id_fkey"
+            columns: ["mission_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "missions_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
+            foreignKeyName: "missions_product_id_fkey"
+            columns: ["mission_product_id"]
             isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l1_node_id"]
-          },
-          {
-            foreignKeyName: "missions_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l2_node_id"]
-          },
-          {
-            foreignKeyName: "missions_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["l3_node_id"]
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "missions_taxonomy_node_id_fkey"
@@ -32224,6 +39025,13 @@ export type Database = {
             referencedRelation: "taxonomy_nodes"
             referencedColumns: ["taxonomy_node_id"]
           },
+          {
+            foreignKeyName: "missions_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
         ]
       }
       v_mission_competitive_positioning: {
@@ -32241,13 +39049,6 @@ export type Database = {
           win_rate_pct: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "mission_battle_attributions_opponent_product_id_fkey"
-            columns: ["opponent_product_id"]
-            isOneToOne: false
-            referencedRelation: "brand_slot_ownership"
-            referencedColumns: ["product_id"]
-          },
           {
             foreignKeyName: "mission_battle_attributions_opponent_product_id_fkey"
             columns: ["opponent_product_id"]
@@ -32315,7 +39116,21 @@ export type Database = {
             foreignKeyName: "mission_battle_attributions_opponent_product_id_fkey"
             columns: ["opponent_product_id"]
             isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_battle_attributions_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
             referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "mission_battle_attributions_opponent_product_id_fkey"
+            columns: ["opponent_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
           },
           {
@@ -32554,8 +39369,74 @@ export type Database = {
           },
         ]
       }
+      v_slot_fragmentation: {
+        Row: {
+          bridge_candidates: number | null
+          bridges_built: number | null
+          compare_group_id: number | null
+          components: number | null
+          is_split: boolean | null
+          is_stuck: boolean | null
+          largest_component: number | null
+          largest_share_pct: number | null
+          products: number | null
+          slot_code: string | null
+          user_id: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_rounds_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "battle_rounds_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
     }
     Functions: {
+      _agg_bt_cluster_core: {
+        Args: {
+          p_cluster: number[]
+          p_loser_idx: number[]
+          p_min_clusters?: number
+          p_n_items: number
+          p_tau?: number
+          p_weights: number[]
+          p_winner_idx: number[]
+          p_z?: number
+        }
+        Returns: {
+          beta: number
+          beta_hi: number
+          beta_lo: number
+          ci_note: string
+          component_id: number
+          design_effect: number
+          effective_n: number
+          flag: string
+          item_idx: number
+          n_clusters: number
+          se_cluster: number
+          se_naive: number
+          strength: number
+        }[]
+      }
+      _cg_resolve_actor: { Args: never; Returns: Record<string, unknown> }
       _hard_delete_mission_internal: {
         Args: { p_mission_id: string }
         Returns: Json
@@ -32590,12 +39471,87 @@ export type Database = {
         }
         Returns: undefined
       }
+      _resolve_primary_grocery_list: {
+        Args: { p_user_id: number }
+        Returns: number
+      }
+      _t3_sim: {
+        Args: {
+          p_n_clusters: number
+          p_pref_sd: number
+          p_rounds_per: number
+          p_seed: number
+          p_true_beta: number[]
+        }
+        Returns: {
+          beta: number
+          design_effect: number
+          item_idx: number
+          se_cluster: number
+          se_naive: number
+          true_centered: number
+        }[]
+      }
       abandon_stale_sessions: { Args: never; Returns: undefined }
       accept_brand_portal_invitation: {
         Args: { p_display_name?: string; p_token: string }
         Returns: Json
       }
       acknowledge_alert: { Args: { p_alert_id: number }; Returns: Json }
+      add_grocery_item: {
+        Args: {
+          p_product_id: number
+          p_quantity_unit?: string
+          p_quantity_value?: number
+          p_user_id: number
+        }
+        Returns: {
+          added_at: string | null
+          checked_at: string | null
+          created_at: string | null
+          deleted_at: string | null
+          is_checked: boolean
+          item_source: string | null
+          list_item_id: number
+          note: string | null
+          notes: string | null
+          product_id: number
+          quantity_unit: string | null
+          quantity_value: number | null
+          rank: number | null
+          sku_variant_id: number | null
+          slot_id: number | null
+          sort_order: number
+          top_list_id: number
+          underlying_taste_score: number | null
+          updated_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_list_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      advance_box_fulfillment: {
+        Args: {
+          p_carrier?: string
+          p_fulfillment_id: string
+          p_passed_quality_watch?: boolean
+          p_reason?: string
+          p_target: Database["public"]["Enums"]["box_fulfillment_state"]
+          p_tracking_ref?: string
+        }
+        Returns: Json
+      }
+      advance_box_status: {
+        Args: {
+          p_box_id: string
+          p_reason?: string
+          p_target: Database["public"]["Enums"]["box_status"]
+        }
+        Returns: Json
+      }
       advance_capture_step: {
         Args: {
           p_image_url: string
@@ -32608,12 +39564,67 @@ export type Database = {
           photos_complete: boolean
         }[]
       }
+      aggregate_job_bt_intervals: {
+        Args: {
+          p_asof?: string
+          p_compare_group_id: number
+          p_min_clusters?: number
+          p_tau?: number
+          p_z?: number
+        }
+        Returns: {
+          beta: number
+          beta_hi: number
+          beta_lo: number
+          ci_note: string
+          component_id: number
+          design_effect: number
+          effective_n: number
+          flag: string
+          item_idx: number
+          n_clusters: number
+          product_id: number
+          se_cluster: number
+          se_naive: number
+          strength: number
+        }[]
+      }
+      aggregate_node_bt_intervals: {
+        Args: {
+          p_asof?: string
+          p_halflife_days?: number
+          p_l3_node_id: number
+          p_min_clusters?: number
+          p_tau?: number
+          p_z?: number
+        }
+        Returns: {
+          beta: number
+          beta_hi: number
+          beta_lo: number
+          ci_note: string
+          component_id: number
+          design_effect: number
+          effective_n: number
+          flag: string
+          item_idx: number
+          n_clusters: number
+          product_id: number
+          se_cluster: number
+          se_naive: number
+          strength: number
+        }[]
+      }
       apply_brand_tier_heuristic: {
         Args: never
         Returns: {
           brands_matched: number
           products_updated: number
         }[]
+      }
+      apply_sku_allergens_to_product_flags: {
+        Args: { p_product_id: number; p_sku_variant_id: number }
+        Returns: undefined
       }
       apply_user_archetype: { Args: { p_user_id: number }; Returns: string }
       approve_follow_request: {
@@ -32630,6 +39641,10 @@ export type Database = {
       }
       assert_caller_owns_mission: {
         Args: { p_mission_id: string }
+        Returns: number
+      }
+      assert_caller_owns_product: {
+        Args: { p_product_id: number }
         Returns: number
       }
       assert_caller_owns_user: { Args: { p_user_id: number }; Returns: number }
@@ -32652,7 +39667,44 @@ export type Database = {
           n: number
         }[]
       }
+      assess_stimulus_consistency: { Args: { p_concepts: Json }; Returns: Json }
       attach_updated_at_trigger: { Args: { tbl: string }; Returns: undefined }
+      audit_position_bias: {
+        Args: { p_compare_group_id?: number }
+        Returns: {
+          compare_group_id: number
+          job_name: string
+          opponent_left_n: number
+          opponent_left_win_rate: number
+          primary_left_n: number
+          primary_left_win_rate: number
+          rounds_with_position: number
+          verdict: string
+          win_rate_gap: number
+        }[]
+      }
+      audit_scan_shell_products: {
+        Args: never
+        Returns: {
+          detail: string
+          finding: string
+          product_id: number
+          remedy: string
+          severity: string
+        }[]
+      }
+      audit_variant_allergen_disagreement: {
+        Args: { p_limit?: number }
+        Returns: {
+          contested: string[]
+          distinct_lists: number
+          example_lists: string
+          product_id: number
+          product_name: string
+          severity: string
+          variants: number
+        }[]
+      }
       award_pioneer_badge_if_eligible: {
         Args: { p_user_id: number }
         Returns: boolean
@@ -32670,6 +39722,51 @@ export type Database = {
       backfill_search_attributes_from_facets: { Args: never; Returns: string }
       block_user: {
         Args: { p_target_user_id: number; p_viewer_auth_id: string }
+        Returns: Json
+      }
+      brand_key: { Args: { p_name: string }; Returns: string }
+      brand_label: {
+        Args: { p_display: string; p_name: string }
+        Returns: string
+      }
+      browse_products: {
+        Args: {
+          p_filters?: Json
+          p_limit?: number
+          p_node_id: number
+          p_offset?: number
+          p_restrictions?: Json
+        }
+        Returns: {
+          contains_flags: Json
+          image_url: string
+          ingredients_verified: boolean
+          is_vegan: boolean
+          is_vegetarian: boolean
+          product_id: number
+          product_name_display: string
+          taxonomy_node_id: number
+        }[]
+      }
+      browse_products_count: {
+        Args: { p_filters?: Json; p_node_id: number; p_restrictions?: Json }
+        Returns: number
+      }
+      bt_fit_core: {
+        Args: {
+          p_loser_idx: number[]
+          p_max_iter?: number
+          p_n_items: number
+          p_prior_means: number[]
+          p_tau?: number
+          p_tol?: number
+          p_weights: number[]
+          p_winner_idx: number[]
+        }
+        Returns: Json
+      }
+      build_concept_questions_from_template: {
+        Args: { p_config?: Json; p_template_code: string }
         Returns: Json
       }
       bulk_update_high_confidence: {
@@ -32693,6 +39790,15 @@ export type Database = {
           winner_new_elo: number
         }[]
       }
+      can_brand_read_mission_report: {
+        Args: { p_mission_id: string }
+        Returns: boolean
+      }
+      can_read_concept_stimulus: {
+        Args: { p_object_name: string }
+        Returns: boolean
+      }
+      cg_question_slug: { Args: { p_q: string }; Returns: string }
       check_and_award_badges: {
         Args: { p_context?: Json; p_trigger: string; p_user_id: number }
         Returns: {
@@ -32701,6 +39807,14 @@ export type Database = {
           emoji: string
           points: number
         }[]
+      }
+      check_compare_group_similarity: {
+        Args: {
+          p_exclude_id?: number
+          p_node_ids: number[]
+          p_question?: string
+        }
+        Returns: Json
       }
       check_composite_badges: {
         Args: { p_user_id: number }
@@ -32711,7 +39825,14 @@ export type Database = {
         Returns: Json
       }
       check_mission_lifecycle_invariants: { Args: never; Returns: number }
+      check_orphaned_user_refs_invariant: { Args: never; Returns: number }
+      check_slot_fragmentation_invariant: { Args: never; Returns: number }
+      check_top_lists_scope_invariant: { Args: never; Returns: number }
       check_tried_invariant: { Args: never; Returns: number }
+      claim_box: {
+        Args: { p_box_id: string; p_user_id?: number }
+        Returns: Json
+      }
       claim_concept_mission: {
         Args: { p_mission_id: string; p_user_id?: number }
         Returns: Json
@@ -32729,6 +39850,14 @@ export type Database = {
           normalized_value: string
           rejection_reason: string
         }[]
+      }
+      classify_evidence_rung: {
+        Args: {
+          p_is_human_verified?: boolean
+          p_is_verified?: boolean
+          p_source_type: string
+        }
+        Returns: Database["public"]["Enums"]["evidence_rung"]
       }
       classify_scan_code: { Args: { p_raw: string }; Returns: string }
       close_study: { Args: { p_mission_id: string }; Returns: Json }
@@ -32788,7 +39917,7 @@ export type Database = {
         Returns: string
       }
       compute_concept_question_responses: {
-        Args: { p_mission_id: string }
+        Args: { p_arm_reporting_floor?: number; p_mission_id: string }
         Returns: Json
       }
       compute_experience_lift_vs_baseline: {
@@ -33064,8 +40193,20 @@ export type Database = {
         Args: { p_node_id: number }
         Returns: number
       }
+      concept_answer_tokens: { Args: { p_answer: Json }; Returns: string[] }
+      concept_battle_pools: {
+        Args: { p_mission_id: string }
+        Returns: {
+          battle_question_id: string
+          decisive_n: number
+          question_label: string
+          question_position: number
+          question_prompt: string
+        }[]
+      }
       concept_bradley_terry_fit: {
         Args: {
+          p_battle_question_id?: string
           p_max_iter?: number
           p_mission_id: string
           p_prior?: number
@@ -33081,7 +40222,7 @@ export type Database = {
         }[]
       }
       concept_bt_diagnostics: {
-        Args: { p_mission_id: string }
+        Args: { p_battle_question_id?: string; p_mission_id: string }
         Returns: {
           combatant_ref: number
           component_id: number
@@ -33093,22 +40234,9 @@ export type Database = {
           wins: number
         }[]
       }
-      concept_bt_intervals: {
-        Args: { p_mission_id: string; p_prior?: number; p_z?: number }
-        Returns: {
-          beta: number
-          beta_hi: number
-          beta_lo: number
-          ci_note: string
-          combatant_ref: number
-          se_beta: number
-          strength: number
-          strength_hi: number
-          strength_lo: number
-        }[]
-      }
       concept_bt_intervals_clustered: {
         Args: {
+          p_battle_question_id?: string
           p_min_clusters?: number
           p_mission_id: string
           p_prior?: number
@@ -33129,8 +40257,28 @@ export type Database = {
           strength_lo: number
         }[]
       }
+      concept_finalize_question_options: {
+        Args: { p_config: Json }
+        Returns: Json
+      }
+      concept_generate_price_bands: {
+        Args: { p_anchor: number; p_currency_symbol?: string }
+        Returns: Json
+      }
+      concept_generate_price_bands_competitive: {
+        Args: {
+          p_anchor: number
+          p_currency_symbol?: string
+          p_market_prices: number[]
+        }
+        Returns: Json
+      }
+      concept_option_aliases: {
+        Args: { p_config: Json; p_token: string }
+        Returns: string[]
+      }
       concept_pair_tallies: {
-        Args: { p_mission_id: string }
+        Args: { p_battle_question_id?: string; p_mission_id: string }
         Returns: {
           decisive_n: number
           dropped_n: number
@@ -33141,6 +40289,33 @@ export type Database = {
           neither_n: number
           reliability_n: number
         }[]
+      }
+      concept_qualify_rule_passes: {
+        Args: { p_answer: Json; p_config: Json }
+        Returns: boolean
+      }
+      concept_resolve_entity_options: {
+        Args: { p_config: Json }
+        Returns: Json
+      }
+      concept_template_for_mode: { Args: { p_mode: string }; Returns: string }
+      concept_wtp_arm_report: {
+        Args: {
+          p_floor?: number
+          p_mission: string
+          p_question: string
+          p_ref?: number
+        }
+        Returns: Json
+      }
+      confirm_box_fulfillment: {
+        Args: {
+          p_consent?: boolean
+          p_consent_version?: string
+          p_fulfillment_id: string
+          p_shipping_address_id: number
+        }
+        Returns: Json
       }
       consolidate_duplicate_brands: {
         Args: never
@@ -33190,6 +40365,28 @@ export type Database = {
         }
         Returns: Json
       }
+      create_compare_group: {
+        Args: {
+          p_battle_level?: number
+          p_compare_group_type?: string
+          p_consumer_question?: string
+          p_description?: string
+          p_name: string
+          p_node_ids?: number[]
+          p_note?: string
+        }
+        Returns: Json
+      }
+      create_enrichment_staging: {
+        Args: {
+          p_barcode_normalized: string
+          p_barcode_raw: string
+          p_barcode_type?: string
+          p_product_id: number
+          p_user_id: number
+        }
+        Returns: Json
+      }
       curate_mission_opponent_panel: {
         Args: {
           p_focal_node_id: number
@@ -33224,6 +40421,17 @@ export type Database = {
         }[]
       }
       display_brand_name: { Args: { p_brand_name: string }; Returns: string }
+      drain_job_elo_recompute_queue: {
+        Args: { p_limit?: number }
+        Returns: {
+          failed: number
+          processed: number
+        }[]
+      }
+      effective_compare_group: {
+        Args: { p_group: number; p_node: number }
+        Returns: number
+      }
       enter_brand_impersonation: { Args: { p_brand_id: number }; Returns: Json }
       evidence_grade: {
         Args: { p_product_id: number; p_user_id: number }
@@ -33236,7 +40444,27 @@ export type Database = {
         Args: { p_product_id: number; p_user_id: number }
         Returns: string
       }
+      expire_due_missions: {
+        Args: { p_dry_run?: boolean }
+        Returns: {
+          applied: boolean
+          claims: number
+          expires_at: string
+          from_status: string
+          mission_id: string
+          operator_type: string
+          title: string
+        }[]
+      }
       expire_stale_scores: { Args: { p_batch_size?: number }; Returns: number }
+      facets_for_node: {
+        Args: { p_facet_type: string; p_node_id: number }
+        Returns: {
+          display_name: string
+          facet_value: string
+          product_count: number
+        }[]
+      }
       find_nearest_taxonomy_node: {
         Args: {
           max_results?: number
@@ -33248,6 +40476,14 @@ export type Database = {
           node_name_display: string
           taxonomy_node_id: number
         }[]
+      }
+      finish_shopping: {
+        Args: {
+          p_clear_unchecked?: boolean
+          p_top_list_id: number
+          p_user_id: number
+        }
+        Returns: number
       }
       fn_emit_activity_event: {
         Args: {
@@ -33261,7 +40497,11 @@ export type Database = {
         Returns: undefined
       }
       follow_user: {
-        Args: { p_target_user_id: number; p_viewer_auth_id: string }
+        Args: {
+          p_follow_source?: string
+          p_target_user_id: number
+          p_viewer_auth_id: string
+        }
         Returns: Json
       }
       freeze_experienced_mission_report: {
@@ -33320,6 +40560,10 @@ export type Database = {
         Args: { p_compare_group_node_id: number; p_user_id: number }
         Returns: number
       }
+      get_attribute_followup_context: {
+        Args: { p_battle_round_id: number }
+        Returns: Json
+      }
       get_brand_active_sku_ids: {
         Args: { p_brand_id?: number }
         Returns: number[]
@@ -33354,6 +40598,11 @@ export type Database = {
           win_rate_pct: number
         }[]
       }
+      get_brand_missions: {
+        Args: { p_brand_id: number; p_include_draft?: boolean }
+        Returns: Json
+      }
+      get_brand_ownership: { Args: { p_brand_id: number }; Returns: Json }
       get_brand_products_portfolio: {
         Args: { p_brand_id: number }
         Returns: {
@@ -33398,6 +40647,23 @@ export type Database = {
           user_percentile: number
         }[]
       }
+      get_bridge_candidates: {
+        Args: {
+          p_compare_group_id: number
+          p_limit?: number
+          p_target_bridges?: number
+          p_user_id: number
+        }
+        Returns: {
+          bridges_remaining: number
+          bridges_so_far: number
+          centrality_score: number
+          opponent_component: number
+          opponent_product_id: number
+          primary_component: number
+          primary_product_id: number
+        }[]
+      }
       get_category_intelligence: {
         Args: { p_l2_name: string }
         Returns: {
@@ -33437,12 +40703,41 @@ export type Database = {
           top_taste_score: number
         }[]
       }
+      get_compare_group_detail: {
+        Args: { p_compare_group_id: number }
+        Returns: Json
+      }
+      get_compare_group_metrics: {
+        Args: { p_compare_group_id: number }
+        Returns: Json
+      }
       get_concept_mission_report: {
         Args: { p_mission_id: string }
         Returns: Json
       }
+      get_consumption_probe_screen: {
+        Args: { p_mission_claim_id: string; p_protocol_question_id: string }
+        Returns: Json
+      }
       get_current_user_id: { Args: never; Returns: number }
       get_data_request_status: { Args: { p_product_id: number }; Returns: Json }
+      get_day_profile: {
+        Args: { p_tz?: string }
+        Returns: {
+          brand_name: string
+          compare_group_id: number
+          daypart: string
+          daypart_freq: number
+          elo: number
+          group_battles: number
+          group_rank: number
+          image_url: string
+          job: string
+          maturity_tier: string
+          product_id: number
+          winning_product: string
+        }[]
+      }
       get_effective_brand_id: { Args: never; Returns: number }
       get_effective_user_weights: {
         Args: { p_user_id: number }
@@ -33474,6 +40769,37 @@ export type Database = {
           display_position: number
           label: string
           product_id: number
+        }[]
+      }
+      get_grocery_list: {
+        Args: { p_top_list_id?: number; p_user_id: number }
+        Returns: Json
+      }
+      get_home_feed: {
+        Args: { p_before?: string; p_limit?: number }
+        Returns: {
+          already_tried: boolean
+          brand_id: number
+          brand_name: string
+          category_name: string
+          created_at: string
+          from_avatar_url: string
+          from_display_name: string
+          from_user_id: number
+          icon_name: string
+          image_url: string
+          is_own: boolean
+          l3_name: string
+          l3_node_id: number
+          l3_rank: number
+          l3_total: number
+          node_color_dark: string
+          node_color_light: string
+          note: string
+          product_id: number
+          product_name: string
+          rec_id: number
+          taxonomy_node_id: number
         }[]
       }
       get_l3_category_intelligence: {
@@ -33516,6 +40842,11 @@ export type Database = {
         Args: { p_mission_claim_id: string; p_session_number?: number }
         Returns: Json
       }
+      get_new_brands: { Args: { p_limit?: number }; Returns: Json }
+      get_new_products: {
+        Args: { p_l1_node_id?: number; p_limit?: number }
+        Returns: Json
+      }
       get_next_anchor_battle: {
         Args: {
           p_product_id: number
@@ -33545,9 +40876,46 @@ export type Database = {
           summary: string
         }[]
       }
+      get_operator_box_detail: { Args: { p_box_id: string }; Returns: Json }
       get_or_create_scan_session: {
         Args: { p_scanned_at?: string; p_user_id: number }
         Returns: number
+      }
+      get_pantry: {
+        Args: { p_tz?: string }
+        Returns: {
+          brand_name: string
+          compare_group_id: number
+          elo: number
+          group_battles: number
+          image_url: string
+          job: string
+          maturity_tier: string
+          product_id: number
+          winning_product: string
+        }[]
+      }
+      get_pantry_jobs: {
+        Args: { p_min_battles?: number; p_min_days?: number; p_tz?: string }
+        Returns: {
+          battles: number
+          brand_id: number
+          brand_name: string
+          compare_group_id: number
+          components: number
+          consumer_question: string
+          contenders: number
+          distinct_days: number
+          image_url: string
+          is_settled: boolean
+          job_name: string
+          l3_node_name: string
+          opponents_beaten: number
+          product_id: number
+          product_name: string
+          product_name_clean: string
+          taxonomy_node_id: number
+        }[]
       }
       get_pending_follow_requests: {
         Args: { p_limit?: number; p_offset?: number; p_target_auth_id: string }
@@ -33599,6 +40967,10 @@ export type Database = {
           wins: number
         }[]
       }
+      get_product_compare_groups: {
+        Args: { p_product_id: number }
+        Returns: Json
+      }
       get_product_detail: {
         Args: { p_brand_id: number; p_product_id: number }
         Returns: {
@@ -33630,20 +41002,146 @@ export type Database = {
         Args: { p_product_id: number; p_user_id: number }
         Returns: number
       }
+      get_product_loop_state: {
+        Args: { p_product_id: number; p_user_id: number }
+        Returns: {
+          arc_battled: boolean
+          arc_home_battle: boolean
+          arc_scanned: boolean
+          arc_tried: boolean
+          arcs_filled: number
+          home_battle_available_now: boolean
+          home_battle_eligible_at: string
+          loop_closed: boolean
+          product_id: number
+        }[]
+      }
+      get_product_master: { Args: { p_product_id: number }; Returns: Json }
+      get_product_price_surface: {
+        Args: { p_product_id: number }
+        Returns: Json
+      }
       get_product_primary_barcode: {
         Args: { p_product_id: number }
         Returns: string
+      }
+      get_profile_shelf: {
+        Args: { p_subject_id?: number; p_viewer_id?: number }
+        Returns: {
+          battles: number
+          brand_id: number
+          brand_name: string
+          compare_group_id: number
+          consumer_question: string
+          contenders: number
+          image_url: string
+          is_restricted: boolean
+          is_settled: boolean
+          l3_node_name: string
+          opponents_beaten: number
+          product_id: number
+          product_name: string
+          product_name_clean: string
+          slot_code: string
+          slot_kind: string
+          slot_name: string
+          slot_position: number
+          taxonomy_node_id: number
+        }[]
       }
       get_profile_v2: {
         Args: { p_subject_id: number; p_viewer_id: number }
         Returns: Json
       }
-      get_search_discovery_feed:
-        | { Args: { p_time_bucket?: string; p_user_id: number }; Returns: Json }
-        | {
-            Args: { p_time_bucket?: string; p_viewer_auth_id: string }
-            Returns: Json
-          }
+      get_saved_list: {
+        Args: never
+        Returns: {
+          brand_id: number
+          brand_name: string
+          category_name: string
+          compare_group_id: number
+          compare_group_name: string
+          image_url: string
+          l1_category_name: string
+          l1_node_id: number
+          product_id: number
+          product_name_display: string
+          product_name_short: string
+          saved_at: string
+          saved_id: number
+          tried: boolean
+        }[]
+      }
+      get_scan_occasion_options: {
+        Args: {
+          p_client_dow?: number
+          p_client_hour?: number
+          p_include_private?: boolean
+          p_limit?: number
+          p_product_id: number
+        }
+        Returns: {
+          compare_group_code: string
+          compare_group_id: number
+          compare_group_name_display: string
+          consumer_question: string
+          display_name: string
+          is_exploration: boolean
+          priority: number
+          reason_id: number
+          reason_type: string
+          taxonomy_node_id: number
+        }[]
+      }
+      get_search_discovery_feed: {
+        Args: { p_time_bucket?: string }
+        Returns: Json
+      }
+      get_slot_components: {
+        Args: { p_compare_group_id: number; p_user_id: number }
+        Returns: {
+          component_id: number
+          component_size: number
+          is_largest: boolean
+          product_id: number
+        }[]
+      }
+      get_slot_ranking: {
+        Args: {
+          p_compare_group_id: number
+          p_subject_id?: number
+          p_viewer_id?: number
+        }
+        Returns: {
+          battles: number
+          brand_id: number
+          brand_name: string
+          consumer_question: string
+          image_url: string
+          is_champion: boolean
+          is_restricted: boolean
+          opponents_beaten: number
+          product_id: number
+          product_name: string
+          product_name_clean: string
+          rank: number
+          slot_code: string
+          slot_name: string
+          total_contenders: number
+          wins: number
+        }[]
+      }
+      get_slots_for_product: {
+        Args: { p_product_id: number }
+        Returns: {
+          compare_group_id: number
+          consumer_question: string
+          slot_code: string
+          slot_kind: string
+          slot_name: string
+          slot_position: number
+        }[]
+      }
       get_taste_brands: {
         Args: { p_l1_id?: number; p_min_products?: number; p_user_id: number }
         Returns: {
@@ -33659,18 +41157,23 @@ export type Database = {
         }[]
       }
       get_taxonomy_l2: { Args: { p_l3_node_id: number }; Returns: number }
-      get_try_list: {
+      get_tried_history: {
         Args: never
         Returns: {
+          brand_id: number
           brand_name: string
           category_name: string
+          compare_group_id: number
+          compare_group_name: string
+          first_tried_at: string
           image_url: string
           l1_category_name: string
+          l1_node_id: number
+          last_tried_at: string
           product_id: number
           product_name_display: string
           product_name_short: string
-          saved_at: string
-          saved_id: number
+          times_tried: number
         }[]
       }
       get_user_adventure_score: {
@@ -33725,6 +41228,47 @@ export type Database = {
           weight_taste: number
         }[]
       }
+      get_user_node_category_signal: {
+        Args: { p_node_id: number; p_user_id: number }
+        Returns: {
+          battles: number
+          node_level: number
+          tries: number
+        }[]
+      }
+      get_user_product_rank_groups: {
+        Args: { p_product_id: number; p_user_id: number }
+        Returns: {
+          compare_group_id: number
+          group_name: string
+          job_rank: number
+          job_total: number
+        }[]
+      }
+      get_user_recommendations: {
+        Args: { p_limit?: number; p_user_id: number }
+        Returns: {
+          already_tried: boolean
+          brand_id: number
+          brand_name: string
+          category_name: string
+          created_at: string
+          icon_name: string
+          image_url: string
+          is_own: boolean
+          l3_name: string
+          l3_node_id: number
+          l3_rank: number
+          l3_total: number
+          node_color_dark: string
+          node_color_light: string
+          note: string
+          product_id: number
+          product_name: string
+          rec_id: number
+          taxonomy_node_id: number
+        }[]
+      }
       get_user_saved_list_counts: {
         Args: { p_user_id: number }
         Returns: {
@@ -33735,6 +41279,35 @@ export type Database = {
       get_user_shelf: {
         Args: { p_subject_id: number; p_viewer_id: number }
         Returns: Json
+      }
+      get_your_day: {
+        Args: {
+          p_half_life?: number
+          p_limit?: number
+          p_min_days?: number
+          p_min_exposures?: number
+          p_min_score?: number
+          p_recency_days?: number
+          p_tz?: string
+        }
+        Returns: {
+          brand_id: number
+          brand_name: string
+          daypart: string
+          daypart_position: number
+          distinct_days: number
+          exposures: number
+          image_url: string
+          l3_node_name: string
+          last_picked_days_ago: number
+          picks: number
+          product_id: number
+          product_name: string
+          product_name_clean: string
+          rank: number
+          score: number
+          taxonomy_node_id: number
+        }[]
       }
       hard_delete_mission: { Args: { p_mission_id: string }; Returns: Json }
       has_ai_ingredients: {
@@ -33823,8 +41396,62 @@ export type Database = {
         Args: { p_product_id: number; p_user_id: number; p_window?: string }
         Returns: boolean
       }
+      list_compare_groups: { Args: { p_scope?: string }; Returns: Json }
+      list_operator_box_fulfillments: {
+        Args: { p_box_id: string }
+        Returns: {
+          abandon_deadline: string
+          carrier: string
+          claimed_at: string
+          completed_at: string
+          confirmed_at: string
+          delivered_at: string
+          dings_reliability: boolean
+          fulfillment_id: string
+          recipient_name: string
+          session_1_completed_at: string
+          session_2_completed_at: string
+          ship_city: string
+          ship_postal: string
+          ship_state: string
+          shipped_at: string
+          state: Database["public"]["Enums"]["box_fulfillment_state"]
+          tracking_ref: string
+          user_id: number
+        }[]
+      }
+      list_operator_boxes: {
+        Args: { p_include_archived?: boolean }
+        Returns: {
+          blind_sponsor: boolean
+          box_id: string
+          brand_id: number
+          brand_name: string
+          category_name: string
+          created_at: string
+          expires_at: string
+          field_size: number
+          locked_at: string
+          mission_id: string
+          physical_units: number
+          seats_abandoned: number
+          seats_active: number
+          seats_available: number
+          seats_claimed: number
+          seats_completed: number
+          seats_delivery_failed: number
+          session_count: number
+          status: Database["public"]["Enums"]["box_status"]
+          taxonomy_node_id: number
+          title: string
+        }[]
+      }
       list_operator_studies: {
-        Args: { p_brand_id?: number | null; p_include_finished?: boolean }
+        Args: {
+          p_brand_id: number
+          p_include_drafts?: boolean
+          p_include_finished: boolean
+        }
         Returns: {
           brand_id: number
           brand_name: string
@@ -33834,6 +41461,8 @@ export type Database = {
           focal_product_id: number
           focal_product_name: string
           is_finished: boolean
+          lifecycle_state: string
+          max_claims: number
           mission_id: string
           mission_type: string
           status: string
@@ -33843,8 +41472,29 @@ export type Database = {
           total_claims: number
         }[]
       }
+      list_product_barcodes: {
+        Args: { p_product_id: number }
+        Returns: Json
+      }
+      list_taxonomy_l2_parents: {
+        Args: never
+        Returns: {
+          l2_id: number
+          l2_node_name: string
+          l3_count: number
+        }[]
+      }
+      list_taxonomy_l3_children: {
+        Args: { p_l2_id: number }
+        Returns: {
+          l2_node_name: string
+          node_name_display: string
+          path_names_csv: string
+          taxonomy_node_id: number
+        }[]
+      }
       list_withdrawn_studies: {
-        Args: { p_brand_id?: number | null }
+        Args: { p_brand_id?: number }
         Returns: {
           brand_id: number
           brand_name: string
@@ -33967,11 +41617,13 @@ export type Database = {
         Args: { p_product_id: number }
         Returns: string
       }
+      normalize_us_state: { Args: { p_raw: string }; Returns: string }
       nutrition_basis_plausible: { Args: { p_value: Json }; Returns: boolean }
       opt_in_to_ihut: {
         Args: { p_campaign_id: string; p_shipping_address_id?: number }
         Returns: Json
       }
+      parse_fda_allergens: { Args: { p_raw: string }; Returns: string[] }
       persist_mission_signal: {
         Args: {
           p_k_floor?: number
@@ -33989,22 +41641,62 @@ export type Database = {
         Args: { p_focal_product_id: number; p_template_id: string }
         Returns: Json
       }
+      price_per_oz: {
+        Args: {
+          p_count?: number
+          p_price: number
+          p_size: number
+          p_uom: string
+        }
+        Returns: number
+      }
+      products_in_node: {
+        Args: { p_node_id: number }
+        Returns: {
+          product_id: number
+        }[]
+      }
+      publish_box_study: {
+        Args: {
+          p_abandon_window_days?: number
+          p_blind_sponsor?: boolean
+          p_box_products: Json
+          p_brand_campaign_id: string
+          p_brand_id: number
+          p_created_by?: string
+          p_eligibility?: Json
+          p_eligibility_tier?: string
+          p_expires_at?: string
+          p_focal_product_id: number
+          p_physical_units: number
+          p_session_count?: number
+          p_session2_interval_hours?: number
+          p_sourcing_notes?: string
+          p_starts_at?: string
+          p_target_completions?: number
+          p_taxonomy_node_id: number
+          p_title: string
+          p_unit_cost_cents?: number
+          p_battle_question?: string
+        }
+        Returns: Json
+      }
       publish_concept_mission: {
         Args: {
-          p_audience_definition?: string | null
+          p_audience_definition?: string
           p_brand_campaign_id: string
           p_brand_id: number
           p_category_intelligence_opt_in?: boolean
           p_concepts: Json
           p_created_by: string
-          p_expires_at?: string | null
+          p_expires_at?: string
           p_predictive_validity_opt_in?: boolean
           p_price_posture?: string
           p_products: Json
           p_questions: Json
           p_scoring_rounds?: number
           p_session_count?: number
-          p_session2_interval_hours?: number | null
+          p_session2_interval_hours?: number
           p_taxonomy_node_id: number
           p_title: string
         }
@@ -34012,28 +41704,21 @@ export type Database = {
       }
       publish_concept_study: {
         Args: {
-          p_audience_definition?: string | null
+          p_audience_definition?: string
           p_brand_campaign_id: string
           p_brand_id: number
           p_concepts: Json
-          p_created_by: string
-          p_expires_at: string
+          p_created_by?: string
+          p_expires_at?: string
           p_price_posture?: string
-          p_products: Json
-          p_questions?: Json | null
+          p_products?: Json
+          p_questions?: Json
           p_scoring_rounds?: number
           p_stimulus_mode: string
-          p_target_completions?: number | null
+          p_target_completions?: number
           p_taxonomy_node_id: number
-          p_template_config?: Json | null
+          p_template_config?: Json
           p_title: string
-        }
-        Returns: Json
-      }
-      build_concept_questions_from_template: {
-        Args: {
-          p_config: Json
-          p_template_code: string
         }
         Returns: Json
       }
@@ -34044,9 +41729,17 @@ export type Database = {
           p_expires_at?: string
           p_focal_product_id: number
           p_node_id: number
-          p_target_completions?: number | null
+          p_target_completions?: number
           p_template_id: string
           p_title_override?: string
+        }
+        Returns: Json
+      }
+      publish_product_recommendation: {
+        Args: {
+          p_product_id: number
+          p_recipient_scope?: string
+          p_specific_user_ids?: number[]
         }
         Returns: Json
       }
@@ -34068,7 +41761,60 @@ export type Database = {
           taxonomy_node_id: number
         }[]
       }
+      rank_opponents_for_job: {
+        Args: {
+          p_compare_group_id: number
+          p_limit?: number
+          p_primary_product_id: number
+          p_user_id: number
+        }
+        Returns: {
+          anchor_tier: number
+          candidate_elo: number
+          confidence: number
+          elo_gap: number
+          layer: string
+          product_id: number
+          scans: number
+          score: number
+        }[]
+      }
+      rank_opponents_for_job_v2: {
+        Args: {
+          p_compare_group_id: number
+          p_limit?: number
+          p_primary_product_id: number
+          p_user_id: number
+        }
+        Returns: {
+          anchor_tier: number
+          candidate_elo: number
+          confidence: number
+          elo_gap: number
+          layer: string
+          pair_plays: number
+          product_id: number
+          scans: number
+          score: number
+        }[]
+      }
+      recompute_category_tries: {
+        Args: { p_node_id: number; p_user_id: number }
+        Returns: number
+      }
       recompute_global_level: { Args: { p_user_id: number }; Returns: number }
+      recompute_user_job_elo: {
+        Args: {
+          p_compare_group_id: number
+          p_provenance_class?: Database["public"]["Enums"]["battle_provenance_class"]
+          p_user_id: number
+        }
+        Returns: {
+          products_scored: number
+          rounds_replayed: number
+          rounds_skipped_membership: number
+        }[]
+      }
       record_attribute_driver_response: {
         Args: { p_battle_round_id: number; p_selected_drivers: string[] }
         Returns: Json
@@ -34095,6 +41841,22 @@ export type Database = {
           p_protocol_question_id: string
           p_response_value: Json
           p_session_number?: number
+          p_subject_combatant_ref?: number
+        }
+        Returns: Json
+      }
+      record_consumption_probe_response: {
+        Args: {
+          p_decision_ms?: number
+          p_focal_product_id: number
+          p_mission_claim_id: string
+          p_occasion_escape?: boolean
+          p_other_text?: string
+          p_protocol_question_id: string
+          p_recency: string
+          p_session_number?: number
+          p_spot_role_id?: number
+          p_user_id: number
         }
         Returns: Json
       }
@@ -34146,6 +41908,23 @@ export type Database = {
         }
         Returns: Json
       }
+      record_occasion_answer: {
+        Args: {
+          p_audience?: string
+          p_battle_session_id?: number
+          p_chosen_kind?: string
+          p_client_dow?: number
+          p_client_hour?: number
+          p_compare_group_id?: number
+          p_exploration_reason_id?: number
+          p_other_text?: string
+          p_presented_reason_ids?: number[]
+          p_product_id: number
+          p_reason_id?: number
+          p_surface?: string
+        }
+        Returns: number
+      }
       record_plu_find: {
         Args: { p_plu_code: string; p_store_name?: string; p_user_id: number }
         Returns: {
@@ -34156,6 +41935,10 @@ export type Database = {
           rarity_tier: string
           total_finds: number
         }[]
+      }
+      record_rec_conversion: {
+        Args: { p_conversion_type: string; p_product_id: number }
+        Returns: Json
       }
       record_repurchase_response: {
         Args: {
@@ -34208,6 +41991,14 @@ export type Database = {
         }
         Returns: Json
       }
+      refresh_canonical_price: {
+        Args: {
+          p_min_obs?: number
+          p_product_id: number
+          p_window_days?: number
+        }
+        Returns: Json
+      }
       refresh_inferred_weights: {
         Args: { p_user_id: number }
         Returns: undefined
@@ -34224,6 +42015,57 @@ export type Database = {
       refresh_user_discovery_cache: {
         Args: { p_user_id: number }
         Returns: undefined
+      }
+      register_brand_product_image: {
+        Args: {
+          p_image_role: string
+          p_make_primary?: boolean
+          p_product_id: number
+          p_sku_variant_id?: number
+          p_storage_path: string
+          p_supersede_image_id?: number
+        }
+        Returns: Json
+      }
+      remove_from_list: {
+        Args: { p_product_id: number; p_tag: string }
+        Returns: Json
+      }
+      remove_grocery_item: {
+        Args: { p_item_id: number; p_user_id: number }
+        Returns: undefined
+      }
+      resolve_brand_by_name: {
+        Args: { p_name: string }
+        Returns: {
+          brand_id: number
+          brand_key: string
+          brand_name: string
+          product_count: number
+        }[]
+      }
+      resolve_brands_by_key: {
+        Args: { p_key: string }
+        Returns: {
+          brand_id: number
+          brand_name: string
+          product_count: number
+        }[]
+      }
+      resolve_job_for_scan: {
+        Args: {
+          p_local_dow: number
+          p_local_hour: number
+          p_taxonomy_node_id: number
+        }
+        Returns: {
+          basis: string
+          compare_group_id: number
+          job_name: string
+          question_prompt_id: number
+          raw_weight: number
+          sample_weight: number
+        }[]
       }
       resolve_plu_code: {
         Args: { p_plu: string }
@@ -34251,6 +42093,14 @@ export type Database = {
           variety_name: string
         }[]
       }
+      resolve_product_by_barcode: {
+        Args: { p_barcode: string }
+        Returns: Json
+      }
+      resolve_product_nutrition: {
+        Args: { p_product_id: number }
+        Returns: Json
+      }
       resolve_question_prompt: {
         Args: { p_protocol_question_id: string }
         Returns: {
@@ -34277,7 +42127,18 @@ export type Database = {
           source_node_id: number
         }[]
       }
+      resolve_taxonomy_l2_labels: {
+        Args: { p_node_ids: number[] }
+        Returns: {
+          l2_node_name: string
+          taxonomy_node_id: number
+        }[]
+      }
       restore_mission: { Args: { p_mission_id: string }; Returns: Json }
+      retract_product_recommendation: {
+        Args: { p_recommendation_id: number }
+        Returns: Json
+      }
       review_correction: {
         Args: {
           p_corrected_value?: Json
@@ -34290,6 +42151,14 @@ export type Database = {
       }
       run_bayesian_batch: { Args: never; Returns: string }
       run_brand_intelligence_refresh: { Args: never; Returns: Json }
+      run_correction_contract_tests: {
+        Args: never
+        Returns: {
+          detail: string
+          passed: boolean
+          test_name: string
+        }[]
+      }
       run_gate1_extraction: {
         Args: never
         Returns: {
@@ -34306,6 +42175,14 @@ export type Database = {
       run_nutrition_normalization_batch: {
         Args: { p_batch_size?: number }
         Returns: string
+      }
+      scan_lookup: {
+        Args: {
+          p_barcode_normalized: string
+          p_barcode_raw: string
+          p_user_id: number
+        }
+        Returns: Json
       }
       score_macro: {
         Args: {
@@ -34333,6 +42210,8 @@ export type Database = {
           battle_count: number
           brand_id: number
           brand_name: string
+          label: string
+          match_rank: number
           product_count: number
           top_elo: number
         }[]
@@ -34384,12 +42263,15 @@ export type Database = {
           brand_id: number
           brand_name: string
           elo_score: number
-          image_url: string | null
+          image_url: string
+          l1_name: string
           l2_name: string
+          l2_node_id: number
           l3_name: string
           milestone: string
           product_id: number
           product_name_clean: string
+          taxonomy_node_id: number
           win_rate_pct: number
         }[]
       }
@@ -34569,9 +42451,68 @@ export type Database = {
           out_selection_reason: string
         }[]
       }
+      set_avatar_url: { Args: { p_avatar_url: string }; Returns: Json }
+      set_brand_msrp: {
+        Args: { p_currency?: string; p_price: number; p_sku_variant_id: number }
+        Returns: Json
+      }
       set_canonical_nutrition_sku: {
         Args: { p_now?: string; p_product_id: number; p_sku_variant_id: number }
         Returns: undefined
+      }
+      set_compare_group_members: {
+        Args: {
+          p_compare_group_id: number
+          p_node_ids: number[]
+          p_note?: string
+        }
+        Returns: Json
+      }
+      set_grocery_item_checked: {
+        Args: { p_checked: boolean; p_item_id: number; p_user_id: number }
+        Returns: {
+          added_at: string | null
+          checked_at: string | null
+          created_at: string | null
+          deleted_at: string | null
+          is_checked: boolean
+          item_source: string | null
+          list_item_id: number
+          note: string | null
+          notes: string | null
+          product_id: number
+          quantity_unit: string | null
+          quantity_value: number | null
+          rank: number | null
+          sku_variant_id: number | null
+          slot_id: number | null
+          sort_order: number
+          top_list_id: number
+          underlying_taste_score: number | null
+          updated_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_list_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_primary_product_image: {
+        Args: { p_product_image_id: number }
+        Returns: Json
+      }
+      set_product_comment: {
+        Args: { p_comment: string; p_product_id: number }
+        Returns: {
+          out_comment: string
+          out_product_id: number
+          out_updated_at: string
+        }[]
+      }
+      set_user_date_of_birth: {
+        Args: { p_date_of_birth: string }
+        Returns: Json
       }
       set_user_weights: {
         Args: {
@@ -34605,6 +42546,7 @@ export type Database = {
       submit_battle_round: {
         Args: {
           p_battle_context?: string
+          p_compare_group_id?: number
           p_decision_ms: number
           p_device_platform?: string
           p_mission_claim_id?: string
@@ -34652,6 +42594,11 @@ export type Database = {
         Args: { p_product_id: number; p_requested_data_types?: string[] }
         Returns: Json
       }
+      sweep_abandoned_box_fulfillments: {
+        Args: { p_dry_run?: boolean }
+        Returns: Json
+      }
+      sweep_expired_box_claims: { Args: { p_dry_run?: boolean }; Returns: Json }
       sync_product_search_index:
         | { Args: { p_force?: boolean; p_limit?: number }; Returns: string }
         | {
@@ -34671,7 +42618,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      tries_to_category_level: { Args: { p_tries: number }; Returns: number }
       unaccent: { Args: { "": string }; Returns: string }
+      unblock_user: {
+        Args: { p_target_user_id: number; p_viewer_auth_id: string }
+        Returns: Json
+      }
       unfollow_user: {
         Args: { p_target_user_id: number; p_viewer_auth_id: string }
         Returns: Json
@@ -34684,9 +42636,46 @@ export type Database = {
         Args: { p_user_id: number }
         Returns: undefined
       }
+      update_compare_group_fields: {
+        Args: {
+          p_battle_level?: number
+          p_compare_group_id: number
+          p_compare_group_type?: string
+          p_consumer_question?: string
+          p_description?: string
+          p_name?: string
+          p_note?: string
+          p_status?: string
+        }
+        Returns: Json
+      }
+      update_product_fields: {
+        Args: {
+          p_expected_row_version: number
+          p_patch: Json
+          p_product_id: number
+        }
+        Returns: Json
+      }
       update_scan_taste_score: {
         Args: { p_product_id: number; p_user_id: number }
         Returns: number
+      }
+      update_sku_ingredients: {
+        Args: {
+          p_expected_row_version: number
+          p_patch: Json
+          p_sku_variant_id: number
+        }
+        Returns: Json
+      }
+      update_sku_nutrition: {
+        Args: {
+          p_expected_row_version: number
+          p_patch: Json
+          p_sku_variant_id: number
+        }
+        Returns: Json
       }
       update_user_taste_display_score: {
         Args: { p_product_id: number; p_user_id: number }
@@ -34750,7 +42739,7 @@ export type Database = {
           id: number
           last_battled_at: string | null
           list_tags: string[]
-          list_type: string
+          list_type: string | null
           note: string | null
           pantry_eligible_at: string | null
           pantry_promoted_at: string | null
@@ -34761,7 +42750,6 @@ export type Database = {
           tried_at: string | null
           updated_at: string
           user_id: number
-          vault_eligible_at: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -34769,6 +42757,43 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      user_category_tried_counts: {
+        Args: { p_user_id: number }
+        Returns: {
+          l1_node_id: number
+          l3_node_id: number
+          products_tried: number
+        }[]
+      }
+      user_job_bt_fit: {
+        Args: {
+          p_asof?: string
+          p_compare_group_id: number
+          p_tau?: number
+          p_user_id: number
+          p_z?: number
+        }
+        Returns: {
+          component_id: number
+          flag: string
+          product_id: number
+          rank_in_component: number
+          se: number
+          settledness: number
+          strength_beta: number
+          verdict: string
+          weight_mass: number
+        }[]
+      }
+      user_local_clock: {
+        Args: { p_at?: string; p_user_id: number }
+        Returns: {
+          local_dow: number
+          local_hour: number
+          tz: string
+          tz_known: boolean
+        }[]
       }
       withdraw_mission: { Args: { p_mission_id: string }; Returns: Json }
     }
@@ -34781,8 +42806,29 @@ export type Database = {
         | "expired"
         | "dismissed"
       attribution_type: "seeded" | "organic_post_completion"
-      battle_intent: "direct_competitor" | "jtbd_incumbent" | "own_concept_arm"
+      battle_intent: "hero" | "competitor"
       battle_provenance_class: "organic" | "study"
+      box_fulfillment_state:
+        | "claimed"
+        | "confirmed"
+        | "fulfillment_pending"
+        | "shipped"
+        | "delivered"
+        | "session_1_active"
+        | "session_1_complete"
+        | "session_2_active"
+        | "completed"
+        | "claim_expired"
+        | "delivery_failed"
+        | "abandoned"
+        | "flagged"
+      box_status:
+        | "draft"
+        | "open"
+        | "shipping"
+        | "running"
+        | "closed"
+        | "archived"
       challenger_selection_method:
         | "genome_driven"
         | "category_top_n"
@@ -34811,6 +42857,15 @@ export type Database = {
         | "self_reported"
         | "receipt_verified"
       credibility_verdict: "credible" | "not_credible" | "needs_review"
+      evidence_rung:
+        | "synthetic"
+        | "inferred"
+        | "imported"
+        | "authoritative"
+        | "brand_added"
+        | "brand_stated"
+        | "brand_verified"
+        | "human_verified"
       evidence_type:
         | "receipt_image"
         | "product_image"
@@ -34843,6 +42898,14 @@ export type Database = {
         | "seasonal"
         | "limited"
         | "concept_test"
+      product_image_role:
+        | "front"
+        | "back"
+        | "nutrition_panel"
+        | "ingredients_panel"
+        | "side"
+        | "lifestyle"
+        | "other"
       report_signal_kind:
         | "ranking_driver"
         | "categorical_distribution"
@@ -34991,8 +43054,31 @@ export const Constants = {
         "dismissed",
       ],
       attribution_type: ["seeded", "organic_post_completion"],
-      battle_intent: ["direct_competitor", "jtbd_incumbent", "own_concept_arm"],
+      battle_intent: ["hero", "competitor"],
       battle_provenance_class: ["organic", "study"],
+      box_fulfillment_state: [
+        "claimed",
+        "confirmed",
+        "fulfillment_pending",
+        "shipped",
+        "delivered",
+        "session_1_active",
+        "session_1_complete",
+        "session_2_active",
+        "completed",
+        "claim_expired",
+        "delivery_failed",
+        "abandoned",
+        "flagged",
+      ],
+      box_status: [
+        "draft",
+        "open",
+        "shipping",
+        "running",
+        "closed",
+        "archived",
+      ],
       challenger_selection_method: [
         "genome_driven",
         "category_top_n",
@@ -35025,6 +43111,16 @@ export const Constants = {
         "receipt_verified",
       ],
       credibility_verdict: ["credible", "not_credible", "needs_review"],
+      evidence_rung: [
+        "synthetic",
+        "inferred",
+        "imported",
+        "authoritative",
+        "brand_added",
+        "brand_stated",
+        "brand_verified",
+        "human_verified",
+      ],
       evidence_type: [
         "receipt_image",
         "product_image",
@@ -35060,6 +43156,15 @@ export const Constants = {
         "seasonal",
         "limited",
         "concept_test",
+      ],
+      product_image_role: [
+        "front",
+        "back",
+        "nutrition_panel",
+        "ingredients_panel",
+        "side",
+        "lifestyle",
+        "other",
       ],
       report_signal_kind: [
         "ranking_driver",

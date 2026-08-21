@@ -6,6 +6,7 @@ import type {
 } from './types'
 import { defaultFloor, armLabelForIndex } from './defaults'
 import { formatPriceLabel, priceToWire } from './price'
+import { isIdentityConfirmed } from '@/lib/productEntryMode'
 
 /** Combinatorial pairs for a field of size n. */
 export function uniquePairs(n: number): number {
@@ -40,6 +41,7 @@ export function draftToPublishPayload(draft: ConceptStudyDraft): {
       image_url: arm.image_url?.trim() || null,
       frozen_price: priceToWire(arm.frozen_price),
       stimulus_payload: arm.stimulus_payload ?? {},
+      battle_intent: 'hero',
     }
     if (!useTemplate && draft.stimulusMode) {
       base.stimulus_type = draft.stimulusMode
@@ -47,17 +49,31 @@ export function draftToPublishPayload(draft: ConceptStudyDraft): {
     return base
   })
 
-  const products: ConceptPublishProduct[] = draft.products
-    .filter((p) => p.product_id != null)
-    .map((p) => ({
-      product_id: p.product_id as number,
-      frozen_display_name: p.frozen_display_name.trim(),
-      frozen_brand_name: p.frozen_brand_name.trim(),
-      frozen_image_url: p.frozen_image_url,
-      frozen_price: priceToWire(p.frozen_price),
-      market_reference_price: priceToWire(p.market_reference_price),
-      battle_intent: p.battle_intent,
-    }))
+  const resolvedProducts = draft.products.filter(
+    (p): p is typeof p & { product_id: number } => p.product_id != null
+  )
+  if (resolvedProducts.some((p) => !p.upc?.trim() || !isIdentityConfirmed(p))) {
+    throw new Error('UPC_REQUIRED')
+  }
+  const upcs = resolvedProducts.map((p) => p.upc!.trim())
+  if (new Set(upcs).size !== upcs.length) {
+    throw new Error('DUPLICATE_FIELD_UPC')
+  }
+  const ids = resolvedProducts.map((p) => p.product_id)
+  if (new Set(ids).size !== ids.length) {
+    throw new Error('DUPLICATE_COMPETITOR')
+  }
+
+  const products: ConceptPublishProduct[] = resolvedProducts.map((p) => ({
+    product_id: p.product_id,
+    frozen_display_name: p.frozen_display_name.trim(),
+    frozen_brand_name: p.frozen_brand_name.trim(),
+    frozen_image_url: p.frozen_image_url,
+    frozen_price: priceToWire(p.frozen_price),
+    market_reference_price: priceToWire(p.market_reference_price),
+    battle_intent: 'competitor',
+    upc: p.upc!.trim(),
+  }))
 
   if (useTemplate) {
     return { concepts, products, questions: null }

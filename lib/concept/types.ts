@@ -12,7 +12,23 @@ export type StimulusMode =
 /** @deprecated Prefer StimulusMode at study level. Kept for non-package escape hatch. */
 export type StimulusType = StimulusMode
 
-export type BattleIntent = 'own_concept_arm' | 'direct_competitor' | 'jtbd_incumbent'
+export type BattleIntent = 'hero' | 'competitor'
+
+/** Map legacy role strings onto the current enum. */
+export function coerceBattleIntent(
+  value: string | null | undefined,
+  fallback: BattleIntent
+): BattleIntent {
+  if (value === 'hero' || value === 'own_concept_arm') return 'hero'
+  if (
+    value === 'competitor' ||
+    value === 'direct_competitor' ||
+    value === 'jtbd_incumbent'
+  ) {
+    return 'competitor'
+  }
+  return fallback
+}
 
 export type PricePosture = 'blind' | 'realistic' | 'variable'
 
@@ -72,6 +88,16 @@ export type ConceptArmRow = {
   stimulus_payload: Record<string, unknown>
 }
 
+/** One barcode from list_product_barcodes — draft picker only. */
+export type ProductBarcodeOption = {
+  barcode: string
+  variant_name: string | null
+  package_size_value: number | null
+  package_size_uom: string | null
+  package_count: number | null
+  image_url?: string | null
+}
+
 /** UI row — real-product competitor. Wire → p_products[]. */
 export type ProductCompetitorRow = {
   localId: string
@@ -89,6 +115,20 @@ export type ProductCompetitorRow = {
    */
   market_reference_price: string | null
   battle_intent: BattleIntent
+  /** Validated barcode for this SKU. Required on the wire; omitted on concept arms. */
+  upc: string | null
+  /**
+   * Draft-only: barcodes to pick from when list_product_barcodes.requires_choice.
+   * Never sent to publish.
+   */
+  barcodeOptions?: ProductBarcodeOption[]
+  /** Display-only category label for the confirm step. */
+  frozen_category?: string | null
+  /**
+   * Operator confirmed name/brand/GTIN before locking the row.
+   * Undefined on legacy drafts — treated as confirmed when upc is present.
+   */
+  identityConfirmed?: boolean
 }
 
 export type ConceptQuestionCode =
@@ -157,6 +197,8 @@ export type ConceptPublishConcept = {
   /** String "4.99" — RPC casts numeric. null = unpriced. */
   frozen_price: string | null
   stimulus_payload: Record<string, unknown>
+  /** Concept arms are the study hero. kind='concept' is set by the RPC. */
+  battle_intent: 'hero'
   /** Only for non-package escape hatch when p_questions is sent. */
   stimulus_type?: StimulusMode
 }
@@ -170,7 +212,8 @@ export type ConceptPublishProduct = {
   frozen_price: string | null
   /** String "4.99" — real shelf price, drives the WTP band range. null = unknown. */
   market_reference_price: string | null
-  battle_intent: BattleIntent
+  battle_intent: 'competitor'
+  upc: string
 }
 
 export type ConceptPublishQuestion = {

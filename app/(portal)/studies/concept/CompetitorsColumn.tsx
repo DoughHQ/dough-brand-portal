@@ -10,14 +10,31 @@ import {
 } from 'react'
 import { createClient } from '@/lib/supabase'
 import type { AdminProductSearchResult } from '@/lib/queries'
-import type { PricePosture, ProductCompetitorRow } from '@/lib/concept/types'
+import type { PricePosture, ProductBarcodeOption, ProductCompetitorRow } from '@/lib/concept/types'
 import { newProductCompetitor } from '@/lib/concept/defaults'
 import type { AddAvailability } from '@/lib/concept/fieldSize'
 import { isAllowedPriceInput } from '@/lib/concept/price'
 import { useTypeahead } from '@/lib/concept/useTypeahead'
+import {
+  barcodeChoiceLabel,
+  barcodeDigits,
+  isBarcodeSearchReady,
+  knownUpcFromBarcodeResolve,
+  loadProductBarcodeState,
+  searchProductsByBarcode,
+} from '@/lib/concept/barcodes'
+import { CONCEPT_UPC_IDENTITY_HELP } from '@/lib/concept/constants'
+import {
+  categoryFromSearchResult,
+  isIdentityConfirmed,
+  resolveEntryMode,
+  type ProductEntryMode,
+} from '@/lib/productEntryMode'
 import SuggestionDropdown from './SuggestionDropdown'
 import { TrashIcon } from './fieldIcons'
 import { inputBase, labelSm } from './conceptStyles'
+import ProductEntryModeToggle from '../ProductEntryModeToggle'
+import ProductIdentityConfirm from '../ProductIdentityConfirm'
 
 /**
  * Section 1 · right column — "Competitors".
@@ -45,6 +62,8 @@ type Props = {
   /** Authoritative mode-aware progress copy — owned by lib/concept/fieldSize. */
   progressLabel: string
   disabled?: boolean
+  /** localId → inline UPC / duplicate error on the competitor card. */
+  rowErrors?: Record<string, string>
 }
 
 export default function CompetitorsColumn({
@@ -57,6 +76,7 @@ export default function CompetitorsColumn({
   addCompetitor: addAvailability,
   progressLabel,
   disabled,
+  rowErrors = {},
 }: Props) {
   /** Snapshot of the row being replaced, so Change can be cancelled without data loss. */
   const [changing, setChanging] = useState<{ localId: string; prev: ProductCompetitorRow } | null>(
@@ -77,18 +97,41 @@ export default function CompetitorsColumn({
     setAdding(true)
   }
 
-  function addResolved(p: AdminProductSearchResult) {
+  async function hydrateFromPick(
+    base: ProductCompetitorRow,
+    p: AdminProductSearchResult,
+    knownUpc?: string
+  ): Promise<ProductCompetitorRow> {
+    const supabase = createClient()
+    let upc: string | null = knownUpc?.trim() || null
+    let barcodeOptions: ProductBarcodeOption[] = []
+    try {
+      const state = await loadProductBarcodeState(supabase, p.product_id, knownUpc)
+      upc = state.upc
+      barcodeOptions = state.barcodeOptions
+    } catch {
+      // Validity will require a UPC; the row is still usable as a product pick.
+    }
+    return {
+      ...base,
+      product_id: p.product_id,
+      frozen_display_name: p.product_name_clean,
+      frozen_brand_name: p.brand_name,
+      frozen_image_url: p.image_url ?? null,
+      battle_intent: 'competitor',
+      upc,
+      barcodeOptions,
+      frozen_category: categoryFromSearchResult(p),
+      identityConfirmed: false,
+    }
+  }
+
+  function addResolved(p: AdminProductSearchResult, knownUpc?: string) {
     setAdding(false)
-    onProductsChange([
-      ...products,
-      {
-        ...newProductCompetitor(),
-        product_id: p.product_id,
-        frozen_display_name: p.product_name_clean,
-        frozen_brand_name: p.brand_name,
-        frozen_image_url: p.image_url ?? null,
-      },
-    ])
+    void (async () => {
+      const row = await hydrateFromPick(newProductCompetitor(), p, knownUpc)
+      onProductsChange([...products, row])
+    })()
   }
 
   function removeRow(localId: string) {
@@ -108,6 +151,10 @@ export default function CompetitorsColumn({
       frozen_display_name: '',
       frozen_brand_name: '',
       frozen_image_url: null,
+      upc: null,
+      barcodeOptions: [],
+      frozen_category: null,
+      identityConfirmed: false,
     })
   }
 
@@ -120,15 +167,12 @@ export default function CompetitorsColumn({
     removeRow(row.localId)
   }
 
-  function pick(row: ProductCompetitorRow, p: AdminProductSearchResult) {
+  function pick(row: ProductCompetitorRow, p: AdminProductSearchResult, knownUpc?: string) {
     if (changing?.localId === row.localId) setChanging(null)
-    patchRow(row.localId, {
-      ...row,
-      product_id: p.product_id,
-      frozen_display_name: p.product_name_clean,
-      frozen_brand_name: p.brand_name,
-      frozen_image_url: p.image_url ?? null,
-    })
+    void (async () => {
+      const next = await hydrateFromPick(row, p, knownUpc)
+      patchRow(row.localId, next)
+    })()
   }
 
   return (
@@ -230,7 +274,11 @@ export default function CompetitorsColumn({
                   hidePrice={hidePrice}
                   showMarketPrice={priceMode}
                   pricePosture={pricePosture}
+                  error={rowErrors[row.localId]}
                   onChangeRow={(next) => patchRow(row.localId, next)}
+                  onPatch={(patch) =>
+                    patchRow(row.localId, { ...row, ...patch })
+                  }
                   onReplace={() => beginChange(row)}
                   onRemove={() => removeRow(row.localId)}
                 />
@@ -239,7 +287,7 @@ export default function CompetitorsColumn({
                   key={row.localId}
                   isReplace={changing?.localId === row.localId}
                   taken={taken}
-                  onPick={(p) => pick(row, p)}
+                  onPick={(p, upc) => pick(row, p, upc)}
                   onCancel={() => cancelSlot(row)}
                 />
               )
@@ -249,7 +297,7 @@ export default function CompetitorsColumn({
                 key="transient-add"
                 isReplace={false}
                 taken={taken}
-                onPick={addResolved}
+                onPick={(p, upc) => addResolved(p, upc)}
                 onCancel={() => setAdding(false)}
               />
             ) : null}
@@ -268,14 +316,18 @@ function SelectedCompetitor({
   showMarketPrice,
   pricePosture,
   onChangeRow,
+  onPatch,
   onReplace,
   onRemove,
+  error,
 }: {
   row: ProductCompetitorRow
   hidePrice: boolean
   showMarketPrice?: boolean
   pricePosture: PricePosture
+  error?: string
   onChangeRow: (next: ProductCompetitorRow) => void
+  onPatch: (patch: Partial<ProductCompetitorRow>) => void
   onReplace: () => void
   onRemove: () => void
 }) {
@@ -284,12 +336,42 @@ function SelectedCompetitor({
     setImgFailed(false)
   }, [row.product_id, row.frozen_image_url])
 
+  useEffect(() => {
+    if (row.product_id == null) return
+    if (row.upc) return
+    if ((row.barcodeOptions?.length ?? 0) > 0) return
+    const productId = row.product_id
+    let cancelled = false
+    void (async () => {
+      try {
+        const state = await loadProductBarcodeState(createClient(), productId)
+        if (cancelled) return
+        onPatch({ upc: state.upc, barcodeOptions: state.barcodeOptions })
+      } catch {
+        /* validity will surface the missing SKU */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once per unresolved product
+  }, [row.product_id, row.upc, row.barcodeOptions?.length])
+
   const name = row.frozen_display_name || 'Untitled product'
+  const barcodeOptions = row.barcodeOptions ?? []
+  const awaitingConfirm = !!row.upc?.trim() && !isIdentityConfirmed(row)
 
   return (
     <div
       className="cb-comp-row"
-      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16 }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: 16,
+        outline: error ? '1px solid var(--red)' : undefined,
+        outlineOffset: error ? -1 : undefined,
+      }}
     >
       {row.frozen_image_url && !imgFailed ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -320,7 +402,63 @@ function SelectedCompetitor({
         <div style={{ fontSize: 13, color: 'var(--ink-50)', marginTop: 4 }}>
           {row.frozen_brand_name}
         </div>
-        {!hidePrice ? (
+        <div style={{ marginTop: 10 }}>
+          {awaitingConfirm && row.upc ? (
+            <ProductIdentityConfirm
+              name={name}
+              brand={row.frozen_brand_name}
+              category={row.frozen_category ?? null}
+              upc={row.upc}
+              help={CONCEPT_UPC_IDENTITY_HELP}
+              onConfirm={() => onPatch({ identityConfirmed: true })}
+              onChange={onReplace}
+            />
+          ) : barcodeOptions.length > 1 && !row.upc ? (
+            <fieldset style={{ border: 'none', margin: 0, padding: 0 }}>
+              <legend style={{ ...labelSm, marginBottom: 6 }}>Which SKU was tested?</legend>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {barcodeOptions.map((opt) => (
+                  <label
+                    key={opt.barcode}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 8,
+                      fontSize: 13,
+                      color: 'var(--ink-80)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name={`upc-${row.localId}`}
+                      value={opt.barcode}
+                      checked={row.upc === opt.barcode}
+                      onChange={() => onPatch({ upc: opt.barcode })}
+                      style={{ marginTop: 3 }}
+                    />
+                    <span>{barcodeChoiceLabel(opt)}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ) : (
+            <div style={{ fontSize: 13, color: 'var(--ink-80)' }}>
+              {row.upc ? `UPC ${row.upc}` : 'SKU not identified yet'}
+            </div>
+          )}
+          {!awaitingConfirm ? (
+            <p style={{ margin: '6px 0 0', fontSize: 11, lineHeight: 1.45, color: 'var(--cb-secondary)' }}>
+              {CONCEPT_UPC_IDENTITY_HELP}
+            </p>
+          ) : null}
+          {error && !awaitingConfirm ? (
+            <p role="alert" style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--red)' }}>
+              {error}
+            </p>
+          ) : null}
+        </div>
+        {!hidePrice && !awaitingConfirm ? (
           <input
             className="cb-input"
             type="text"
@@ -339,7 +477,7 @@ function SelectedCompetitor({
         ) : null}
         {/* Price studies derive the WTP ladder from real shelf prices. Restored
             here when the competitor rows moved out of FieldSection in Pass 4B. */}
-        {showMarketPrice ? (
+        {showMarketPrice && !awaitingConfirm ? (
           <div style={{ marginTop: 10 }}>
             <label style={{ ...labelSm, marginBottom: 4 }} htmlFor={`shelf-price-${row.localId}`}>
               Shelf price
@@ -370,14 +508,16 @@ function SelectedCompetitor({
         ) : null}
       </div>
 
-      <button
-        type="button"
-        onClick={onReplace}
-        className="cb-btn-change"
-        aria-label={`Change ${name}`}
-      >
-        Change
-      </button>
+      {!awaitingConfirm ? (
+        <button
+          type="button"
+          onClick={onReplace}
+          className="cb-btn-change"
+          aria-label={`Change ${name}`}
+        >
+          Change
+        </button>
+      ) : null}
       <button
         type="button"
         aria-label={`Remove ${name}`}
@@ -421,7 +561,7 @@ function CompetitorSearchSlot({
 }: {
   isReplace: boolean
   taken: Set<string>
-  onPick: (p: AdminProductSearchResult) => void
+  onPick: (p: AdminProductSearchResult, knownUpc?: string) => void
   onCancel: () => void
 }) {
   const supabase = createClient()
@@ -429,14 +569,45 @@ function CompetitorSearchSlot({
   const inputId = useId()
   const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const barcodeUpcRef = useRef<Map<number, string>>(new Map())
+  const [explicitMode, setExplicitMode] = useState<ProductEntryMode | null>(null)
 
   const fetchCompetitors = useCallback(
     async (q: string, _signal: AbortSignal) => {
+      barcodeUpcRef.current = new Map()
+      const mode = resolveEntryMode(explicitMode, q)
+      if (mode === 'barcode') {
+        if (!isBarcodeSearchReady(q)) return []
+        const resolved = await searchProductsByBarcode(supabase, q)
+        if (resolved.found && resolved.products.length > 0) {
+          return resolved.products.map((hit) => {
+            const known = knownUpcFromBarcodeResolve(resolved, hit)
+            if (known) barcodeUpcRef.current.set(hit.product_id, known)
+            return {
+              product_id: hit.product_id,
+              product_name_clean: hit.product_name,
+              brand_name: hit.brand_name,
+              brand_id: 0,
+              l2_name: null,
+              l3_name: hit.category,
+              battles_total: 0,
+              win_rate_pct: null,
+              elo_score: null,
+              milestone: '',
+              image_url: hit.image_url,
+              taxonomy_node_id: hit.taxonomy_node_id,
+              l2_node_id: null,
+              l1_name: null,
+            } satisfies AdminProductSearchResult
+          })
+        }
+        return []
+      }
       const { data, error } = await supabase.rpc('search_products_admin', { p_query: q })
       if (error) throw error
       return ((data ?? []) as AdminProductSearchResult[]).slice(0, 8)
     },
-    [supabase]
+    [supabase, explicitMode]
   )
 
   const {
@@ -465,6 +636,10 @@ function CompetitorSearchSlot({
     return () => document.removeEventListener('mousedown', onDoc)
   }, [open, close])
 
+  function pickProduct(p: AdminProductSearchResult) {
+    onPick(p, barcodeUpcRef.current.get(p.product_id))
+  }
+
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Escape') {
       e.preventDefault()
@@ -487,12 +662,20 @@ function CompetitorSearchSlot({
       const hit = results[activeIndex]
       if (hit && status === 'success' && !taken.has(String(hit.product_id))) {
         e.preventDefault()
-        onPick(hit)
+        pickProduct(hit)
       }
     }
   }
 
   const showDropdown = open && status !== 'idle'
+  const mode = resolveEntryMode(explicitMode, query)
+  const barcodeTooShort = mode === 'barcode' && !isBarcodeSearchReady(query)
+  const digitsTyped = barcodeDigits(query).length
+
+  useEffect(() => {
+    retry()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [explicitMode])
 
   return (
     <div className="cb-comp-row" style={{ padding: 16 }} ref={rootRef}>
@@ -507,9 +690,12 @@ function CompetitorSearchSlot({
         {isReplace ? 'Change competitor' : 'Add competitor'}
       </div>
 
-      <label style={labelSm} htmlFor={inputId}>
-        Search products
-      </label>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
+        <label style={{ ...labelSm, marginBottom: 0 }} htmlFor={inputId}>
+          Search products
+        </label>
+        <ProductEntryModeToggle mode={mode} onChange={setExplicitMode} />
+      </div>
       <div style={{ position: 'relative' }}>
         <input
           id={inputId}
@@ -533,8 +719,13 @@ function CompetitorSearchSlot({
             if (query.trim().length >= 2) setOpen(true)
           }}
           onKeyDown={onKeyDown}
-          placeholder="Search by product or brand"
+          placeholder={
+            mode === 'barcode'
+              ? 'Enter the competitor barcode…'
+              : 'Search by product or brand…'
+          }
           autoComplete="off"
+          inputMode={mode === 'barcode' ? 'numeric' : undefined}
           style={inputBase}
         />
         {showDropdown ? (
@@ -544,13 +735,25 @@ function CompetitorSearchSlot({
             results={results}
             activeIndex={activeIndex}
             onActiveIndex={setActiveIndex}
-            onSelect={onPick}
+            onSelect={pickProduct}
             onRetry={retry}
             getKey={(p) => p.product_id}
             isDisabled={(p) => taken.has(String(p.product_id))}
-            emptyLabel="No matching products"
-            emptyHint="Try another product or brand name."
-            errorLabel="Search couldn’t load. Try again."
+            emptyLabel={
+              barcodeTooShort
+                ? 'Keep typing the full barcode (8–14 digits).'
+                : mode === 'barcode'
+                  ? 'No product matches that barcode.'
+                  : 'No matching products'
+            }
+            emptyHint={
+              barcodeTooShort
+                ? `${digitsTyped} digit${digitsTyped === 1 ? '' : 's'} so far.`
+                : mode === 'barcode'
+                  ? 'Check the digits against the package, or switch to Name.'
+                  : 'Try another product or brand name.'
+            }
+            errorLabel="Barcode lookup failed. Try again."
             renderItem={(p) => {
               const already = taken.has(String(p.product_id))
               return (

@@ -18,19 +18,21 @@ export function relationshipClause(value: RelationshipToField | string): string 
 
 export function battleIntentLabel(intent: string): string {
   switch (intent) {
+    case 'hero':
     case 'own_concept_arm':
       return 'your concept'
+    case 'competitor':
     case 'direct_competitor':
       return 'competitor'
     case 'jtbd_incumbent':
-      return 'alternative people reach for'
+      return 'competitor'
     default:
       return intent.replace(/_/g, ' ')
   }
 }
 
 export function isOwnConceptIntent(intent: string): boolean {
-  return intent === 'own_concept_arm'
+  return intent === 'hero' || intent === 'own_concept_arm'
 }
 
 export function postureStatusLabel(posture: string): string {

@@ -41,11 +41,13 @@ function draft(mode: StimulusMode, own: number, comps: number, opts: { dupe?: bo
       ...Array.from({ length: comps }, (_, i) => ({
         localId: 'p' + i, product_id: (opts.dupe ? 900 : 100 + i) as unknown as number,
         frozen_display_name: 'Competitor ' + i, frozen_brand_name: 'Brand', frozen_image_url: null,
-        frozen_price: null, battle_intent: 'direct_competitor' as const,
+        frozen_price: null, market_reference_price: null, battle_intent: 'competitor' as const,
+        upc: '02840000' + String(1000 + i),
       })),
       ...Array.from({ length: opts.unresolved ?? 0 }, (_, i) => ({
         localId: 'u' + i, product_id: null, frozen_display_name: '', frozen_brand_name: '',
-        frozen_image_url: null, frozen_price: null, battle_intent: 'direct_competitor' as const,
+        frozen_image_url: null, frozen_price: null, market_reference_price: null,
+        battle_intent: 'competitor' as const, upc: null,
       })),
     ],
   } as ConceptStudyDraft

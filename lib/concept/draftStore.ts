@@ -2,8 +2,10 @@ import type {
   ConceptStudyDraft,
   LegibilityOption,
   PackagingTemplateConfig,
+  ProductCompetitorRow,
   VerificationOption,
 } from './types'
+import { coerceBattleIntent } from './types'
 import { DRAFT_STORAGE_KEY } from './constants'
 import { migrateArmImageFields } from './stimuliStorage'
 import { emptyPackagingTemplateConfig } from './defaults'
@@ -69,6 +71,19 @@ function migrateDraft(raw: ConceptStudyDraft): ConceptStudyDraft {
     taxonomyNodeId: raw.taxonomyNodeId ?? null,
     templateConfig: migrateTemplateConfig(raw.templateConfig),
     conceptArms: (raw.conceptArms ?? []).map((arm) => migrateArmImageFields(arm)),
+    products: (raw.products ?? []).map(migrateProductRow),
+  }
+}
+
+function migrateProductRow(row: ProductCompetitorRow): ProductCompetitorRow {
+  const upc = typeof row.upc === 'string' && row.upc.trim() ? row.upc.trim() : null
+  return {
+    ...row,
+    battle_intent: coerceBattleIntent(row.battle_intent, 'competitor'),
+    upc,
+    frozen_category: row.frozen_category ?? null,
+    identityConfirmed:
+      typeof row.identityConfirmed === 'boolean' ? row.identityConfirmed : !!upc,
   }
 }
 

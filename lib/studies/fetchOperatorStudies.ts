@@ -39,15 +39,12 @@ export async function getOperatorStudies(options?: {
 }): Promise<OperatorStudyRow[]> {
   const supabase = await createServerSupabaseClient()
 
-  // Generated Database types may lag the live RPC (p_include_drafts, lifecycle_state).
+  // Generated Args type p_brand_id as required number; the live RPC still
+  // treats NULL as "all brands" for dough_admin. Preserve that runtime.
   const { data, error } = await supabase.rpc('list_operator_studies', {
     p_include_finished: options?.includeFinished ?? true,
-    p_brand_id: options?.brandId ?? null,
     p_include_drafts: options?.includeDrafts ?? false,
-  } as {
-    p_include_finished?: boolean
-    p_brand_id?: number | null
-    p_include_drafts?: boolean
+    p_brand_id: (options?.brandId ?? null) as number,
   })
 
   if (error) throw new Error(error.message)

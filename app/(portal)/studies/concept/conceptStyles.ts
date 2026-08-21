@@ -120,7 +120,7 @@ export const columnMeta: CSSProperties = {
 }
 
 export function intentTagStyle(intent: BattleIntent): CSSProperties {
-  if (intent === 'own_concept_arm') {
+  if (intent === 'hero') {
     return {
       display: 'inline-block',
       fontFamily: 'var(--font-sans)',
@@ -130,20 +130,6 @@ export function intentTagStyle(intent: BattleIntent): CSSProperties {
       textTransform: 'uppercase',
       color: 'var(--sage)',
       background: 'var(--sage-soft)',
-      borderRadius: 'var(--cb-radius-pill)',
-      padding: '3px 7px',
-    }
-  }
-  if (intent === 'jtbd_incumbent') {
-    return {
-      display: 'inline-block',
-      fontFamily: 'var(--font-sans)',
-      fontSize: 10,
-      fontWeight: 600,
-      letterSpacing: '0.04em',
-      textTransform: 'uppercase',
-      color: 'var(--amber)',
-      background: 'var(--amber-pale)',
       borderRadius: 'var(--cb-radius-pill)',
       padding: '3px 7px',
     }
