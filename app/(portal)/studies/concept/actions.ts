@@ -44,6 +44,8 @@ export type ConceptPublishResult =
       error: string
       section: ConceptErrorSection
       hint: string | null
+      productId?: number | null
+      upc?: string | null
     }
 
 function extractHint(error: { message?: string; hint?: string; code?: string }): string | null {
@@ -59,9 +61,14 @@ function extractHint(error: { message?: string; hint?: string; code?: string }):
     'INVALID_SCORING_ROUNDS',
     'FIELD_TOO_SMALL',
     'NO_CONCEPT_ARM',
+    'DUPLICATE_COMPETITOR',
     'PRICE_ASYMMETRY',
     'MISSING_BATTLE_INTENT',
     'INVALID_BATTLE_INTENT',
+    'UPC_REQUIRED',
+    'UPC_INVALID',
+    'UPC_PRODUCT_MISMATCH',
+    'DUPLICATE_FIELD_UPC',
     'NO_BATTLE_QUESTION',
     'CAMPAIGN_NOT_FOUND',
     'NOT_A_BRAND_PORTAL_USER',
@@ -89,6 +96,19 @@ function numOrNull(v: unknown): number | null {
 
 function strOrNull(v: unknown): string | null {
   return typeof v === 'string' && v.trim() ? v : null
+}
+
+function asFail(
+  resolved: ReturnType<typeof resolvePublishError>
+): Extract<ConceptPublishResult, { ok: false }> {
+  return {
+    ok: false,
+    error: resolved.text,
+    section: resolved.section,
+    hint: resolved.code,
+    productId: resolved.productId,
+    upc: resolved.upc,
+  }
 }
 
 export async function listBrandCampaignsAction(
@@ -330,14 +350,13 @@ export async function publishConceptStudyAction(
     if (error) {
       const hint = extractHint(error)
       const resolved = resolvePublishError({
-        thrown: { message: error.message, hint: hint ?? undefined },
+        thrown: {
+          message: error.message,
+          hint: hint ?? undefined,
+          details: error.details ?? undefined,
+        },
       })
-      return {
-        ok: false,
-        error: resolved.text,
-        section: resolved.section,
-        hint: resolved.code,
-      }
+      return asFail(resolved)
     }
 
     const root = asRecord(data)
@@ -345,12 +364,7 @@ export async function publishConceptStudyAction(
       const resolved = resolvePublishError({
         returned: { error: root.error, detail: root.detail },
       })
-      return {
-        ok: false,
-        error: resolved.text,
-        section: resolved.section,
-        hint: resolved.code,
-      }
+      return asFail(resolved)
     }
 
     const missionId =
@@ -390,12 +404,7 @@ export async function publishConceptStudyAction(
     const resolved = resolvePublishError({
       thrown: { message, hint: hint ?? undefined },
     })
-    return {
-      ok: false,
-      error: resolved.text,
-      section: resolved.section,
-      hint: resolved.code,
-    }
+    return asFail(resolved)
   }
 }
 

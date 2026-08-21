@@ -1,4 +1,5 @@
-import type { ConceptStudyDraft, PricePosture } from './types'
+import type { ConceptStudyDraft, PricePosture, ProductCompetitorRow } from './types'
+import { coerceBattleIntent } from './types'
 import { isPriced } from './price'
 import { CONCEPT_PUBLISH_HINT_MESSAGES } from './errors'
 import {
@@ -9,6 +10,7 @@ import {
 } from './templateConfig'
 import { uniquePairs } from './publish'
 import { isSignedStorageUrl } from './stimuliStorage'
+import { isIdentityConfirmed } from '@/lib/productEntryMode'
 import {
   MAX_CONCEPT_FIELD_SIZE,
   competitorMinimum,
@@ -205,22 +207,62 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
   }
 
   const armNamesOk = arms.every((a) => a.display_name.trim())
-  const productIntentsOk = products.every(
+  const productsResolved = products.every(
     (p) =>
-      !!p.battle_intent &&
-      p.battle_intent !== 'own_concept_arm' &&
+      coerceBattleIntent(p.battle_intent, 'competitor') === 'competitor' &&
       p.product_id != null &&
       p.frozen_display_name.trim()
   )
-  const intentsOk = armNamesOk && productIntentsOk
+  const productsUpcOk =
+    productsResolved && products.every((p) => !!p.upc?.trim())
+  const unconfirmedProducts = products.filter(
+    (p) => p.product_id != null && p.upc?.trim() && !isIdentityConfirmed(p)
+  )
+  const productsConfirmedOk = unconfirmedProducts.length === 0
+  const upcSeen = new Map<string, number>()
+  for (const p of products) {
+    const upc = p.upc?.trim()
+    if (!upc) continue
+    upcSeen.set(upc, (upcSeen.get(upc) ?? 0) + 1)
+  }
+  const duplicateUpcs = [...upcSeen.entries()].filter(([, n]) => n > 1)
+  const duplicateUpcOk = duplicateUpcs.length === 0
+  const intentsOk =
+    armNamesOk &&
+    productsResolved &&
+    productsUpcOk &&
+    productsConfirmedOk &&
+    duplicateUpcOk
   if (!armNamesOk) {
     const msg =
       arms.length > 1 ? 'Give every variant a product name.' : 'Give your product a name.'
     reasons.push(msg)
     outstanding.push({ message: msg, anchor: 'concept-field' })
   }
-  if (!productIntentsOk && products.length > 0) {
+  if (!productsResolved && products.length > 0) {
     const msg = 'Finish choosing a product for every competitor.'
+    reasons.push(msg)
+    outstanding.push({ message: msg, anchor: 'concept-field' })
+  }
+  if (productsResolved && !productsUpcOk && products.length > 0) {
+    const unnamed = products.filter((p) => !p.upc?.trim())
+    const first = unnamed[0]?.frozen_display_name.trim()
+    const msg = first
+      ? `Identify the exact SKU for ${first}.`
+      : 'Identify the exact SKU for every competitor.'
+    reasons.push(msg)
+    outstanding.push({ message: msg, anchor: 'concept-field' })
+  }
+  if (!productsConfirmedOk) {
+    const first = unconfirmedProducts[0]?.frozen_display_name.trim()
+    const msg = first
+      ? `Confirm the SKU for ${first}.`
+      : 'Confirm every competitor SKU.'
+    reasons.push(msg)
+    outstanding.push({ message: msg, anchor: 'concept-field' })
+  }
+  if (!duplicateUpcOk) {
+    const msg = 'Two competitors share the same UPC. Pick a different SKU for one of them.'
     reasons.push(msg)
     outstanding.push({ message: msg, anchor: 'concept-field' })
   }
@@ -362,4 +404,110 @@ export function stimulusModeLabel(mode: ConceptStudyDraft['stimulusMode']): stri
     full_concept: 'Full concept',
   }
   return map[mode]
+}
+
+export type ConceptPublishFailure = {
+  hint: string | null
+  productId?: number | null
+  upc?: string | null
+}
+
+/** Per-row UPC / duplicate errors on real-product competitors. Arms never get these. */
+export function conceptProductRowErrors(
+  products: ProductCompetitorRow[],
+  failure?: ConceptPublishFailure | null
+): Record<string, string> {
+  const errors: Record<string, string> = {}
+  const resolved = products.filter((p) => p.product_id != null)
+
+  for (const p of resolved) {
+    if (!p.upc?.trim()) {
+      errors[p.localId] =
+        (p.barcodeOptions?.length ?? 0) > 1
+          ? 'Pick the SKU that was tested.'
+          : 'Identify the exact SKU for this competitor.'
+    } else if (!isIdentityConfirmed(p)) {
+      errors[p.localId] = 'Confirm this competitor before it goes in the field.'
+    }
+  }
+
+  const byUpc = new Map<string, string[]>()
+  for (const p of resolved) {
+    const upc = p.upc?.trim()
+    if (!upc) continue
+    const ids = byUpc.get(upc) ?? []
+    ids.push(p.localId)
+    byUpc.set(upc, ids)
+  }
+  for (const ids of byUpc.values()) {
+    if (ids.length < 2) continue
+    for (const localId of ids) {
+      errors[localId] =
+        CONCEPT_PUBLISH_HINT_MESSAGES.DUPLICATE_FIELD_UPC ??
+        'Two competitors share the same UPC. Pick a different SKU for one of them.'
+    }
+  }
+
+  const byProduct = new Map<number, string[]>()
+  for (const p of resolved) {
+    if (p.product_id == null) continue
+    const ids = byProduct.get(p.product_id) ?? []
+    ids.push(p.localId)
+    byProduct.set(p.product_id, ids)
+  }
+  for (const ids of byProduct.values()) {
+    if (ids.length < 2) continue
+    for (const localId of ids) {
+      errors[localId] =
+        CONCEPT_PUBLISH_HINT_MESSAGES.DUPLICATE_COMPETITOR ??
+        'The same competitor is in the field twice. Remove one — a repeated product would battle itself.'
+    }
+  }
+
+  if (!failure?.hint) return errors
+
+  const hint = failure.hint
+  const target = resolved.filter((p) => {
+    if (failure.productId != null && p.product_id === failure.productId) return true
+    if (failure.upc && p.upc?.trim() === failure.upc.trim()) return true
+    return false
+  })
+  const attach = (rows: typeof resolved, message: string) => {
+    for (const p of rows) errors[p.localId] = message
+  }
+
+  if (hint === 'UPC_INVALID') {
+    attach(
+      target.length > 0 ? target : resolved.filter((p) => p.upc?.trim()),
+      CONCEPT_PUBLISH_HINT_MESSAGES.UPC_INVALID
+    )
+  } else if (hint === 'UPC_PRODUCT_MISMATCH') {
+    attach(
+      target.length > 0 ? target : resolved.filter((p) => p.upc?.trim()),
+      CONCEPT_PUBLISH_HINT_MESSAGES.UPC_PRODUCT_MISMATCH
+    )
+  } else if (hint === 'DUPLICATE_FIELD_UPC') {
+    const dupRows = failure.upc
+      ? resolved.filter((p) => p.upc?.trim() === failure.upc!.trim())
+      : resolved.filter((p) => {
+          const upc = p.upc?.trim()
+          return upc != null && (byUpc.get(upc)?.length ?? 0) > 1
+        })
+    attach(
+      dupRows,
+      CONCEPT_PUBLISH_HINT_MESSAGES.DUPLICATE_FIELD_UPC
+    )
+  } else if (hint === 'DUPLICATE_COMPETITOR') {
+    attach(
+      target.length > 0
+        ? target
+        : resolved.filter((p) => {
+            const id = p.product_id
+            return id != null && (byProduct.get(id)?.length ?? 0) > 1
+          }),
+      CONCEPT_PUBLISH_HINT_MESSAGES.DUPLICATE_COMPETITOR
+    )
+  }
+
+  return errors
 }

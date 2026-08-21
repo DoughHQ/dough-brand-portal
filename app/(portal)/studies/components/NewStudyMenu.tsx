@@ -110,6 +110,23 @@ export default function NewStudyMenu({ onStartFromProduct }: Props) {
             style={menuItem}
             onClick={() => {
               setOpen(false)
+              router.push('/studies/box/new')
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--surface-1)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent'
+            }}
+          >
+            Sampling box
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            style={menuItem}
+            onClick={() => {
+              setOpen(false)
               onStartFromProduct()
             }}
             onMouseEnter={(e) => {

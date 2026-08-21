@@ -75,10 +75,13 @@ export const STIMULUS_TYPE_OPTIONS = STIMULUS_MODE_OPTIONS.map((o) => ({
 }))
 
 export const BATTLE_INTENT_OPTIONS: { value: BattleIntent; label: string; tag: string }[] = [
-  { value: 'own_concept_arm', label: 'Your arm', tag: 'own arm' },
-  { value: 'direct_competitor', label: 'Direct competitor', tag: 'direct competitor' },
-  { value: 'jtbd_incumbent', label: 'Job-to-be-done', tag: 'job-to-be-done' },
+  { value: 'hero', label: 'Your arm', tag: 'hero' },
+  { value: 'competitor', label: 'Competitor', tag: 'competitor' },
 ]
+
+/** Concept-test UPC copy — identity, not physical scan confirmation. */
+export const CONCEPT_UPC_IDENTITY_HELP =
+  'Identifies exactly which competitor SKU was tested — 8oz and family size are different products in the report.'
 
 export const PRICE_POSTURE_OPTIONS: {
   value: PricePosture

@@ -10,6 +10,9 @@ import {
   saveConceptDraft,
 } from '@/lib/concept/draftStore'
 import { cloneDraftAsNew } from '@/lib/concept/defaults'
+import type { BoxStudyDraft } from '@/lib/box/types'
+import { deleteBoxDraft, listBoxDrafts, saveBoxDraft } from '@/lib/box/draftStore'
+import { cloneBoxDraftAsNew } from '@/lib/box/defaults'
 import RowOverflowMenu from '../components/RowOverflowMenu'
 
 function relativeTime(iso: string): string {
@@ -125,6 +128,28 @@ export default function ConceptDraftsPanel({ onCreateProductTest }: Props) {
     refresh()
   }
 
+  const [boxDrafts, setBoxDrafts] = useState<BoxStudyDraft[]>([])
+
+  const refreshBox = useCallback(() => {
+    setBoxDrafts(listBoxDrafts())
+  }, [])
+
+  useEffect(() => {
+    refreshBox()
+  }, [refreshBox])
+
+  function duplicateBox(source: BoxStudyDraft) {
+    const copy = cloneBoxDraftAsNew(source)
+    saveBoxDraft(copy)
+    refreshBox()
+    router.push(`/studies/box/${copy.draftId}/edit`)
+  }
+
+  function removeBox(draftId: string) {
+    deleteBoxDraft(draftId)
+    refreshBox()
+  }
+
   return (
     <section style={{ marginBottom: 28 }}>
       <div
@@ -152,6 +177,16 @@ export default function ConceptDraftsPanel({ onCreateProductTest }: Props) {
             <button type="button" onClick={onCreateProductTest} style={ctaLink}>
               Create →
             </button>
+          }
+        />
+        <CreateCard
+          icon="▣"
+          title="Create sampling box"
+          description="Ship real products to qualified users and measure preference."
+          action={
+            <Link href="/studies/box/new" style={ctaLink}>
+              Create →
+            </Link>
           }
         />
       </div>
@@ -239,6 +274,96 @@ export default function ConceptDraftsPanel({ onCreateProductTest }: Props) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      ) : null}
+
+      {boxDrafts.length > 0 ? (
+        <div style={{ marginTop: 16 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
+              marginBottom: 8,
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: 'var(--ink-50)',
+                letterSpacing: '0.02em',
+              }}
+            >
+              Box drafts in progress
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--ink-30)' }}>
+              Local to this browser until publish
+            </div>
+          </div>
+          <div
+            style={{
+              border: '1px solid var(--ink-10)',
+              borderRadius: 12,
+              overflow: 'hidden',
+              background: 'var(--white)',
+            }}
+          >
+            {boxDrafts.map((d, i) => {
+              const resolved = d.fieldProducts.filter((r) => r.product_id != null).length
+              return (
+                <div
+                  key={d.draftId}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 16,
+                    padding: '14px 16px',
+                    borderTop: i === 0 ? 'none' : '1px solid var(--ink-10)',
+                  }}
+                >
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <Link
+                      href={`/studies/box/${d.draftId}/edit`}
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: 'var(--ink)',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      {d.title.trim() || 'Untitled sampling box'}
+                    </Link>
+                    <div style={{ fontSize: 12, color: 'var(--ink-50)', marginTop: 3 }}>
+                      {resolved} product{resolved === 1 ? '' : 's'} · edited{' '}
+                      {relativeTime(d.updatedAt)}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/studies/box/${d.draftId}/edit`)}
+                      style={ctaLink}
+                    >
+                      Continue →
+                    </button>
+                    <RowOverflowMenu
+                      actions={[
+                        { label: 'Duplicate', onClick: () => duplicateBox(d) },
+                        {
+                          label: 'Delete',
+                          tone: 'danger',
+                          onClick: () => removeBox(d.draftId),
+                        },
+                      ]}
+                    />
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       ) : null}

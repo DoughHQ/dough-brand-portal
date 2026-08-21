@@ -1,6 +1,11 @@
 /** Frozen concept-mission report — portal is a pure renderer of this shape. */
 
-export type BattleIntent = 'own_concept_arm' | 'direct_competitor' | 'jtbd_incumbent'
+export type BattleIntent =
+  | 'hero'
+  | 'competitor'
+  | 'own_concept_arm'
+  | 'direct_competitor'
+  | 'jtbd_incumbent'
 
 export type CombatantKind = 'concept' | 'product' | string
 

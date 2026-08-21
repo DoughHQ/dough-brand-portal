@@ -475,6 +475,10 @@ export type AdminProductSearchResult = {
   elo_score: number | null
   milestone: string
   image_url: string | null
+  // --- appended for the box builder (focal-first category resolution) ---
+  taxonomy_node_id: number | null
+  l2_node_id: number | null
+  l1_name: string | null
 }
 
 export async function searchProductsAdmin(query: string): Promise<AdminProductSearchResult[]> {

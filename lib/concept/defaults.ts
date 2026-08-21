@@ -49,7 +49,11 @@ export function newProductCompetitor(): ProductCompetitorRow {
     frozen_image_url: null,
     frozen_price: null,
     market_reference_price: null,
-    battle_intent: 'direct_competitor',
+    battle_intent: 'competitor',
+    upc: null,
+    barcodeOptions: [],
+    frozen_category: null,
+    identityConfirmed: false,
   }
 }
 

@@ -18,9 +18,11 @@ import type {
 } from '@/lib/concept/types'
 import { PRICE_POSTURE_OPTIONS } from '@/lib/concept/constants'
 import {
+  conceptProductRowErrors,
   evaluateFieldValidity,
   pricePostureHelp,
   stimulusModeLabel,
+  type ConceptPublishFailure,
 } from '@/lib/concept/validity'
 import {
   MAX_CONCEPT_FIELD_SIZE,
@@ -43,6 +45,7 @@ type Props = {
   draft: ConceptStudyDraft
   onChange: (next: ConceptStudyDraft) => void
   error?: string | null
+  publishFailure?: ConceptPublishFailure | null
   disabled?: boolean
   disabledReason?: string | null
   onScoringTouched?: () => void
@@ -52,6 +55,7 @@ export default function FieldSection({
   draft,
   onChange,
   error,
+  publishFailure = null,
   disabled,
   disabledReason,
 }: Props) {
@@ -215,6 +219,7 @@ export default function FieldSection({
             addCompetitor={addCompetitorAvailability}
             progressLabel={competitorLabel}
             disabled={disabled}
+            rowErrors={conceptProductRowErrors(draft.products, publishFailure)}
           />
         </div>
       </div>
