@@ -185,6 +185,7 @@ export async function publishBoxStudyAction(
     const args = draftToBoxPublishArgs(draft, {
       campaignId,
       createdBy: portalUser.auth_uid,
+      open: true,
     })
     const { data, error } = await rpcPublishBoxStudy(supabase, args)
 
@@ -218,6 +219,17 @@ export async function publishBoxStudyAction(
       }
     }
 
+    const boxStatus = strOrNull(root?.box_status)
+    const publishedOpen = root?.published_open === true && boxStatus === 'open'
+    if (!publishedOpen) {
+      return {
+        ok: false,
+        error: "Couldn't publish — check the box is complete.",
+        section: 'publish',
+        hint: 'BOX_OPEN_FAILED',
+      }
+    }
+
     return {
       ok: true,
       meta: {
@@ -230,7 +242,8 @@ export async function publishBoxStudyAction(
         session_count: numOrNull(root?.session_count),
         session2_interval_hours: numOrNull(root?.session2_interval_hours),
         eligibility_applied: root?.eligibility_applied === true,
-        box_status: strOrNull(root?.box_status),
+        box_status: boxStatus,
+        publishedOpen,
         battle_question:
           strOrNull(root?.battle_question) ??
           (draft.battleQuestion.trim() || BOX_DEFAULT_BATTLE_QUESTION),

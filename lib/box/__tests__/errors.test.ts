@@ -26,3 +26,31 @@ describe('box UPC HINT mapping', () => {
     expect(resolved.text).toMatch(/doesn't belong/i)
   })
 })
+
+describe('box open-on-publish HINT mapping', () => {
+  it.each([
+    ['BOX_OPEN_FIELD_EMPTY', 'field'],
+    ['BOX_OPEN_FIELD_TOO_SMALL', 'field'],
+    ['BOX_OPEN_OUTSIDE_WINDOW', 'logistics'],
+    ['BOX_OPEN_FAILED', 'publish'],
+    ['BOX_OPEN_NO_PROTOCOL', 'publish'],
+  ] as const)('maps %s to %s', (code, section) => {
+    expect(sectionForBoxCode(code)).toBe(section)
+    const resolved = resolveBoxPublishError({
+      thrown: { message: `cannot open box x`, hint: code },
+    })
+    expect(resolved.code).toBe(code)
+    expect(resolved.section).toBe(section)
+    expect(resolved.text).toMatch(/publish|two products|end date/i)
+  })
+
+  it('maps a raw cannot-open exception to the friendly publish copy', () => {
+    const resolved = resolveBoxPublishError({
+      thrown: {
+        message: 'cannot open box abc: only 1 combatant(s) frozen; a battle needs at least 2',
+      },
+    })
+    expect(resolved.code).toBe('BOX_OPEN_FAILED')
+    expect(resolved.text).toBe("Couldn't publish — check the box is complete.")
+  })
+})

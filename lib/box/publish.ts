@@ -49,7 +49,7 @@ export function boxEligibilityToWire(
 
 export function draftToBoxPublishArgs(
   draft: BoxStudyDraft,
-  ctx: { campaignId: string; createdBy: string }
+  ctx: { campaignId: string; createdBy: string; open?: boolean }
 ): PublishBoxStudyArgs {
   if (draft.taxonomyNodeId == null) throw new Error('CATEGORY_REQUIRED')
   if (draft.focalProductId == null) throw new Error('FOCAL_REQUIRED')
@@ -99,6 +99,7 @@ export function draftToBoxPublishArgs(
   }
   const battleQuestion = draft.battleQuestion.trim()
   if (battleQuestion) args.p_battle_question = battleQuestion
+  if (ctx.open === true) args.p_open = true
 
   return args
 }

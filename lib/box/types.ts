@@ -3,12 +3,13 @@
  *
  * A box study ships physical products to qualified users. The backend RPC
  * `publish_box_study` creates: an active brand mission (focal product +
- * category), an UNLOCKED protocol stub (session count/interval — questions and
- * locking belong to a later session-wiring pass), an optional
- * mission_eligibility_rules row, a sampling_boxes row in `draft` status with
- * the field frozen by value server-side, and a single Model-A sponsor row
- * (the campaign owner). Opening the claim window is a separate, operator-only
- * step (`advance_box_status`) and is NOT part of this builder.
+ * category), a protocol stub, an optional mission_eligibility_rules row, a
+ * sampling_boxes row with the field frozen by value server-side, and a
+ * single Model-A sponsor row (the campaign owner).
+ *
+ * Browser "Save draft" is localStorage only and never calls this RPC.
+ * "Publish box" sends p_open: true so the box is created AND opened
+ * (draft → open) in one transaction and is immediately claimable.
  */
 
 import type { ProductBarcodeOption } from '@/lib/concept/types'
@@ -155,6 +156,11 @@ export type PublishBoxStudyArgs = {
   p_created_by?: string
   /** Omitted when blank — server falls back to "Which would you buy?" */
   p_battle_question?: string
+  /**
+   * Publish box always sends true. Omitted / false creates a server draft
+   * without opening the claim window. Save draft never reaches this RPC.
+   */
+  p_open?: boolean
 }
 
 /** Parsed success payload from publish_box_study.
@@ -169,8 +175,10 @@ export type BoxPublishSuccessMeta = {
   session_count: number | null
   session2_interval_hours: number | null
   eligibility_applied: boolean
-  /** Always 'draft' on success — opening is an operator action. */
+  /** Real sampling_boxes.status — 'open' after a successful Publish box. */
   box_status: string | null
+  /** True when the RPC opened the claim window in the same transaction. */
+  publishedOpen: boolean
   /** Resolved prompt respondents will see (custom or server default). */
   battle_question: string | null
   battle_question_is_custom: boolean

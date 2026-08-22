@@ -64,6 +64,17 @@ export const BOX_PUBLISH_HINT_MESSAGES: Record<string, string> = {
     'One-session boxes have no wait; two-session boxes need at least 24 hours between sessions.',
   INVALID_WINDOW: 'The end date must be in the future, after the start.',
   INVALID_TARGET_COMPLETIONS: 'Target completions must be a positive number.',
+
+  // Open-on-publish (advance_box_status readiness, rolled back with the create)
+  BOX_OPEN_FIELD_EMPTY: "Couldn't publish — check the box is complete.",
+  BOX_OPEN_FIELD_TOO_SMALL: 'A box needs at least two products to battle.',
+  BOX_OPEN_NO_MISSION: "Couldn't publish — check the box is complete.",
+  BOX_OPEN_NO_PROTOCOL: "Couldn't publish — check the box is complete.",
+  BOX_OPEN_NO_BATTLE: "Couldn't publish — check the box is complete.",
+  BOX_OPEN_OUTSIDE_WINDOW:
+    "The study window isn't open. Check the end date is in the future.",
+  BOX_OPEN_FAILED: "Couldn't publish — check the box is complete.",
+  BOX_OPEN_NOT_AUTHORIZED: "Couldn't publish — check the box is complete.",
 }
 
 /** Ordered longest-first so e.g. CATEGORY_BAR_REQUIRES_NODE is never
@@ -110,6 +121,8 @@ export function sectionForBoxCode(code: string): BoxErrorSection {
     case 'UPC_REQUIRED':
     case 'UPC_INVALID':
     case 'UPC_PRODUCT_MISMATCH':
+    case 'BOX_OPEN_FIELD_EMPTY':
+    case 'BOX_OPEN_FIELD_TOO_SMALL':
       return 'field'
     case 'INVALID_ELIGIBILITY_TIER':
     case 'UNKNOWN_STATE':
@@ -123,6 +136,7 @@ export function sectionForBoxCode(code: string): BoxErrorSection {
     case 'SESSION_INTERVAL_INVALID':
     case 'INVALID_WINDOW':
     case 'INVALID_TARGET_COMPLETIONS':
+    case 'BOX_OPEN_OUTSIDE_WINDOW':
       return 'logistics'
     default:
       return 'publish'
@@ -247,7 +261,24 @@ export function resolveBoxPublishError(args: {
       )
     }
     if (args.thrown.message?.trim()) {
-      return resolved(args.thrown.message.trim(), 'publish', null, locator)
+      const raw = args.thrown.message.trim()
+      if (/cannot open box/i.test(raw)) {
+        return resolved(
+          BOX_PUBLISH_HINT_MESSAGES.BOX_OPEN_FAILED,
+          'publish',
+          'BOX_OPEN_FAILED',
+          locator
+        )
+      }
+      if (/could not find the function/i.test(raw) || /PGRST202/i.test(raw)) {
+        return resolved(
+          "Couldn't publish — the server needs an update. Try again in a moment.",
+          'publish',
+          null,
+          locator
+        )
+      }
+      return resolved(raw, 'publish', null, locator)
     }
   }
 

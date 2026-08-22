@@ -370,7 +370,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
             </h2>
             <p style={{ margin: '0 0 24px', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}>
               No audience requirements are set — any user can claim a box, first come,
-              first served, up to the unit count. You can still publish.
+              first served, up to the unit count. Publishing opens the study immediately.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
               <button
@@ -459,11 +459,11 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
                 margin: '0 0 8px',
               }}
             >
-              Box created in draft
+              Box is live
             </h2>
             <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}>
-              The study and its field are frozen. A Dough operator reviews and opens the
-              claim window — nothing is visible to users until then.
+              The study is open. Qualified users can claim it now — the field is
+              frozen and the battle question is locked.
             </p>
             <dl
               style={{
@@ -495,6 +495,14 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
                   {publishMeta.session2_interval_hours
                     ? ` · ${publishMeta.session2_interval_hours}h apart`
                     : ''}
+                </dd>
+              </div>
+              <div>
+                <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
+                  Status
+                </dt>
+                <dd style={{ margin: 0 }}>
+                  {publishMeta.box_status === 'open' ? 'Open · claimable' : publishMeta.box_status ?? '—'}
                 </dd>
               </div>
               <div>
@@ -562,7 +570,10 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
                   </span>
                   Ready to publish
                 </span>
-                <p className="cb-dock-summary-help">All required fields are complete.</p>
+                <p className="cb-dock-summary-help">
+                  Publish opens the study so qualified users can claim it. Save draft
+                  stays on this browser until then.
+                </p>
               </>
             ) : (
               <>
