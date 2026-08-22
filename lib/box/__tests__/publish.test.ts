@@ -99,3 +99,18 @@ describe('draftToBoxPublishArgs battle question', () => {
     ).toBe('Which would you grab for lunch?')
   })
 })
+
+describe('draftToBoxPublishArgs p_open', () => {
+  it('omits p_open unless the caller asked to open', () => {
+    expect(draftToBoxPublishArgs(boxDraft(), ctx)).not.toHaveProperty('p_open')
+    expect(
+      draftToBoxPublishArgs(boxDraft(), { ...ctx, open: false })
+    ).not.toHaveProperty('p_open')
+  })
+
+  it('sends p_open: true only for Publish box', () => {
+    expect(
+      draftToBoxPublishArgs(boxDraft(), { ...ctx, open: true }).p_open
+    ).toBe(true)
+  })
+})

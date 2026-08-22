@@ -41678,6 +41678,7 @@ export type Database = {
           p_title: string
           p_unit_cost_cents?: number
           p_battle_question?: string
+          p_open?: boolean
         }
         Returns: Json
       }
