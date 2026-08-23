@@ -25,6 +25,7 @@ export type PublishConceptStudyArgs = {
   p_expires_at: string
   p_target_completions: number
   p_audience_definition?: string
+  p_eligibility?: Json
   p_predictive_validity_opt_in?: boolean
   p_category_intelligence_opt_in?: boolean
 }
@@ -53,5 +54,35 @@ export async function rpcBuildConceptQuestionsFromTemplate(
   return supabase.rpc('build_concept_questions_from_template', {
     p_template_code: args.p_template_code ?? PACKAGING_TEMPLATE_CODE,
     p_config: args.p_config as unknown as Json,
+  })
+}
+
+/**
+ * Read-only walkthrough questionnaire. Not yet in generated Database types —
+ * narrow wrapper until `supabase gen types` picks up preview_concept_questionnaire.
+ */
+export async function rpcPreviewConceptQuestionnaire(
+  supabase: Client,
+  args: {
+    p_module_config: Json
+    p_modules: StudyModuleCode[]
+    p_battle_prompt?: string | null
+  }
+) {
+  return (
+    supabase as unknown as {
+      rpc: (
+        fn: 'preview_concept_questionnaire',
+        params: {
+          p_module_config: Json
+          p_modules: string[]
+          p_battle_prompt: string | null
+        }
+      ) => Promise<{ data: unknown; error: { message: string; hint?: string } | null }>
+    }
+  ).rpc('preview_concept_questionnaire', {
+    p_module_config: args.p_module_config,
+    p_modules: args.p_modules,
+    p_battle_prompt: args.p_battle_prompt ?? null,
   })
 }

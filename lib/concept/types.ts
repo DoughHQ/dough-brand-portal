@@ -1,5 +1,7 @@
 /** Concept study — operator console types (UI ↔ publish_study wire). */
 
+import type { StudyModuleCode } from '@/lib/study/modules'
+
 export type StimulusMode =
   | 'name'
   | 'package'
@@ -156,6 +158,35 @@ export type ConceptQuestionSlot = {
   drives_rounds: boolean
 }
 
+/**
+ * Audience requirements. Same jsonb keys as iHUT p_eligibility — every field
+ * optional; unset keys are omitted on the wire. Concept has no experience
+ * tier (always `any`); that lives on BoxStudyDraft, not here.
+ */
+export type ConceptEligibilityDraft = {
+  /** US states, any format ("NY" / "new york") — server normalizes via
+   *  normalize_us_state and rejects unrecognized values with UNKNOWN_STATE. */
+  targetStates: string[]
+  /** ISO-ish country codes ("US"); server upper/trims. */
+  targetCountries: string[]
+  /** Constraint codes from user_dietary_constraints (e.g. "gluten_free"). */
+  requiredDietaryFlags: string[]
+  allowedGenders: string[]
+  minAge: number | null
+  maxAge: number | null
+  minAccountAgeDays: number | null
+  /** Category-mastery gate. Bars below REQUIRE this node (server enforces
+   *  CATEGORY_BAR_REQUIRES_NODE; validity mirrors it client-side). */
+  qualifyingTaxonomyNodeId: number | null
+  qualifyingNodeLabel: string | null
+  /** Engagement bar — battles are grindable; label it as engagement in UI. */
+  minCategoryBattles: number | null
+  /** Un-grindable bar — distinct completed product loops in the category. */
+  minCategoryTries: number | null
+  /** Un-grindable bar — level derived from tries (1–20, sum-then-map). */
+  minCategoryLevel: number | null
+}
+
 export type ConceptStudyDraft = {
   draftId: string
   title: string
@@ -169,7 +200,6 @@ export type ConceptStudyDraft = {
   pricePosture: PricePosture
   /** Packaging is S1-only; session count is not draft state. */
   session2IntervalHours: number
-  scoringRounds: number
   /** Closes the study when hit. Required in practice. */
   targetCompletions: number
   /** ISO timestamp — missions.expires_at is NOT NULL. */
@@ -180,6 +210,13 @@ export type ConceptStudyDraft = {
   screeners: ConceptQuestionSlot[]
   diagnostics: ConceptQuestionSlot[]
   floor: ConceptQuestionSlot | null
+  /** Structured eligibility — wired as p_eligibility. Optional; empty = open. */
+  eligibility: ConceptEligibilityDraft
+  /**
+   * Extra pickable modules (value, field ranking). Never includes the
+   * mode-derived packaging/WTP module — that is composed at publish.
+   */
+  selectedModules: StudyModuleCode[]
   audienceDefinition: string
   predictiveValidityOptIn: boolean
   categoryIntelligenceOptIn: boolean

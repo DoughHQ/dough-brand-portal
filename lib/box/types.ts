@@ -108,11 +108,16 @@ export type BoxStudyDraft = {
   /** How many boxes exist = the claim seat count. null until entered. */
   physicalUnits: number | null
   /**
-   * When true, MODULE_LOYALTY is selected → server builds a 2-session study.
-   * Replaces the old 1/2 session radio.
+   * Extra pickable modules (value, field ranking, loyalty). Loyalty in this
+   * list makes the study 2-session.
+   */
+  selectedModules: StudyModuleCode[]
+  /**
+   * @deprecated Derived from selectedModules.includes(MODULE_LOYALTY).
+   * Kept so older localStorage drafts migrate; do not write from UI.
    */
   loyaltyFollowUp: boolean
-  /** Hours between sessions. Only sent when loyaltyFollowUp; server requires >= 24. */
+  /** Hours between sessions. Only sent when loyalty is picked; server requires >= 24. */
   session2IntervalHours: number
   eligibilityTier: BoxEligibilityTier
   eligibility: BoxEligibilityDraft

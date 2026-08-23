@@ -8,7 +8,8 @@ import type {
 import { coerceBattleIntent } from './types'
 import { DRAFT_STORAGE_KEY } from './constants'
 import { migrateArmImageFields } from './stimuliStorage'
-import { emptyPackagingTemplateConfig } from './defaults'
+import { sanitizeSelectedModules } from '@/lib/study/modules'
+import { createEmptyConceptEligibility, emptyPackagingTemplateConfig } from './defaults'
 
 function isVerificationOption(value: unknown): value is VerificationOption {
   if (value == null || typeof value !== 'object') return false
@@ -72,6 +73,11 @@ function migrateDraft(raw: ConceptStudyDraft): ConceptStudyDraft {
     templateConfig: migrateTemplateConfig(raw.templateConfig),
     conceptArms: (raw.conceptArms ?? []).map((arm) => migrateArmImageFields(arm)),
     products: (raw.products ?? []).map(migrateProductRow),
+    eligibility: {
+      ...createEmptyConceptEligibility(),
+      ...(raw.eligibility ?? {}),
+    },
+    selectedModules: sanitizeSelectedModules(raw.selectedModules, 'concept'),
   }
 }
 

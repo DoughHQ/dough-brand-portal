@@ -187,7 +187,7 @@ sec('Pass 3 §1-§5 · an empty study is actually empty')
   const fresh = createEmptyConceptDraft()
   ok(fresh.conceptArms.length === 0, 'fresh draft seeds zero concept arms', fresh.conceptArms.length)
   ok(fresh.products.length === 0, 'and zero competitors', fresh.products.length)
-  ok(fresh.scoringRounds === 1, '§9 · scoring rounds stay sane at zero arms', fresh.scoringRounds)
+  ok(fresh.targetCompletions === 100, '§9 · empty draft still has a completion target', fresh.targetCompletions)
   ok(!!fresh.floor, '§10 · the floor question still builds without a leader arm')
   ok(/Would you actually buy this/.test(String(fresh.floor?.config.prompt)), 'and falls back to "this"', fresh.floor?.config.prompt)
 

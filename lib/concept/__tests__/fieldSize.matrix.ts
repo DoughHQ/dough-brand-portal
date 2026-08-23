@@ -30,7 +30,6 @@ function draft(mode: StimulusMode, own: number, comps: number, opts: { dupe?: bo
     taxonomyNodeId: 1,
     pricePosture: 'blind',
     targetCompletions: 100,
-    scoringRounds: 5,
     conceptArms: Array.from({ length: own }, (_, i) => ({
       localId: 'a' + i, display_name: 'Variant ' + i, frozen_price: null,
       arm_label: String.fromCharCode(65 + i),

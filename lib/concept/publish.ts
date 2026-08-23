@@ -8,19 +8,12 @@ import { armLabelForIndex } from './defaults'
 import { priceToWire } from './price'
 import { templateConfigToWire } from './templateConfig'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
-import { conceptModulesForStimulusMode } from '@/lib/study/modules'
+import { composeConceptPublishModules } from '@/lib/study/modules'
 
-/** Combinatorial pairs for a field of size n. */
+/** Combinatorial pairs for a field of size n. Full round-robin battle count. */
 export function uniquePairs(n: number): number {
   if (n < 2) return 0
   return (n * (n - 1)) / 2
-}
-
-/** Default scoring rounds: min(10, pairs). */
-export function defaultScoringRounds(fieldSize: number): number {
-  const pairs = uniquePairs(fieldSize)
-  if (pairs < 1) return 1
-  return Math.min(10, pairs)
 }
 
 /**
@@ -79,6 +72,43 @@ export function draftToPublishPayload(draft: ConceptStudyDraft): {
   return { concepts, products }
 }
 
+/**
+ * Unset eligibility keys are omitted, not sent as null. The RPC treats a
+ * present key as "this rule participates". Concept never sends
+ * p_eligibility_tier (backend rejects any non-any tier).
+ */
+export function conceptEligibilityToWire(
+  draft: ConceptStudyDraft
+): Record<string, unknown> | null {
+  const e = draft.eligibility
+  if (!e) return null
+  const wire: Record<string, unknown> = {}
+
+  if (e.targetStates.length > 0) {
+    wire.target_states = e.targetStates.map((s) => s.trim()).filter(Boolean)
+  }
+  if (e.targetCountries.length > 0) {
+    wire.target_countries = e.targetCountries.map((s) => s.trim()).filter(Boolean)
+  }
+  if (e.requiredDietaryFlags.length > 0) {
+    wire.required_dietary_flags = e.requiredDietaryFlags
+  }
+  if (e.allowedGenders.length > 0) {
+    wire.allowed_genders = e.allowedGenders
+  }
+  if (e.minAge != null) wire.min_age = e.minAge
+  if (e.maxAge != null) wire.max_age = e.maxAge
+  if (e.minAccountAgeDays != null) wire.min_account_age_days = e.minAccountAgeDays
+  if (e.qualifyingTaxonomyNodeId != null) {
+    wire.qualifying_taxonomy_node_id = e.qualifyingTaxonomyNodeId
+  }
+  if (e.minCategoryBattles != null) wire.min_category_battles = e.minCategoryBattles
+  if (e.minCategoryTries != null) wire.min_category_tries = e.minCategoryTries
+  if (e.minCategoryLevel != null) wire.min_category_level = e.minCategoryLevel
+
+  return Object.keys(wire).length > 0 ? wire : null
+}
+
 /** Full publish_study args for the concept branch. */
 export function draftToConceptPublishStudyArgs(
   draft: ConceptStudyDraft,
@@ -95,7 +125,7 @@ export function draftToConceptPublishStudyArgs(
 
   const { concepts, products } = draftToPublishPayload(draft)
 
-  return {
+  const args: PublishConceptStudyArgs = {
     p_test_type: 'concept',
     p_brand_campaign_id: ctx.campaignId,
     p_brand_id: draft.brandId,
@@ -105,7 +135,10 @@ export function draftToConceptPublishStudyArgs(
       concepts: concepts as unknown as PublishConceptStudyArgs['p_field']['concepts'],
       products: products as unknown as PublishConceptStudyArgs['p_field']['products'],
     },
-    p_modules: conceptModulesForStimulusMode(draft.stimulusMode),
+    p_modules: composeConceptPublishModules(
+      draft.stimulusMode,
+      draft.selectedModules
+    ),
     p_module_config: templateConfigToWire(
       draft.templateConfig
     ) as unknown as PublishConceptStudyArgs['p_module_config'],
@@ -118,4 +151,11 @@ export function draftToConceptPublishStudyArgs(
     p_target_completions: draft.targetCompletions,
     p_audience_definition: draft.audienceDefinition.trim() || undefined,
   }
+
+  const eligibility = conceptEligibilityToWire(draft)
+  if (eligibility) {
+    args.p_eligibility = eligibility as PublishConceptStudyArgs['p_eligibility']
+  }
+
+  return args
 }

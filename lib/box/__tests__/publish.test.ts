@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { createEmptyBoxDraft, createEmptyBoxFieldRow } from '../defaults'
 import { draftToBoxPublishArgs } from '../publish'
-import { MODULE_LOYALTY } from '@/lib/study/modules'
+import {
+  MODULE_FIELD_RANKING,
+  MODULE_LOYALTY,
+  MODULE_VALUE,
+} from '@/lib/study/modules'
 import type { BoxFieldRow, BoxStudyDraft } from '../types'
 
 function fieldRow(
@@ -103,18 +107,44 @@ describe('draftToBoxPublishArgs battle prompt', () => {
 })
 
 describe('draftToBoxPublishArgs loyalty module / p_open', () => {
-  it('derives session count from MODULE_LOYALTY, not a session radio', () => {
+  it('sends no modules or interval when nothing is picked', () => {
     expect(draftToBoxPublishArgs(boxDraft(), ctx).p_modules).toEqual([])
     expect(
       draftToBoxPublishArgs(boxDraft(), ctx)
     ).not.toHaveProperty('p_session2_interval_hours')
+  })
 
+  it('sends loyalty + interval when MODULE_LOYALTY is picked', () => {
+    const withLoyalty = draftToBoxPublishArgs(
+      boxDraft({
+        selectedModules: [MODULE_LOYALTY],
+        session2IntervalHours: 48,
+      }),
+      ctx
+    )
+    expect(withLoyalty.p_modules).toEqual([MODULE_LOYALTY])
+    expect(withLoyalty.p_session2_interval_hours).toBe(48)
+  })
+
+  it('still honors a legacy loyaltyFollowUp boolean', () => {
     const withLoyalty = draftToBoxPublishArgs(
       boxDraft({ loyaltyFollowUp: true, session2IntervalHours: 48 }),
       ctx
     )
     expect(withLoyalty.p_modules).toEqual([MODULE_LOYALTY])
     expect(withLoyalty.p_session2_interval_hours).toBe(48)
+  })
+
+  it('sends value/ranking without an interval when loyalty is off', () => {
+    const args = draftToBoxPublishArgs(
+      boxDraft({
+        selectedModules: [MODULE_VALUE, MODULE_FIELD_RANKING],
+        session2IntervalHours: 48,
+      }),
+      ctx
+    )
+    expect(args.p_modules).toEqual([MODULE_VALUE, MODULE_FIELD_RANKING])
+    expect(args).not.toHaveProperty('p_session2_interval_hours')
   })
 
   it('sends p_open: false by default and true only for Publish box', () => {

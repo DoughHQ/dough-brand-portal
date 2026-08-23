@@ -28,7 +28,6 @@ export type TaxLegibilityOption = Extract<
 
 export type TemplateConfigField =
   | keyof PackagingTemplateConfig
-  | 'scoring_rounds'
   | 'template'
 
 export type TemplateConfigError = {

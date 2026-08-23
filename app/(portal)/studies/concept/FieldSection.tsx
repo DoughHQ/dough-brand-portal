@@ -48,7 +48,6 @@ type Props = {
   publishFailure?: ConceptPublishFailure | null
   disabled?: boolean
   disabledReason?: string | null
-  onScoringTouched?: () => void
 }
 
 export default function FieldSection({

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { ConceptQuestionSlot, ConceptStudyDraft } from '@/lib/concept/types'
 import { defaultFloor, newScreener } from '@/lib/concept/defaults'
+import { uniquePairs } from '@/lib/concept/publish'
 import { formatPriceLabel } from '@/lib/concept/price'
 import PackagingQuestionnaireEditor from './PackagingQuestionnaireEditor'
 import PriceQuestionnaireEditor from './PriceQuestionnaireEditor'
@@ -25,7 +26,6 @@ type Props = {
   error?: string | null
   disabled?: boolean
   disabledReason?: string | null
-  onScoringTouched?: () => void
 }
 
 function TrashIcon() {
@@ -301,9 +301,10 @@ function LegacyQuestionsBuilder({
       </div>
 
       <div style={stageLocked}>
-        <StageHeader title="Battles" meta="Locked · drives rounds" />
+        <StageHeader title="Battles" meta="Locked · full round-robin" />
         <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-50)' }}>
-          {draft.scoringRounds} rounds · A wins / B wins / neither / skip
+          {uniquePairs(draft.conceptArms.length + draft.products.length)}{' '}
+          battles · every item vs every item · A wins / B wins / neither / skip
         </p>
       </div>
 
@@ -407,7 +408,6 @@ export default function QuestionsSection({
   error,
   disabled,
   disabledReason,
-  onScoringTouched,
 }: Props) {
   if (draft.stimulusMode === 'package') {
     return (

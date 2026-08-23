@@ -37,6 +37,15 @@ export const CONCEPT_PUBLISH_HINT_MESSAGES: Record<string, string> = {
     'That module cannot be used on this kind of study.',
   SESSION_INTERVAL_INVALID:
     'Loyalty follow-up needs at least 24 hours between sessions.',
+  CONCEPT_TIER_MUST_BE_ANY:
+    'Concept studies cannot require prior experience with the product.',
+  INVALID_ELIGIBILITY_TIER: "That experience requirement isn't valid.",
+  UNKNOWN_STATE: "One of the target states isn't recognized. Use a US state name or code.",
+  QUALIFYING_NODE_NOT_FOUND: 'The qualifying category no longer exists. Pick another.',
+  CATEGORY_BAR_REQUIRES_NODE:
+    'Category requirements need a qualifying category. Pick one, or clear the bars.',
+  CATEGORY_LEVEL_OUT_OF_RANGE: 'Category level must be between 1 and 20.',
+  CATEGORY_BAR_INVALID: 'Category requirements cannot be negative.',
 }
 
 export type ConceptErrorSection =
@@ -44,6 +53,7 @@ export type ConceptErrorSection =
   | 'mode'
   | 'field'
   | 'questions'
+  | 'audience'
   | 'advanced'
   | 'publish'
 
@@ -198,6 +208,17 @@ function sectionForCode(code: string): ConceptErrorSection {
     code === 'CONCEPT_STIMULUS_MISMATCH'
   ) {
     return 'field'
+  }
+  if (
+    code === 'CONCEPT_TIER_MUST_BE_ANY' ||
+    code === 'INVALID_ELIGIBILITY_TIER' ||
+    code === 'UNKNOWN_STATE' ||
+    code === 'QUALIFYING_NODE_NOT_FOUND' ||
+    code === 'CATEGORY_BAR_REQUIRES_NODE' ||
+    code === 'CATEGORY_LEVEL_OUT_OF_RANGE' ||
+    code === 'CATEGORY_BAR_INVALID'
+  ) {
+    return 'audience'
   }
   if (
     code === 'INVALID_SESSION_COUNT' ||

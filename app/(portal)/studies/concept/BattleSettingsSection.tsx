@@ -2,9 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import type { ConceptStudyDraft } from '@/lib/concept/types'
-import { evaluateFieldValidity } from '@/lib/concept/validity'
-import { defaultScoringRounds, uniquePairs } from '@/lib/concept/publish'
-import { templateFieldAnchor } from '@/lib/concept/templateConfig'
+import { uniquePairs } from '@/lib/concept/publish'
 import {
   inputBase,
   labelSm,
@@ -19,7 +17,6 @@ type Props = {
   onChange: (next: ConceptStudyDraft) => void
   disabled?: boolean
   disabledReason?: string | null
-  onScoringTouched?: () => void
 }
 
 const stripItem = (ok: boolean): CSSProperties => ({
@@ -29,20 +26,17 @@ const stripItem = (ok: boolean): CSSProperties => ({
 })
 
 /**
- * Battle settings — how the field is scored and how many respondents are needed.
- * Universal across every study mode; rendered as the last section of the builder.
+ * Battle settings — how many respondents you need and when the study closes.
+ * Battle count is derived from field size (full round-robin).
  */
 export default function BattleSettingsSection({
   draft,
   onChange,
   disabled,
   disabledReason,
-  onScoringTouched,
 }: Props) {
-  const validity = evaluateFieldValidity(draft)
   const fieldSize = draft.conceptArms.length + draft.products.length
-  const pairs = uniquePairs(fieldSize)
-  const recommended = defaultScoringRounds(fieldSize)
+  const battles = uniquePairs(fieldSize)
 
   return (
     <section
@@ -54,13 +48,13 @@ export default function BattleSettingsSection({
       id="concept-battle-settings"
       aria-disabled={disabled || undefined}
     >
-      <div style={sectionEyebrow}>Section 3 · Battle settings</div>
+      <div style={sectionEyebrow}>Section 5 · Battle settings</div>
       <h2 className="cb-section-title" style={sectionTitle}>
         Battle settings
       </h2>
       <p style={sectionHelp}>
-        How the field is scored and how many respondents you need. Applies to every study
-        type.
+        How many respondents you need and when the study closes. Every respondent
+        sees a full round-robin — every item vs every other item.
       </p>
 
       {disabled && disabledReason ? (
@@ -83,34 +77,10 @@ export default function BattleSettingsSection({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr',
+          gridTemplateColumns: '1fr 1fr',
           gap: 14,
         }}
       >
-        <div id={templateFieldAnchor('scoring_rounds')}>
-          <label style={labelSm} htmlFor="field_scoring_rounds">
-            Rounds / respondent
-          </label>
-          <input
-            id="field_scoring_rounds"
-            type="number"
-            min={1}
-            max={10}
-            className="cb-input"
-            value={draft.scoringRounds}
-            onChange={(e) => {
-              onScoringTouched?.()
-              const n = Math.min(10, Math.max(1, Number(e.target.value) || 1))
-              onChange({ ...draft, scoringRounds: n })
-            }}
-            style={inputBase}
-          />
-          <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--ink-50)' }}>
-            {draft.scoringRounds < pairs
-              ? `${draft.scoringRounds} of ${pairs} pairs · recommended ${recommended}`
-              : `${pairs} unique pairs in field`}
-          </p>
-        </div>
         <div>
           <label style={labelSm} htmlFor="field_target_completions">
             Target completions
@@ -165,15 +135,13 @@ export default function BattleSettingsSection({
             borderRadius: 'var(--r-md)',
             background: 'var(--surface-1)',
             border: '1px solid var(--ink-10)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '10px 22px',
-            alignItems: 'center',
           }}
         >
-          <span style={stripItem(validity.pairings > 0)}>
-            {validity.pairings > 0 ? '✓' : '✗'} {validity.pairings} pairing
-            {validity.pairings === 1 ? '' : 's'}/respondent
+          <span style={stripItem(battles > 0)}>
+            {battles > 0 ? '✓' : '✗'}{' '}
+            {battles > 0
+              ? `This study will run ${battles} battle${battles === 1 ? '' : 's'} per respondent — every item vs every item`
+              : 'Add at least two field items to run battles'}
           </span>
         </div>
       ) : null}

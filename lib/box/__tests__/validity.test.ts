@@ -5,6 +5,7 @@ import {
   evaluateBoxValidity,
   isOpenAudience,
 } from '../validity'
+import { MODULE_LOYALTY } from '@/lib/study/modules'
 import type { BoxFieldRow, BoxStudyDraft } from '../types'
 
 function fieldRow(
@@ -84,6 +85,20 @@ describe('evaluateBoxValidity UPC gate', () => {
     )
     expect(v.fieldOk).toBe(false)
     expect(v.outstanding.map((o) => o.message).join(' ')).toMatch(/own UPC/i)
+  })
+})
+
+describe('loyalty session interval', () => {
+  it('blocks publish when loyalty is picked and the interval is under 24h', () => {
+    const v = evaluateBoxValidity(
+      boxDraft({
+        selectedModules: [MODULE_LOYALTY],
+        session2IntervalHours: 12,
+      })
+    )
+    expect(v.logisticsOk).toBe(false)
+    expect(v.readyToPublish).toBe(false)
+    expect(v.outstanding.map((o) => o.message).join(' ')).toMatch(/24 hours/i)
   })
 })
 
