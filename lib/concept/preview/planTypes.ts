@@ -81,6 +81,7 @@ export type ConceptBattleScreenPlan = ConceptScreenBase & {
   round_role?: 'scoring' | 'reliability' | string
   prompt?: string
   protocol_question_id?: string
+  question_type?: string
   config?: ConceptScreenConfig
 }
 
@@ -136,8 +137,16 @@ export type ConceptPlanScreen =
   | ConceptAttributeFollowupScreen
   | ConceptSessionSummaryScreen
 
-export function isBattleKind(k: string | undefined): boolean {
+export function isBattleKind(
+  k: string | undefined
+): k is ConceptBattleScreenPlan['kind'] {
   return k === 'forced_choice_battle' || k === 'concept_battle'
+}
+
+export function isBattleScreen(
+  s: ConceptPlanScreen
+): s is ConceptBattleScreenPlan {
+  return isBattleKind(s.kind)
 }
 
 export function isConceptChoiceKind(
@@ -149,6 +158,18 @@ export function isConceptChoiceKind(
     kind === 'floor' ||
     kind === 'probe'
   )
+}
+
+export type ConceptChoiceScreen =
+  | ConceptScreenerScreen
+  | ConceptDiagnosticScreen
+  | ConceptFloorScreen
+  | ConceptProbeScreen
+
+export function isConceptChoiceScreen(
+  s: ConceptPlanScreen
+): s is ConceptChoiceScreen {
+  return isConceptChoiceKind(s.kind)
 }
 
 export function shouldSuppressCombatantLabels(params: {

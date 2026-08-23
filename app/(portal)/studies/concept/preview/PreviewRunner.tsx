@@ -8,7 +8,8 @@ import type {
 } from '@/lib/concept/preview/planTypes'
 import {
   isBattleKind,
-  isConceptChoiceKind,
+  isBattleScreen,
+  isConceptChoiceScreen,
 } from '@/lib/concept/preview/planTypes'
 import {
   applyBattleWin,
@@ -70,7 +71,7 @@ export default function PreviewRunner({ screens, stimulusMode }: Props) {
   const names = useMemo(() => {
     const map = new Map<number, string>()
     for (const s of screens) {
-      if (isBattleKind(s.kind)) {
+      if (isBattleScreen(s)) {
         if (s.combatant_a) map.set(s.combatant_a.ref, s.combatant_a.name)
         if (s.combatant_b) map.set(s.combatant_b.ref, s.combatant_b.name)
       }
@@ -98,7 +99,7 @@ export default function PreviewRunner({ screens, stimulusMode }: Props) {
   }
 
   function onBattle(outcome: ConceptBattleOutcome) {
-    if (!screen || !isBattleKind(screen.kind)) return
+    if (!screen || !isBattleScreen(screen)) return
     const rec = {
       outcome,
       refA: screen.combatant_ref_a,
@@ -116,7 +117,7 @@ export default function PreviewRunner({ screens, stimulusMode }: Props) {
 
   function subjectCard(ref: number): ConceptPlanSubject {
     for (const s of screens) {
-      if (isBattleKind(s.kind)) {
+      if (isBattleScreen(s)) {
         for (const side of [s.combatant_a, s.combatant_b]) {
           if (side?.ref === ref) {
             return {
@@ -141,8 +142,8 @@ export default function PreviewRunner({ screens, stimulusMode }: Props) {
   }
 
   function resolveSubject(): ConceptPlanSubject | null {
-    if (!screen || !isConceptChoiceKind(screen.kind)) {
-      return screen && 'subject' in screen ? (screen.subject ?? null) : null
+    if (!screen || !isConceptChoiceScreen(screen) || screen.kind === 'screener') {
+      return null
     }
     if (screen.resolve_subject === 'client_session_winner') {
       if (mostChosen == null) return null
@@ -168,7 +169,7 @@ export default function PreviewRunner({ screens, stimulusMode }: Props) {
         </p>
         <ProgressHeader current={index + 1} total={screens.length} />
 
-        {isBattleKind(screen.kind) ? (
+        {isBattleScreen(screen) ? (
           <BattleScreen
             screen={screen}
             stimulusMode={stimulusMode}
@@ -177,7 +178,7 @@ export default function PreviewRunner({ screens, stimulusMode }: Props) {
           />
         ) : null}
 
-        {isConceptChoiceKind(screen.kind) ? (
+        {isConceptChoiceScreen(screen) ? (
           <ChoiceScreen
             screen={screen}
             subject={resolveSubject()}
