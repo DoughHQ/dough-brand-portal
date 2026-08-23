@@ -7,6 +7,7 @@
  * existence, campaign tenancy) is deliberately left to the server and mapped
  * back through lib/box/errors.ts.
  */
+import { hasLoyaltyModule, resolveBoxSelectedModules } from '@/lib/study/modules'
 import type { BoxStudyDraft } from './types'
 import { uniquePairs } from '@/lib/concept/publish'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
@@ -283,7 +284,8 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
   }
 
   const sessionsOk =
-    !draft.loyaltyFollowUp || draft.session2IntervalHours >= 24
+    !hasLoyaltyModule(resolveBoxSelectedModules(draft)) ||
+    draft.session2IntervalHours >= 24
   if (!sessionsOk) {
     outstanding.push({
       message: 'Loyalty follow-up needs at least 24 hours between sessions.',

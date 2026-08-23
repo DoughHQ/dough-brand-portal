@@ -3,6 +3,7 @@
  * until publish, mirroring the concept lane. Namespaced away from
  * dough.conceptDrafts.* so the two lanes can never collide.
  */
+import { MODULE_LOYALTY, resolveBoxSelectedModules } from '@/lib/study/modules'
 import type { BoxStudyDraft } from './types'
 import { createEmptyBoxDraft, createEmptyBoxEligibility } from './defaults'
 
@@ -40,6 +41,13 @@ export function normalizeStoredBoxDraft(
   fallbackBrandId: number
 ): BoxStudyDraft {
   const base = createEmptyBoxDraft(stored.brandId ?? fallbackBrandId)
+  const selectedModules = resolveBoxSelectedModules({
+    selectedModules: stored.selectedModules,
+    loyaltyFollowUp:
+      typeof stored.loyaltyFollowUp === 'boolean'
+        ? stored.loyaltyFollowUp
+        : stored.sessionCount === 2,
+  })
   return {
     ...base,
     ...stored,
@@ -62,10 +70,8 @@ export function normalizeStoredBoxDraft(
       ...createEmptyBoxEligibility(),
       ...(stored.eligibility ?? {}),
     },
-    loyaltyFollowUp:
-      typeof stored.loyaltyFollowUp === 'boolean'
-        ? stored.loyaltyFollowUp
-        : stored.sessionCount === 2,
+    selectedModules,
+    loyaltyFollowUp: selectedModules.includes(MODULE_LOYALTY),
     battleQuestion:
       typeof stored.battleQuestion === 'string' ? stored.battleQuestion : '',
   }

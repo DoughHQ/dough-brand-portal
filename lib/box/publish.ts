@@ -10,12 +10,15 @@
  * - Unset eligibility keys are OMITTED, not sent as null. The RPC treats a
  *   PRESENT key as "this rule participates" — a present-but-null key would
  *   create an empty mission_eligibility_rules row.
- * - Session count is derived from MODULE_LOYALTY: when loyaltyFollowUp is on,
- *   that module is included and p_session2_interval_hours must be >= 24.
+ * - Session count is derived from MODULE_LOYALTY: when that module is in
+ *   selectedModules, p_session2_interval_hours must be >= 24.
  */
 import type { BoxStudyDraft, PublishBoxStudyArgs } from './types'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
-import { MODULE_LOYALTY, type StudyModuleCode } from '@/lib/study/modules'
+import {
+  hasLoyaltyModule,
+  resolveBoxSelectedModules,
+} from '@/lib/study/modules'
 
 export function boxEligibilityToWire(
   draft: BoxStudyDraft
@@ -67,7 +70,7 @@ export function draftToBoxPublishArgs(
     throw new Error('DUPLICATE_FIELD_UPC')
   }
 
-  const modules: StudyModuleCode[] = draft.loyaltyFollowUp ? [MODULE_LOYALTY] : []
+  const modules = resolveBoxSelectedModules(draft)
 
   const args: PublishBoxStudyArgs = {
     p_test_type: 'ihut',
@@ -92,7 +95,7 @@ export function draftToBoxPublishArgs(
     p_open: ctx.open === true,
   }
 
-  if (draft.loyaltyFollowUp) {
+  if (hasLoyaltyModule(modules)) {
     args.p_session2_interval_hours = draft.session2IntervalHours
   }
 

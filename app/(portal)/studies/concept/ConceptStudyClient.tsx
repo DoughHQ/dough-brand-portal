@@ -5,14 +5,16 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import type { ConceptPublishSuccessMeta, ConceptStudyDraft } from '@/lib/concept/types'
 import { createEmptyConceptDraft } from '@/lib/concept/defaults'
+import { normalizeDraft } from '@/lib/concept/normalizeDraft'
 import { deleteConceptDraft, saveConceptDraft } from '@/lib/concept/draftStore'
-import { defaultScoringRounds } from '@/lib/concept/publish'
 import { evaluateFieldValidity, type ConceptPublishFailure } from '@/lib/concept/validity'
 import {
   createConceptCampaignAction,
   publishConceptStudyAction,
 } from './actions'
+import AudienceSection from './AudienceSection'
 import BattleSettingsSection from './BattleSettingsSection'
+import ModulesSection from './ModulesSection'
 import FieldSection from './FieldSection'
 import QuestionsSection from './QuestionsSection'
 import StudyTypeSection from './StudyTypeSection'
@@ -45,6 +47,7 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
     mode?: string
     field?: string
     questions?: string
+    audience?: string
     advanced?: string
     publish?: string
   }>({})
@@ -58,6 +61,7 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
   const setupDone = !!draft.stimulusMode && draft.taxonomyNodeId != null
   const fieldDone = validity.fieldOk && !!draft.title.trim()
   const questionsDone = validity.templateOk
+  const audienceDone = validity.audienceOk
   const stickyNeeds = useMemo(() => {
     const items = [...validity.outstanding, ...validity.softOutstanding]
     return items
@@ -66,12 +70,6 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
   const stickyRef = useRef<HTMLDivElement>(null)
   // Purely presentational: how many blockers the dock shows. Never touches validity.
   const [needsExpanded, setNeedsExpanded] = useState(false)
-  const scoringTouched = useRef(false)
-  const prevRecommended = useRef(
-    defaultScoringRounds(
-      initialDraft.conceptArms.length + initialDraft.products.length
-    )
-  )
 
   const hydrateFromServer = useCallback(
     (draftJson: Record<string, unknown>, _serverId: string) => {
@@ -147,28 +145,6 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
     return () => clearTimeout(t)
   }, [toast])
 
-  // Keep scoring rounds at min(10, pairs) until the brand edits the control; always clamp down.
-  useEffect(() => {
-    const fieldSize = draft.conceptArms.length + draft.products.length
-    const recommended = defaultScoringRounds(fieldSize)
-    const prev = prevRecommended.current
-    prevRecommended.current = recommended
-
-    setDraft((current) => {
-      let nextRounds = current.scoringRounds
-      if (current.scoringRounds > recommended) {
-        nextRounds = recommended
-      } else if (!scoringTouched.current && current.scoringRounds === prev) {
-        nextRounds = recommended
-      }
-      if (nextRounds === current.scoringRounds) return current
-      const next = { ...current, scoringRounds: nextRounds }
-      saveConceptDraft(next)
-      scheduleSave(next)
-      return next
-    })
-  }, [draft.conceptArms.length, draft.products.length, scheduleSave])
-
   function saveDraft() {
     setSaving(true)
     const saved = saveConceptDraft(draft)
@@ -231,7 +207,9 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
         ? 'mode'
         : !validity.templateOk
           ? 'questions'
-          : 'field'
+          : !validity.audienceOk
+            ? 'audience'
+            : 'field'
       setSectionErrors({ [section]: msg, publish: msg })
       const anchor = first?.anchor ?? 'concept-field'
       document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth' })
@@ -288,7 +266,9 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
               ? 'concept-field'
               : result.section === 'questions'
                 ? 'concept-questions'
-                : null
+                : result.section === 'audience'
+                  ? 'concept-audience'
+                  : null
         if (anchor) {
           document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth' })
         }
@@ -390,10 +370,27 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
               active: setupDone && fieldDone && !questionsDone,
             },
             {
-              id: 'concept-questions',
-              label: 'Review',
+              id: 'concept-audience',
+              label: 'Audience',
+              done: setupDone && fieldDone && questionsDone && audienceDone,
+              active: setupDone && fieldDone && questionsDone && !audienceDone,
+            },
+            {
+              id: 'concept-modules',
+              label: 'Modules',
+              done: setupDone && fieldDone && questionsDone && audienceDone,
+              active: false,
+            },
+            {
+              id: 'concept-battle-settings',
+              label: 'Battle settings',
               done: validity.readyToPublish,
-              active: setupDone && fieldDone && questionsDone && !validity.readyToPublish,
+              active:
+                setupDone &&
+                fieldDone &&
+                questionsDone &&
+                audienceDone &&
+                !validity.readyToPublish,
             },
           ] as const
         ).map((step, i) => (
@@ -453,9 +450,21 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
         error={sectionErrors.questions ?? null}
         disabled={builderLocked}
         disabledReason={builderLocked ? lockReason : null}
-        onScoringTouched={() => {
-          scoringTouched.current = true
-        }}
+      />
+
+      <AudienceSection
+        draft={draft}
+        onChange={persist}
+        error={sectionErrors.audience ?? null}
+        disabled={builderLocked}
+        disabledReason={builderLocked ? lockReason : null}
+      />
+
+      <ModulesSection
+        draft={draft}
+        onChange={persist}
+        disabled={builderLocked}
+        disabledReason={builderLocked ? lockReason : null}
       />
 
       <BattleSettingsSection
@@ -463,14 +472,12 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
         onChange={persist}
         disabled={builderLocked}
         disabledReason={builderLocked ? lockReason : null}
-        onScoringTouched={() => {
-          scoringTouched.current = true
-        }}
       />
 
       {sectionErrors.publish &&
       !sectionErrors.field &&
       !sectionErrors.questions &&
+      !sectionErrors.audience &&
       !sectionErrors.mode ? (
         <p role="alert" style={{ fontSize: 13, color: 'var(--red)', marginBottom: 16 }}>
           {sectionErrors.publish}
@@ -781,6 +788,17 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
             </button>
             <button
               type="button"
+              className="cb-btn cb-btn-secondary"
+              disabled={!validity.readyToPublish || publishing || pending || !!publishMeta}
+              onClick={() => {
+                flushSaveNow(draft)
+                router.push(`/studies/concept/${draft.draftId}/preview`)
+              }}
+            >
+              Preview / Walk through this study
+            </button>
+            <button
+              type="button"
               className="cb-btn cb-btn-primary"
               data-muted={!validity.readyToPublish || publishing}
               onClick={() => requestPublish()}
@@ -793,40 +811,4 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
       </div>
     </div>
   )
-}
-
-function normalizeDraft(draft: ConceptStudyDraft): ConceptStudyDraft {
-  const base = createEmptyConceptDraft()
-  const blindImageMode =
-    draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
-  const priceMode = draft.stimulusMode === 'price'
-  const rawArms = draft.conceptArms ?? base.conceptArms
-  // Standalone price keeps a single own product (composition will lift this).
-  const armsSource = priceMode ? rawArms.slice(0, 1) : rawArms
-  return {
-    ...base,
-    ...draft,
-    stimulusMode: draft.stimulusMode ?? null,
-    templateConfig: {
-      ...base.templateConfig,
-      ...(draft.templateConfig ?? {}),
-      price_answer_mode: draft.templateConfig?.price_answer_mode ?? 'bands',
-    },
-    taxonomyNodeId: draft.taxonomyNodeId ?? null,
-    targetCompletions: draft.targetCompletions ?? base.targetCompletions,
-    expiresAt: draft.expiresAt ?? base.expiresAt,
-    pricePosture: blindImageMode ? 'blind' : draft.pricePosture ?? base.pricePosture,
-    conceptArms: armsSource.map((arm, i) => ({
-      localId: arm.localId,
-      display_name: arm.display_name ?? '',
-      frozen_price: blindImageMode ? null : arm.frozen_price ?? null,
-      arm_label: arm.arm_label || String.fromCharCode(65 + i),
-      image_url: arm.image_url ?? null,
-      image_filename: arm.image_filename ?? null,
-      stimulus_payload: arm.stimulus_payload ?? {},
-    })),
-    products: (draft.products ?? []).map((p) =>
-      blindImageMode ? { ...p, frozen_price: null } : p
-    ),
-  }
 }

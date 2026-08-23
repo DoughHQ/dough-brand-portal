@@ -1,5 +1,6 @@
 import type {
   ConceptArmRow,
+  ConceptEligibilityDraft,
   ConceptQuestionSlot,
   ConceptStudyDraft,
   PackagingTemplateConfig,
@@ -7,12 +8,6 @@ import type {
   ProductCompetitorRow,
 } from './types'
 import { CONCEPT_DEFAULT_BRAND_ID } from './constants'
-
-function defaultScoringRoundsForArms(armCount: number): number {
-  if (armCount < 2) return 1
-  const pairs = (armCount * (armCount - 1)) / 2
-  return Math.min(10, Math.max(1, pairs))
-}
 
 function id(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -150,6 +145,23 @@ export function newScreener(): ConceptQuestionSlot {
   }
 }
 
+export function createEmptyConceptEligibility(): ConceptEligibilityDraft {
+  return {
+    targetStates: [],
+    targetCountries: [],
+    requiredDietaryFlags: [],
+    allowedGenders: [],
+    minAge: null,
+    maxAge: null,
+    minAccountAgeDays: null,
+    qualifyingTaxonomyNodeId: null,
+    qualifyingNodeLabel: null,
+    minCategoryBattles: null,
+    minCategoryTries: null,
+    minCategoryLevel: null,
+  }
+}
+
 export function defaultExpiresAt(days = 30): string {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
 }
@@ -164,7 +176,7 @@ export function defaultExpiresAt(days = 30): string {
  *
  * Every `conceptArms[0]` consumer was audited before this changed — publish's
  * floor prompt, the draft floor default and FieldSection's leader all use
- * optional chaining, and `defaultScoringRoundsForArms(0)` returns 1.
+ * optional chaining.
  */
 export function createEmptyConceptDraft(
   partial?: Partial<ConceptStudyDraft>
@@ -180,7 +192,6 @@ export function createEmptyConceptDraft(
     templateConfig: emptyPackagingTemplateConfig(),
     pricePosture: 'realistic' as PricePosture,
     session2IntervalHours: 24,
-    scoringRounds: defaultScoringRoundsForArms(arms.length),
     targetCompletions: 100,
     expiresAt: defaultExpiresAt(30),
     conceptArms: arms,
@@ -188,6 +199,8 @@ export function createEmptyConceptDraft(
     screeners: [],
     diagnostics: defaultDiagnostics(),
     floor: defaultFloor(arms[0]?.display_name || 'this', arms[0]?.frozen_price ?? null),
+    eligibility: createEmptyConceptEligibility(),
+    selectedModules: [],
     audienceDefinition: '',
     predictiveValidityOptIn: true,
     categoryIntelligenceOptIn: false,

@@ -41,6 +41,7 @@ export function createEmptyBoxDraft(brandId: number): BoxStudyDraft {
     focalProductId: null,
     fieldProducts: [],
     physicalUnits: null,
+    selectedModules: [],
     loyaltyFollowUp: false,
     session2IntervalHours: 48,
     eligibilityTier: 'any',

@@ -1,10 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { createEmptyConceptDraft, newConceptArm, newProductCompetitor } from '../defaults'
 import {
+  createEmptyConceptDraft,
+  createEmptyConceptEligibility,
+  newConceptArm,
+  newProductCompetitor,
+} from '../defaults'
+import {
+  conceptEligibilityToWire,
   draftToConceptPublishStudyArgs,
   draftToPublishPayload,
 } from '../publish'
-import { MODULE_PACKAGING, MODULE_WILLINGNESS_TO_PAY } from '@/lib/study/modules'
+import {
+  MODULE_FIELD_RANKING,
+  MODULE_LOYALTY,
+  MODULE_PACKAGING,
+  MODULE_VALUE,
+  MODULE_WILLINGNESS_TO_PAY,
+} from '@/lib/study/modules'
 
 function draftWithProduct(
   upc: string | null,
@@ -105,5 +117,62 @@ describe('draftToConceptPublishStudyArgs modules', () => {
       expiresAt: new Date(Date.now() + 86400000).toISOString(),
     })
     expect(args.p_modules).toEqual([MODULE_WILLINGNESS_TO_PAY])
+  })
+
+  it('appends picked extras after the derived base and drops loyalty', () => {
+    const draft = draftWithProduct('028400017688')
+    draft.taxonomyNodeId = 10
+    draft.title = 'Pack test'
+    draft.selectedModules = [MODULE_VALUE, MODULE_FIELD_RANKING, MODULE_LOYALTY]
+    const args = draftToConceptPublishStudyArgs(draft, {
+      campaignId: 'camp-1',
+      createdBy: 'user-1',
+      expiresAt: new Date(Date.now() + 86400000).toISOString(),
+    })
+    expect(args.p_modules).toEqual([
+      MODULE_PACKAGING,
+      MODULE_VALUE,
+      MODULE_FIELD_RANKING,
+    ])
+    expect(args.p_modules).not.toContain(MODULE_LOYALTY)
+  })
+})
+
+describe('conceptEligibilityToWire / p_eligibility', () => {
+  const ctx = {
+    campaignId: 'camp-1',
+    createdBy: 'user-1',
+    expiresAt: new Date(Date.now() + 86400000).toISOString(),
+  }
+
+  it('omits p_eligibility when no rules are set', () => {
+    const draft = draftWithProduct('028400017688')
+    draft.taxonomyNodeId = 10
+    draft.title = 'Pack test'
+    const args = draftToConceptPublishStudyArgs(draft, ctx)
+    expect(args).not.toHaveProperty('p_eligibility')
+    expect(args).not.toHaveProperty('p_eligibility_tier')
+    expect(conceptEligibilityToWire(draft)).toBeNull()
+  })
+
+  it('sends only set keys and never p_eligibility_tier', () => {
+    const draft = draftWithProduct('028400017688')
+    draft.taxonomyNodeId = 10
+    draft.title = 'Pack test'
+    draft.eligibility = {
+      ...createEmptyConceptEligibility(),
+      targetStates: ['CA', 'NY'],
+      minAge: 21,
+      qualifyingTaxonomyNodeId: 44,
+      minCategoryLevel: 3,
+    }
+    const args = draftToConceptPublishStudyArgs(draft, ctx)
+    expect(args.p_eligibility).toEqual({
+      target_states: ['CA', 'NY'],
+      min_age: 21,
+      qualifying_taxonomy_node_id: 44,
+      min_category_level: 3,
+    })
+    expect(args).not.toHaveProperty('p_eligibility_tier')
   })
 })

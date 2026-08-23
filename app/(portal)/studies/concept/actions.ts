@@ -8,8 +8,12 @@ import { resolvePublishError, type ConceptErrorSection } from '@/lib/concept/err
 import { templateConfigToWire } from '@/lib/concept/templateConfig'
 import {
   rpcBuildConceptQuestionsFromTemplate,
+  rpcPreviewConceptQuestionnaire,
   rpcPublishConceptStudy,
 } from '@/lib/concept/rpc'
+import { parsePreviewQuestionnaire, previewErrorMessage } from '@/lib/concept/preview/parsePreview'
+import type { ProtocolQuestion } from '@/lib/concept/preview/planTypes'
+import { conceptModulesForStimulusMode } from '@/lib/study/modules'
 import type {
   ConceptPublishSuccessMeta,
   ConceptStudyDraft,
@@ -76,6 +80,14 @@ function extractHint(error: { message?: string; hint?: string; code?: string }):
     'NOT_AUTHORIZED',
     'FORBIDDEN',
     'NO_AUTHOR',
+    'CONCEPT_TIER_MUST_BE_ANY',
+    'INVALID_ELIGIBILITY_TIER',
+    'UNKNOWN_STATE',
+    'QUALIFYING_NODE_NOT_FOUND',
+    'CATEGORY_BAR_REQUIRES_NODE',
+    'CATEGORY_LEVEL_OUT_OF_RANGE',
+    'CATEGORY_BAR_INVALID',
+    'OPTION_ID_UNRESOLVED',
   ]
   for (const code of known) {
     if (msg === code || msg.startsWith(code) || msg.includes(code)) return code
@@ -180,6 +192,57 @@ export async function createConceptCampaignAction(args: {
     return {
       ok: false,
       error: err instanceof Error ? err.message : 'Could not create campaign.',
+    }
+  }
+}
+
+export async function previewConceptQuestionnaireAction(
+  draft: ConceptStudyDraft
+): Promise<
+  | { ok: true; questions: ProtocolQuestion[] }
+  | { ok: false; error: string; hint: string | null }
+> {
+  const portalUser = await getPortalUser()
+  if (!portalUser) {
+    return {
+      ok: false,
+      error: "You don't have access to that brand.",
+      hint: 'NOT_A_BRAND_PORTAL_USER',
+    }
+  }
+  if (draft.stimulusMode !== 'package' && draft.stimulusMode !== 'price') {
+    return {
+      ok: false,
+      error: 'Choose Packaging or Price before walking through this study.',
+      hint: 'NO_TEMPLATE_FOR_MODE',
+    }
+  }
+
+  const supabase = await createServerSupabaseClient()
+  try {
+    const { data, error } = await rpcPreviewConceptQuestionnaire(supabase, {
+      p_module_config: templateConfigToWire(draft.templateConfig) as unknown as Json,
+      p_modules: conceptModulesForStimulusMode(draft.stimulusMode),
+      p_battle_prompt: null,
+    })
+    if (error) {
+      return {
+        ok: false,
+        error: previewErrorMessage(error),
+        hint: extractHint(error),
+      }
+    }
+    const parsed = parsePreviewQuestionnaire(data)
+    if ('error' in parsed) {
+      return { ok: false, error: parsed.error, hint: null }
+    }
+    return { ok: true, questions: parsed }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Could not build the walkthrough.'
+    return {
+      ok: false,
+      error: previewErrorMessage({ message }),
+      hint: message.includes('OPTION_ID_UNRESOLVED') ? 'OPTION_ID_UNRESOLVED' : null,
     }
   }
 }

@@ -2,6 +2,12 @@
 
 import type { BoxStudyDraft } from '@/lib/box/types'
 import { BOX_ANCHORS } from '@/lib/box/validity'
+import {
+  MODULE_LOYALTY,
+  hasLoyaltyModule,
+  resolveBoxSelectedModules,
+} from '@/lib/study/modules'
+import ModulesPicker from '../ModulesPicker'
 
 type Props = {
   draft: BoxStudyDraft
@@ -30,6 +36,9 @@ function isoToLocalInput(iso: string): string {
 }
 
 export default function LogisticsSection({ draft, onChange, error }: Props) {
+  const selectedModules = resolveBoxSelectedModules(draft)
+  const loyaltyOn = hasLoyaltyModule(selectedModules)
+
   return (
     <section id={BOX_ANCHORS.logistics} style={card}>
       <div style={eyebrow}>Section 4 · Logistics</div>
@@ -57,54 +66,26 @@ export default function LogisticsSection({ draft, onChange, error }: Props) {
         </p>
       </div>
 
-      {/* loyalty / session 2 */}
+      {/* modules + session 2 (loyalty lives in the picker) */}
       <div id={BOX_ANCHORS.sessions} style={{ marginBottom: 28 }}>
-        <label
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 12,
-            cursor: 'pointer',
-            maxWidth: 560,
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={draft.loyaltyFollowUp}
-            onChange={(e) =>
-              onChange({ ...draft, loyaltyFollowUp: e.target.checked })
-            }
-            style={{ marginTop: 3 }}
-          />
-          <span>
-            <span
-              style={{
-                display: 'block',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 14,
-                fontWeight: 500,
-                color: 'var(--ink-80)',
-              }}
-            >
-              Add loyalty follow-up (Session 2)
-            </span>
-            <span
-              style={{
-                display: 'block',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 13,
-                color: 'var(--ink-50)',
-                marginTop: 2,
-                lineHeight: 1.4,
-              }}
-            >
-              A second session unlocks preference drift — did it grow on them?
-              Requires at least 24 hours between sessions.
-            </span>
-          </span>
-        </label>
-        {draft.loyaltyFollowUp ? (
-          <div style={{ marginTop: 12, marginLeft: 28 }}>
+        <div style={labelSm}>Add-on modules</div>
+        <p style={{ ...subHelp, marginBottom: 12, maxWidth: 560 }}>
+          Optional analysis packs. Loyalty follow-up adds a second session —
+          set the wait below when it&rsquo;s selected.
+        </p>
+        <ModulesPicker
+          testType="ihut"
+          selected={selectedModules}
+          onChange={(next) =>
+            onChange({
+              ...draft,
+              selectedModules: next,
+              loyaltyFollowUp: next.includes(MODULE_LOYALTY),
+            })
+          }
+        />
+        {loyaltyOn ? (
+          <div style={{ marginTop: 16, maxWidth: 560 }}>
             <div style={labelSm}>Hours between sessions</div>
             <input
               className="cb-input"

@@ -1,3 +1,5 @@
+import { eligibilityBarsSet } from './audienceSummary'
+import { createEmptyConceptEligibility } from './defaults'
 import type { ConceptStudyDraft, PricePosture, ProductCompetitorRow } from './types'
 import { coerceBattleIntent } from './types'
 import { isPriced } from './price'
@@ -23,6 +25,18 @@ import {
 } from './fieldSize'
 import { armLabelForIndex } from './defaults'
 
+export const CONCEPT_ANCHORS = {
+  mode: 'concept-mode',
+  category: 'concept-category',
+  field: 'concept-field',
+  questions: 'concept-questions',
+  audience: 'concept-audience',
+  audienceCategoryBars: 'concept-aud-category-bars',
+  audienceStates: 'concept-aud-states',
+  modules: 'concept-modules',
+  battleSettings: 'concept-battle-settings',
+} as const
+
 export type OutstandingItem = {
   message: string
   anchor: string | null
@@ -41,6 +55,7 @@ export type FieldValidity = {
   templateOk: boolean
   publishableMode: boolean
   fieldOk: boolean
+  audienceOk: boolean
   readyToPublish: boolean
   reasons: string[]
   outstanding: OutstandingItem[]
@@ -59,12 +74,6 @@ export type FieldValidity = {
   fieldSizeOk: boolean
   competitorsOk: boolean
   duplicatesOk: boolean
-}
-
-/** Pairings per respondent = C(n,2) capped at scoring_rounds. */
-export function pairingsPerRespondent(n: number, scoringRounds: number): number {
-  if (n < 2) return 0
-  return Math.min(uniquePairs(n), Math.max(1, scoringRounds))
 }
 
 export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
@@ -314,22 +323,16 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     })
   }
 
-  if (draft.scoringRounds < 1 || draft.scoringRounds > 10) {
-    const msg = 'Battle rounds must be between 1 and 10.'
-    reasons.push(msg)
-    outstanding.push({ message: msg, anchor: 'concept-q-scoring_rounds' })
-  }
-
   if (!draft.targetCompletions || draft.targetCompletions < 1) {
     const msg = 'Set a target completion count so the study can close when full.'
     reasons.push(msg)
-    outstanding.push({ message: msg, anchor: 'concept-q-scoring_rounds' })
+    outstanding.push({ message: msg, anchor: 'field_target_completions' })
   }
 
   if (!draft.expiresAt) {
     const msg = 'Set an expiry date.'
     reasons.push(msg)
-    outstanding.push({ message: msg, anchor: 'concept-q-scoring_rounds' })
+    outstanding.push({ message: msg, anchor: 'field_expires_at' })
   }
 
   const competitorsOk = competitorsMissing === 0
@@ -344,21 +347,83 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     imagesOk &&
     draft.title.trim().length > 0
 
+  // ---- audience --------------------------------------------------------
+  const e = draft.eligibility ?? createEmptyConceptEligibility()
+  const barsSet = eligibilityBarsSet(e)
+
+  const barsNodeOk = !barsSet || e.qualifyingTaxonomyNodeId != null
+  if (!barsNodeOk) {
+    const msg =
+      'Category requirements need a qualifying category. Pick one, or clear the bars.'
+    reasons.push(msg)
+    outstanding.push({
+      message: msg,
+      anchor: CONCEPT_ANCHORS.audienceCategoryBars,
+    })
+  }
+
+  const levelOk =
+    e.minCategoryLevel == null ||
+    (e.minCategoryLevel >= 1 && e.minCategoryLevel <= 20)
+  if (!levelOk) {
+    const msg = 'Category level must be between 1 and 20.'
+    reasons.push(msg)
+    outstanding.push({
+      message: msg,
+      anchor: CONCEPT_ANCHORS.audienceCategoryBars,
+    })
+  }
+
+  const barsNonNegOk =
+    (e.minCategoryBattles == null || e.minCategoryBattles >= 0) &&
+    (e.minCategoryTries == null || e.minCategoryTries >= 0)
+  if (!barsNonNegOk) {
+    const msg = 'Category requirements cannot be negative.'
+    reasons.push(msg)
+    outstanding.push({
+      message: msg,
+      anchor: CONCEPT_ANCHORS.audienceCategoryBars,
+    })
+  }
+
+  const ageOk = e.minAge == null || e.maxAge == null || e.minAge <= e.maxAge
+  if (!ageOk) {
+    const msg = 'Minimum age cannot exceed maximum age.'
+    reasons.push(msg)
+    outstanding.push({ message: msg, anchor: CONCEPT_ANCHORS.audience })
+  }
+
+  const statesFormatOk = e.targetStates.every((s) => s.trim().length > 0)
+  if (!statesFormatOk) {
+    const msg = 'Remove the empty state entry.'
+    reasons.push(msg)
+    outstanding.push({ message: msg, anchor: CONCEPT_ANCHORS.audienceStates })
+  }
+
+  const audienceOk = barsNodeOk && levelOk && barsNonNegOk && ageOk && statesFormatOk
+
+  if (e.qualifyingTaxonomyNodeId != null && !barsSet) {
+    softOutstanding.push({
+      message:
+        'Category expertise needs a bar (level, tries, or battles) or it won’t restrict who can take the study.',
+      anchor: CONCEPT_ANCHORS.audienceCategoryBars,
+    })
+  }
+
   const readyToPublish =
     modeOk &&
     categoryOk &&
     publishableMode &&
     fieldOk &&
     templateOk &&
+    audienceOk &&
     draft.targetCompletions >= 1 &&
-    !!draft.expiresAt &&
-    draft.scoringRounds >= 1 &&
-    draft.scoringRounds <= 10
+    !!draft.expiresAt
 
   return {
     competitorCount: total,
     conceptArmCount: arms.length,
-    pairings: pairingsPerRespondent(total, draft.scoringRounds),
+    pairings: uniquePairs(total),
     uniquePairs: uniquePairs(total),
     priceOk,
     priceMessage,
@@ -368,6 +433,7 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     templateOk,
     publishableMode,
     fieldOk,
+    audienceOk,
     readyToPublish,
     reasons,
     outstanding,
