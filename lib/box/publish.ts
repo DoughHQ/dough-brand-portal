@@ -1,8 +1,8 @@
 /**
- * Draft → wire mapping for publish_box_study.
+ * Draft → wire mapping for publish_study (p_test_type = 'ihut').
  *
  * Wire discipline that matters:
- * - p_box_products is `{ product_id, upc }[]`. Every row that ships, hero
+ * - p_field.box_products is `{ product_id, upc }[]`. Every row that ships, hero
  *   included, must have a resolved barcode. Incomplete rows are NEVER dropped
  *   on the wire — publish is blocked instead (a silent drop would fail
  *   FOCAL_NOT_IN_FIELD / FIELD_TOO_SMALL). frozen_* and barcodeOptions stay
@@ -10,11 +10,12 @@
  * - Unset eligibility keys are OMITTED, not sent as null. The RPC treats a
  *   PRESENT key as "this rule participates" — a present-but-null key would
  *   create an empty mission_eligibility_rules row.
- * - Optional args are OMITTED (undefined), never null, to match the
- *   generated Args type exactly.
+ * - Session count is derived from MODULE_LOYALTY: when loyaltyFollowUp is on,
+ *   that module is included and p_session2_interval_hours must be >= 24.
  */
 import type { BoxStudyDraft, PublishBoxStudyArgs } from './types'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
+import { MODULE_LOYALTY, type StudyModuleCode } from '@/lib/study/modules'
 
 export function boxEligibilityToWire(
   draft: BoxStudyDraft
@@ -66,26 +67,32 @@ export function draftToBoxPublishArgs(
     throw new Error('DUPLICATE_FIELD_UPC')
   }
 
+  const modules: StudyModuleCode[] = draft.loyaltyFollowUp ? [MODULE_LOYALTY] : []
+
   const args: PublishBoxStudyArgs = {
+    p_test_type: 'ihut',
     p_brand_campaign_id: ctx.campaignId,
     p_brand_id: draft.brandId,
     p_title: draft.title.trim(),
     p_taxonomy_node_id: draft.taxonomyNodeId,
-    p_focal_product_id: draft.focalProductId,
-    p_box_products: resolved.map((r) => ({
-      product_id: r.product_id,
-      upc: r.upc!.trim(),
-    })),
+    p_field: {
+      box_products: resolved.map((r) => ({
+        product_id: r.product_id,
+        upc: r.upc!.trim(),
+      })),
+      focal_product_id: draft.focalProductId,
+    },
+    p_modules: modules,
     p_physical_units: draft.physicalUnits,
-    p_session_count: draft.sessionCount,
     p_eligibility_tier: draft.eligibilityTier,
     p_blind_sponsor: draft.blindSponsor,
     p_abandon_window_days: draft.abandonWindowDays,
     p_expires_at: draft.expiresAt,
     p_created_by: ctx.createdBy,
+    p_open: ctx.open === true,
   }
 
-  if (draft.sessionCount === 2) {
+  if (draft.loyaltyFollowUp) {
     args.p_session2_interval_hours = draft.session2IntervalHours
   }
 
@@ -97,9 +104,8 @@ export function draftToBoxPublishArgs(
   if (draft.targetCompletions != null) {
     args.p_target_completions = draft.targetCompletions
   }
-  const battleQuestion = draft.battleQuestion.trim()
-  if (battleQuestion) args.p_battle_question = battleQuestion
-  if (ctx.open === true) args.p_open = true
+  const battlePrompt = draft.battleQuestion.trim()
+  if (battlePrompt) args.p_battle_prompt = battlePrompt
 
   return args
 }

@@ -16,6 +16,11 @@ import BattleSettingsSection from './BattleSettingsSection'
 import FieldSection from './FieldSection'
 import QuestionsSection from './QuestionsSection'
 import StudyTypeSection from './StudyTypeSection'
+import ResumeDraftBanner from '../components/ResumeDraftBanner'
+import {
+  formatResumeWhen,
+  useServerStudyDraft,
+} from '@/lib/studies/useServerStudyDraft'
 import './conceptBuilder.css'
 
 type Props = {
@@ -68,11 +73,46 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
     )
   )
 
-  const persist = useCallback((next: ConceptStudyDraft) => {
-    const normalized = normalizeDraft(next)
-    setDraft(normalized)
-    saveConceptDraft(normalized)
-  }, [])
+  const hydrateFromServer = useCallback(
+    (draftJson: Record<string, unknown>, _serverId: string) => {
+      const merged = normalizeDraft({
+        ...createEmptyConceptDraft({ brandId: initialDraft.brandId }),
+        ...draftJson,
+        brandId: initialDraft.brandId,
+      } as ConceptStudyDraft)
+      setDraft(merged)
+      saveConceptDraft(merged)
+    },
+    [initialDraft.brandId]
+  )
+
+  const {
+    resumeOffer,
+    resumeBusy,
+    saveStatus,
+    scheduleSave,
+    flushSaveNow,
+    acceptResume,
+    dismissResume,
+    deleteOnPublish,
+  } = useServerStudyDraft<ConceptStudyDraft>({
+    testType: 'concept',
+    offerResume: mode === 'new',
+    localDraftId: draft.draftId,
+    getTitle: (d) => d.title,
+    getLocalDraftId: (d) => d.draftId,
+    onHydrate: hydrateFromServer,
+  })
+
+  const persist = useCallback(
+    (next: ConceptStudyDraft) => {
+      const normalized = normalizeDraft(next)
+      setDraft(normalized)
+      saveConceptDraft(normalized)
+      scheduleSave(normalized)
+    },
+    [scheduleSave]
+  )
 
   useEffect(() => {
     if (mode === 'new') {
@@ -124,14 +164,16 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
       if (nextRounds === current.scoringRounds) return current
       const next = { ...current, scoringRounds: nextRounds }
       saveConceptDraft(next)
+      scheduleSave(next)
       return next
     })
-  }, [draft.conceptArms.length, draft.products.length])
+  }, [draft.conceptArms.length, draft.products.length, scheduleSave])
 
   function saveDraft() {
     setSaving(true)
     const saved = saveConceptDraft(draft)
     setDraft(saved)
+    flushSaveNow(saved)
     setSaving(false)
     setToast('Draft saved')
     if (mode === 'new') {
@@ -156,7 +198,6 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
       brandId: draft.brandId,
       campaignName: draft.title.trim() || 'Concept study',
       taxonomyNodeId: draft.taxonomyNodeId,
-      sessionCount: 1,
     })
     if (!created.ok) {
       setSectionErrors({ title: created.error })
@@ -221,7 +262,6 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
       const toPublish: ConceptStudyDraft = {
         ...draft,
         brandCampaignId: campaignId,
-        sessionCount: 1,
         ...(draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
           ? {
               pricePosture: 'blind' as const,
@@ -269,6 +309,7 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
   function confirmPublished() {
     if (!publishMeta) return
     deleteConceptDraft(draft.draftId)
+    void deleteOnPublish()
     startTransition(() => {
       router.push(`/studies/concept/${publishMeta.missionId}?published=1`)
     })
@@ -321,6 +362,16 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
           </p>
         </div>
       </div>
+
+      {resumeOffer ? (
+        <ResumeDraftBanner
+          title={resumeOffer.title}
+          whenLabel={formatResumeWhen(resumeOffer.updatedAt)}
+          busy={resumeBusy}
+          onResume={() => void acceptResume()}
+          onStartFresh={dismissResume}
+        />
+      ) : null}
 
       <nav className="cb-progress" aria-label="Study builder steps">
         {(
@@ -700,6 +751,26 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
           )}
 
           <div className="cb-dock-actions">
+            <span
+              aria-live="polite"
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: 12,
+                fontWeight: 500,
+                color:
+                  saveStatus === 'error' ? 'var(--coral, #c45c4a)' : 'var(--ink-30)',
+                minWidth: 72,
+                textAlign: 'right',
+              }}
+            >
+              {saveStatus === 'saving'
+                ? 'Syncing…'
+                : saveStatus === 'saved'
+                  ? 'Saved'
+                  : saveStatus === 'error'
+                    ? 'Sync failed'
+                    : ''}
+            </span>
             <button
               type="button"
               className="cb-btn cb-btn-secondary"
@@ -757,6 +828,5 @@ function normalizeDraft(draft: ConceptStudyDraft): ConceptStudyDraft {
     products: (draft.products ?? []).map((p) =>
       blindImageMode ? { ...p, frozen_price: null } : p
     ),
-    sessionCount: blindImageMode ? 1 : draft.sessionCount ?? 1,
   }
 }

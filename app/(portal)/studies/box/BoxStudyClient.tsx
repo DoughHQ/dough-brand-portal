@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import type { BoxPublishSuccessMeta, BoxStudyDraft } from '@/lib/box/types'
 import { BOX_DEFAULT_BATTLE_QUESTION } from '@/lib/box/constants'
-import { deleteBoxDraft, saveBoxDraft } from '@/lib/box/draftStore'
+import { createEmptyBoxDraft } from '@/lib/box/defaults'
+import { deleteBoxDraft, normalizeStoredBoxDraft, saveBoxDraft } from '@/lib/box/draftStore'
 import { BOX_ANCHORS, evaluateBoxValidity, type BoxPublishFailure } from '@/lib/box/validity'
 import { publishBoxStudyAction, createBoxCampaignAction } from './actions'
 import SetupSection from './SetupSection'
@@ -13,6 +14,11 @@ import ContentsSection from './ContentsSection'
 import BattleSection from './BattleSection'
 import AudienceSection from './AudienceSection'
 import LogisticsSection from './LogisticsSection'
+import ResumeDraftBanner from '../components/ResumeDraftBanner'
+import {
+  formatResumeWhen,
+  useServerStudyDraft,
+} from '@/lib/studies/useServerStudyDraft'
 import '../concept/conceptBuilder.css'
 
 type Props = {
@@ -61,10 +67,48 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
   const stickyRef = useRef<HTMLDivElement>(null)
   const [needsExpanded, setNeedsExpanded] = useState(false)
 
-  const persist = useCallback((next: BoxStudyDraft) => {
-    setDraft(next)
-    saveBoxDraft(next)
-  }, [])
+  const hydrateFromServer = useCallback(
+    (draftJson: Record<string, unknown>, _serverId: string) => {
+      const merged = normalizeStoredBoxDraft(
+        {
+          ...createEmptyBoxDraft(initialDraft.brandId),
+          ...draftJson,
+          brandId: initialDraft.brandId,
+        } as Partial<BoxStudyDraft>,
+        initialDraft.brandId
+      )
+      setDraft(merged)
+      saveBoxDraft(merged)
+    },
+    [initialDraft.brandId]
+  )
+
+  const {
+    resumeOffer,
+    resumeBusy,
+    saveStatus,
+    scheduleSave,
+    flushSaveNow,
+    acceptResume,
+    dismissResume,
+    deleteOnPublish,
+  } = useServerStudyDraft<BoxStudyDraft>({
+    testType: 'ihut',
+    offerResume: mode === 'new',
+    localDraftId: draft.draftId,
+    getTitle: (d) => d.title,
+    getLocalDraftId: (d) => d.draftId,
+    onHydrate: hydrateFromServer,
+  })
+
+  const persist = useCallback(
+    (next: BoxStudyDraft) => {
+      const saved = saveBoxDraft(next)
+      setDraft(saved)
+      scheduleSave(saved)
+    },
+    [scheduleSave]
+  )
 
   useEffect(() => {
     if (mode === 'new') saveBoxDraft(initialDraft)
@@ -102,6 +146,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
     setSaving(true)
     const saved = saveBoxDraft(draft)
     setDraft(saved)
+    flushSaveNow(saved)
     setSaving(false)
     setToast('Draft saved')
     if (mode === 'new') {
@@ -184,6 +229,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
   function confirmPublished() {
     if (!publishMeta) return
     deleteBoxDraft(draft.draftId)
+    void deleteOnPublish()
     startTransition(() => {
       router.push('/studies?boxPublished=1')
     })
@@ -228,6 +274,16 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
           </p>
         </div>
       </div>
+
+      {resumeOffer ? (
+        <ResumeDraftBanner
+          title={resumeOffer.title}
+          whenLabel={formatResumeWhen(resumeOffer.updatedAt)}
+          busy={resumeBusy}
+          onResume={() => void acceptResume()}
+          onStartFresh={dismissResume}
+        />
+      ) : null}
 
       <nav className="cb-progress" aria-label="Box builder steps">
         {(
@@ -572,7 +628,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
                 </span>
                 <p className="cb-dock-summary-help">
                   Publish opens the study so qualified users can claim it. Save draft
-                  stays on this browser until then.
+                  syncs across your devices.
                 </p>
               </>
             ) : (
@@ -623,6 +679,26 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
           )}
 
           <div className="cb-dock-actions">
+            <span
+              aria-live="polite"
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: 12,
+                fontWeight: 500,
+                color:
+                  saveStatus === 'error' ? 'var(--coral, #c45c4a)' : 'var(--ink-30)',
+                minWidth: 72,
+                textAlign: 'right',
+              }}
+            >
+              {saveStatus === 'saving'
+                ? 'Syncing…'
+                : saveStatus === 'saved'
+                  ? 'Saved'
+                  : saveStatus === 'error'
+                    ? 'Sync failed'
+                    : ''}
+            </span>
             <button
               type="button"
               className="cb-btn cb-btn-secondary"

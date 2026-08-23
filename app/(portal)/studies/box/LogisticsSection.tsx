@@ -57,56 +57,54 @@ export default function LogisticsSection({ draft, onChange, error }: Props) {
         </p>
       </div>
 
-      {/* sessions */}
+      {/* loyalty / session 2 */}
       <div id={BOX_ANCHORS.sessions} style={{ marginBottom: 28 }}>
-        <div id="box-log-sessions-label" style={labelSm}>
-          Sessions
-        </div>
-        <div
-          role="radiogroup"
-          aria-labelledby="box-log-sessions-label"
+        <label
           style={{
-            display: 'inline-flex',
-            border: '1px solid var(--ink-10)',
-            borderRadius: 'var(--r-sm)',
-            overflow: 'hidden',
-            marginBottom: 12,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 12,
+            cursor: 'pointer',
+            maxWidth: 560,
           }}
         >
-          {([1, 2] as const).map((n, i) => {
-            const active = draft.sessionCount === n
-            return (
-              <button
-                key={n}
-                type="button"
-                role="radio"
-                aria-checked={active}
-                onClick={() => onChange({ ...draft, sessionCount: n })}
-                style={{
-                  border: 'none',
-                  borderRight: i === 0 ? '1px solid var(--ink-10)' : 'none',
-                  background: active ? 'var(--sage)' : 'var(--white)',
-                  color: active ? 'var(--white)' : 'var(--ink-50)',
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: 13,
-                  fontWeight: active ? 600 : 500,
-                  height: 44,
-                  padding: '0 20px',
-                  cursor: 'pointer',
-                }}
-              >
-                {n === 1 ? 'One session' : 'Two sessions'}
-              </button>
-            )
-          })}
-        </div>
-        <p style={{ ...subHelp, maxWidth: 560 }}>
-          {draft.sessionCount === 1
-            ? 'A single tasting session after the box arrives.'
-            : 'A second session unlocks preference drift — did it grow on them? Requires at least 24 hours between sessions.'}
-        </p>
-        {draft.sessionCount === 2 ? (
-          <div style={{ marginTop: 12 }}>
+          <input
+            type="checkbox"
+            checked={draft.loyaltyFollowUp}
+            onChange={(e) =>
+              onChange({ ...draft, loyaltyFollowUp: e.target.checked })
+            }
+            style={{ marginTop: 3 }}
+          />
+          <span>
+            <span
+              style={{
+                display: 'block',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 14,
+                fontWeight: 500,
+                color: 'var(--ink-80)',
+              }}
+            >
+              Add loyalty follow-up (Session 2)
+            </span>
+            <span
+              style={{
+                display: 'block',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 13,
+                color: 'var(--ink-50)',
+                marginTop: 2,
+                lineHeight: 1.4,
+              }}
+            >
+              A second session unlocks preference drift — did it grow on them?
+              Requires at least 24 hours between sessions.
+            </span>
+          </span>
+        </label>
+        {draft.loyaltyFollowUp ? (
+          <div style={{ marginTop: 12, marginLeft: 28 }}>
             <div style={labelSm}>Hours between sessions</div>
             <input
               className="cb-input"

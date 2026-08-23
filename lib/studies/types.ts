@@ -1,63 +1,3 @@
-export type CampaignRow = {
-  id: string
-  name: string
-  campaign_code: string | null
-  description: string | null
-  starts_at: string | null
-}
-
-export type MissionRow = {
-  id: string
-  title: string
-  status: string
-  product_id: number | null
-  starts_at: string | null
-  expires_at: string | null
-  brand_campaign_id: string
-  mission_type?: string | null
-}
-
-export type MissionReportRow = {
-  mission_id: string
-  elo_win_rate: number | null
-  total_completions: number | null
-  min_cell_size_met: boolean
-  snapshot_date: string | null
-}
-
-export type ProductRow = {
-  product_id: number
-  product_name_short: string | null
-  brand_id: number
-}
-
-export type MissionReportStatus = 'ready' | 'gathering' | 'not_started'
-
-export function mapReportStatus(report: MissionReportRow | undefined): MissionReportStatus {
-  if (!report) return 'not_started'
-  if (report.min_cell_size_met) return 'ready'
-  return 'gathering'
-}
-
-export type StudiesLoadResult =
-  | {
-      ok: true
-      campaigns: CampaignRow[]
-      missionsByCampaign: Record<string, MissionRow[]>
-      reportsByMission: Record<string, MissionReportRow>
-      productsById: Record<number, ProductRow>
-    }
-  | {
-      ok: false
-      securityViolation: true
-      detail: string
-    }
-  | {
-      ok: false
-      securityViolation: false
-      error: string
-    }
-
 /** Server-resolved lifecycle — prefer over raw `status` (which can lie for expired rows). */
 export type OperatorStudyLifecycleState =
   | 'active'
@@ -85,6 +25,10 @@ export type OperatorStudyRow = {
   template_code: string | null
   /** missions.mission_type — e.g. concept_test, brand_challenge. */
   mission_type?: string | null
+  /** From list_operator_studies — prefer over mission_type for Concept / iHUT badges. */
+  test_type?: 'concept' | 'ihut' | null
+  /** Session count when known (e.g. loyalty follow-up → 2); null if unset. */
+  session_count?: number | null
   total_claims: number
   completed_claims: number
   /** Ordered completion count when set at publish; null = unknown — never invent from total_claims. */

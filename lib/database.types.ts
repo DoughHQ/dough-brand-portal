@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       _fn_backup_20260723: {
@@ -1415,6 +1390,50 @@ export type Database = {
           to_node?: number | null
         }
         Relationships: []
+      }
+      box_fulfillment_scans: {
+        Row: {
+          combatant_ref: number
+          fulfillment_id: string
+          id: string
+          mission_id: string
+          product_id: number | null
+          scan_sequence: number | null
+          scanned_at: string
+          scanned_gtin: string
+          user_id: number
+        }
+        Insert: {
+          combatant_ref: number
+          fulfillment_id: string
+          id?: string
+          mission_id: string
+          product_id?: number | null
+          scan_sequence?: number | null
+          scanned_at?: string
+          scanned_gtin: string
+          user_id: number
+        }
+        Update: {
+          combatant_ref?: number
+          fulfillment_id?: string
+          id?: string
+          mission_id?: string
+          product_id?: number | null
+          scan_sequence?: number | null
+          scanned_at?: string
+          scanned_gtin?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "box_fulfillment_scans_fulfillment_id_fkey"
+            columns: ["fulfillment_id"]
+            isOneToOne: false
+            referencedRelation: "box_fulfillments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       box_fulfillments: {
         Row: {
@@ -7317,6 +7336,7 @@ export type Database = {
       concept_mission_reports: {
         Row: {
           achieved_pair_coverage: Json
+          attribute_drivers: Json
           brand_id: number
           campaign_id: string | null
           computed_at: string
@@ -7344,6 +7364,7 @@ export type Database = {
         }
         Insert: {
           achieved_pair_coverage?: Json
+          attribute_drivers?: Json
           brand_id: number
           campaign_id?: string | null
           computed_at?: string
@@ -7371,6 +7392,7 @@ export type Database = {
         }
         Update: {
           achieved_pair_coverage?: Json
+          attribute_drivers?: Json
           brand_id?: number
           campaign_id?: string | null
           computed_at?: string
@@ -7501,6 +7523,59 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      concept_stated_rankings: {
+        Row: {
+          battle_question_id: string | null
+          changed: boolean
+          concept_session_id: string
+          created_at: string
+          decision_ms: number | null
+          id: string
+          mission_claim_id: string
+          session_number: number
+          shown_order: number[]
+          stated_order: number[]
+          updated_at: string
+          user_id: number
+        }
+        Insert: {
+          battle_question_id?: string | null
+          changed: boolean
+          concept_session_id: string
+          created_at?: string
+          decision_ms?: number | null
+          id?: string
+          mission_claim_id: string
+          session_number: number
+          shown_order: number[]
+          stated_order: number[]
+          updated_at?: string
+          user_id: number
+        }
+        Update: {
+          battle_question_id?: string | null
+          changed?: boolean
+          concept_session_id?: string
+          created_at?: string
+          decision_ms?: number | null
+          id?: string
+          mission_claim_id?: string
+          session_number?: number
+          shown_order?: number[]
+          stated_order?: number[]
+          updated_at?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concept_stated_rankings_concept_session_id_fkey"
+            columns: ["concept_session_id"]
+            isOneToOne: true
+            referencedRelation: "concept_scoring_sessions"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -7637,6 +7712,48 @@ export type Database = {
             referencedColumns: ["conglomerate_id"]
           },
         ]
+      }
+      consent_documents: {
+        Row: {
+          body: string
+          consent_type: string
+          created_at: string
+          effective_from: string | null
+          id: string
+          is_active: boolean
+          is_draft: boolean
+          summary: string | null
+          title: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          body: string
+          consent_type: string
+          created_at?: string
+          effective_from?: string | null
+          id?: string
+          is_active?: boolean
+          is_draft?: boolean
+          summary?: string | null
+          title: string
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          body?: string
+          consent_type?: string
+          created_at?: string
+          effective_from?: string | null
+          id?: string
+          is_active?: boolean
+          is_draft?: boolean
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
       }
       cookies_cleanup_20260813_backup: {
         Row: {
@@ -11260,351 +11377,6 @@ export type Database = {
         }
         Relationships: []
       }
-      ihut_campaigns: {
-        Row: {
-          billing_status: string
-          brand_id: number
-          campaign_id: string
-          campaign_name: string
-          campaign_slug: string
-          completed_at: string | null
-          created_at: string
-          deleted_at: string | null
-          final_amount_cents: number | null
-          final_participant_count: number | null
-          invoiced_at: string | null
-          launched_at: string | null
-          master_redemption_code: string
-          paid_at: string | null
-          participants_battled: number
-          participants_completed: number
-          participants_opted_in: number
-          participants_redeemed: number
-          price_per_participant_cents: number
-          product_description: string | null
-          product_id: number
-          redemption_instructions: string | null
-          redemption_url: string
-          report_generated: boolean
-          report_generated_at: string | null
-          report_url: string | null
-          status: string
-          target_adventure_min: number | null
-          target_age_max: number | null
-          target_age_min: number | null
-          target_cities: string[] | null
-          target_dietary_flags: string[] | null
-          target_participant_count: number
-          target_regions: string[] | null
-          target_spot_role_id: number | null
-          total_budget_cents: number | null
-          updated_at: string
-        }
-        Insert: {
-          billing_status?: string
-          brand_id: number
-          campaign_id?: string
-          campaign_name: string
-          campaign_slug?: string
-          completed_at?: string | null
-          created_at?: string
-          deleted_at?: string | null
-          final_amount_cents?: number | null
-          final_participant_count?: number | null
-          invoiced_at?: string | null
-          launched_at?: string | null
-          master_redemption_code?: string
-          paid_at?: string | null
-          participants_battled?: number
-          participants_completed?: number
-          participants_opted_in?: number
-          participants_redeemed?: number
-          price_per_participant_cents?: number
-          product_description?: string | null
-          product_id: number
-          redemption_instructions?: string | null
-          redemption_url: string
-          report_generated?: boolean
-          report_generated_at?: string | null
-          report_url?: string | null
-          status?: string
-          target_adventure_min?: number | null
-          target_age_max?: number | null
-          target_age_min?: number | null
-          target_cities?: string[] | null
-          target_dietary_flags?: string[] | null
-          target_participant_count?: number
-          target_regions?: string[] | null
-          target_spot_role_id?: number | null
-          total_budget_cents?: number | null
-          updated_at?: string
-        }
-        Update: {
-          billing_status?: string
-          brand_id?: number
-          campaign_id?: string
-          campaign_name?: string
-          campaign_slug?: string
-          completed_at?: string | null
-          created_at?: string
-          deleted_at?: string | null
-          final_amount_cents?: number | null
-          final_participant_count?: number | null
-          invoiced_at?: string | null
-          launched_at?: string | null
-          master_redemption_code?: string
-          paid_at?: string | null
-          participants_battled?: number
-          participants_completed?: number
-          participants_opted_in?: number
-          participants_redeemed?: number
-          price_per_participant_cents?: number
-          product_description?: string | null
-          product_id?: number
-          redemption_instructions?: string | null
-          redemption_url?: string
-          report_generated?: boolean
-          report_generated_at?: string | null
-          report_url?: string | null
-          status?: string
-          target_adventure_min?: number | null
-          target_age_max?: number | null
-          target_age_min?: number | null
-          target_cities?: string[] | null
-          target_dietary_flags?: string[] | null
-          target_participant_count?: number
-          target_regions?: string[] | null
-          target_spot_role_id?: number | null
-          total_budget_cents?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ihut_campaigns_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brands"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "product_packaging_signal"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "product_scan_view"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "mv_top_cpg_products"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_decision_velocity"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_momentum_signal"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_packaging_signal"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_price_view"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_ranked"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_scan_view"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_time_preference"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products_renderable"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "user_produce_passport"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "v_allergen_filter"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "ihut_campaigns_target_spot_role_id_fkey"
-            columns: ["target_spot_role_id"]
-            isOneToOne: false
-            referencedRelation: "spot_roles"
-            referencedColumns: ["spot_role_id"]
-          },
-        ]
-      }
-      ihut_opt_ins: {
-        Row: {
-          battle_session_id: number | null
-          battles_completed: number
-          campaign_id: string
-          code_sent_at: string | null
-          completed_at: string | null
-          created_at: string
-          elo_delta: number | null
-          first_battle_at: string | null
-          last_battle_at: string | null
-          opt_in_id: string
-          opted_in_at: string
-          post_ihut_elo: number | null
-          pre_ihut_elo: number | null
-          product_received_at: string | null
-          redeemed_at: string | null
-          shipping_address_id: number | null
-          status: string
-          updated_at: string
-          user_id: number
-          user_redemption_code: string
-        }
-        Insert: {
-          battle_session_id?: number | null
-          battles_completed?: number
-          campaign_id: string
-          code_sent_at?: string | null
-          completed_at?: string | null
-          created_at?: string
-          elo_delta?: number | null
-          first_battle_at?: string | null
-          last_battle_at?: string | null
-          opt_in_id?: string
-          opted_in_at?: string
-          post_ihut_elo?: number | null
-          pre_ihut_elo?: number | null
-          product_received_at?: string | null
-          redeemed_at?: string | null
-          shipping_address_id?: number | null
-          status?: string
-          updated_at?: string
-          user_id: number
-          user_redemption_code?: string
-        }
-        Update: {
-          battle_session_id?: number | null
-          battles_completed?: number
-          campaign_id?: string
-          code_sent_at?: string | null
-          completed_at?: string | null
-          created_at?: string
-          elo_delta?: number | null
-          first_battle_at?: string | null
-          last_battle_at?: string | null
-          opt_in_id?: string
-          opted_in_at?: string
-          post_ihut_elo?: number | null
-          pre_ihut_elo?: number | null
-          product_received_at?: string | null
-          redeemed_at?: string | null
-          shipping_address_id?: number | null
-          status?: string
-          updated_at?: string
-          user_id?: number
-          user_redemption_code?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ihut_opt_ins_battle_session_id_fkey"
-            columns: ["battle_session_id"]
-            isOneToOne: false
-            referencedRelation: "user_scoring_sessions"
-            referencedColumns: ["scoring_session_id"]
-          },
-          {
-            foreignKeyName: "ihut_opt_ins_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "ihut_campaigns"
-            referencedColumns: ["campaign_id"]
-          },
-          {
-            foreignKeyName: "ihut_opt_ins_shipping_address_id_fkey"
-            columns: ["shipping_address_id"]
-            isOneToOne: false
-            referencedRelation: "user_shipping_addresses"
-            referencedColumns: ["shipping_address_id"]
-          },
-          {
-            foreignKeyName: "ihut_opt_ins_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_discovery_leaderboard"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "ihut_opt_ins_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_level_summary"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "ihut_opt_ins_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
       ingredient_classifications: {
         Row: {
           classification_source: string
@@ -12828,6 +12600,7 @@ export type Database = {
           frozen_display_name: string
           frozen_image_url: string | null
           frozen_price: number | null
+          frozen_upc: string | null
           id: string
           kind: string
           market_reference_price: number | null
@@ -12847,6 +12620,7 @@ export type Database = {
           frozen_display_name: string
           frozen_image_url?: string | null
           frozen_price?: number | null
+          frozen_upc?: string | null
           id?: string
           kind: string
           market_reference_price?: number | null
@@ -12866,6 +12640,7 @@ export type Database = {
           frozen_display_name?: string
           frozen_image_url?: string | null
           frozen_price?: number | null
+          frozen_upc?: string | null
           id?: string
           kind?: string
           market_reference_price?: number | null
@@ -24245,6 +24020,7 @@ export type Database = {
           mission_id: string
           physical_units: number
           session_count: number
+          session_template_code: string | null
           session2_interval_hours: number | null
           sourcing_notes: string | null
           status: Database["public"]["Enums"]["box_status"]
@@ -24265,6 +24041,7 @@ export type Database = {
           mission_id: string
           physical_units: number
           session_count?: number
+          session_template_code?: string | null
           session2_interval_hours?: number | null
           sourcing_notes?: string | null
           status?: Database["public"]["Enums"]["box_status"]
@@ -24285,6 +24062,7 @@ export type Database = {
           mission_id?: string
           physical_units?: number
           session_count?: number
+          session_template_code?: string | null
           session2_interval_hours?: number | null
           sourcing_notes?: string | null
           status?: Database["public"]["Enums"]["box_status"]
@@ -24314,6 +24092,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "v_mission_funnel"
             referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "sampling_boxes_session_template_code_fkey"
+            columns: ["session_template_code"]
+            isOneToOne: false
+            referencedRelation: "session_templates"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -25502,35 +25287,53 @@ export type Database = {
       }
       session_templates: {
         Row: {
+          applicable_test_types: string[]
           code: string
           created_at: string
           description: string | null
           id: string
           is_active: boolean
+          is_operator_configurable: boolean
           min_hours_after_prev: number | null
           name: string
+          pack_kind: Database["public"]["Enums"]["pack_kind"]
+          report_section:
+            | Database["public"]["Enums"]["report_section_kind"]
+            | null
           session_kind: string
           updated_at: string
         }
         Insert: {
+          applicable_test_types: string[]
           code: string
           created_at?: string
           description?: string | null
           id?: string
           is_active?: boolean
+          is_operator_configurable?: boolean
           min_hours_after_prev?: number | null
           name: string
+          pack_kind: Database["public"]["Enums"]["pack_kind"]
+          report_section?:
+            | Database["public"]["Enums"]["report_section_kind"]
+            | null
           session_kind?: string
           updated_at?: string
         }
         Update: {
+          applicable_test_types?: string[]
           code?: string
           created_at?: string
           description?: string | null
           id?: string
           is_active?: boolean
+          is_operator_configurable?: boolean
           min_hours_after_prev?: number | null
           name?: string
+          pack_kind?: Database["public"]["Enums"]["pack_kind"]
+          report_section?:
+            | Database["public"]["Enums"]["report_section_kind"]
+            | null
           session_kind?: string
           updated_at?: string
         }
@@ -27348,6 +27151,67 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
+          },
+        ]
+      }
+      study_drafts: {
+        Row: {
+          brand_id: number
+          created_at: string
+          created_by: string
+          draft_json: Json
+          expires_at: string
+          id: string
+          test_type: string
+          title: string | null
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          brand_id: number
+          created_at?: string
+          created_by: string
+          draft_json?: Json
+          expires_at?: string
+          id?: string
+          test_type: string
+          title?: string | null
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          brand_id?: number
+          created_at?: string
+          created_by?: string
+          draft_json?: Json
+          expires_at?: string
+          id?: string
+          test_type?: string
+          title?: string | null
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_drafts_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "study_drafts_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "study_drafts_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
           },
         ]
       }
@@ -39436,6 +39300,17 @@ export type Database = {
           strength: number
         }[]
       }
+      _box_possession_gate: {
+        Args: { p_mission_claim_id: string; p_session_number: number }
+        Returns: Json
+      }
+      _box_seat_follow_session: {
+        Args: {
+          p_mission_claim_id: string
+          p_target: Database["public"]["Enums"]["box_fulfillment_state"]
+        }
+        Returns: Json
+      }
       _cg_resolve_actor: { Args: never; Returns: Record<string, unknown> }
       _hard_delete_mission_internal: {
         Args: { p_mission_id: string }
@@ -39720,6 +39595,10 @@ export type Database = {
       }
       backfill_ingredient_counts: { Args: never; Returns: string }
       backfill_search_attributes_from_facets: { Args: never; Returns: string }
+      barcode_belongs_to_product: {
+        Args: { p_barcode: string; p_product_id: number }
+        Returns: boolean
+      }
       block_user: {
         Args: { p_target_user_id: number; p_viewer_auth_id: string }
         Returns: Json
@@ -40194,6 +40073,10 @@ export type Database = {
         Returns: number
       }
       concept_answer_tokens: { Args: { p_answer: Json }; Returns: string[] }
+      concept_attribute_driver_report: {
+        Args: { p_mission_id: string; p_reporting_floor?: number }
+        Returns: Json
+      }
       concept_battle_pools: {
         Args: { p_mission_id: string }
         Returns: {
@@ -40280,6 +40163,7 @@ export type Database = {
       concept_pair_tallies: {
         Args: { p_battle_question_id?: string; p_mission_id: string }
         Returns: {
+          anomaly_n: number
           decisive_n: number
           dropped_n: number
           hi_ref: number
@@ -40298,7 +40182,6 @@ export type Database = {
         Args: { p_config: Json }
         Returns: Json
       }
-      concept_template_for_mode: { Args: { p_mode: string }; Returns: string }
       concept_wtp_arm_report: {
         Args: {
           p_floor?: number
@@ -40325,6 +40208,24 @@ export type Database = {
         }[]
       }
       correction_jsonb_is_empty: { Args: { p_value: Json }; Returns: boolean }
+      count_box_qualifiers: {
+        Args: {
+          p_allowed_genders?: string[]
+          p_eligibility_tier?: Database["public"]["Enums"]["mission_eligibility_tier"]
+          p_focal_product_id: number
+          p_max_age?: number
+          p_min_account_age_days?: number
+          p_min_age?: number
+          p_min_category_battles?: number
+          p_min_category_level?: number
+          p_min_category_tries?: number
+          p_qualifying_taxonomy_node_id?: number
+          p_required_dietary_flags?: string[]
+          p_target_countries?: string[]
+          p_target_states?: string[]
+        }
+        Returns: Json
+      }
       count_eligible_users: {
         Args: {
           p_new_to_brand_id?: number
@@ -40405,6 +40306,7 @@ export type Database = {
         }[]
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      delete_study_draft: { Args: { p_draft_id: string }; Returns: boolean }
       deny_follow_request: {
         Args: { p_requester_id: number; p_target_auth_id: string }
         Returns: Json
@@ -40433,6 +40335,21 @@ export type Database = {
         Returns: number
       }
       enter_brand_impersonation: { Args: { p_brand_id: number }; Returns: Json }
+      eval_user_focal: {
+        Args: {
+          p_focal_product_id: number
+          p_tier: Database["public"]["Enums"]["mission_eligibility_tier"]
+          p_user_id: number
+        }
+        Returns: boolean
+      }
+      eval_user_rules: {
+        Args: {
+          p_user_id: number
+          v_r: Database["public"]["Tables"]["mission_eligibility_rules"]["Row"]
+        }
+        Returns: string
+      }
       evidence_grade: {
         Args: { p_product_id: number; p_user_id: number }
         Returns: Database["public"]["Enums"]["consumption_evidence_grade"]
@@ -40556,12 +40473,25 @@ export type Database = {
         Args: { p_mission_claim_id: string; p_session_number?: number }
         Returns: Json
       }
+      get_active_consent_document: {
+        Args: { p_consent_type?: string }
+        Returns: Json
+      }
       get_anchor_blend_ratio: {
         Args: { p_compare_group_node_id: number; p_user_id: number }
         Returns: number
       }
       get_attribute_followup_context: {
         Args: { p_battle_round_id: number }
+        Returns: Json
+      }
+      get_box_contents: { Args: { p_mission_id: string }; Returns: Json }
+      get_box_qualification_reasons: {
+        Args: { p_mission_claim_id: string }
+        Returns: Json
+      }
+      get_box_scan_state: {
+        Args: { p_mission_claim_id: string }
         Returns: Json
       }
       get_brand_active_sku_ids: {
@@ -40597,10 +40527,6 @@ export type Database = {
           total_wins: number
           win_rate_pct: number
         }[]
-      }
-      get_brand_missions: {
-        Args: { p_brand_id: number; p_include_draft?: boolean }
-        Returns: Json
       }
       get_brand_ownership: { Args: { p_brand_id: number }; Returns: Json }
       get_brand_products_portfolio: {
@@ -41097,6 +41023,10 @@ export type Database = {
         Args: { p_time_bucket?: string }
         Returns: Json
       }
+      get_session_summary: {
+        Args: { p_concept_session_id: string }
+        Returns: Json
+      }
       get_slot_components: {
         Args: { p_compare_group_id: number; p_user_id: number }
         Returns: {
@@ -41309,6 +41239,7 @@ export type Database = {
           taxonomy_node_id: number
         }[]
       }
+      gtin_key: { Args: { p_code: string }; Returns: string }
       hard_delete_mission: { Args: { p_mission_id: string }; Returns: Json }
       has_ai_ingredients: {
         Args: { p_sku_variant_id: number }
@@ -41465,16 +41396,27 @@ export type Database = {
           max_claims: number
           mission_id: string
           mission_type: string
+          session_count: number
           status: string
           target_completions: number
           template_code: string
+          test_type: string
           title: string
           total_claims: number
         }[]
       }
-      list_product_barcodes: {
-        Args: { p_product_id: number }
-        Returns: Json
+      list_product_barcodes: { Args: { p_product_id: number }; Returns: Json }
+      list_study_drafts: {
+        Args: never
+        Returns: {
+          created_at: string
+          expires_at: string
+          id: string
+          test_type: string
+          title: string
+          updated_at: string
+          updated_by: string
+        }[]
       }
       list_taxonomy_l2_parents: {
         Args: never
@@ -41563,6 +41505,7 @@ export type Database = {
           variety_name: string
         }[]
       }
+      mark_box_received: { Args: { p_fulfillment_id: string }; Returns: Json }
       mark_product_tried: {
         Args: { p_product_id: number; p_tried?: boolean }
         Returns: Json
@@ -41613,16 +41556,13 @@ export type Database = {
         Args: { p_product_id: number; p_user_id: number }
         Returns: boolean
       }
+      normalize_gtin: { Args: { p_code: string }; Returns: string }
       normalize_nutrition_for_product: {
         Args: { p_product_id: number }
         Returns: string
       }
       normalize_us_state: { Args: { p_raw: string }; Returns: string }
       nutrition_basis_plausible: { Args: { p_value: Json }; Returns: boolean }
-      opt_in_to_ihut: {
-        Args: { p_campaign_id: string; p_shipping_address_id?: number }
-        Returns: Json
-      }
       parse_fda_allergens: { Args: { p_raw: string }; Returns: string[] }
       persist_mission_signal: {
         Args: {
@@ -41635,10 +41575,6 @@ export type Database = {
       }
       pin_product: {
         Args: { p_product_id: number; p_slot_index: number; p_user_id: number }
-        Returns: Json
-      }
-      preview_mission_feasibility: {
-        Args: { p_focal_product_id: number; p_template_id: string }
         Returns: Json
       }
       price_per_oz: {
@@ -41655,32 +41591,6 @@ export type Database = {
         Returns: {
           product_id: number
         }[]
-      }
-      publish_box_study: {
-        Args: {
-          p_abandon_window_days?: number
-          p_blind_sponsor?: boolean
-          p_box_products: Json
-          p_brand_campaign_id: string
-          p_brand_id: number
-          p_created_by?: string
-          p_eligibility?: Json
-          p_eligibility_tier?: string
-          p_expires_at?: string
-          p_focal_product_id: number
-          p_physical_units: number
-          p_session_count?: number
-          p_session2_interval_hours?: number
-          p_sourcing_notes?: string
-          p_starts_at?: string
-          p_target_completions?: number
-          p_taxonomy_node_id: number
-          p_title: string
-          p_unit_cost_cents?: number
-          p_battle_question?: string
-          p_open?: boolean
-        }
-        Returns: Json
       }
       publish_concept_mission: {
         Args: {
@@ -41703,36 +41613,28 @@ export type Database = {
         }
         Returns: Json
       }
-      publish_concept_study: {
+      publish_ihut_study: {
         Args: {
-          p_audience_definition?: string
+          p_abandon_window_days?: number
+          p_blind_sponsor?: boolean
+          p_box_products: Json
           p_brand_campaign_id: string
           p_brand_id: number
-          p_concepts: Json
           p_created_by?: string
-          p_expires_at?: string
-          p_price_posture?: string
-          p_products?: Json
-          p_questions?: Json
-          p_scoring_rounds?: number
-          p_stimulus_mode: string
-          p_target_completions?: number
-          p_taxonomy_node_id: number
-          p_template_config?: Json
-          p_title: string
-        }
-        Returns: Json
-      }
-      publish_mission_from_template: {
-        Args: {
-          p_brand_campaign_id: string
-          p_created_by: string
+          p_eligibility?: Json
+          p_eligibility_tier?: string
           p_expires_at?: string
           p_focal_product_id: number
-          p_node_id: number
+          p_open?: boolean
+          p_physical_units: number
+          p_questions: Json
+          p_session2_interval_hours?: number
+          p_sourcing_notes?: string
+          p_starts_at?: string
           p_target_completions?: number
-          p_template_id: string
-          p_title_override?: string
+          p_taxonomy_node_id: number
+          p_title: string
+          p_unit_cost_cents?: number
         }
         Returns: Json
       }
@@ -41741,6 +41643,36 @@ export type Database = {
           p_product_id: number
           p_recipient_scope?: string
           p_specific_user_ids?: number[]
+        }
+        Returns: Json
+      }
+      publish_study: {
+        Args: {
+          p_abandon_window_days?: number
+          p_audience_definition?: string
+          p_battle_prompt?: string
+          p_blind_sponsor?: boolean
+          p_brand_campaign_id: string
+          p_brand_id: number
+          p_category_intelligence_opt_in?: boolean
+          p_created_by?: string
+          p_eligibility?: Json
+          p_eligibility_tier?: string
+          p_expires_at?: string
+          p_field: Json
+          p_module_config?: Json
+          p_modules?: string[]
+          p_open?: boolean
+          p_physical_units?: number
+          p_predictive_validity_opt_in?: boolean
+          p_price_posture?: string
+          p_session2_interval_hours?: number
+          p_sourcing_notes?: string
+          p_target_completions?: number
+          p_taxonomy_node_id: number
+          p_test_type: string
+          p_title: string
+          p_unit_cost_cents?: number
         }
         Returns: Json
       }
@@ -41816,6 +41748,10 @@ export type Database = {
           rounds_skipped_membership: number
         }[]
       }
+      reconcile_promoted_scan_barcodes: {
+        Args: { p_dry_run?: boolean }
+        Returns: Json
+      }
       record_attribute_driver_response: {
         Args: { p_battle_round_id: number; p_selected_drivers: string[] }
         Returns: Json
@@ -41823,6 +41759,14 @@ export type Database = {
       record_brand_portal_login: {
         Args: { p_ip_address?: unknown; p_user_agent?: string }
         Returns: string
+      }
+      record_concept_attribute_driver_response: {
+        Args: {
+          p_concept_session_id: string
+          p_round_number: number
+          p_selected_drivers: string[]
+        }
+        Returns: Json
       }
       record_concept_battle_response: {
         Args: {
@@ -41958,6 +41902,15 @@ export type Database = {
         Returns: Json
       }
       record_search_tap: { Args: { p_product_id: number }; Returns: undefined }
+      record_stated_ranking: {
+        Args: {
+          p_concept_session_id: string
+          p_decision_ms?: number
+          p_shown_order: number[]
+          p_stated_order: number[]
+        }
+        Returns: Json
+      }
       record_study_battle_response: {
         Args: {
           p_battle_round_id: number
@@ -42094,10 +42047,7 @@ export type Database = {
           variety_name: string
         }[]
       }
-      resolve_product_by_barcode: {
-        Args: { p_barcode: string }
-        Returns: Json
-      }
+      resolve_product_by_barcode: { Args: { p_barcode: string }; Returns: Json }
       resolve_product_nutrition: {
         Args: { p_product_id: number }
         Returns: Json
@@ -42127,6 +42077,15 @@ export type Database = {
           source: string
           source_node_id: number
         }[]
+      }
+      resolve_study_questions: {
+        Args: {
+          p_battle_prompt?: string
+          p_module_config?: Json
+          p_modules?: string[]
+          p_test_type: string
+        }
+        Returns: Json
       }
       resolve_taxonomy_l2_labels: {
         Args: { p_node_ids: number[] }
@@ -42176,6 +42135,26 @@ export type Database = {
       run_nutrition_normalization_batch: {
         Args: { p_batch_size?: number }
         Returns: string
+      }
+      save_shipping_address: {
+        Args: {
+          p_address_id?: number
+          p_address_label?: string
+          p_address_line_1: string
+          p_address_line_2?: string
+          p_city: string
+          p_country?: string
+          p_is_default?: boolean
+          p_phone_e164?: string
+          p_postal_code: string
+          p_recipient_name: string
+          p_state_region: string
+        }
+        Returns: Json
+      }
+      scan_in_box_product: {
+        Args: { p_fulfillment_id: string; p_scanned_barcode: string }
+        Returns: Json
       }
       scan_lookup: {
         Args: {
@@ -42600,6 +42579,7 @@ export type Database = {
         Returns: Json
       }
       sweep_expired_box_claims: { Args: { p_dry_run?: boolean }; Returns: Json }
+      sweep_expired_study_drafts: { Args: never; Returns: number }
       sync_product_search_index:
         | { Args: { p_force?: boolean; p_limit?: number }; Returns: string }
         | {
@@ -42719,6 +42699,33 @@ export type Database = {
           scan_status: string
           staging_scan_id: number
         }[]
+      }
+      upsert_study_draft: {
+        Args: {
+          p_brand_id?: number
+          p_draft_id?: string
+          p_draft_json?: Json
+          p_test_type: string
+          p_title?: string
+        }
+        Returns: {
+          brand_id: number
+          created_at: string
+          created_by: string
+          draft_json: Json
+          expires_at: string
+          id: string
+          test_type: string
+          title: string | null
+          updated_at: string
+          updated_by: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "study_drafts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       upsert_user_saved_product: {
         Args: {
@@ -42878,6 +42885,7 @@ export type Database = {
         | "tried"
         | "tried_scan_corroborated"
         | "receipt_verified"
+        | "not_tried"
       mission_operator_type: "platform" | "brand"
       mission_panel_eligibility_tier: "none" | "any_one" | "all"
       mission_status:
@@ -42899,6 +42907,7 @@ export type Database = {
         | "seasonal"
         | "limited"
         | "concept_test"
+      pack_kind: "engine" | "screener" | "module" | "s2_module"
       product_image_role:
         | "front"
         | "back"
@@ -42907,6 +42916,12 @@ export type Database = {
         | "side"
         | "lifestyle"
         | "other"
+      report_section_kind:
+        | "packaging"
+        | "willingness_to_pay"
+        | "value"
+        | "field_ranking"
+        | "loyalty"
       report_signal_kind:
         | "ranking_driver"
         | "categorical_distribution"
@@ -43041,9 +43056,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       assignment_status: [
@@ -43134,6 +43146,7 @@ export const Constants = {
         "tried",
         "tried_scan_corroborated",
         "receipt_verified",
+        "not_tried",
       ],
       mission_operator_type: ["platform", "brand"],
       mission_panel_eligibility_tier: ["none", "any_one", "all"],
@@ -43158,6 +43171,7 @@ export const Constants = {
         "limited",
         "concept_test",
       ],
+      pack_kind: ["engine", "screener", "module", "s2_module"],
       product_image_role: [
         "front",
         "back",
@@ -43166,6 +43180,13 @@ export const Constants = {
         "side",
         "lifestyle",
         "other",
+      ],
+      report_section_kind: [
+        "packaging",
+        "willingness_to_pay",
+        "value",
+        "field_ranking",
+        "loyalty",
       ],
       report_signal_kind: [
         "ranking_driver",

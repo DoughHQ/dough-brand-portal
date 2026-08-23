@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createEmptyBoxDraft, createEmptyBoxFieldRow } from '../defaults'
 import { draftToBoxPublishArgs } from '../publish'
+import { MODULE_LOYALTY } from '@/lib/study/modules'
 import type { BoxFieldRow, BoxStudyDraft } from '../types'
 
 function fieldRow(
@@ -38,15 +39,16 @@ function boxDraft(overrides: Partial<BoxStudyDraft> = {}): BoxStudyDraft {
 const ctx = { campaignId: 'camp-1', createdBy: 'user-1' }
 
 describe('draftToBoxPublishArgs UPC wire', () => {
-  it('sends { product_id, upc } for every field row, hero included', () => {
+  it('sends field + focal under p_field for publish_study', () => {
     const args = draftToBoxPublishArgs(boxDraft(), ctx)
-    expect(args.p_focal_product_id).toBe(30012404)
-    expect(args.p_box_products).toEqual([
+    expect(args.p_test_type).toBe('ihut')
+    expect(args.p_field.focal_product_id).toBe(30012404)
+    expect(args.p_field.box_products).toEqual([
       { product_id: 30012404, upc: '028400017688' },
       { product_id: 30012405, upc: '028400017695' },
     ])
-    expect(args.p_box_products[0]).not.toHaveProperty('barcodeOptions')
-    expect(args.p_box_products[0]).not.toHaveProperty('frozen_display_name')
+    expect(args.p_field.box_products[0]).not.toHaveProperty('barcodeOptions')
+    expect(args.p_field.box_products[0]).not.toHaveProperty('frozen_display_name')
   })
 
   it('throws UPC_REQUIRED instead of dropping rows without a barcode', () => {
@@ -80,14 +82,14 @@ describe('draftToBoxPublishArgs UPC wire', () => {
   })
 })
 
-describe('draftToBoxPublishArgs battle question', () => {
-  it('omits p_battle_question when the field is blank', () => {
+describe('draftToBoxPublishArgs battle prompt', () => {
+  it('omits p_battle_prompt when the field is blank', () => {
     expect(draftToBoxPublishArgs(boxDraft(), ctx)).not.toHaveProperty(
-      'p_battle_question'
+      'p_battle_prompt'
     )
     expect(
       draftToBoxPublishArgs(boxDraft({ battleQuestion: '   ' }), ctx)
-    ).not.toHaveProperty('p_battle_question')
+    ).not.toHaveProperty('p_battle_prompt')
   })
 
   it('sends the trimmed custom question', () => {
@@ -95,20 +97,31 @@ describe('draftToBoxPublishArgs battle question', () => {
       draftToBoxPublishArgs(
         boxDraft({ battleQuestion: '  Which would you grab for lunch?  ' }),
         ctx
-      ).p_battle_question
+      ).p_battle_prompt
     ).toBe('Which would you grab for lunch?')
   })
 })
 
-describe('draftToBoxPublishArgs p_open', () => {
-  it('omits p_open unless the caller asked to open', () => {
-    expect(draftToBoxPublishArgs(boxDraft(), ctx)).not.toHaveProperty('p_open')
+describe('draftToBoxPublishArgs loyalty module / p_open', () => {
+  it('derives session count from MODULE_LOYALTY, not a session radio', () => {
+    expect(draftToBoxPublishArgs(boxDraft(), ctx).p_modules).toEqual([])
     expect(
-      draftToBoxPublishArgs(boxDraft(), { ...ctx, open: false })
-    ).not.toHaveProperty('p_open')
+      draftToBoxPublishArgs(boxDraft(), ctx)
+    ).not.toHaveProperty('p_session2_interval_hours')
+
+    const withLoyalty = draftToBoxPublishArgs(
+      boxDraft({ loyaltyFollowUp: true, session2IntervalHours: 48 }),
+      ctx
+    )
+    expect(withLoyalty.p_modules).toEqual([MODULE_LOYALTY])
+    expect(withLoyalty.p_session2_interval_hours).toBe(48)
   })
 
-  it('sends p_open: true only for Publish box', () => {
+  it('sends p_open: false by default and true only for Publish box', () => {
+    expect(draftToBoxPublishArgs(boxDraft(), ctx).p_open).toBe(false)
+    expect(
+      draftToBoxPublishArgs(boxDraft(), { ...ctx, open: false }).p_open
+    ).toBe(false)
     expect(
       draftToBoxPublishArgs(boxDraft(), { ...ctx, open: true }).p_open
     ).toBe(true)

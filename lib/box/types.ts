@@ -1,11 +1,9 @@
 /**
- * Box study — builder types (UI draft ↔ publish_box_study wire).
+ * Box study — builder types (UI draft ↔ publish_study wire, p_test_type='ihut').
  *
- * A box study ships physical products to qualified users. The backend RPC
- * `publish_box_study` creates: an active brand mission (focal product +
- * category), a protocol stub, an optional mission_eligibility_rules row, a
- * sampling_boxes row with the field frozen by value server-side, and a
- * single Model-A sponsor row (the campaign owner).
+ * publish_study creates: an active brand mission (focal product + category), a
+ * protocol, optional eligibility rules, a sampling_boxes row with the field
+ * frozen server-side, and a Model-A sponsor row.
  *
  * Browser "Save draft" is localStorage only and never calls this RPC.
  * "Publish box" sends p_open: true so the box is created AND opened
@@ -13,6 +11,7 @@
  */
 
 import type { ProductBarcodeOption } from '@/lib/concept/types'
+import type { StudyModuleCode } from '@/lib/study/modules'
 
 /** Mirrors the mission_eligibility_tier values the RPC accepts.
  *  The v1 builder only offers any / tried / not_tried; the others remain
@@ -38,7 +37,7 @@ export type BoxProductWire = {
  *
  * taxonomy_node_id / l2_node_id are also display-only: they power the
  * "different category" chip and same-L2 sort in Contents. They are never
- * sent to publish_box_study. barcodeOptions is draft-only SKU choice.
+ * sent to publish_study. barcodeOptions is draft-only SKU choice.
  */
 export type BoxFieldRow = {
   localId: string
@@ -108,10 +107,12 @@ export type BoxStudyDraft = {
   fieldProducts: BoxFieldRow[]
   /** How many boxes exist = the claim seat count. null until entered. */
   physicalUnits: number | null
-  sessionCount: 1 | 2
-  /** Hours between sessions. Only sent when sessionCount === 2; server
-   *  requires >= 24. Kept in the draft even while sessionCount is 1 so the
-   *  operator's value survives toggling. */
+  /**
+   * When true, MODULE_LOYALTY is selected → server builds a 2-session study.
+   * Replaces the old 1/2 session radio.
+   */
+  loyaltyFollowUp: boolean
+  /** Hours between sessions. Only sent when loyaltyFollowUp; server requires >= 24. */
   session2IntervalHours: number
   eligibilityTier: BoxEligibilityTier
   eligibility: BoxEligibilityDraft
@@ -133,17 +134,20 @@ export type BoxStudyDraft = {
   updatedAt: string
 }
 
-/** Wire args — must stay identical to the generated Database type for
- *  public.Functions.publish_box_study.Args. Checked in lib/box/rpc.ts. */
+/** Wire args for public.publish_study (ihut branch). */
 export type PublishBoxStudyArgs = {
+  p_test_type: 'ihut'
   p_brand_campaign_id: string
   p_brand_id: number
   p_title: string
   p_taxonomy_node_id: number
-  p_focal_product_id: number
-  p_box_products: BoxProductWire[]
+  p_field: {
+    box_products: BoxProductWire[]
+    focal_product_id: number
+  }
+  p_modules: StudyModuleCode[]
+  p_module_config?: Record<string, unknown>
   p_physical_units: number
-  p_session_count?: number
   p_session2_interval_hours?: number
   p_eligibility?: Record<string, unknown>
   p_eligibility_tier?: string
@@ -155,15 +159,15 @@ export type PublishBoxStudyArgs = {
   p_target_completions?: number
   p_created_by?: string
   /** Omitted when blank — server falls back to "Which would you buy?" */
-  p_battle_question?: string
+  p_battle_prompt?: string
   /**
-   * Publish box always sends true. Omitted / false creates a server draft
-   * without opening the claim window. Save draft never reaches this RPC.
+   * Publish box always sends true. false creates a server draft without
+   * opening the claim window. Save draft never reaches this RPC.
    */
-  p_open?: boolean
+  p_open: boolean
 }
 
-/** Parsed success payload from publish_box_study.
+/** Parsed success payload from publish_study (ihut).
  *  campaignId is NOT in the RPC return — Batch 2 fills it from the draft. */
 export type BoxPublishSuccessMeta = {
   missionId: string

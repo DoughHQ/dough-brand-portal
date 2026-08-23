@@ -1,4 +1,4 @@
-/** Concept study — operator console types (UI ↔ publish_concept_study wire). */
+/** Concept study — operator console types (UI ↔ publish_study wire). */
 
 export type StimulusMode =
   | 'name'
@@ -167,8 +167,7 @@ export type ConceptStudyDraft = {
   stimulusMode: StimulusMode | null
   templateConfig: PackagingTemplateConfig
   pricePosture: PricePosture
-  /** Packaging is S1-only; kept for non-package escape hatch. */
-  sessionCount: 1 | 2
+  /** Packaging is S1-only; session count is not draft state. */
   session2IntervalHours: number
   scoringRounds: number
   /** Closes the study when hit. Required in practice. */
@@ -189,7 +188,7 @@ export type ConceptStudyDraft = {
   duplicatedFrom?: string | null
 }
 
-/** Wire shape for own concept arms under publish_concept_study. */
+/** Wire shape for own concept arms under publish_study. */
 export type ConceptPublishConcept = {
   arm_label: string
   display_name: string

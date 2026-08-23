@@ -140,11 +140,7 @@ export default function PortalLayoutClient({
                 group: 'Research',
                 items: [
                   { label: 'Studies', href: '/studies' },
-                  ...(isAdmin && !isImpersonating
-                    ? [{ label: 'Boxes', href: '/admin/boxes' }]
-                    : []),
                   { label: 'Products', href: '/products' },
-                  { label: 'Launch IHUT', href: '/ihut' },
                 ],
               },
               {

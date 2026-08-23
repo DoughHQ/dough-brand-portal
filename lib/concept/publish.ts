@@ -1,12 +1,14 @@
 import type {
   ConceptPublishConcept,
   ConceptPublishProduct,
-  ConceptPublishQuestion,
   ConceptStudyDraft,
 } from './types'
-import { defaultFloor, armLabelForIndex } from './defaults'
-import { formatPriceLabel, priceToWire } from './price'
+import type { PublishConceptStudyArgs } from './rpc'
+import { armLabelForIndex } from './defaults'
+import { priceToWire } from './price'
+import { templateConfigToWire } from './templateConfig'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
+import { conceptModulesForStimulusMode } from '@/lib/study/modules'
 
 /** Combinatorial pairs for a field of size n. */
 export function uniquePairs(n: number): number {
@@ -22,18 +24,13 @@ export function defaultScoringRounds(fieldSize: number): number {
 }
 
 /**
- * Map UI draft → wire payloads for publish_concept_study.
- * For template modes (package / price), questions are omitted — caller sends null.
- * Hand-built questions plumbing stays for non-template escape hatch.
+ * Map UI draft → field arms for publish_study.
+ * Questions / modules are resolved server-side from p_modules + p_module_config.
  */
 export function draftToPublishPayload(draft: ConceptStudyDraft): {
   concepts: ConceptPublishConcept[]
   products: ConceptPublishProduct[]
-  questions: ConceptPublishQuestion[] | null
 } {
-  const useTemplate =
-    draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
-
   const concepts: ConceptPublishConcept[] = draft.conceptArms.map((arm, i) => {
     const base: ConceptPublishConcept = {
       arm_label: arm.arm_label || armLabelForIndex(i),
@@ -43,7 +40,11 @@ export function draftToPublishPayload(draft: ConceptStudyDraft): {
       stimulus_payload: arm.stimulus_payload ?? {},
       battle_intent: 'hero',
     }
-    if (!useTemplate && draft.stimulusMode) {
+    if (
+      draft.stimulusMode &&
+      draft.stimulusMode !== 'package' &&
+      draft.stimulusMode !== 'price'
+    ) {
       base.stimulus_type = draft.stimulusMode
     }
     return base
@@ -75,86 +76,46 @@ export function draftToPublishPayload(draft: ConceptStudyDraft): {
     upc: p.upc!.trim(),
   }))
 
-  if (useTemplate) {
-    return { concepts, products, questions: null }
+  return { concepts, products }
+}
+
+/** Full publish_study args for the concept branch. */
+export function draftToConceptPublishStudyArgs(
+  draft: ConceptStudyDraft,
+  ctx: {
+    campaignId: string
+    createdBy: string
+    expiresAt: string
+  }
+): PublishConceptStudyArgs {
+  if (draft.taxonomyNodeId == null) throw new Error('NODE_REQUIRED')
+  if (draft.stimulusMode !== 'package' && draft.stimulusMode !== 'price') {
+    throw new Error('NO_TEMPLATE_FOR_MODE')
   }
 
-  const questions: ConceptPublishQuestion[] = []
-  let pos = 0
+  const { concepts, products } = draftToPublishPayload(draft)
 
-  for (const s of draft.screeners) {
-    pos += 1
-    questions.push({
-      question_type_code: 'concept_screener',
-      session_number: 1,
-      position: pos,
-      label: s.label || `screener_${pos}`,
-      config: s.config,
-      is_required: s.is_required,
-      drives_rounds: false,
-    })
-  }
-
-  pos += 1
-  questions.push({
-    question_type_code: 'concept_battle',
-    session_number: 1,
-    position: pos,
-    label: 'battles',
-    config: {
-      prompt: 'Which do you prefer?',
-      options: ['A wins', 'B wins', 'neither', 'skip'],
-      min_select: 1,
-      max_select: 1,
+  return {
+    p_test_type: 'concept',
+    p_brand_campaign_id: ctx.campaignId,
+    p_brand_id: draft.brandId,
+    p_title: draft.title.trim(),
+    p_taxonomy_node_id: draft.taxonomyNodeId,
+    p_field: {
+      concepts: concepts as unknown as PublishConceptStudyArgs['p_field']['concepts'],
+      products: products as unknown as PublishConceptStudyArgs['p_field']['products'],
     },
-    is_required: true,
-    drives_rounds: true,
-  })
-
-  for (const d of draft.diagnostics) {
-    pos += 1
-    questions.push({
-      question_type_code: 'concept_diagnostic',
-      session_number: 1,
-      position: pos,
-      label: d.label || `diagnostic_${pos}`,
-      config: d.config,
-      is_required: d.is_required,
-      drives_rounds: false,
-    })
+    p_modules: conceptModulesForStimulusMode(draft.stimulusMode),
+    p_module_config: templateConfigToWire(
+      draft.templateConfig
+    ) as unknown as PublishConceptStudyArgs['p_module_config'],
+    p_created_by: ctx.createdBy,
+    p_price_posture:
+      draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
+        ? 'blind'
+        : draft.pricePosture,
+    p_expires_at: ctx.expiresAt,
+    p_target_completions: draft.targetCompletions,
+    p_audience_definition: draft.audienceDefinition.trim() || undefined,
   }
-
-  const leaderPriceLabel = formatPriceLabel(draft.conceptArms[0]?.frozen_price)
-  const floor =
-    draft.floor ??
-    defaultFloor(draft.conceptArms[0]?.display_name || 'this', leaderPriceLabel)
-  pos += 1
-  questions.push({
-    question_type_code: 'concept_floor',
-    session_number: 1,
-    position: pos,
-    label: floor.label || 'purchase_intent',
-    config: floor.config,
-    is_required: true,
-    drives_rounds: false,
-  })
-
-  if (draft.sessionCount === 2) {
-    questions.push({
-      question_type_code: 'concept_battle',
-      session_number: 2,
-      position: 1,
-      label: 'drift_battles',
-      config: {
-        prompt: 'Which do you prefer now?',
-        options: ['A wins', 'B wins', 'neither', 'skip'],
-        min_select: 1,
-        max_select: 1,
-      },
-      is_required: true,
-      drives_rounds: true,
-    })
-  }
-
-  return { concepts, products, questions }
 }

@@ -179,7 +179,6 @@ export function createEmptyConceptDraft(
     stimulusMode: null,
     templateConfig: emptyPackagingTemplateConfig(),
     pricePosture: 'realistic' as PricePosture,
-    sessionCount: 1,
     session2IntervalHours: 24,
     scoringRounds: defaultScoringRoundsForArms(arms.length),
     targetCompletions: 100,
@@ -195,28 +194,5 @@ export function createEmptyConceptDraft(
     updatedAt: new Date().toISOString(),
     duplicatedFrom: null,
     ...partial,
-  }
-}
-
-export function cloneDraftAsNew(source: ConceptStudyDraft): ConceptStudyDraft {
-  const remap = <T extends { localId: string }>(rows: T[]): T[] =>
-    rows.map((r) => ({ ...r, localId: id() }))
-
-  return {
-    ...source,
-    draftId: id(),
-    title: source.title ? `${source.title} (copy)` : '',
-    brandCampaignId: null,
-    conceptArms: remap(source.conceptArms).map((a, i) => ({
-      ...a,
-      arm_label: armLabelForIndex(i),
-    })),
-    products: remap(source.products),
-    screeners: remap(source.screeners),
-    diagnostics: remap(source.diagnostics),
-    floor: source.floor ? { ...source.floor, localId: id() } : null,
-    templateConfig: { ...source.templateConfig },
-    updatedAt: new Date().toISOString(),
-    duplicatedFrom: source.draftId,
   }
 }

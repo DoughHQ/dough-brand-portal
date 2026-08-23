@@ -1,7 +1,7 @@
 /**
- * HINT → human copy for publish_box_study. The RPC raises Postgres exceptions
- * with these exact HINT codes (it does not return {error} objects today, but
- * the resolver accepts both shapes, mirroring lib/concept/errors.ts).
+ * HINT → human copy for publish_study (ihut). The RPC raises Postgres exceptions
+ * with these exact HINT codes (and may also return {error} soft objects).
+ * The resolver accepts both shapes, mirroring lib/concept/errors.ts.
  *
  * Every code below exists verbatim in the SQL. Do not invent codes here and
  * do not remove any — an unmapped code falls through to its raw text, which
@@ -61,9 +61,15 @@ export const BOX_PUBLISH_HINT_MESSAGES: Record<string, string> = {
   INVALID_UNITS: 'Set how many boxes will ship (at least 1).',
   SESSION_COUNT_INVALID: 'Sessions must be 1 or 2.',
   SESSION_INTERVAL_INVALID:
-    'One-session boxes have no wait; two-session boxes need at least 24 hours between sessions.',
+    'Loyalty follow-up needs at least 24 hours between sessions; without it, leave the interval unset.',
   INVALID_WINDOW: 'The end date must be in the future, after the start.',
   INVALID_TARGET_COMPLETIONS: 'Target completions must be a positive number.',
+  INVALID_TEST_TYPE: 'Internal error: invalid study type.',
+  UNKNOWN_MODULE: 'One of the selected modules is not recognized.',
+  NOT_A_MODULE: 'That pack is not a selectable module.',
+  MODULE_TEST_TYPE_MISMATCH:
+    'That module cannot be used on this kind of study.',
+  NO_BATTLE_QUESTION: 'The study needs a battle question.',
 
   // Open-on-publish (advance_box_status readiness, rolled back with the create)
   BOX_OPEN_FIELD_EMPTY: "Couldn't publish — check the box is complete.",
@@ -201,9 +207,9 @@ function resolved(
 }
 
 /**
- * Resolve either error shape to display copy + section. publish_box_study
- * throws today; the `returned` branch exists for forward-compatibility and
- * to mirror resolvePublishError in lib/concept/errors.ts.
+ * Resolve either error shape to display copy + section. publish_study
+ * may throw or return { error }; the `returned` branch exists for soft errors
+ * and to mirror resolvePublishError in lib/concept/errors.ts.
  */
 export function resolveBoxPublishError(args: {
   returned?: { error?: unknown; detail?: unknown } | null
