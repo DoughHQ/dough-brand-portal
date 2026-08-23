@@ -68,10 +68,19 @@ export async function getOperatorStudies(options?: {
         ? maxClaimsRaw
         : null
 
+    const testTypeRaw = row.test_type
+    const test_type: OperatorStudyRow['test_type'] =
+      testTypeRaw === 'concept' || testTypeRaw === 'ihut' ? testTypeRaw : null
+    const sessionRaw = row.session_count
+    const session_count =
+      typeof sessionRaw === 'number' && Number.isFinite(sessionRaw) ? sessionRaw : null
+
     return {
       ...(row as unknown as OperatorStudyRow),
       status: status as OperatorStudyRow['status'],
       lifecycle_state: normalizeLifecycle(row.lifecycle_state, status),
+      test_type,
+      session_count,
       target_completions: target,
       max_claims: maxClaims,
       total_claims:

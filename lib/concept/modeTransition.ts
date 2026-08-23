@@ -149,7 +149,6 @@ export function planModeTransition(
   const next: ConceptStudyDraft = {
     ...draft,
     stimulusMode: mode,
-    sessionCount: 1,
     conceptArms: entering
       ? kept.map((a) => ({ ...a, frozen_price: null }))
       : kept,

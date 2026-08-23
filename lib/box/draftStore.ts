@@ -36,7 +36,7 @@ function writeMap(map: DraftMap): void {
 
 /** Merge stored data over fresh defaults so old drafts survive shape changes. */
 export function normalizeStoredBoxDraft(
-  stored: Partial<BoxStudyDraft>,
+  stored: Partial<BoxStudyDraft> & { sessionCount?: 1 | 2 },
   fallbackBrandId: number
 ): BoxStudyDraft {
   const base = createEmptyBoxDraft(stored.brandId ?? fallbackBrandId)
@@ -62,7 +62,10 @@ export function normalizeStoredBoxDraft(
       ...createEmptyBoxEligibility(),
       ...(stored.eligibility ?? {}),
     },
-    sessionCount: stored.sessionCount === 2 ? 2 : 1,
+    loyaltyFollowUp:
+      typeof stored.loyaltyFollowUp === 'boolean'
+        ? stored.loyaltyFollowUp
+        : stored.sessionCount === 2,
     battleQuestion:
       typeof stored.battleQuestion === 'string' ? stored.battleQuestion : '',
   }
@@ -90,10 +93,4 @@ export function deleteBoxDraft(draftId: string): void {
   if (!(draftId in map)) return
   delete map[draftId]
   writeMap(map)
-}
-
-export function listBoxDrafts(): BoxStudyDraft[] {
-  return Object.values(readMap())
-    .map((d) => normalizeStoredBoxDraft(d, d.brandId))
-    .sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
 }

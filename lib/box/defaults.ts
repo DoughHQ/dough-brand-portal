@@ -41,7 +41,7 @@ export function createEmptyBoxDraft(brandId: number): BoxStudyDraft {
     focalProductId: null,
     fieldProducts: [],
     physicalUnits: null,
-    sessionCount: 1,
+    loyaltyFollowUp: false,
     session2IntervalHours: 48,
     eligibilityTier: 'any',
     eligibility: createEmptyBoxEligibility(),
@@ -69,21 +69,5 @@ export function createEmptyBoxFieldRow(): BoxFieldRow {
     barcodeOptions: [],
     frozen_category: null,
     identityConfirmed: false,
-  }
-}
-
-/**
- * Duplicate a box draft as a brand-new draft: fresh id, reset campaign link
- * (a duplicate is unpublished), title suffixed. Field/audience/logistics carry
- * over. Mirrors lib/concept/defaults.ts cloneDraftAsNew.
- */
-export function cloneBoxDraftAsNew(source: BoxStudyDraft): BoxStudyDraft {
-  const base = createEmptyBoxDraft(source.brandId)
-  return {
-    ...source,
-    draftId: base.draftId,
-    brandCampaignId: null,
-    title: source.title.trim() ? `${source.title.trim()} (copy)` : '',
-    updatedAt: new Date().toISOString(),
   }
 }

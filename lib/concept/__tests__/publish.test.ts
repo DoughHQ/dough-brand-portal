@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { createEmptyConceptDraft, newConceptArm, newProductCompetitor } from '../defaults'
-import { draftToPublishPayload } from '../publish'
+import {
+  draftToConceptPublishStudyArgs,
+  draftToPublishPayload,
+} from '../publish'
+import { MODULE_PACKAGING, MODULE_WILLINGNESS_TO_PAY } from '@/lib/study/modules'
 
 function draftWithProduct(
   upc: string | null,
@@ -71,5 +75,35 @@ describe('draftToPublishPayload battle_intent + upc', () => {
     expect(() =>
       draftToPublishPayload(draftWithProduct('028400017688', { identityConfirmed: false }))
     ).toThrow('UPC_REQUIRED')
+  })
+})
+
+describe('draftToConceptPublishStudyArgs modules', () => {
+  it('maps packaging mode to MODULE_PACKAGING under publish_study', () => {
+    const draft = draftWithProduct('028400017688')
+    draft.taxonomyNodeId = 10
+    draft.title = 'Pack test'
+    const args = draftToConceptPublishStudyArgs(draft, {
+      campaignId: 'camp-1',
+      createdBy: 'user-1',
+      expiresAt: new Date(Date.now() + 86400000).toISOString(),
+    })
+    expect(args.p_test_type).toBe('concept')
+    expect(args.p_modules).toEqual([MODULE_PACKAGING])
+    expect(args.p_field.concepts).toHaveLength(1)
+    expect(args.p_field.products).toHaveLength(1)
+  })
+
+  it('maps price mode to MODULE_WILLINGNESS_TO_PAY', () => {
+    const draft = draftWithProduct('028400017688')
+    draft.stimulusMode = 'price'
+    draft.taxonomyNodeId = 10
+    draft.title = 'Price test'
+    const args = draftToConceptPublishStudyArgs(draft, {
+      campaignId: 'camp-1',
+      createdBy: 'user-1',
+      expiresAt: new Date(Date.now() + 86400000).toISOString(),
+    })
+    expect(args.p_modules).toEqual([MODULE_WILLINGNESS_TO_PAY])
   })
 })

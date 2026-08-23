@@ -283,11 +283,10 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
   }
 
   const sessionsOk =
-    draft.sessionCount === 1 ||
-    (draft.sessionCount === 2 && draft.session2IntervalHours >= 24)
+    !draft.loyaltyFollowUp || draft.session2IntervalHours >= 24
   if (!sessionsOk) {
     outstanding.push({
-      message: 'Two-session boxes need at least 24 hours between sessions.',
+      message: 'Loyalty follow-up needs at least 24 hours between sessions.',
       anchor: BOX_ANCHORS.sessions,
     })
   }

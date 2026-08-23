@@ -2,8 +2,8 @@
 
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalUser } from '@/lib/queries'
-import { parseCreateCampaignDraftResult } from '@/lib/ihut/missionPublish'
-import { draftToPublishPayload } from '@/lib/concept/publish'
+import { parseCreateCampaignDraftResult } from '@/lib/studies/parseCampaignDraft'
+import { draftToConceptPublishStudyArgs } from '@/lib/concept/publish'
 import { resolvePublishError, type ConceptErrorSection } from '@/lib/concept/errors'
 import { templateConfigToWire } from '@/lib/concept/templateConfig'
 import {
@@ -138,7 +138,6 @@ export async function createConceptCampaignAction(args: {
   brandId?: number
   campaignName: string
   taxonomyNodeId: number
-  sessionCount?: 1 | 2
 }): Promise<{ ok: true; campaignId: string } | { ok: false; error: string }> {
   const portalUser = await getPortalUser()
   if (!portalUser) return { ok: false, error: "You don't have access to that brand." }
@@ -148,40 +147,24 @@ export async function createConceptCampaignAction(args: {
   if (!taxonomyNodeId) {
     return { ok: false, error: 'Choose a category for this study.' }
   }
-  const sessionCount = args.sessionCount ?? 1
   const name = args.campaignName.trim() || 'Concept study campaign'
 
   const supabase = await createServerSupabaseClient()
   const now = new Date()
   const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
 
-  const rpcParams: {
-    p_brand_id: number
-    p_campaign_name: string
-    p_mission_title: string
-    p_mission_type: string
-    p_operator_type: string
-    p_taxonomy_node_id: number
-    p_session_count: number
-    p_starts_at: string
-    p_expires_at: string
-    p_session2_interval_hours?: number
-  } = {
+  // Concept studies are always single-session — do not thread draft.sessionCount.
+  const { data, error } = await supabase.rpc('create_campaign_draft', {
     p_brand_id: brandId,
     p_campaign_name: name,
     p_mission_title: 'Draft',
     p_mission_type: 'brand_challenge',
     p_operator_type: 'brand',
     p_taxonomy_node_id: taxonomyNodeId,
-    p_session_count: sessionCount,
+    p_session_count: 1,
     p_starts_at: now.toISOString(),
     p_expires_at: expiresAt.toISOString(),
-  }
-  if (sessionCount === 2) {
-    rpcParams.p_session2_interval_hours = 24
-  }
-
-  const { data, error } = await supabase.rpc('create_campaign_draft', rpcParams)
+  })
   if (error) {
     const hint = extractHint(error)
     const resolved = resolvePublishError({
@@ -308,7 +291,6 @@ export async function publishConceptStudyAction(
       brandId: draft.brandId,
       campaignName: draft.title.trim() || 'Concept study',
       taxonomyNodeId: draft.taxonomyNodeId,
-      sessionCount: 1,
     })
     if (!created.ok) {
       return {
@@ -321,31 +303,16 @@ export async function publishConceptStudyAction(
     campaignId = created.campaignId
   }
 
-  const { concepts, products, questions } = draftToPublishPayload(draft)
   const supabase = await createServerSupabaseClient()
   const expiresAt = draft.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
 
   try {
-    const { data, error } = await rpcPublishConceptStudy(supabase, {
-      p_brand_campaign_id: campaignId,
-      p_brand_id: draft.brandId,
-      p_title: draft.title.trim(),
-      p_taxonomy_node_id: draft.taxonomyNodeId,
-      p_stimulus_mode: draft.stimulusMode,
-      p_concepts: concepts as unknown as Json,
-      p_products: products as unknown as Json,
-      p_template_config: templateConfigToWire(draft.templateConfig) as unknown as Json,
-      p_questions: questions as unknown as Json | null,
-      p_created_by: portalUser.auth_uid,
-      p_price_posture:
-        draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
-          ? 'blind'
-          : draft.pricePosture,
-      p_scoring_rounds: draft.scoringRounds,
-      p_expires_at: expiresAt,
-      p_target_completions: draft.targetCompletions,
-      p_audience_definition: draft.audienceDefinition.trim() || null,
+    const args = draftToConceptPublishStudyArgs(draft, {
+      campaignId,
+      createdBy: portalUser.auth_uid,
+      expiresAt,
     })
+    const { data, error } = await rpcPublishConceptStudy(supabase, args)
 
     if (error) {
       const hint = extractHint(error)

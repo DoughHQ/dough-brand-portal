@@ -113,10 +113,6 @@ function writeAll(drafts: ConceptStudyDraft[]): void {
   window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts))
 }
 
-export function listConceptDrafts(): ConceptStudyDraft[] {
-  return readAll().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-}
-
 export function getConceptDraft(draftId: string): ConceptStudyDraft | null {
   return readAll().find((d) => d.draftId === draftId) ?? null
 }

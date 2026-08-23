@@ -2,7 +2,7 @@
 
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalUser } from '@/lib/queries'
-import { parseCreateCampaignDraftResult } from '@/lib/ihut/missionPublish'
+import { parseCreateCampaignDraftResult } from '@/lib/studies/parseCampaignDraft'
 import { draftToBoxPublishArgs } from '@/lib/box/publish'
 import { rpcPublishBoxStudy } from '@/lib/box/rpc'
 import {

@@ -10,8 +10,6 @@ export const NONE_OF_THESE = 'None of these'
 
 /** Bumped for the ID-shaped option contract (objects, not strings). Old drafts are abandoned. */
 export const DRAFT_STORAGE_KEY = 'dough.conceptDrafts.v4'
-/** Prior key — not migrated into v4 (hard reset). */
-export const DRAFT_STORAGE_KEY_LEGACY = 'dough.conceptDrafts.v3'
 
 /** Stable sentinel ids — must match server + runner + report. */
 export const DECOY_ID = 'decoy' as const
@@ -67,12 +65,6 @@ export const STIMULUS_MODE_OPTIONS: {
     publishable: false,
   },
 ]
-
-/** @deprecated Use STIMULUS_MODE_OPTIONS. */
-export const STIMULUS_TYPE_OPTIONS = STIMULUS_MODE_OPTIONS.map((o) => ({
-  value: o.value,
-  label: o.label,
-}))
 
 export const BATTLE_INTENT_OPTIONS: { value: BattleIntent; label: string; tag: string }[] = [
   { value: 'hero', label: 'Your arm', tag: 'hero' },

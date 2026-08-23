@@ -244,7 +244,6 @@ sec('§11 · blind modes still null prices and force blind posture')
   const next = (planModeTransition(d, 'package', true) as { next: ConceptStudyDraft }).next
   ok(next.conceptArms[0]!.frozen_price === null, 'arm price nulled entering a blind mode')
   ok(next.pricePosture === 'blind', 'price posture forced blind', next.pricePosture)
-  ok(next.sessionCount === 1, 'session count normalized to 1')
 }
 
 sec('§1 · non-publishable modes and no-ops')

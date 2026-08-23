@@ -1,8 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { PlatformStats } from '@/lib/queries'
-import OperatorLaunchpad from '../components/OperatorLaunchpad'
 
 interface Props {
   stats: PlatformStats
@@ -20,7 +20,83 @@ export default function AdminDashboardClient({ stats }: Props) {
 
   return (
     <div style={{ fontFamily: 'var(--font-sans)', maxWidth: 960, margin: '0 auto', padding: '36px 32px 48px' }}>
-      <OperatorLaunchpad variant="full" />
+      <section
+        style={{
+          background: 'var(--white)',
+          border: '1px solid var(--ink-10)',
+          borderRadius: 'var(--r-lg, 12px)',
+          padding: '28px 28px 24px',
+          marginBottom: 40,
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 24,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div style={{ minWidth: 0, flex: '1 1 240px' }}>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 500,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-30)',
+              marginBottom: 8,
+            }}
+          >
+            Research
+          </div>
+          <h1
+            style={{
+              fontFamily: 'var(--font-display, var(--font-serif))',
+              fontSize: 28,
+              fontWeight: 400,
+              color: 'var(--sage-dark, var(--ink))',
+              margin: '0 0 8px',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.15,
+            }}
+          >
+            Launch a study
+          </h1>
+          <p
+            style={{
+              fontSize: 14,
+              color: 'var(--ink-50)',
+              lineHeight: 1.55,
+              margin: 0,
+              maxWidth: 420,
+            }}
+          >
+            Concept tests and iHUT studies — pick a type and go.
+          </p>
+        </div>
+        <Link
+          href="/studies/new"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: 'var(--sage)',
+            color: 'var(--white, #fff)',
+            border: 'none',
+            borderRadius: 'var(--r-sm, 8px)',
+            padding: '12px 18px',
+            fontFamily: 'var(--font-sans)',
+            fontSize: 13,
+            fontWeight: 600,
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
+        >
+          <span aria-hidden style={{ fontSize: 16, lineHeight: 1, marginTop: -1 }}>
+            +
+          </span>
+          New study
+        </Link>
+      </section>
 
       <section>
         <div
@@ -68,7 +144,7 @@ export default function AdminDashboardClient({ stats }: Props) {
           {[
             { label: 'All products', sub: `${stats.products_with_elo.toLocaleString()} with ELO`, href: '/products' },
             { label: 'Corrections', sub: 'Review flagged data', href: '/admin/corrections' },
-            { label: 'Studies', sub: 'Drafts & commissioned work', href: '/studies' },
+            { label: 'Studies', sub: 'Active research & reports', href: '/studies' },
           ].map((item) => (
             <button
               key={item.label}

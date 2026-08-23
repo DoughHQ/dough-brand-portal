@@ -30,6 +30,13 @@ export const CONCEPT_PUBLISH_HINT_MESSAGES: Record<string, string> = {
   NOT_AUTHORIZED: "You don't have access to that brand.",
   FORBIDDEN: "You don't have access to that brand.",
   NO_AUTHOR: 'Publish requires an authenticated author.',
+  INVALID_TEST_TYPE: 'Internal error: invalid study type.',
+  UNKNOWN_MODULE: 'One of the selected modules is not recognized.',
+  NOT_A_MODULE: 'That pack is not a selectable module.',
+  MODULE_TEST_TYPE_MISMATCH:
+    'That module cannot be used on this kind of study.',
+  SESSION_INTERVAL_INVALID:
+    'Loyalty follow-up needs at least 24 hours between sessions.',
 }
 
 export type ConceptErrorSection =
