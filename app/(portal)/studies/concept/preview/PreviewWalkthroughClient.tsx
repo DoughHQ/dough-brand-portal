@@ -9,6 +9,8 @@ import { combatantsFromDraft } from '@/lib/concept/preview/combatants'
 import { signCombatantImages } from '@/lib/concept/preview/signImages'
 import { synthesizePlan } from '@/lib/concept/preview/synthesizePlan'
 import type { ConceptPlanScreen } from '@/lib/concept/preview/planTypes'
+import type { PreviewCombatant } from '@/lib/concept/preview/combatants'
+import type { ConceptStudyDraft } from '@/lib/concept/types'
 import PreviewRunner from './PreviewRunner'
 import './previewRunner.css'
 
@@ -25,6 +27,9 @@ type LoadState =
       kind: 'ready'
       screens: ConceptPlanScreen[]
       stimulusMode: string | null
+      seed: string
+      draft: ConceptStudyDraft
+      combatants: PreviewCombatant[]
     }
 
 export default function PreviewWalkthroughClient({ draftId }: Props) {
@@ -66,6 +71,9 @@ export default function PreviewWalkthroughClient({ draftId }: Props) {
         kind: 'ready',
         screens,
         stimulusMode: snapshot.stimulusMode,
+        seed: snapshot.draftId,
+        draft: snapshot,
+        combatants: signed,
       })
     })()
     return () => {
@@ -139,7 +147,14 @@ export default function PreviewWalkthroughClient({ draftId }: Props) {
           ← Back to the builder
         </Link>
       </div>
-      <PreviewRunner screens={state.screens} stimulusMode={state.stimulusMode} />
+      <PreviewRunner
+        screens={state.screens}
+        stimulusMode={state.stimulusMode}
+        seed={state.seed}
+        editHref={back}
+        draft={state.draft}
+        combatants={state.combatants}
+      />
     </div>
   )
 }

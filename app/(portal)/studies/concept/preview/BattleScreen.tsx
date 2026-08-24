@@ -5,6 +5,7 @@ import {
   layoutCombatantRefs,
   outcomeForCardTap,
 } from '@/lib/concept/preview/sessionWins'
+import StimulusImage from './StimulusImage'
 
 type Props = {
   screen: ConceptBattleScreenPlan
@@ -16,6 +17,7 @@ type Props = {
 function Tile({
   name,
   imageUrl,
+  imageUnavailable,
   price,
   suppressName,
   picked,
@@ -23,6 +25,7 @@ function Tile({
 }: {
   name: string
   imageUrl: string | null | undefined
+  imageUnavailable?: boolean
   price: number | null | undefined
   suppressName: boolean
   picked: boolean
@@ -31,12 +34,11 @@ function Tile({
   return (
     <button type="button" className="cpw-tile" data-picked={picked} onClick={onPick}>
       <div className="cpw-tile-image">
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- signed storage / catalog URL
-          <img src={imageUrl} alt={suppressName ? '' : name} />
-        ) : (
-          <span className="cpw-tile-ph">No image</span>
-        )}
+        <StimulusImage
+          src={imageUrl}
+          alt={suppressName ? '' : name}
+          unavailable={imageUnavailable}
+        />
       </div>
       {!suppressName || price != null ? (
         <div className="cpw-tile-meta">
@@ -89,6 +91,7 @@ export default function BattleScreen({
         <Tile
           name={left?.name ?? `Option ${leftRef}`}
           imageUrl={left?.image_url}
+          imageUnavailable={left?.image_unavailable}
           price={left?.price}
           suppressName={suppress}
           picked={picked === 'left'}
@@ -97,6 +100,7 @@ export default function BattleScreen({
         <Tile
           name={right?.name ?? `Option ${rightRef}`}
           imageUrl={right?.image_url}
+          imageUnavailable={right?.image_unavailable}
           price={right?.price}
           suppressName={suppress}
           picked={picked === 'right'}

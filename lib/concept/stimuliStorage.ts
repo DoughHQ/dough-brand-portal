@@ -98,24 +98,62 @@ export function isConceptStimuliRef(value: string): boolean {
   return storageRefToObjectPath(value) != null
 }
 
-/** Preview URL: signed for private objects; pass-through for external https. */
+/** True when the string is safe to put in <img src>. Raw storage refs are not. */
+export function isDisplayableImageUrl(value: string | null | undefined): boolean {
+  if (!value?.trim()) return false
+  const v = value.trim()
+  return isSignedStorageUrl(v) || isExternalHttpUrl(v)
+}
+
+/** Pull object path out of a Supabase signed URL so we can re-sign. */
+export function objectPathFromSignedUrl(value: string): string | null {
+  const marker = `/storage/v1/object/sign/${CONCEPT_STIMULI_BUCKET}/`
+  const i = value.indexOf(marker)
+  if (i < 0) return null
+  const rest = value.slice(i + marker.length).split('?')[0] ?? ''
+  if (!rest) return null
+  try {
+    return decodeURIComponent(rest)
+  } catch {
+    return rest
+  }
+}
+
+/**
+ * Preview URL for display only. Never persist this.
+ * - External catalog https → pass through
+ * - Signed URL → re-sign from the object path (fresh TTL); pass through if we can't
+ * - `concept-stimuli/...` or bare `brandId/...` → createSignedUrl
+ */
 export async function resolveStimuliPreviewUrl(
   supabase: SupabaseClient<Database>,
   imageRef: string | null | undefined
 ): Promise<string | null> {
   if (!imageRef?.trim()) return null
   const value = imageRef.trim()
-  if (isSignedStorageUrl(value)) return null
+
   if (isExternalHttpUrl(value)) return value
 
-  const objectPath = storageRefToObjectPath(value)
-  if (!objectPath) return null
+  const objectPath =
+    storageRefToObjectPath(value) ??
+    (isSignedStorageUrl(value) ? objectPathFromSignedUrl(value) : null)
+
+  if (!objectPath) {
+    if (isSignedStorageUrl(value)) return value
+    return null
+  }
 
   const { data, error } = await supabase.storage
     .from(CONCEPT_STIMULI_BUCKET)
     .createSignedUrl(objectPath, SIGNED_URL_TTL_SEC)
 
-  if (error || !data?.signedUrl) return null
+  if (error || !data?.signedUrl) {
+    console.warn('[concept stimuli] createSignedUrl failed', {
+      objectPath,
+      message: error?.message ?? 'no signedUrl',
+    })
+    return isSignedStorageUrl(value) ? value : null
+  }
   return data.signedUrl
 }
 

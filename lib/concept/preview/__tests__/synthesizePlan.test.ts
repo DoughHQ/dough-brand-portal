@@ -71,6 +71,15 @@ function questions(opts: { why?: boolean; session2?: boolean } = {}): ProtocolQu
       question_type_code: 'concept_diagnostic',
       session_number: 1,
       position: 3,
+      label: 'category_legibility',
+      config: { prompt: 'What is this?', focal_arm: 'assigned', options: ['Ice cream', 'Not sure'] },
+      is_required: true,
+      drives_rounds: false,
+    },
+    {
+      question_type_code: 'concept_diagnostic',
+      session_number: 1,
+      position: 4,
       label: 'choice_driver',
       config: { prompt: 'Why?', focal_arm: 'respondent_winner', options: ['Colors', 'Quality'] },
       is_required: true,
@@ -169,6 +178,66 @@ describe('synthesizePlan fixtures', () => {
     expect(wtp.every((s) => s.kind === 'diagnostic')).toBe(true)
   })
 
+  it('assigned subject is a seeded concept arm, never a product', () => {
+    const d = draft(2, 2)
+    const combatants = combatantsFromDraft(d)
+    const screens = synthesizePlan({
+      questions: questions(),
+      combatants,
+      seed: d.draftId,
+      stimulusMode: d.stimulusMode,
+      pricePosture: d.pricePosture,
+    })
+    const assignedQ = screens.find(
+      (s) => s.kind === 'diagnostic' && 'focal_arm' in s && s.focal_arm === 'assigned'
+    )
+    expect(assignedQ && 'subject' in assignedQ && assignedQ.subject?.kind).toBe(
+      'concept'
+    )
+    expect(assignedQ && 'subject_ref' in assignedQ && assignedQ.subject_ref).not.toBeNull()
+    const productRefs = combatants.filter((c) => c.kind === 'product').map((c) => c.ref)
+    expect(
+      assignedQ && 'subject_ref' in assignedQ && assignedQ.subject_ref != null
+        ? productRefs.includes(assignedQ.subject_ref)
+        : true
+    ).toBe(false)
+  })
+
+  it('assigned pick is stable for the same draft seed', () => {
+    const d = draft(2, 2)
+    const args = {
+      questions: questions(),
+      combatants: combatantsFromDraft(d),
+      seed: d.draftId,
+      stimulusMode: d.stimulusMode,
+      pricePosture: d.pricePosture,
+    }
+    const a = synthesizePlan(args)
+    const b = synthesizePlan(args)
+    const refOf = (screens: typeof a) => {
+      const q = screens.find(
+        (s) => s.kind === 'diagnostic' && 'focal_arm' in s && s.focal_arm === 'assigned'
+      )
+      return q && 'subject_ref' in q ? q.subject_ref : null
+    }
+    expect(refOf(a)).toBe(refOf(b))
+  })
+
+  it('each_arm expansion stays concept-only when products are in the field', () => {
+    const combatants = combatantsFromDraft(draft(2, 3))
+    const screens = planFor(2, 3, questions())
+    const wtp = screens.filter(
+      (s) => s.kind === 'diagnostic' && 'question_type' in s && s.question_type === 'concept_wtp'
+    )
+    expect(wtp).toHaveLength(2)
+    expect(
+      wtp.every(
+        (s) => 'subject' in s && s.subject?.kind === 'concept'
+      )
+    ).toBe(true)
+    expect(combatants.filter((c) => c.kind === 'product')).toHaveLength(3)
+  })
+
   it('respondent_winner leaves subject null for live resolve', () => {
     const screens = planFor(1, 1, questions())
     const winnerQ = screens.find(
@@ -185,6 +254,64 @@ describe('synthesizePlan fixtures', () => {
     const battle = screens.find((s) => isBattleKind(s.kind))
     expect(battle && 'combatant_a' in battle && battle.combatant_a?.price).toBeNull()
     expect(battle && 'combatant_b' in battle && battle.combatant_b?.price).toBeNull()
+  })
+
+  it('strips raw concept-stimuli refs so the renderer never sees a path', () => {
+    const d = draft(1, 1)
+    d.conceptArms[0] = {
+      ...d.conceptArms[0]!,
+      display_name: 'Package C',
+      image_url: 'concept-stimuli/12/draft/C-abc.png',
+    }
+    const screens = synthesizePlan({
+      questions: questions(),
+      combatants: combatantsFromDraft(d),
+      seed: d.draftId,
+      stimulusMode: 'package',
+      pricePosture: 'blind',
+    })
+    const battle = screens.find((s) => isBattleKind(s.kind))
+    const tiles =
+      battle && 'combatant_a' in battle
+        ? [battle.combatant_a, battle.combatant_b]
+        : []
+    const concept = tiles.find((t) => t?.kind === 'concept')
+    const productTile = tiles.find((t) => t?.kind === 'product')
+    expect(concept?.image_url).toBeNull()
+    expect(concept?.image_unavailable).toBe(true)
+    expect(productTile?.image_url).toMatch(/^https:\/\//)
+    expect(productTile?.image_unavailable).toBe(false)
+  })
+
+  it('keeps a signed concept URL on battle tiles and assigned subjects', () => {
+    const signed =
+      'https://proj.supabase.co/storage/v1/object/sign/concept-stimuli/12/d/C.png?token=t'
+    const d = draft(1, 1)
+    const combatants = combatantsFromDraft(d).map((c) =>
+      c.kind === 'concept'
+        ? { ...c, image_url: signed, image_unavailable: false }
+        : c
+    )
+    const screens = synthesizePlan({
+      questions: questions(),
+      combatants,
+      seed: d.draftId,
+      stimulusMode: 'package',
+      pricePosture: 'blind',
+    })
+    const battle = screens.find((s) => isBattleKind(s.kind))
+    const concept =
+      battle && 'combatant_a' in battle
+        ? [battle.combatant_a, battle.combatant_b].find((t) => t?.kind === 'concept')
+        : undefined
+    expect(concept?.image_url).toBe(signed)
+    expect(concept?.image_unavailable).toBe(false)
+    const assigned = screens.find(
+      (s) => s.kind === 'diagnostic' && 'focal_arm' in s && s.focal_arm === 'assigned'
+    )
+    expect(assigned && 'subject' in assigned && assigned.subject?.image_url).toBe(
+      signed
+    )
   })
 
   it('combatant with no image is marked unavailable', () => {
@@ -210,14 +337,17 @@ describe('winner + recap', () => {
     tally = applyBattleWin(tally, 'SKIP', 1, 2)
     expect(mostChosenCombatantRef(tally)).toBeNull()
     const recap = buildRecap({
-      screens: [],
       battleWins: tally,
       battleTotal: 2,
-      combatantNames: new Map([[1, 'A'], [2, 'B']]),
-      choiceLines: [],
       mostChosen: mostChosenCombatantRef(tally),
+      subjects: new Map([
+        [1, { ref: 1, name: 'A' }],
+        [2, { ref: 2, name: 'B' }],
+      ]),
+      answers: [],
     })
-    expect(recap[0]?.text).toMatch(/no clear pick/i)
+    expect(recap.battles?.headline).toMatch(/no clear pick/i)
+    expect(recap.battles?.subject).toBeNull()
   })
 })
 

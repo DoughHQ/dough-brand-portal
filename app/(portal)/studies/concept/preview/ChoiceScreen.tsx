@@ -8,6 +8,7 @@ import type {
   ConceptScreenerScreen,
 } from '@/lib/concept/preview/planTypes'
 import { normalizeOptions } from '@/lib/concept/preview/options'
+import StimulusImage from './StimulusImage'
 
 type ChoiceScreen =
   | ConceptScreenerScreen
@@ -20,6 +21,38 @@ type Props = {
   screen: ChoiceScreen
   subject: ConceptPlanSubject | null
   onAnswer: (values: string[], labels: string[]) => void
+}
+
+function subjectKindLabel(kind: string | undefined): string | null {
+  if (kind === 'concept') return 'Your concept'
+  if (kind === 'product') return 'In the field'
+  return null
+}
+
+function operatorNote(
+  screen: ChoiceScreen,
+  subject: ConceptPlanSubject | null,
+  blocked: boolean
+): string | null {
+  if (screen.kind === 'screener' || screen.kind === 'attribute_followup') {
+    return null
+  }
+  const focal = 'focal_arm' in screen ? screen.focal_arm : undefined
+  const resolve =
+    'resolve_subject' in screen ? screen.resolve_subject : undefined
+  if (focal === 'assigned') {
+    return 'Assigned concept arm — not whoever won the battles.'
+  }
+  if (resolve === 'client_session_winner' || focal === 'respondent_winner') {
+    if (blocked || !subject) {
+      return 'No pack won a battle, so this question has no subject — same as a respondent who skipped every round.'
+    }
+    if (subject.kind === 'product') {
+      return 'You chose this product most. Respondents answer this about whoever they picked most — including products in the field.'
+    }
+    return 'Respondents answer this about the pack they chose most in the battles.'
+  }
+  return null
 }
 
 export default function ChoiceScreen({ screen, subject, onAnswer }: Props) {
@@ -78,18 +111,31 @@ export default function ChoiceScreen({ screen, subject, onAnswer }: Props) {
     ? text.trim().length > 0 || minSelect === 0
     : selected.length >= minSelect && selected.length <= maxSelect
 
+  const kindLabel = subjectKindLabel(subject?.kind)
+  const note = operatorNote(screen, subject, blocked)
+
   return (
     <div>
       {subject ? (
         <div className="cpw-subject">
-          {subject.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={subject.image_url} alt="" />
-          ) : (
-            <div className="cpw-subject-ph">No image</div>
-          )}
+          <StimulusImage
+            src={subject.image_url}
+            alt={subject.name ?? ''}
+            unavailable={subject.image_unavailable}
+            placeholderClassName="cpw-subject-ph"
+          />
           <div>
-            <div className="cpw-tile-name">{subject.name ?? `Option ${subject.ref}`}</div>
+            {kindLabel ? (
+              <div
+                className="cpw-subject-kind"
+                data-kind={subject?.kind ?? ''}
+              >
+                {kindLabel}
+              </div>
+            ) : null}
+            <div className="cpw-tile-name">
+              {subject.name ?? `Option ${subject.ref}`}
+            </div>
             {subject.price != null ? (
               <div className="cpw-tile-price">${subject.price.toFixed(2)}</div>
             ) : null}
@@ -98,10 +144,9 @@ export default function ChoiceScreen({ screen, subject, onAnswer }: Props) {
       ) : null}
 
       <h2 className="cpw-prompt">{prompt}</h2>
+      {note ? <p className="cpw-help">{note}</p> : null}
 
-      {blocked ? (
-        <p className="cpw-help">Could not determine which pack this question is about.</p>
-      ) : isText ? (
+      {blocked ? null : isText ? (
         <textarea
           className="cpw-text"
           value={text}

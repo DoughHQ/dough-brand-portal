@@ -143,6 +143,12 @@ function DeckVerdictNext({
   const confident = isConfidentVerdict(report.decision_frame, thin)
   const top = report.finding.top
   const rate = top.win_rate_of_100
+  const topRow =
+    report.win_rate_field.find((r) => r.combatant_ref === top.combatant_ref) ??
+    report.win_rate_field.find((r) => r.display_name === top.display_name) ??
+    report.win_rate_field[0]
+  const topIntent = String(top.battle_intent || topRow?.battle_intent || '')
+  const topOwn = isOwnConceptIntent(topIntent)
   const verdictLine = confident
     ? buildConfidentVerdictLine(report.finding)
     : buildProvisionalVerdictLine(report.finding)
@@ -174,46 +180,99 @@ function DeckVerdictNext({
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
               color: 'var(--ink-faint)',
-              margin: '0 0 12px',
+              margin: '0 0 16px',
             }}
           >
             {confident ? 'The finding' : 'Provisional read'}
           </p>
           <div
-            className="deck-enter-verdict"
             style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(56px, 8vw, 80px)',
-              lineHeight: 0.95,
-              letterSpacing: '-0.04em',
-              color: confident ? 'var(--sage-dark)' : 'var(--ink-muted)',
-              marginBottom: 8,
+              display: 'flex',
+              gap: 18,
+              alignItems: 'flex-start',
+              marginBottom: 20,
             }}
           >
-            {rate != null ? Math.round(rate) : '—'}
-            <span
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 16,
-                fontWeight: 500,
-                color: 'var(--ink-muted)',
-                marginLeft: 10,
-                letterSpacing: 0,
-              }}
-            >
-              of 100
-            </span>
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <CombatantPortrait
+                name={top.display_name}
+                battleIntent={topIntent}
+                imageUrl={topRow?.image_url}
+                size={148}
+              />
+              <span
+                style={{
+                  position: 'absolute',
+                  left: 8,
+                  top: 8,
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  background: confident ? 'var(--sage-dark)' : 'var(--ink-muted)',
+                  color: '#fff',
+                  padding: '3px 7px',
+                  borderRadius: 4,
+                }}
+              >
+                Winner
+              </span>
+            </div>
+            <div style={{ minWidth: 0, paddingTop: 4 }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 'clamp(28px, 4vw, 36px)',
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.03em',
+                  color: 'var(--ink)',
+                  margin: '0 0 8px',
+                }}
+              >
+                {top.display_name}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+                <Chip tone={topOwn ? 'pro' : 'neutral'}>
+                  {battleIntentLabel(topIntent)}
+                </Chip>
+              </div>
+              <div
+                className="deck-enter-verdict"
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 'clamp(48px, 7vw, 72px)',
+                  lineHeight: 0.95,
+                  letterSpacing: '-0.04em',
+                  color: confident ? 'var(--sage-dark)' : 'var(--ink-muted)',
+                }}
+              >
+                {rate != null ? Math.round(rate) : '—'}
+                <span
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 15,
+                    fontWeight: 500,
+                    color: 'var(--ink-muted)',
+                    marginLeft: 8,
+                    letterSpacing: 0,
+                  }}
+                >
+                  of 100
+                </span>
+              </div>
+              <p
+                style={{
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 13,
+                  color: 'var(--ink-faint)',
+                  margin: '8px 0 0',
+                }}
+              >
+                wins out of 100 head-to-heads in this field
+              </p>
+            </div>
           </div>
-          <p
-            style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: 13,
-              color: 'var(--ink-faint)',
-              margin: '0 0 16px',
-            }}
-          >
-            {top.display_name} · wins out of 100 head-to-heads in this field
-          </p>
           <p
             style={{
               fontFamily: 'var(--font-display)',
@@ -694,17 +753,20 @@ function DeckTrust({ report }: { report: ConceptMissionReport }) {
 export function ConceptReportDeck({
   report,
   backHref = '/studies',
+  sampleMode = false,
 }: {
   report: ConceptMissionReport
   backHref?: string
+  /** Walkthrough sample — honesty lives on SampleReportFrame, not these banners. */
+  sampleMode?: boolean
 }) {
   const thin = isThinSampleReport(report)
 
   return (
     <div className="concept-report-deck" style={{ background: 'var(--cream)', minHeight: '100vh' }}>
-      {report.is_simulated === true ? <SimulatedDataBanner /> : null}
+      {report.is_simulated === true && !sampleMode ? <SimulatedDataBanner /> : null}
 
-      {thin ? (
+      {thin && !sampleMode ? (
         <div
           className="concept-report-thin-banner"
           role="status"

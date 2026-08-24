@@ -12,6 +12,8 @@ import type {
   ProtocolQuestion,
 } from './planTypes'
 import { shouldSuppressCombatantLabels } from './planTypes'
+import { pickAssignedConceptRef } from './resolveFocalSubject'
+import { isDisplayableImageUrl } from '@/lib/concept/stimuliStorage'
 
 const WHY_K = 3
 
@@ -44,26 +46,32 @@ function sessionOf(q: ProtocolQuestion): number {
   return Number.isFinite(n) ? n : 1
 }
 
+function displayUrl(c: PreviewCombatant): string | null {
+  return isDisplayableImageUrl(c.image_url) ? c.image_url : null
+}
+
 function toSubject(c: PreviewCombatant): ConceptPlanSubject {
+  const image_url = displayUrl(c)
   return {
     ref: c.ref,
     kind: c.kind,
     name: c.name,
     brand: c.brand,
-    image_url: c.image_url,
-    image_unavailable: !c.image_url,
+    image_url,
+    image_unavailable: c.image_unavailable === true || !image_url,
     price: c.price,
   }
 }
 
 function toPlanCombatant(c: PreviewCombatant): ConceptPlanCombatant {
+  const image_url = displayUrl(c)
   return {
     ref: c.ref,
     kind: c.kind,
     name: c.name,
     brand: c.brand,
-    image_url: c.image_url,
-    image_unavailable: !c.image_url,
+    image_url,
+    image_unavailable: c.image_unavailable === true || !image_url,
     price: c.price,
     stimulus_type: c.stimulus_type ?? null,
   }
@@ -104,7 +112,12 @@ export function synthesizePlan(args: {
     : args.combatants
   const byRef = new Map(combatants.map((c) => [c.ref, c]))
   const conceptArms = combatants.filter((c) => c.kind === 'concept')
-  const assigned = conceptArms[0] ?? null
+  const assignedRef = pickAssignedConceptRef(
+    conceptArms.map((c) => c.ref),
+    args.seed
+  )
+  const assigned =
+    assignedRef != null ? (byRef.get(assignedRef) ?? null) : null
 
   const screens: ConceptPlanScreen[] = []
   let screenNo = 0

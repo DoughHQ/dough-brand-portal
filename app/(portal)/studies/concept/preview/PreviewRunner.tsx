@@ -17,13 +17,21 @@ import {
   mostChosenCombatantRef,
   winnerRefForOutcome,
 } from '@/lib/concept/preview/sessionWins'
+import { resolveFocalSubject } from '@/lib/concept/preview/resolveFocalSubject'
+import {
+  buildRecap,
+  humanRecapTitle,
+  subjectFromPlan,
+  type RecapAnswer,
+} from '@/lib/concept/preview/recap'
+import type { ConceptStudyDraft } from '@/lib/concept/types'
+import type { PreviewCombatant } from '@/lib/concept/preview/combatants'
+import { sampleReportFromDraft } from '@/lib/concept/preview/sampleReport'
 import BattleScreen from './BattleScreen'
 import ChoiceScreen from './ChoiceScreen'
 import ProgressHeader from './ProgressHeader'
-import { buildRecap, type RecapLine } from '@/lib/concept/preview/recap'
+import SampleReportScreen from './SampleReportScreen'
 import SummaryScreen from './SummaryScreen'
-
-export type { RecapLine }
 
 type BattleRecord = {
   outcome: ConceptBattleOutcome
@@ -31,9 +39,15 @@ type BattleRecord = {
   refB: number
 }
 
+type Step = 'walk' | 'sample_report'
+
 type Props = {
   screens: ConceptPlanScreen[]
   stimulusMode: string | null
+  seed: string
+  editHref: string
+  draft: ConceptStudyDraft
+  combatants: PreviewCombatant[]
 }
 
 function nextIndex(
@@ -60,12 +74,25 @@ function nextIndex(
   return screens.length
 }
 
-export default function PreviewRunner({ screens, stimulusMode }: Props) {
+export default function PreviewRunner({
+  screens,
+  stimulusMode,
+  seed,
+  editHref,
+  draft,
+  combatants,
+}: Props) {
   const [index, setIndex] = useState(0)
+  const [step, setStep] = useState<Step>('walk')
   const [battles, setBattles] = useState<Map<number, BattleRecord>>(new Map())
   const [tally, setTally] = useState(emptyWinTally)
-  const [choiceLines, setChoiceLines] = useState<RecapLine[]>([])
+  const [answers, setAnswers] = useState<RecapAnswer[]>([])
   const [sawBattleNote, setSawBattleNote] = useState(false)
+
+  const sampleReport = useMemo(
+    () => sampleReportFromDraft(draft, combatants),
+    [draft, combatants]
+  )
 
   const screen = screens[index]
   const names = useMemo(() => {
@@ -85,13 +112,47 @@ export default function PreviewRunner({ screens, stimulusMode }: Props) {
   const mostChosen = mostChosenCombatantRef(tally)
   const battleTotal = screens.filter((s) => isBattleKind(s.kind)).length
 
+  const { byRef, conceptRefs, recapSubjects } = useMemo(() => {
+    const map = new Map<number, ConceptPlanSubject>()
+    const concepts: number[] = []
+    for (const s of screens) {
+      if (isBattleScreen(s)) {
+        for (const side of [s.combatant_a, s.combatant_b]) {
+          if (!side) continue
+          map.set(side.ref, {
+            ref: side.ref,
+            name: side.name,
+            brand: side.brand,
+            image_url: side.image_url,
+            image_unavailable: side.image_unavailable,
+            price: side.price,
+            kind: side.kind,
+          })
+          if (side.kind === 'concept' && !concepts.includes(side.ref)) {
+            concepts.push(side.ref)
+          }
+        }
+      }
+      if ('subject' in s && s.subject?.ref != null) {
+        map.set(s.subject.ref, s.subject)
+        if (s.subject.kind === 'concept' && !concepts.includes(s.subject.ref)) {
+          concepts.push(s.subject.ref)
+        }
+      }
+    }
+    concepts.sort((a, b) => a - b)
+    const recapSubjects = new Map(
+      [...map.entries()].map(([ref, s]) => [ref, subjectFromPlan(s)!])
+    )
+    return { byRef: map, conceptRefs: concepts, recapSubjects }
+  }, [screens])
+
   const recap = buildRecap({
-    screens,
     battleWins: tally,
     battleTotal,
-    combatantNames: names,
-    choiceLines,
     mostChosen,
+    subjects: recapSubjects,
+    answers,
   })
 
   function advance() {
@@ -115,41 +176,46 @@ export default function PreviewRunner({ screens, stimulusMode }: Props) {
     setIndex((cur) => nextIndex(screens, cur, nextBattles))
   }
 
-  function subjectCard(ref: number): ConceptPlanSubject {
-    for (const s of screens) {
-      if (isBattleScreen(s)) {
-        for (const side of [s.combatant_a, s.combatant_b]) {
-          if (side?.ref === ref) {
-            return {
-              ref,
-              name: side.name,
-              brand: side.brand,
-              image_url: side.image_url,
-              price: side.price,
-              kind: side.kind,
-            }
-          }
-        }
-      }
-    }
-    return {
-      ref,
-      name: names.get(ref) ?? `Option ${ref}`,
-      brand: null,
-      image_url: null,
-      price: null,
-    }
-  }
-
-  function resolveSubject(): ConceptPlanSubject | null {
+  const choiceSubject = useMemo(() => {
     if (!screen || !isConceptChoiceScreen(screen) || screen.kind === 'screener') {
       return null
     }
-    if (screen.resolve_subject === 'client_session_winner') {
-      if (mostChosen == null) return null
-      return subjectCard(mostChosen)
-    }
-    return screen.subject ?? null
+    return resolveFocalSubject({
+      screen,
+      tally,
+      byRef,
+      conceptRefs,
+      seed,
+    })
+  }, [screen, tally, byRef, conceptRefs, seed])
+
+  const followupSubject = useMemo(() => {
+    if (!screen || screen.kind !== 'attribute_followup') return null
+    const rec = battles.get(screen.linked_round_number)
+    const winner =
+      rec != null ? winnerRefForOutcome(rec.outcome, rec.refA, rec.refB) : null
+    if (winner == null) return null
+    return (
+      byRef.get(winner) ?? {
+        ref: winner,
+        name: names.get(winner) ?? `Option ${winner}`,
+        brand: null,
+        image_url: null,
+        price: null,
+      }
+    )
+  }, [screen, battles, byRef, names])
+
+  if (step === 'sample_report') {
+    return (
+      <div className="cpw">
+        <SampleReportScreen
+          report={sampleReport}
+          editHref={editHref}
+          onBackToRecap={() => setStep('walk')}
+        />
+      </div>
+    )
   }
 
   if (!screen) {
@@ -180,17 +246,22 @@ export default function PreviewRunner({ screens, stimulusMode }: Props) {
 
         {isConceptChoiceScreen(screen) ? (
           <ChoiceScreen
+            key={screen.screen}
             screen={screen}
-            subject={resolveSubject()}
+            subject={choiceSubject}
             onAnswer={(_values, labels) => {
-              const about =
-                resolveSubject()?.name != null
-                  ? ` (${resolveSubject()!.name})`
-                  : ''
-              setChoiceLines((cur) => [
+              const kind = screen.kind === 'screener' ? 'screener' : 'reaction'
+              setAnswers((cur) => [
                 ...cur,
                 {
-                  text: `${screen.label ?? screen.kind}${about}: ${labels.join(', ')}`,
+                  kind,
+                  title: humanRecapTitle({
+                    label: screen.label,
+                    prompt: screen.config?.prompt,
+                    fallback: screen.kind,
+                  }),
+                  values: labels,
+                  subject: kind === 'screener' ? null : subjectFromPlan(choiceSubject),
                 },
               ])
               advance()
@@ -200,26 +271,22 @@ export default function PreviewRunner({ screens, stimulusMode }: Props) {
 
         {screen.kind === 'attribute_followup' ? (
           <ChoiceScreen
+            key={screen.screen}
             screen={screen}
-            subject={(() => {
-              const rec = battles.get(screen.linked_round_number)
-              const winner =
-                rec != null
-                  ? winnerRefForOutcome(rec.outcome, rec.refA, rec.refB)
-                  : null
-              if (winner == null) return null
-              return {
-                ref: winner,
-                name: names.get(winner) ?? `Option ${winner}`,
-                brand: null,
-                image_url: null,
-                price: null,
-              }
-            })()}
+            subject={followupSubject}
             onAnswer={(_values, labels) => {
-              setChoiceLines((cur) => [
+              setAnswers((cur) => [
                 ...cur,
-                { text: `Why this one: ${labels.join(', ')}` },
+                {
+                  kind: 'followup',
+                  title: humanRecapTitle({
+                    label: screen.label,
+                    prompt: screen.config?.prompt,
+                    fallback: 'Why this one',
+                  }),
+                  values: labels,
+                  subject: subjectFromPlan(followupSubject),
+                },
               ])
               advance()
             }}
@@ -227,7 +294,11 @@ export default function PreviewRunner({ screens, stimulusMode }: Props) {
         ) : null}
 
         {screen.kind === 'session_summary' ? (
-          <SummaryScreen lines={recap} />
+          <SummaryScreen
+            recap={recap}
+            editHref={editHref}
+            onSeeSample={() => setStep('sample_report')}
+          />
         ) : null}
       </div>
     </div>
