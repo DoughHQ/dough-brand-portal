@@ -57,10 +57,7 @@ export async function rpcBuildConceptQuestionsFromTemplate(
   })
 }
 
-/**
- * Read-only walkthrough questionnaire. Not yet in generated Database types —
- * narrow wrapper until `supabase gen types` picks up preview_concept_questionnaire.
- */
+/** Read-only walkthrough questionnaire. */
 export async function rpcPreviewConceptQuestionnaire(
   supabase: Client,
   args: {
@@ -69,20 +66,9 @@ export async function rpcPreviewConceptQuestionnaire(
     p_battle_prompt?: string | null
   }
 ) {
-  return (
-    supabase as unknown as {
-      rpc: (
-        fn: 'preview_concept_questionnaire',
-        params: {
-          p_module_config: Json
-          p_modules: string[]
-          p_battle_prompt: string | null
-        }
-      ) => Promise<{ data: unknown; error: { message: string; hint?: string } | null }>
-    }
-  ).rpc('preview_concept_questionnaire', {
+  return supabase.rpc('preview_concept_questionnaire', {
     p_module_config: args.p_module_config,
     p_modules: args.p_modules,
-    p_battle_prompt: args.p_battle_prompt ?? null,
+    p_battle_prompt: args.p_battle_prompt ?? undefined,
   })
 }

@@ -41577,6 +41577,14 @@ export type Database = {
         Args: { p_product_id: number; p_slot_index: number; p_user_id: number }
         Returns: Json
       }
+      preview_concept_questionnaire: {
+        Args: {
+          p_battle_prompt?: string
+          p_module_config?: Json
+          p_modules?: string[]
+        }
+        Returns: Json
+      }
       price_per_oz: {
         Args: {
           p_count?: number
@@ -41600,6 +41608,8 @@ export type Database = {
           p_category_intelligence_opt_in?: boolean
           p_concepts: Json
           p_created_by: string
+          p_eligibility?: Json
+          p_eligibility_tier?: string
           p_expires_at?: string
           p_predictive_validity_opt_in?: boolean
           p_price_posture?: string
