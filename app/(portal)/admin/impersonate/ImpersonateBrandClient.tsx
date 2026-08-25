@@ -36,9 +36,12 @@ export default function ImpersonateBrandClient({
     const id = ++reqId.current
     setSearching(true)
     const t = window.setTimeout(() => {
-      void createClient()
-        .rpc('search_brands_admin', { p_query: q })
-        .then(({ data, error: rpcError }) => {
+      void (async () => {
+        try {
+          const { data, error: rpcError } = await createClient().rpc(
+            'search_brands_admin',
+            { p_query: q }
+          )
           if (id !== reqId.current) return
           if (rpcError) {
             setHits([])
@@ -56,13 +59,13 @@ export default function ImpersonateBrandClient({
             )
           }
           setSearching(false)
-        })
-        .catch(() => {
+        } catch {
           if (id !== reqId.current) return
           setHits([])
           setSearching(false)
           setError('Search failed.')
-        })
+        }
+      })()
     }, 180)
 
     return () => {

@@ -127,10 +127,19 @@ function extractCode(message: string): string {
   return m ? m[1].toLowerCase() : 'review_failed'
 }
 
+type OwnershipRpcClient = {
+  // Supabase client's rpc is typed to a function-name union; keep this loose so
+  // server + browser clients both type-check when calling SECURITY DEFINER RPCs.
+  rpc: (
+    fn: any,
+    args?: any
+  ) => PromiseLike<{ data: unknown; error: { message: string } | null }>
+}
+
 export async function listPendingOwnershipCorrections(
-  supabase: { rpc: (fn: string, args?: object) => PromiseLike<{ data: unknown; error: { message: string } | null }> }
+  supabase: OwnershipRpcClient
 ): Promise<PendingOwnershipCorrection[]> {
-  const { data, error } = await supabase.rpc('list_pending_ownership_corrections' as never)
+  const { data, error } = await supabase.rpc('list_pending_ownership_corrections')
 
   if (error) {
     throw new OwnershipReviewError(
@@ -149,7 +158,7 @@ export async function listPendingOwnershipCorrections(
 }
 
 export async function reviewBrandOwnershipCorrection(
-  supabase: { rpc: (fn: string, args?: object) => PromiseLike<{ data: unknown; error: { message: string } | null }> },
+  supabase: OwnershipRpcClient,
   input: {
     correctionId: string
     decision: 'accept' | 'reject'
@@ -157,12 +166,12 @@ export async function reviewBrandOwnershipCorrection(
     overrideStale?: boolean
   }
 ): Promise<ReviewOwnershipResult> {
-  const { data, error } = await supabase.rpc('review_brand_ownership_correction' as never, {
+  const { data, error } = await supabase.rpc('review_brand_ownership_correction', {
     p_correction_id: input.correctionId,
     p_decision: input.decision,
     p_review_notes: input.reviewNotes?.trim().slice(0, 2000) || null,
     p_override_stale: input.overrideStale === true,
-  } as never)
+  })
 
   if (error) {
     throw new OwnershipReviewError(
