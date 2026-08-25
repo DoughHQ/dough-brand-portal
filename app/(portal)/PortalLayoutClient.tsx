@@ -147,6 +147,9 @@ export default function PortalLayoutClient({
                 group: 'Analytics',
                 items: [
                   { label: 'Reports', href: '/reports' },
+                  ...(isAdmin && !isImpersonating
+                    ? [{ label: 'Category readiness', href: '/admin/categories' }]
+                    : []),
                   ...(isAdmin
                     ? [
                         { label: 'Corrections', href: '/admin/corrections' },
@@ -175,7 +178,10 @@ export default function PortalLayoutClient({
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {section.items.map((item) => {
                   const active =
-                    pathname === item.href || pathname.startsWith(item.href + '/')
+                    item.href === '/admin/categories'
+                      ? pathname === '/admin/categories' ||
+                        /^\/admin\/categories\/[^/]+\/readiness$/.test(pathname)
+                      : pathname === item.href || pathname.startsWith(item.href + '/')
                   return (
                     <Link
                       key={item.label}
