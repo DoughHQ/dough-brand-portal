@@ -1,7 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { PortalUser, Brand, BrandSubscription } from '@/lib/queries'
+import { brandCategoryOverviewHref } from '@/lib/categoryReport/href'
 
 type Report = {
   report_catalog_id: number
@@ -265,9 +267,14 @@ function ReportCard({ report, unlocked, isAdmin, brandCategoryIds }: {
   isAdmin: boolean
   brandCategoryIds: Set<number>
 }) {
+  const router = useRouter()
   const typeLabel = REPORT_TYPE_LABELS[report.report_type] ?? report.report_type
   const price = `$${(report.price_cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0 })}`
   const isRelevant = report.taxonomy_node_id != null && brandCategoryIds.has(report.taxonomy_node_id)
+  const overviewHref =
+    report.report_type === 'category_ranking' && report.taxonomy_node_id != null
+      ? brandCategoryOverviewHref(report.taxonomy_node_id)
+      : null
 
   const includes = [
     `${report.time_window_days}d battle window`,
@@ -386,7 +393,10 @@ function ReportCard({ report, unlocked, isAdmin, brandCategoryIds }: {
                 cursor: 'pointer',
                 fontFamily: 'var(--font-sans)',
               }}
-              onClick={() => alert('Report viewer coming soon')}
+              onClick={() => {
+                if (overviewHref) router.push(overviewHref)
+                else router.push('/categories')
+              }}
             >
               View report
             </button>
@@ -413,7 +423,9 @@ function ReportCard({ report, unlocked, isAdmin, brandCategoryIds }: {
                 cursor: 'pointer',
                 fontFamily: 'var(--font-sans)',
               }}
-              onClick={() => alert(`Purchase flow for report ${report.report_catalog_id} — coming soon`)}
+              onClick={() =>
+                alert('Purchase coming soon — checkout is not live yet.')
+              }
             >
               Purchase
             </button>

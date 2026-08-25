@@ -39408,6 +39408,55 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_category_readiness_l2: {
+        Args: never
+        Returns: {
+          battles: number
+          compare_group_battles: number
+          compare_group_raters: number
+          distinct_raters: number
+          l1_name: string
+          l2_name: string
+          l2_node_id: number
+          last_battle_at: string
+          products_battled: number
+          rater_threshold: number
+          raters_30d: number
+          raters_7d: number
+          status: string
+          study_battles_excluded: number
+        }[]
+      }
+      admin_category_readiness_l3: {
+        Args: { p_l2_node_id: number }
+        Returns: {
+          battles: number
+          compare_group_battles: number
+          compare_group_raters: number
+          distinct_raters: number
+          l3_name: string
+          l3_node_id: number
+          last_battle_at: string
+          products_battled: number
+          rater_threshold: number
+          raters_30d: number
+          raters_7d: number
+          status: string
+          study_battles_excluded: number
+        }[]
+      }
+      admin_scope_search: {
+        Args: { p_limit?: number; p_query?: string }
+        Returns: {
+          distinct_raters: number
+          name: string
+          parent_name: string
+          rater_threshold: number
+          scope: string
+          scope_id: number
+          status: string
+        }[]
+      }
       advance_box_fulfillment: {
         Args: {
           p_carrier?: string
@@ -39443,7 +39492,37 @@ export type Database = {
         Args: {
           p_asof?: string
           p_compare_group_id: number
+          p_include_unlabeled?: boolean
           p_min_clusters?: number
+          p_question_prompt_ids?: number[]
+          p_tau?: number
+          p_z?: number
+        }
+        Returns: {
+          beta: number
+          beta_hi: number
+          beta_lo: number
+          ci_note: string
+          component_id: number
+          design_effect: number
+          effective_n: number
+          flag: string
+          item_idx: number
+          n_clusters: number
+          product_id: number
+          se_cluster: number
+          se_naive: number
+          strength: number
+        }[]
+      }
+      aggregate_l2_bt_intervals: {
+        Args: {
+          p_asof?: string
+          p_halflife_days?: number
+          p_include_unlabeled?: boolean
+          p_l2_node_id: number
+          p_min_clusters?: number
+          p_question_prompt_ids?: number[]
           p_tau?: number
           p_z?: number
         }
@@ -39468,8 +39547,10 @@ export type Database = {
         Args: {
           p_asof?: string
           p_halflife_days?: number
+          p_include_unlabeled?: boolean
           p_l3_node_id: number
           p_min_clusters?: number
+          p_question_prompt_ids?: number[]
           p_tau?: number
           p_z?: number
         }
@@ -39790,6 +39871,19 @@ export type Database = {
       compute_category_level: {
         Args: { p_completed_tries: number }
         Returns: number
+      }
+      compute_category_report: {
+        Args: {
+          p_asof?: string
+          p_focal_product_id?: number
+          p_include_unlabeled?: boolean
+          p_mode?: string
+          p_question_prompt_ids?: number[]
+          p_scope: string
+          p_scope_id: number
+          p_z?: number
+        }
+        Returns: Json
       }
       compute_concept_mission_report: {
         Args: { p_mission_id: string }
@@ -40998,29 +41092,12 @@ export type Database = {
           tried: boolean
         }[]
       }
-      get_scan_occasion_options: {
-        Args: {
-          p_client_dow?: number
-          p_client_hour?: number
-          p_include_private?: boolean
-          p_limit?: number
-          p_product_id: number
-        }
-        Returns: {
-          compare_group_code: string
-          compare_group_id: number
-          compare_group_name_display: string
-          consumer_question: string
-          display_name: string
-          is_exploration: boolean
-          priority: number
-          reason_id: number
-          reason_type: string
-          taxonomy_node_id: number
-        }[]
-      }
       get_search_discovery_feed: {
         Args: { p_time_bucket?: string }
+        Returns: Json
+      }
+      get_season_review: {
+        Args: { p_local_date: string; p_user_id: number }
         Returns: Json
       }
       get_session_summary: {
@@ -41862,23 +41939,6 @@ export type Database = {
           p_screen_kind: string
         }
         Returns: Json
-      }
-      record_occasion_answer: {
-        Args: {
-          p_audience?: string
-          p_battle_session_id?: number
-          p_chosen_kind?: string
-          p_client_dow?: number
-          p_client_hour?: number
-          p_compare_group_id?: number
-          p_exploration_reason_id?: number
-          p_other_text?: string
-          p_presented_reason_ids?: number[]
-          p_product_id: number
-          p_reason_id?: number
-          p_surface?: string
-        }
-        Returns: number
       }
       record_plu_find: {
         Args: { p_plu_code: string; p_store_name?: string; p_user_id: number }

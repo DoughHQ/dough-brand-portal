@@ -14,6 +14,77 @@ export type CategoryProductRow = {
   rank: number
 }
 
+/** URL / kebab form of an L2 display name — e.g. "Juices & Smoothies" → "juices-and-smoothies". */
+export function slugifyCategoryName(name: string): string {
+  return name
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+/** Alternate slugs so both "juices-and-smoothies" and "juices-smoothies" resolve. */
+export function categorySlugVariants(name: string): string[] {
+  const withAnd = slugifyCategoryName(name)
+  const compact = name
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/&/g, ' ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return [...new Set([withAnd, compact].filter(Boolean))]
+}
+
+/**
+ * Resolve a route [slug] (display name or kebab slug) to a real L2 node_name_display.
+ * Prefer exact match, then case-insensitive, then slugified equality.
+ */
+export function matchL2DisplayName(names: string[], rawSlug: string): string | null {
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(rawSlug).trim()
+    } catch {
+      return rawSlug.trim()
+    }
+  })()
+  if (!decoded) return null
+
+  const exact = names.find((n) => n === decoded)
+  if (exact) return exact
+
+  const lower = decoded.toLowerCase()
+  const ci = names.find((n) => n.toLowerCase() === lower)
+  if (ci) return ci
+
+  const targets = new Set(categorySlugVariants(decoded))
+  if (targets.size === 0) return null
+  return names.find((n) => categorySlugVariants(n).some((v) => targets.has(v))) ?? null
+}
+
+/** Only real PostgREST failures — empty `{}` / null-ish errors are not errors. */
+export function isRealRpcError(
+  error: unknown
+): error is { message: string; code?: string; details?: string; hint?: string } {
+  if (!error || typeof error !== 'object') return false
+  const msg = (error as { message?: unknown }).message
+  return typeof msg === 'string' && msg.trim().length > 0
+}
+
+export function logRpcError(
+  label: string,
+  error: { message: string; code?: string; details?: string; hint?: string }
+) {
+  console.error(label, {
+    message: error.message,
+    code: error.code ?? null,
+    details: error.details ?? null,
+    hint: error.hint ?? null,
+  })
+}
+
 export function aggregateCategoryProducts(
   rows: Array<{
     product_id: number

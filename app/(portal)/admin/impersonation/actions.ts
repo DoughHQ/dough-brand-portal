@@ -2,6 +2,7 @@
 
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalUser } from '@/lib/queries'
+import { perfLog, perfNow, timed } from '@/lib/perf'
 
 type RpcEnterResult = {
   ok: boolean
@@ -27,27 +28,22 @@ export type ExitImpersonationResult =
 export async function enterImpersonationAction(
   brandId: number
 ): Promise<EnterImpersonationResult> {
+  const tAll = perfNow()
   if (!Number.isFinite(brandId)) {
     return { ok: false, error: 'INVALID_BRAND_ID' }
   }
 
   const supabase = await createServerSupabaseClient()
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-  if (userError || !user) {
-    return { ok: false, error: 'NOT_AUTHENTICATED' }
-  }
 
-  const portalUser = await getPortalUser()
+  // Single auth+role check (getPortalUser already calls getUser)
+  const portalUser = await timed('enter.getPortalUser', () => getPortalUser())
   if (!portalUser || portalUser.role !== 'dough_admin') {
-    return { ok: false, error: 'NOT_ADMIN' }
+    return { ok: false, error: !portalUser ? 'NOT_AUTHENTICATED' : 'NOT_ADMIN' }
   }
 
-  const { data, error } = await supabase.rpc('enter_brand_impersonation', {
-    p_brand_id: brandId,
-  })
+  const { data, error } = await timed('enter.rpc', async () =>
+    supabase.rpc('enter_brand_impersonation', { p_brand_id: brandId })
+  )
   if (error) {
     return { ok: false, error: error.message }
   }
@@ -57,11 +53,14 @@ export async function enterImpersonationAction(
     return { ok: false, error: result?.error ?? 'ENTER_FAILED' }
   }
 
-  const { error: refreshError } = await supabase.auth.refreshSession()
+  const { error: refreshError } = await timed('enter.refreshSession', async () =>
+    supabase.auth.refreshSession()
+  )
   if (refreshError) {
     return { ok: false, error: 'REFRESH_FAILED' }
   }
 
+  perfLog('enter.total', perfNow() - tAll, { brandId })
   return {
     ok: true,
     brandId: result.brand_id ?? brandId,
@@ -70,16 +69,20 @@ export async function enterImpersonationAction(
 }
 
 export async function exitImpersonationAction(): Promise<ExitImpersonationResult> {
+  const tAll = perfNow()
   const supabase = await createServerSupabaseClient()
+
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser()
+  } = await timed('exit.getUser', async () => supabase.auth.getUser())
   if (userError || !user) {
     return { ok: false, error: 'NOT_AUTHENTICATED' }
   }
 
-  const { data, error } = await supabase.rpc('exit_brand_impersonation')
+  const { data, error } = await timed('exit.rpc', async () =>
+    supabase.rpc('exit_brand_impersonation')
+  )
   if (error) {
     return { ok: false, error: error.message }
   }
@@ -89,11 +92,14 @@ export async function exitImpersonationAction(): Promise<ExitImpersonationResult
     return { ok: false, error: 'EXIT_FAILED' }
   }
 
-  const { error: refreshError } = await supabase.auth.refreshSession()
+  const { error: refreshError } = await timed('exit.refreshSession', async () =>
+    supabase.auth.refreshSession()
+  )
   if (refreshError) {
     return { ok: false, error: 'REFRESH_FAILED' }
   }
 
+  perfLog('exit.total', perfNow() - tAll)
   return {
     ok: true,
     wasImpersonating: Boolean(result.was_impersonating),

@@ -2,10 +2,12 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { getBrand, getSubscription } from '@/lib/queries'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
+import { perfLog, perfNow } from '@/lib/perf'
 import PortalLayoutClient from './PortalLayoutClient'
 import LegacyBrandIdGate from './components/LegacyBrandIdGate'
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
+  const t0 = perfNow()
   const scope = await getPortalBrandScope()
   if (!scope) redirect('/login')
 
@@ -26,6 +28,11 @@ export default async function PortalLayout({ children }: { children: React.React
     subscription = loadedSubscription
     claimedCount = subscription?.claimed_product_ids?.length ?? 0
   }
+
+  perfLog('layout.total', perfNow() - t0, {
+    impersonating: isImpersonating,
+    admin: isAdmin,
+  })
 
   return (
     <Suspense fallback={null}>

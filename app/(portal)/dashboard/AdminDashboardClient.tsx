@@ -142,8 +142,13 @@ export default function AdminDashboardClient({ stats }: Props) {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
           {[
-            { label: 'All products', sub: `${stats.products_with_elo.toLocaleString()} with ELO`, href: '/products' },
+            { label: 'Impersonate a brand', sub: 'Preview any brand’s portal', href: '/admin/impersonate' },
+            { label: 'Category readiness', sub: 'Distinct raters by L2', href: '/admin/categories' },
+            { label: 'Report preview', sub: 'Admin / Overview harness', href: '/admin/report-preview' },
             { label: 'Corrections', sub: 'Review flagged data', href: '/admin/corrections' },
+            { label: 'Ownership', sub: 'Brand parent corrections', href: '/admin/ownership-corrections' },
+            { label: 'Compare Groups', sub: 'Job / occasion intelligence', href: '/admin/compare-groups' },
+            { label: 'Boxes', sub: 'Fulfillment ops', href: '/admin/boxes' },
             { label: 'Studies', sub: 'Active research & reports', href: '/studies' },
           ].map((item) => (
             <button
@@ -159,10 +164,16 @@ export default function AdminDashboardClient({ stats }: Props) {
                 textAlign: 'left',
                 fontFamily: 'var(--font-sans)',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--ink-30)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--ink-10)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--ink-30)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--ink-10)'
+              }}
             >
-              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', marginBottom: 3 }}>{item.label}</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', marginBottom: 3 }}>
+                {item.label}
+              </div>
               <div style={{ fontSize: 12, color: 'var(--ink-30)' }}>{item.sub}</div>
             </button>
           ))}

@@ -1,9 +1,14 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { BrandSnapshot, ProductIntelligence, CompetitiveSnapshot, PortalUser, Brand, BrandSubscription } from '@/lib/queries'
 import { createClient } from '@/lib/supabase'
 import { exitImpersonationAction } from '../admin/impersonation/actions'
+import type { BrandHomeModel } from '@/lib/brandHome/selectHomeModel'
+import BrandHome from '@/components/brandHome/BrandHome'
+import BrandProfileCard from '@/components/brandHome/BrandProfileCard'
+import ProductCategoryStandingCard from '@/components/brandHome/ProductCategoryStandingCard'
+import Link from 'next/link'
 
 type Period = '7d' | '30d' | '90d' | 'all'
 
@@ -45,6 +50,10 @@ type Props = {
   narrative: { headline: string; sub: string }
   isImpersonating?: boolean
   totalProductCount?: number
+  /** Brand-wide battle appearances from category launcher (not a product scan). */
+  totalBattles?: number
+  homeModel: BrandHomeModel
+  categoriesCount?: number
 }
 
 function fmt(n: number | null | undefined): string {
@@ -61,228 +70,11 @@ function delta(n: number | null | undefined): string {
   return r > 0 ? `+${r}` : `${r}`
 }
 
-function useCountUp(target: number, duration = 1200) {
-  const [value, setValue] = useState(target)
-  const prev = useRef(target)
-  useEffect(() => {
-    const start = prev.current
-    const startTime = performance.now()
-    function update(now: number) {
-      const progress = Math.min((now - startTime) / duration, 1)
-      const ease = 1 - Math.pow(1 - progress, 3)
-      setValue(Math.round(start + (target - start) * ease))
-      if (progress < 1) requestAnimationFrame(update)
-      else prev.current = target
-    }
-    requestAnimationFrame(update)
-  }, [target, duration])
-  return value
-}
-
-function Sparkline({ data }: { data: { snapshot_date: string; weighted_elo_score: number }[] }) {
-  if (!data.length) return null
-  const scores = data.map(d => d.weighted_elo_score)
-  const min = Math.min(...scores)
-  const max = Math.max(...scores)
-  const range = max - min || 1
-  const w = 280, h = 90
-  const points = scores.map((s, i) => ({
-    x: (i / (scores.length - 1)) * w,
-    y: h - ((s - min) / range) * (h - 16) - 8,
-  }))
-  const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
-  const area = line + ` L${w},${h} L0,${h} Z`
-  const last = points[points.length - 1]
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ width:'100%', height:'100%', overflow:'visible' }}>
-      <defs>
-        <linearGradient id="spark-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--sage)" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="var(--sage)" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <line x1="0" y1={h*0.25} x2={w} y2={h*0.25} stroke="var(--ink-10)" strokeWidth="1" />
-      <line x1="0" y1={h*0.5} x2={w} y2={h*0.5} stroke="var(--ink-10)" strokeWidth="1" />
-      <line x1="0" y1={h*0.75} x2={w} y2={h*0.75} stroke="var(--ink-10)" strokeWidth="1" />
-      <path d={area} fill="url(#spark-fill)" />
-      <path d={line} fill="none" stroke="var(--sage)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      {last && <>
-        <circle cx={last.x} cy={last.y} r="3.5" fill="var(--sage)" />
-        <circle cx={last.x} cy={last.y} r="7" fill="var(--sage)" fillOpacity="0.2" />
-      </>}
-    </svg>
-  )
-}
-
-function InlineEditLink({
-  label, value, placeholder, field, brandId, onChange, prefix
-}: {
-  label: string
-  value: string
-  placeholder: string
-  field: string
-  brandId: number
-  onChange: (v: string) => void
-  prefix?: string
-}) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(value)
-  const [saving, setSaving] = useState(false)
-  const supabase = createClient()
-
-  async function save() {
-    setSaving(true)
-    await supabase.from('brands').update({ [field]: draft || null, updated_at: new Date().toISOString() } as never).eq('brand_id', brandId)
-    setSaving(false)
-    onChange(draft)
-    setEditing(false)
-  }
-
-  if (editing) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 16 }}>
-        <span style={{ fontSize: 11, color: 'var(--ink-30)' }}>{label}</span>
-        <input
-          autoFocus
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
-          placeholder={placeholder}
-          style={{
-            width: 160,
-            padding: '3px 8px',
-            borderRadius: 'var(--r-sm)',
-            border: '1px solid var(--ink-30)',
-            background: 'var(--surface)',
-            fontSize: 12,
-            color: 'var(--ink)',
-            fontFamily: 'var(--font-sans)',
-            outline: 'none',
-          }}
-        />
-        <button onClick={save} disabled={saving} style={{ padding: '2px 8px', background: 'var(--sage)', color: 'white', fontSize: 11, borderRadius: 4, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}>
-          {saving ? '...' : 'Save'}
-        </button>
-        <button onClick={() => setEditing(false)} style={{ padding: '2px 6px', background: 'transparent', color: 'var(--ink-30)', fontSize: 11, borderRadius: 4, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}>×</button>
-      </div>
-    )
-  }
-
-  return (
-    <div
-      onClick={() => { setDraft(value); setEditing(true) }}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 4,
-        marginRight: 16,
-        cursor: 'pointer',
-        padding: '3px 6px',
-        borderRadius: 'var(--r-sm)',
-        transition: 'background 0.1s',
-      }}
-      onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-1)')}
-      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-    >
-      <span style={{ fontSize: 11, color: 'var(--ink-30)' }}>{label}</span>
-      <span style={{ fontSize: 12, color: value ? 'var(--ink-50)' : 'var(--ink-30)', fontStyle: value ? 'normal' : 'italic' }}>
-        {value ? `${prefix ?? ''}${value}` : '+ Add'}
-      </span>
-    </div>
-  )
-}
-
-function InlineEditText({
-  label, value, placeholder, field, brandId, width = 120
-}: {
-  label: string
-  value: string
-  placeholder: string
-  field: string
-  brandId: number
-  width?: number
-}) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(value)
-  const [saving, setSaving] = useState(false)
-  const supabase = createClient()
-
-  async function save() {
-    setSaving(true)
-    const val = field === 'founded_year' ? (parseInt(draft) || null) : (draft || null)
-    await supabase.from('brands').update({ [field]: val, updated_at: new Date().toISOString() } as never).eq('brand_id', brandId)
-    setSaving(false)
-    setEditing(false)
-  }
-
-  if (editing) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontSize: 11, color: 'var(--ink-30)' }}>{label}</span>
-        <input
-          autoFocus
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
-          placeholder={placeholder}
-          style={{
-            width,
-            padding: '3px 8px',
-            borderRadius: 'var(--r-sm)',
-            border: '1px solid var(--ink-30)',
-            background: 'var(--surface)',
-            fontSize: 12,
-            color: 'var(--ink)',
-            fontFamily: 'var(--font-sans)',
-            outline: 'none',
-          }}
-        />
-        <button onClick={save} disabled={saving} style={{ padding: '2px 8px', background: 'var(--sage)', color: 'white', fontSize: 11, borderRadius: 4, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}>
-          {saving ? '...' : 'Save'}
-        </button>
-        <button onClick={() => setEditing(false)} style={{ padding: '2px 6px', background: 'transparent', color: 'var(--ink-30)', fontSize: 11, borderRadius: 4, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}>×</button>
-      </div>
-    )
-  }
-
-  return (
-    <div
-      onClick={() => { setDraft(value); setEditing(true) }}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 4,
-        cursor: 'pointer',
-        padding: '3px 6px',
-        borderRadius: 'var(--r-sm)',
-        transition: 'background 0.1s',
-      }}
-      onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-1)')}
-      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-    >
-      <span style={{ fontSize: 11, color: 'var(--ink-30)' }}>{label}</span>
-      <span style={{ fontSize: 12, color: value ? 'var(--ink-50)' : 'var(--ink-30)', fontStyle: value ? 'normal' : 'italic' }}>
-        {value || '+ Add'}
-      </span>
-    </div>
-  )
-}
-
-export default function DashboardClient({ portalUser, brand, subscription, snapshot, history, productIntelligence, competitive, allProducts, narrative, isImpersonating, totalProductCount }: Props) {
+export default function DashboardClient({ portalUser, brand, subscription, snapshot, history: _history, productIntelligence, competitive: _competitive, allProducts, narrative: _narrative, isImpersonating, totalProductCount, totalBattles = 0, homeModel, categoriesCount }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const [period, setPeriod] = useState<Period>('30d')
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
-  const [editing, setEditing] = useState<string | null>(null)
-  const [brandAbout, setBrandAbout] = useState(brand.about_text ?? '')
-  const [brandWebsite, setBrandWebsite] = useState(brand.brand_website_url ?? '')
-  const [instagram, setInstagram] = useState(brand.instagram_handle ?? '')
-  const [tiktok, setTiktok] = useState(brand.tiktok_handle ?? '')
-  const [youtube, setYoutube] = useState(brand.youtube_handle ?? '')
-  const [xHandle, setXHandle] = useState(brand.x_handle ?? '')
-  const [linkedin, setLinkedin] = useState(brand.linkedin_url ?? '')
-  const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
   const [categoryStats, setCategoryStats] = useState<CategoryStat[]>([])
   const [expandedCats, setExpandedCats] = useState<Set<number>>(new Set())
   const [catProducts, setCatProducts] = useState<Record<number, CategoryProduct[]>>({})
@@ -316,68 +108,28 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
     })
   }
 
-  async function saveBrandField(field: string, value: string) {
-    setSaving(true)
-    setSaveError(null)
-    const { error } = await supabase
-      .from('brands')
-      .update({ [field]: value || null, updated_at: new Date().toISOString() } as never)
-      .eq('brand_id', brand.brand_id)
-    setSaving(false)
-    if (error) setSaveError('Save failed. Try again.')
-    else setEditing(null)
-  }
-  const elo = useCountUp(Math.round(snapshot?.weighted_elo_score ?? 1000))
-  const battles = useCountUp(snapshot?.total_battles_all_time ?? 0, 1000)
-  const periodData = {
-    '7d':  { delta: snapshot?.elo_velocity_7d ?? 0,  battles: snapshot?.total_battles_7d ?? 0 },
-    '30d': { delta: snapshot?.elo_velocity_30d ?? 0, battles: snapshot?.total_battles_30d ?? 0 },
-    '90d': { delta: (snapshot?.elo_velocity_30d ?? 0) * 3, battles: snapshot?.total_battles_30d ?? 0 },
-    'all': { delta: (snapshot?.weighted_elo_score ?? 1000) - 1000, battles: snapshot?.total_battles_all_time ?? 0 },
-  }
-  const currentDelta = periodData[period].delta
-  const isRising = currentDelta >= 0
   const claimedCount = subscription?.claimed_product_ids?.length ?? 0
   const skuLimit = subscription?.total_sku_limit ?? 1
   const lockedCount = Math.max(0, (totalProductCount ?? allProducts.length) - claimedCount)
 
   return (
     <>
-        <div style={{ height:52, borderBottom:'1px solid var(--ink-10)', display:'flex', alignItems:'center', padding:'0 28px', gap:16, background:'var(--white)', position:'sticky', top:0, zIndex:100 }}>
-          <div style={{ display:'flex', alignItems:'center', background:'var(--surface-1)', borderRadius:'var(--r-sm)', padding:3, gap:1 }}>
-            {(['7d','30d','90d','all'] as Period[]).map(p => (
-              <button key={p} onClick={() => setPeriod(p)} style={{ padding:'4px 12px', borderRadius:4, fontSize:12, fontWeight:period===p?500:400, color:period===p?'var(--ink)':'var(--ink-50)', background:period===p?'var(--white)':'transparent', boxShadow:period===p?'0 1px 3px rgba(0,0,0,0.08)':'none', cursor:'pointer', fontFamily:'var(--font-sans)', border:'none' }}>
-                {p === 'all' ? 'All time' : p}
-              </button>
-            ))}
-          </div>
-          <div style={{ width:1, height:20, background:'var(--ink-10)' }} />
-          <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'var(--ink-50)' }}>
-            <div style={{ width:6, height:6, borderRadius:'50%', background:'var(--sage)', animation:'blink 2.5s ease-in-out infinite' }} />
-            Live data
-          </div>
-          <div style={{ flex:1 }} />
-          <button style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 12px', borderRadius:'var(--r-sm)', fontSize:12, fontWeight:500, color:'var(--ink-50)', border:'1px solid var(--ink-10)', background:'transparent', cursor:'pointer', fontFamily:'var(--font-sans)' }}>Share report</button>
-          <button style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 12px', borderRadius:'var(--r-sm)', fontSize:12, fontWeight:500, color:'white', background:'var(--sage)', cursor:'pointer', border:'none', fontFamily:'var(--font-sans)' }}>Add SKU</button>
-        </div>
-
         {isImpersonating && (
           <div style={{
             background: 'var(--amber-pale)',
             borderBottom: '1px solid rgba(192,120,24,0.2)',
-            padding: '10px 28px',
+            padding: '8px 28px',
             display: 'flex',
             alignItems: 'center',
             gap: 12,
           }}>
             <div style={{ fontSize: 12, color: 'var(--amber)', flex: 1 }}>
-              Viewing as {brand.brand_name} — this is exactly what they see.
+              ✦ Viewing as {brand.brand_name} — this is exactly what they see.
             </div>
             <button
               onClick={async () => {
                 const result = await exitImpersonationAction()
                 if (!result.ok) return
-                router.refresh()
                 router.push('/dashboard')
               }}
               style={{
@@ -397,219 +149,48 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
           </div>
         )}
 
-        <div style={{
-          background: 'var(--sage)',
-          padding: '14px 28px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 16,
-        }}>
-          <div style={{ flex: 1 }}>
-            <div style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: 14,
-              fontWeight: 400,
-              color: 'white',
-              lineHeight: 1.5,
-            }}>
-              {narrative.headline}
-            </div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 3 }}>
-              {narrative.sub}
-            </div>
+        <BrandHome
+          model={homeModel}
+          totalProductCount={totalProductCount ?? allProducts.length}
+          profileSlot={
+            <BrandProfileCard
+              brand={brand}
+              productCount={totalProductCount ?? allProducts.length}
+              totalBattles={totalBattles}
+              categoriesCount={categoriesCount}
+              canSubmitOwnershipCorrection={portalUser.role !== 'brand_viewer'}
+            />
+          }
+        />
+
+        <details style={{ maxWidth: 1100, margin: '0 auto 48px', padding: '0 32px' }}>
+          <summary
+            style={{
+              cursor: 'pointer',
+              fontSize: 13,
+              fontWeight: 500,
+              color: 'var(--ink-50)',
+              padding: '12px 0',
+              borderTop: '1px solid var(--mist)',
+              listStyle: 'none',
+            }}
+          >
+            More brand data
+          </summary>
+
+        <div style={{ height:52, borderBottom:'1px solid var(--ink-10)', display:'flex', alignItems:'center', padding:'0 0', gap:16, background:'transparent', marginBottom: 16 }}>
+          <div style={{ display:'flex', alignItems:'center', background:'var(--surface-1)', borderRadius:'var(--r-sm)', padding:3, gap:1 }}>
+            {(['7d','30d','90d','all'] as Period[]).map(p => (
+              <button key={p} onClick={() => setPeriod(p)} style={{ padding:'4px 12px', borderRadius:4, fontSize:12, fontWeight:period===p?500:400, color:period===p?'var(--ink)':'var(--ink-50)', background:period===p?'var(--white)':'transparent', boxShadow:period===p?'0 1px 3px rgba(0,0,0,0.08)':'none', cursor:'pointer', fontFamily:'var(--font-sans)', border:'none' }}>
+                {p === 'all' ? 'All time' : p}
+              </button>
+            ))}
           </div>
+          <div style={{ flex:1 }} />
+          <Link href="/products" style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 12px', borderRadius:'var(--r-sm)', fontSize:12, fontWeight:500, color:'white', background:'var(--sage)', textDecoration:'none', fontFamily:'var(--font-sans)' }}>Add SKU</Link>
         </div>
 
-        <div style={{ padding:'24px 28px', display:'flex', flexDirection:'column', gap:20, flex:1 }}>
-
-          <div style={{
-            background: 'var(--white)',
-            border: '1px solid var(--ink-10)',
-            borderRadius: 'var(--r-xl)',
-            marginBottom: 24,
-            overflow: 'hidden',
-          }}>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '64px 1fr auto',
-              gap: 20,
-              padding: '24px 28px',
-              alignItems: 'flex-start',
-              borderBottom: '1px solid var(--ink-10)',
-            }}>
-
-              <div style={{
-                width: 64,
-                height: 64,
-                borderRadius: 'var(--r-md)',
-                background: 'var(--sage)',
-                display: 'grid',
-                placeItems: 'center',
-                fontFamily: 'var(--font-serif)',
-                fontSize: 22,
-                fontWeight: 400,
-                color: 'white',
-                flexShrink: 0,
-                overflow: 'hidden',
-              }}>
-                {brand.logo_url
-                  ? <img src={brand.logo_url} alt={brand.brand_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : brand.brand_name[0]
-                }
-              </div>
-
-              <div>
-                <div style={{
-                  fontFamily: 'var(--font-serif)',
-                  fontSize: 20,
-                  fontWeight: 400,
-                  color: 'var(--ink)',
-                  marginBottom: 6,
-                  lineHeight: 1.2,
-                }}>
-                  {brand.brand_name}
-                </div>
-
-                {editing === 'about' ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <textarea
-                      autoFocus
-                      value={brandAbout}
-                      onChange={e => setBrandAbout(e.target.value)}
-                      placeholder="Tell consumers who you are — one to two sentences."
-                      rows={3}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: 'var(--r-sm)',
-                        border: '1px solid var(--ink-30)',
-                        background: 'var(--surface)',
-                        fontSize: 13,
-                        color: 'var(--ink)',
-                        fontFamily: 'var(--font-sans)',
-                        outline: 'none',
-                        resize: 'vertical',
-                        lineHeight: 1.6,
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <button
-                        onClick={() => saveBrandField('about_text', brandAbout)}
-                        disabled={saving}
-                        style={{ padding: '5px 14px', background: 'var(--sage)', color: 'white', fontSize: 12, fontWeight: 500, borderRadius: 'var(--r-sm)', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}
-                      >
-                        {saving ? 'Saving...' : 'Save'}
-                      </button>
-                      <button
-                        onClick={() => { setEditing(null); setBrandAbout(brand.about_text ?? '') }}
-                        style={{ padding: '5px 14px', background: 'transparent', color: 'var(--ink-50)', fontSize: 12, borderRadius: 'var(--r-sm)', border: '1px solid var(--ink-10)', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}
-                      >
-                        Cancel
-                      </button>
-                      {saveError && <span style={{ fontSize: 12, color: 'var(--red)' }}>{saveError}</span>}
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => setEditing('about')}
-                    style={{
-                      fontSize: 13,
-                      color: brandAbout ? 'var(--ink-50)' : 'var(--ink-30)',
-                      lineHeight: 1.6,
-                      cursor: 'text',
-                      padding: '4px 0',
-                      borderBottom: '1px dashed transparent',
-                      transition: 'border-color 0.12s',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.borderBottomColor = 'var(--ink-10)')}
-                    onMouseLeave={e => (e.currentTarget.style.borderBottomColor = 'transparent')}
-                  >
-                    {brandAbout || 'Add a short description of your brand — click to edit'}
-                  </div>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-end', flexShrink: 0 }}>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 11, color: 'var(--ink-30)', marginBottom: 2 }}>Products on Dough</div>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: 20, fontWeight: 400, color: 'var(--ink)' }}>
-                    {(totalProductCount ?? allProducts.length).toLocaleString()}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 11, color: 'var(--ink-30)', marginBottom: 2 }}>Total battles</div>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: 20, fontWeight: 400, color: 'var(--ink)' }}>
-                    {(snapshot?.total_battles_all_time ?? 0).toLocaleString()}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              display: 'flex',
-              gap: 0,
-              padding: '16px 28px',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              borderBottom: '1px solid var(--ink-10)',
-            }}>
-              <div style={{ fontSize: 11, color: 'var(--ink-30)', marginRight: 16, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Links
-              </div>
-
-              <InlineEditLink
-                label="Website"
-                value={brandWebsite}
-                placeholder="yourwebsite.com"
-                field="brand_website_url"
-                brandId={brand.brand_id}
-                onChange={setBrandWebsite}
-              />
-
-              <InlineEditLink label="Instagram" value={instagram} placeholder="@handle" field="instagram_handle" brandId={brand.brand_id} onChange={setInstagram} prefix="@" />
-              <InlineEditLink label="TikTok" value={tiktok} placeholder="@handle" field="tiktok_handle" brandId={brand.brand_id} onChange={setTiktok} prefix="@" />
-              <InlineEditLink label="YouTube" value={youtube} placeholder="@channel" field="youtube_handle" brandId={brand.brand_id} onChange={setYoutube} prefix="@" />
-              <InlineEditLink label="X" value={xHandle} placeholder="@handle" field="x_handle" brandId={brand.brand_id} onChange={setXHandle} prefix="@" />
-              <InlineEditLink label="LinkedIn" value={linkedin} placeholder="linkedin.com/company/..." field="linkedin_url" brandId={brand.brand_id} onChange={setLinkedin} />
-            </div>
-
-            <div style={{
-              display: 'flex',
-              gap: 24,
-              padding: '14px 28px',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-            }}>
-              <div style={{ fontSize: 11, color: 'var(--ink-30)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: 8 }}>
-                About
-              </div>
-              <InlineEditText
-                label="City"
-                value={brand.headquarters_city ?? ''}
-                placeholder="New York"
-                field="headquarters_city"
-                brandId={brand.brand_id}
-              />
-              <InlineEditText
-                label="State"
-                value={brand.headquarters_state ?? ''}
-                placeholder="NY"
-                field="headquarters_state"
-                brandId={brand.brand_id}
-              />
-              <InlineEditText
-                label="Founded"
-                value={brand.founded_year?.toString() ?? ''}
-                placeholder="2008"
-                field="founded_year"
-                brandId={brand.brand_id}
-                width={80}
-              />
-            </div>
-
-          </div>
+        <div style={{ padding:'24px 0', display:'flex', flexDirection:'column', gap:20, flex:1 }}>
 
           {categoryStats.length > 0 && (
             <div style={{ marginBottom: 20 }}>
@@ -884,79 +465,17 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
             </div>
           )}
 
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 320px', gap:16, alignItems:'stretch' }}>
-            <div style={{ background:'var(--white)', borderRadius:'var(--r-xl)', padding:'28px 32px', display:'flex', flexDirection:'column', border:'1px solid var(--ink-10)', position:'relative', overflow:'hidden' }}>
-              <div style={{ fontSize:13, color:'var(--ink-30)', marginBottom:20 }}>
-                {snapshot?.category_l1_name ?? 'Data collecting'}
-              </div>
-              <div style={{ fontSize:10, fontWeight:500, letterSpacing:'1.5px', textTransform:'uppercase', color:'var(--ink-30)', marginBottom:6 }}>Preference Score</div>
-              <div style={{ fontFamily:'var(--font-serif)', fontSize:80, fontWeight:500, color:'var(--amber)', lineHeight:0.9, letterSpacing:'-3px', display:'flex', alignItems:'baseline' }}>
-                {snapshot ? elo.toLocaleString() : '—'}
-                <span style={{ fontSize:18, fontWeight:400, color:'var(--ink-30)', letterSpacing:0, marginLeft:6, fontFamily:'var(--font-sans)', marginBottom:8 }}>pts</span>
-              </div>
-              <div style={{ display:'inline-flex', alignItems:'center', gap:4, background:isRising?'var(--sage-pale)':'var(--red-pale)', color:isRising?'var(--sage)':'var(--red)', fontSize:13, fontWeight:500, padding:'4px 10px', borderRadius:20, marginTop:8, marginBottom:20, width:'fit-content' }}>
-                {isRising ? '↑' : '↓'} {delta(currentDelta)} pts in {period === 'all' ? 'all time' : period}
-              </div>
-              <div style={{ display:'flex', gap:0, borderTop:'1px solid var(--ink-10)', paddingTop:18, marginTop:'auto' }}>
-                {[
-                  { value:`${fmt(snapshot?.elo_percentile_in_category)}th`, label:'Percentile in category' },
-                  { value:`${snapshot?.compare_group_rank ?? '—'} / ${snapshot?.compare_group_size ?? '—'}`, label:'Category rank on Dough' },
-                  { value:battles.toLocaleString(), label:'Total battles counted' },
-                ].map((stat, i) => (
-                  <div key={i} style={{ flex:1, paddingRight:i<2?20:0, paddingLeft:i>0?20:0, borderLeft:i>0?'1px solid var(--ink-10)':'none' }}>
-                    <div style={{ fontFamily:'var(--font-serif)', fontSize:24, fontWeight:500, color:'var(--ink)', lineHeight:1 }}>{stat.value}</div>
-                    <div style={{ fontSize:11, color:'var(--ink-50)', marginTop:3, lineHeight:1.4 }}>{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-              <div style={{ background:'var(--white)', borderRadius:'var(--r-xl)', padding:'22px 22px 16px', flex:1, border:'1px solid var(--ink-10)', display:'flex', flexDirection:'column' }}>
-                <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:14 }}>
-                  <div style={{ fontSize:11, fontWeight:500, letterSpacing:'1.3px', textTransform:'uppercase', color:'var(--ink-30)' }}>30-day trend</div>
-                  <div style={{ fontSize:16, fontWeight:500,
-                    color: snapshot?.elo_velocity_30d == null ? 'var(--ink-30)'
-                      : isRising ? 'var(--sage)' : 'var(--red)' }}>
-                    {snapshot?.elo_velocity_30d == null ? '—' : `${isRising ? '+' : ''}${Math.round(snapshot.elo_velocity_30d)} pts`}
-                  </div>
-                </div>
-                <div style={{ fontSize:12, color:'var(--ink-50)', lineHeight:1.5, marginBottom:14 }}>
-                  {!snapshot
-                    ? 'Trend data builds as battles are recorded.'
-                    : snapshot.momentum_label === 'rising'
-                      ? 'Preference score is climbing.'
-                      : snapshot.momentum_label === 'declining'
-                        ? 'Preference score has dipped this period.'
-                        : 'Holding steady.'}
-                </div>
-                <div style={{ flex:1, minHeight:90, position:'relative' }}><Sparkline data={history} /></div>
-                <div style={{ display:'flex', justifyContent:'space-between', marginTop:6 }}>
-                  <span style={{ fontSize:10, color:'var(--ink-30)' }}>30 days ago</span>
-                  <span style={{ fontSize:10, color:'var(--ink-30)' }}>Today</span>
-                </div>
-              </div>
-              <div style={{ background:'var(--white)', borderRadius:'var(--r-xl)', padding:'20px 22px', border:'1px solid var(--ink-10)', display:'flex', alignItems:'center', gap:16 }}>
-                <div style={{ width:56, height:56, borderRadius:'50%', border:'2.5px solid var(--sage)', display:'grid', placeItems:'center', flexShrink:0 }}>
-                  <div style={{ textAlign:'center' }}>
-                    <div style={{ fontFamily:'var(--font-serif)', fontSize:22, fontWeight:500, color:'var(--sage)', lineHeight:1 }}>{snapshot?.compare_group_rank ?? '—'}</div>
-                    <div style={{ fontSize:11, color:'var(--sage)', fontWeight:500 }}>rd</div>
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize:13, fontWeight:500, color:'var(--ink)' }}>of {snapshot?.compare_group_size ?? '—'} in category</div>
-                  <div style={{ fontSize:12, color:'var(--ink-50)', marginTop:2, lineHeight:1.4 }}>{snapshot?.compare_group_rank && snapshot.compare_group_rank <= 3 ? 'Top 3 in your category on Dough.' : 'Climbing. Keep battling.'}</div>
-                </div>
-              </div>
-            </div>
+          <div style={{ marginBottom: 20 }}>
+            <ProductCategoryStandingCard
+              catalogProductCount={totalProductCount ?? allProducts.length}
+            />
           </div>
 
           <div>
             <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:12 }}>
               <div style={{ fontFamily:'var(--font-serif)', fontSize:16, fontWeight:500, color:'var(--ink)' }}>What the data says</div>
-              <div style={{ fontSize:12, fontWeight:500, color:'var(--sage)', cursor:'pointer' }}>Full breakdown</div>
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:16 }}>
 
               <div onClick={() => setExpandedCard(expandedCard==='wr'?null:'wr')} style={{ background:'var(--white)', borderRadius:'var(--r-lg)', border:`1px solid ${expandedCard==='wr'?'var(--ink-30)':'var(--ink-10)'}`, padding:20, cursor:'pointer' }}>
                 <div style={{ fontSize:10, fontWeight:500, letterSpacing:'1.3px', textTransform:'uppercase', color:'var(--ink-30)', marginBottom:6 }}>Head-to-Head</div>
@@ -1002,60 +521,8 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
                   {!snapshot?.top_occasions?.length && <div style={{ fontSize:12, color:'var(--ink-30)', lineHeight:1.6 }}>Occasion data populates after 50+ battles.</div>}
                 </div>
               </div>
-
-              <div style={{ background:'var(--white)', borderRadius:'var(--r-lg)', border:'1px solid var(--ink-10)', padding:20 }}>
-                <div style={{ fontSize:10, fontWeight:500, letterSpacing:'1.3px', textTransform:'uppercase', color:'var(--ink-30)', marginBottom:6 }}>Who Prefers You</div>
-                <div style={{ fontFamily:'var(--font-serif)', fontSize:14, fontWeight:500, color:'var(--ink)', lineHeight:1.4, marginBottom:16 }}>
-                  {snapshot?.audience_summary?.top_age_band?`Strongest signal from users ${snapshot.audience_summary.top_age_band}.`:'Audience data building up.'}
-                </div>
-                <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                  {snapshot?.audience_summary?.top_age_band ? (
-                    [{label:'18–24'},{label:'25–34'},{label:'35–44'},{label:'45+'}].map(seg => {
-                      const isTop = seg.label === snapshot.audience_summary.top_age_band
-                      return (
-                        <div key={seg.label} style={{ display:'flex', alignItems:'center', gap:10 }}>
-                          <div style={{ fontSize:12, color:'var(--ink-50)', width:48, flexShrink:0 }}>{seg.label}</div>
-                          <div style={{ flex:1, height:5, background:'var(--surface-2)', borderRadius:2.5, overflow:'hidden' }}>
-                            <div style={{ height:'100%', borderRadius:2.5, background: isTop ? 'var(--amber)' : 'var(--ink-10)', width: isTop ? '72%' : '35%' }} />
-                          </div>
-                          <div style={{ fontSize:12, fontWeight: isTop ? 500 : 400, color: isTop ? 'var(--ink)' : 'var(--ink-50)', width:32, textAlign:'right' }}>
-                            {isTop ? 'Top' : '—'}
-                          </div>
-                        </div>
-                      )
-                    })
-                  ) : (
-                    <div style={{ fontSize:12, color:'var(--ink-30)', lineHeight:1.6 }}>
-                      Audience data builds after 50+ battles with demographic signals.
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
-
-          {competitive && (
-            <div>
-              <div style={{ fontFamily:'var(--font-serif)', fontSize:16, fontWeight:500, color:'var(--ink)', marginBottom:12 }}>Where you stand</div>
-              <div style={{ background:'var(--white)', borderRadius:'var(--r-lg)', border:'1px solid var(--ink-10)', padding:20 }}>
-                <div style={{ fontFamily:'var(--font-serif)', fontSize:14, fontWeight:500, color:'var(--ink)', lineHeight:1.4, marginBottom:16 }}>
-                  {competitive.narrative_summary??`Ranked #${competitive.focal_brand_rank} of ${competitive.total_brands_in_group} in ${competitive.compare_group_name}.`}
-                </div>
-                <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
-                  {competitive.competitive_ladder.slice(0,6).map((entry,i) => (
-                    <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 8px', borderRadius:'var(--r-sm)', background:entry.is_focal?'var(--sage-pale)':'transparent', border:entry.is_focal?'1px solid rgba(74,124,89,0.18)':'1px solid transparent' }}>
-                      <div style={{ fontFamily:'var(--font-serif)', fontSize:13, fontWeight:500, width:20, textAlign:'center', color:entry.is_focal?'var(--sage)':'var(--ink-30)' }}>{entry.rank}</div>
-                      <div style={{ flex:1, height:5, background:'var(--surface-2)', borderRadius:2.5, overflow:'hidden' }}>
-                        <div style={{ height:'100%', borderRadius:2.5, background:entry.is_focal?'var(--sage)':'var(--surface-2)', width:`${Math.round((entry.elo/(competitive.competitive_ladder[0]?.elo||1))*100)}%` }} />
-                      </div>
-                      <div style={{ fontSize:11, fontWeight:entry.is_focal?500:400, color:entry.is_focal?'var(--sage)':'var(--ink-50)', width:52, textAlign:'right' }}>{entry.is_focal?'You':entry.label}</div>
-                      <div style={{ fontFamily:'var(--font-serif)', fontSize:12, fontWeight:500, color:entry.is_focal?'var(--sage)':'var(--ink)', width:38, textAlign:'right' }}>{Math.round(entry.elo).toLocaleString()}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           <div>
             <div style={{ fontFamily:'var(--font-serif)', fontSize:16, fontWeight:500, color:'var(--ink)', marginBottom:12 }}>Your products</div>
@@ -1115,6 +582,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
           </div>
 
         </div>
+        </details>
     </>
   )
 }
