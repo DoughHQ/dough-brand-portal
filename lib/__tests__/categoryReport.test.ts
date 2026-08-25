@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { parseCategoryReport } from '../categoryReport/parse'
 import { focalLeadSentence, statisticsHeadline, uniqueCiNotes, claimLines, claimCaption, focalPairRows } from '../categoryReport/copy'
-import { previewDashboardHref, readinessPreviewHref, overviewPreviewHref } from '../categoryReport/href'
+import { previewDashboardHref, readinessPreviewHref, overviewPreviewHref, brandCategoryOverviewHref } from '../categoryReport/href'
 import { componentAxis } from '../../components/categoryDashboard/EloWhisker'
 import type { RankedProduct } from '../categoryReport/types'
 
@@ -167,6 +167,8 @@ describe('preview hrefs', () => {
     expect(overviewPreviewHref('l2', 9220001)).toBe(
       '/admin/report-preview?scope=l2&id=9220001&mode=brand'
     )
+    expect(brandCategoryOverviewHref(9220001)).toBe('/categories/9220001')
+    expect(brandCategoryOverviewHref(9220001, 42)).toBe('/categories/9220001?focal=42')
   })
 })
 

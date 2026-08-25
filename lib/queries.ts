@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { createServerSupabaseClient as createClient } from '@/lib/supabase-server'
 import { createServerSupabaseClient } from './supabase-server'
 
@@ -167,7 +168,7 @@ export type BrandProduct = {
   is_claimed: boolean
 }
 
-export async function getPortalUser(): Promise<PortalUser | null> {
+export const getPortalUser = cache(async (): Promise<PortalUser | null> => {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) return null
@@ -179,9 +180,9 @@ export async function getPortalUser(): Promise<PortalUser | null> {
     .is('deleted_at', null)
     .single()
   return data as PortalUser | null
-}
+})
 
-export async function getBrand(brandId: number): Promise<Brand | null> {
+export const getBrand = cache(async (brandId: number): Promise<Brand | null> => {
   const supabase = await createServerSupabaseClient()
   const { data } = await supabase
     .from('brands')
@@ -211,9 +212,9 @@ export async function getBrand(brandId: number): Promise<Brand | null> {
     .single()
   if (!data) return null
   return { ...data, has_portal_access: data.has_portal_access ?? false } as Brand
-}
+})
 
-export async function getSubscription(brandId: number): Promise<BrandSubscription | null> {
+export const getSubscription = cache(async (brandId: number): Promise<BrandSubscription | null> => {
   const supabase = await createServerSupabaseClient()
   const { data } = await supabase
     .from('brand_portal_subscriptions')
@@ -221,7 +222,7 @@ export async function getSubscription(brandId: number): Promise<BrandSubscriptio
     .eq('brand_id', brandId)
     .single()
   return data as BrandSubscription | null
-}
+})
 
 export async function getBrandSnapshot(brandId: number): Promise<BrandSnapshot | null> {
   const supabase = await createServerSupabaseClient()
@@ -305,6 +306,71 @@ export async function getBrandProductCount(brandId: number): Promise<number> {
     .eq('status', 'active')
     .eq('is_suppressed', false)
   return count ?? 0
+}
+
+/** Top products by battles for Brand Home — never the full catalog. */
+export async function getTopBrandProducts(
+  brandId: number,
+  limit = 24
+): Promise<
+  {
+    product_id: number
+    product_name_display: string
+    taxonomy_node_id: number | null
+    total_battles: number
+    status: string
+    l2_name: string | null
+  }[]
+> {
+  const supabase = await createServerSupabaseClient()
+  const safeLimit = Math.min(Math.max(1, Math.trunc(limit)), 48)
+  const { data } = await supabase
+    .from('products')
+    .select(
+      `
+      product_id,
+      product_name_display,
+      taxonomy_node_id,
+      total_battles,
+      status,
+      taxonomy_nodes!products_taxonomy_node_id_fkey (
+        node_name_display
+      )
+    `
+    )
+    .eq('brand_id', brandId)
+    .eq('status', 'active')
+    .eq('is_suppressed', false)
+    .order('total_battles', { ascending: false })
+    .limit(safeLimit)
+  if (!data) return []
+  return data.map((row: any) => ({
+    product_id: row.product_id,
+    product_name_display: row.product_name_display,
+    taxonomy_node_id: row.taxonomy_node_id,
+    total_battles: row.total_battles ?? 0,
+    status: row.status,
+    l2_name: row.taxonomy_nodes?.node_name_display ?? null,
+  }))
+}
+
+/** Names/battles for a small id set (claimed SKUs) — not a catalog scan. */
+export async function getBrandProductsByIds(
+  brandId: number,
+  productIds: number[]
+): Promise<{ product_id: number; product_name_display: string; total_battles: number }[]> {
+  if (!productIds.length) return []
+  const supabase = await createServerSupabaseClient()
+  const { data } = await supabase
+    .from('products')
+    .select('product_id, product_name_display, total_battles')
+    .eq('brand_id', brandId)
+    .in('product_id', productIds.slice(0, 200))
+  return (data ?? []).map((row) => ({
+    product_id: Number(row.product_id),
+    product_name_display: String(row.product_name_display ?? `Product ${row.product_id}`),
+    total_battles: Number(row.total_battles) || 0,
+  }))
 }
 
 export async function getBrandProducts(

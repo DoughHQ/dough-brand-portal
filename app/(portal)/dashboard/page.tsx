@@ -1,14 +1,35 @@
 import { redirect } from 'next/navigation'
 import {
-  getBrand, getSubscription, getBrandSnapshot,
-  getBrandSnapshotHistory, getProductIntelligence, getCompetitiveSnapshot,
-  getAllBrandProducts, generateNarrative, getPlatformStats, getBrandProductCount,
+  getBrand,
+  getSubscription,
+  getBrandSnapshot,
+  getBrandSnapshotHistory,
+  getProductIntelligence,
+  getCompetitiveSnapshot,
+  getBrandProductCount,
+  getTopBrandProducts,
+  getBrandProductsByIds,
+  generateNarrative,
+  getPlatformStats,
 } from '@/lib/queries'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
+import { fetchBrandCategoryLauncherServer } from '@/lib/categoryLauncher.server'
+import {
+  competeCategoriesFromLauncher,
+  entitledL2IdsFromLauncher,
+  launcherRowsToBrandCategoryL2,
+  sumCompeteBattles,
+} from '@/lib/categoryLauncher'
+import { getOperatorStudies } from '@/lib/studies/fetchOperatorStudies'
+import { selectHomeModel } from '@/lib/brandHome/selectHomeModel'
+import { perfLog, perfNow, timed } from '@/lib/perf'
 import DashboardClient from './DashboardClient'
 import AdminDashboardClient from './AdminDashboardClient'
 
+const HOME_PRODUCT_LIMIT = 24
+
 export default async function DashboardPage() {
+  const tPage = perfNow()
   try {
     const scope = await getPortalBrandScope()
     if (!scope) redirect('/login')
@@ -16,29 +37,95 @@ export default async function DashboardPage() {
     const { portalUser, effectiveBrandId, isImpersonating } = scope
 
     if (portalUser.role === 'dough_admin' && !isImpersonating) {
-      const stats = await getPlatformStats()
+      const stats = await timed('dashboard.platformStats', () => getPlatformStats())
+      perfLog('dashboard.page.total', perfNow() - tPage, { shell: 'platform' })
       return <AdminDashboardClient stats={stats} />
     }
 
-    const [brand, subscription, snapshot, history, competitive, allProducts, totalProductCount] = await Promise.all([
+    const tParallel = perfNow()
+    const [
+      brand,
+      subscription,
+      snapshot,
+      history,
+      competitive,
+      totalProductCount,
+      topProducts,
+      launcher,
+      studies,
+    ] = await Promise.all([
       getBrand(effectiveBrandId),
       getSubscription(effectiveBrandId),
       getBrandSnapshot(effectiveBrandId),
       getBrandSnapshotHistory(effectiveBrandId, 30),
       getCompetitiveSnapshot(effectiveBrandId),
-      getAllBrandProducts(effectiveBrandId),
       getBrandProductCount(effectiveBrandId),
+      getTopBrandProducts(effectiveBrandId, HOME_PRODUCT_LIMIT),
+      fetchBrandCategoryLauncherServer(),
+      getOperatorStudies({
+        includeFinished: true,
+        includeDrafts: true,
+        brandId: effectiveBrandId,
+      }).catch(() => []),
     ])
+
+    const competeRows = competeCategoriesFromLauncher(launcher)
+    const categories = launcherRowsToBrandCategoryL2(competeRows)
+    const unlockedL2Ids = entitledL2IdsFromLauncher(launcher)
+    const totalBattles = sumCompeteBattles(competeRows)
+
+    perfLog('dashboard.brandParallel', perfNow() - tParallel, {
+      brandId: effectiveBrandId,
+      productRows: topProducts.length,
+      productCount: totalProductCount,
+      categories: categories.length,
+    })
+
     if (!brand) redirect('/login')
 
     const claimedIds = subscription?.claimed_product_ids ?? []
-    const productIntelligence = await getProductIntelligence(effectiveBrandId, claimedIds)
+    const [productIntelligence, claimedNames] = await Promise.all([
+      timed('dashboard.productIntelligence', () =>
+        getProductIntelligence(effectiveBrandId, claimedIds)
+      ),
+      getBrandProductsByIds(effectiveBrandId, claimedIds),
+    ])
+
+    const nameById = new Map<number, { product_id: number; product_name_display: string; total_battles: number }>()
+    for (const p of topProducts) {
+      nameById.set(p.product_id, {
+        product_id: p.product_id,
+        product_name_display: p.product_name_display,
+        total_battles: p.total_battles,
+      })
+    }
+    for (const p of claimedNames) nameById.set(p.product_id, p)
+    const productNames = [...nameById.values()]
+
     const narrative = snapshot
       ? generateNarrative(snapshot, brand.brand_name)
       : {
           headline: `${brand.brand_name} is in the Dough database. Data builds as battles are recorded.`,
           sub: 'Updated daily',
         }
+
+    const homeModel = selectHomeModel({
+      brandName: brand.brand_name,
+      narrative,
+      snapshot,
+      categories,
+      studies,
+      productIntelligence,
+      productNames,
+      unlockedL2Ids,
+    })
+
+    perfLog('dashboard.page.total', perfNow() - tPage, {
+      shell: 'brand',
+      brandId: effectiveBrandId,
+      productRows: topProducts.length,
+      productCount: totalProductCount,
+    })
 
     return (
       <DashboardClient
@@ -49,10 +136,13 @@ export default async function DashboardPage() {
         history={history}
         productIntelligence={productIntelligence}
         competitive={competitive}
-        allProducts={allProducts}
+        allProducts={topProducts}
         narrative={narrative}
         totalProductCount={totalProductCount}
+        totalBattles={totalBattles}
         isImpersonating={isImpersonating}
+        homeModel={homeModel}
+        categoriesCount={categories.length}
       />
     )
   } catch (error) {

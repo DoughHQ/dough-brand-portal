@@ -233,7 +233,14 @@ function isCategoryScope(s: string): s is CategoryScope {
   return s === 'l2' || s === 'l3' || s === 'compare_group'
 }
 
-export default function CategoryDashboardCanvas({ report }: { report: CategoryReport }) {
+export default function CategoryDashboardCanvas({
+  report,
+  linkMode = 'preview',
+}: {
+  report: CategoryReport
+  /** Brand live Overview vs admin report-preview harness. */
+  linkMode?: 'brand' | 'preview'
+}) {
   const isAdmin = report.meta.mode === 'admin'
   /** Brand Overview: destination layout. Admin instrument: denser engine room. */
   const overview = !isAdmin
@@ -360,6 +367,7 @@ export default function CategoryDashboardCanvas({ report }: { report: CategoryRe
               scope={scopeOk.scope}
               scopeId={scopeOk.scopeId}
               mode={mode}
+              linkMode={linkMode}
             />
           ) : null}
         </div>

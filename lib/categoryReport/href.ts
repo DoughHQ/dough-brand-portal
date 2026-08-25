@@ -26,3 +26,18 @@ export function readinessPreviewHref(scope: 'l2' | 'l3', nodeId: number): string
 export function overviewPreviewHref(scope: 'l2' | 'l3', nodeId: number): string {
   return previewDashboardHref({ scope, id: nodeId, mode: 'brand' })
 }
+
+/** Live brand Category Overview destination. */
+export function brandCategoryOverviewHref(
+  l2NodeId: number,
+  focal?: number | null
+): string {
+  const params = new URLSearchParams()
+  if (focal != null) params.set('focal', String(focal))
+  const qs = params.toString()
+  return qs ? `/categories/${l2NodeId}?${qs}` : `/categories/${l2NodeId}`
+}
+
+export function brandCategoriesIndexHref(): string {
+  return '/categories'
+}

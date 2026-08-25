@@ -36,6 +36,7 @@ interface Props {
   l3Breakdown: L3Row[]
   scopeNote?: string | null
   loadError?: string | null
+  emptyMessage?: string | null
 }
 
 export default function CategoryIntelligenceClient({
@@ -44,6 +45,7 @@ export default function CategoryIntelligenceClient({
   l3Breakdown,
   scopeNote,
   loadError,
+  emptyMessage = 'No data for this category yet',
 }: Props) {
   const router = useRouter()
   const { enterAsBrand, loading: entering } = useEnterImpersonation()
@@ -269,7 +271,7 @@ export default function CategoryIntelligenceClient({
 
           {filtered.length === 0 ? (
             <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.5 }}>
-              No battled products in this category yet.
+              {emptyMessage}
               <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-30)' }}>
                 When shoppers battle here, the Elo leaderboard will show up — and each row opens the product master page.
               </div>

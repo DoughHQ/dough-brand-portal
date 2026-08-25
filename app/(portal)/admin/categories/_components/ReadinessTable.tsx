@@ -509,18 +509,6 @@ export default function ReadinessTable(props: Props) {
                     <td style={td} onClick={stop}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
                         <Link
-                          href={rankingsHrefFor(level, parentL2Name, row)}
-                          style={{
-                            fontSize: 12,
-                            color: 'var(--sage, #3E6B4A)',
-                            textDecoration: 'none',
-                            whiteSpace: 'nowrap',
-                            fontWeight: 500,
-                          }}
-                        >
-                          Open rankings
-                        </Link>
-                        <Link
                           href={overviewPreviewHref(level, row.nodeId)}
                           style={{
                             fontSize: 12,
@@ -542,6 +530,17 @@ export default function ReadinessTable(props: Props) {
                           }}
                         >
                           Admin instrument
+                        </Link>
+                        <Link
+                          href={rankingsHrefFor(level, parentL2Name, row)}
+                          style={{
+                            fontSize: 11,
+                            color: 'var(--ink-30)',
+                            textDecoration: 'none',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Legacy rankings
                         </Link>
                       </div>
                     </td>

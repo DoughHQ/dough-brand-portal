@@ -1,7 +1,10 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { previewDashboardHref } from '@/lib/categoryReport/href'
+import {
+  brandCategoryOverviewHref,
+  previewDashboardHref,
+} from '@/lib/categoryReport/href'
 import type { CatalogProduct, CategoryMode, CategoryScope } from '@/lib/categoryReport/types'
 
 const selectStyle = {
@@ -16,19 +19,21 @@ const selectStyle = {
   maxWidth: 320,
 } as const
 
-/** Focal control for the brand Overview header — updates the preview query. */
+/** Focal control for Overview — brand destination or admin preview harness. */
 export default function OverviewFocalSelect({
   catalog,
   focal,
   scope,
   scopeId,
   mode,
+  linkMode = 'preview',
 }: {
   catalog: CatalogProduct[]
   focal: number | null
   scope: CategoryScope
   scopeId: number
   mode: CategoryMode
+  linkMode?: 'brand' | 'preview'
 }) {
   const router = useRouter()
 
@@ -51,14 +56,17 @@ export default function OverviewFocalSelect({
         value={focal == null ? '' : String(focal)}
         onChange={(e) => {
           const v = e.target.value
-          router.replace(
-            previewDashboardHref({
-              scope,
-              id: scopeId,
-              focal: v ? Number(v) : null,
-              mode,
-            })
-          )
+          const nextFocal = v ? Number(v) : null
+          const href =
+            linkMode === 'brand'
+              ? brandCategoryOverviewHref(scopeId, nextFocal)
+              : previewDashboardHref({
+                  scope,
+                  id: scopeId,
+                  focal: nextFocal,
+                  mode,
+                })
+          router.replace(href)
         }}
         style={selectStyle}
       >
