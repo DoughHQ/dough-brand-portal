@@ -18,10 +18,11 @@ import {
   competeCategoriesFromLauncher,
   entitledL2IdsFromLauncher,
   launcherRowsToBrandCategoryL2,
-  sumCompeteBattles,
 } from '@/lib/categoryLauncher'
 import { getOperatorStudies } from '@/lib/studies/fetchOperatorStudies'
 import { selectHomeModel } from '@/lib/brandHome/selectHomeModel'
+import { fetchProductSignalCards } from '@/lib/brandHome/fetchProductSignalCards.server'
+import { fetchBrandTotalBattles } from '@/lib/brandHome/fetchBrandTotalBattles.server'
 import { perfLog, perfNow, timed } from '@/lib/perf'
 import DashboardClient from './DashboardClient'
 import AdminDashboardClient from './AdminDashboardClient'
@@ -53,6 +54,8 @@ export default async function DashboardPage() {
       topProducts,
       launcher,
       studies,
+      signalCards,
+      totalBattles,
     ] = await Promise.all([
       getBrand(effectiveBrandId),
       getSubscription(effectiveBrandId),
@@ -67,12 +70,13 @@ export default async function DashboardPage() {
         includeDrafts: true,
         brandId: effectiveBrandId,
       }).catch(() => []),
+      fetchProductSignalCards(effectiveBrandId),
+      fetchBrandTotalBattles(),
     ])
 
     const competeRows = competeCategoriesFromLauncher(launcher)
     const categories = launcherRowsToBrandCategoryL2(competeRows)
     const unlockedL2Ids = entitledL2IdsFromLauncher(launcher)
-    const totalBattles = sumCompeteBattles(competeRows)
 
     perfLog('dashboard.brandParallel', perfNow() - tParallel, {
       brandId: effectiveBrandId,
@@ -143,6 +147,7 @@ export default async function DashboardPage() {
         isImpersonating={isImpersonating}
         homeModel={homeModel}
         categoriesCount={categories.length}
+        signalCards={signalCards}
       />
     )
   } catch (error) {

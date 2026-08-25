@@ -3,6 +3,8 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import type { BrandHomeModel } from '@/lib/brandHome/selectHomeModel'
+import type { ProductSignalCardModel } from '@/lib/brandHome/productSignalCards'
+import ProductSignalCard from '@/components/brandHome/ProductSignalCard'
 
 function greetingLabel(): string {
   const h = new Date().getHours()
@@ -24,15 +26,18 @@ export default function BrandHome({
   model,
   profileSlot,
   totalProductCount = 0,
+  signalCards = [],
 }: {
   model: BrandHomeModel
   profileSlot?: ReactNode
   /** Catalog product count — not the same as model.products (signal watch list). */
   totalProductCount?: number
+  /** Battled products from portfolio RPC — replaces the old intelligence list. */
+  signalCards?: ProductSignalCardModel[]
 }) {
   const greet = greetingLabel()
   const hasCatalogProducts = totalProductCount > 0
-  const hasProductSignal = model.products.length > 0
+  const hasProductSignal = signalCards.length > 0
 
   return (
     <div style={{ fontFamily: 'var(--font-sans)', maxWidth: 1100, margin: '0 auto', padding: '32px 32px 72px' }}>
@@ -129,99 +134,16 @@ export default function BrandHome({
           />
         ) : (
           <div
+            className="brand-home-signal"
             style={{
-              background: 'var(--paper)',
-              boxShadow: '0 0 0 1px var(--mist)',
-              borderRadius: 8,
-              overflow: 'hidden',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+              gap: 14,
             }}
           >
-            {model.products.map((p, i) => {
-              const tone = chipStyle[p.chip]
-              return (
-                <Link
-                  key={p.productId}
-                  href={p.href}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr auto',
-                    gap: 16,
-                    alignItems: 'center',
-                    padding: '16px 18px',
-                    borderTop: i === 0 ? 'none' : '1px solid var(--mist)',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                  }}
-                >
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <div
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 500,
-                          color: 'var(--ink)',
-                          flex: 1,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {p.name}
-                      </div>
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 600,
-                          letterSpacing: '0.04em',
-                          textTransform: 'uppercase',
-                          color: tone.color,
-                          background: tone.bg,
-                          padding: '2px 7px',
-                          borderRadius: 4,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {p.chip}
-                      </span>
-                    </div>
-                    {p.category ? (
-                      <div style={{ fontSize: 11, color: 'var(--ink-30)', marginBottom: 4 }}>{p.category}</div>
-                    ) : null}
-                    <div style={{ fontSize: 12, color: 'var(--ink-50)', lineHeight: 1.4 }}>{p.insight}</div>
-                  </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 110 }}>
-                    {p.rankLabel ? (
-                      <>
-                        <div
-                          style={{
-                            fontSize: 10,
-                            fontWeight: 600,
-                            letterSpacing: '0.06em',
-                            textTransform: 'uppercase',
-                            color: 'var(--ink-30)',
-                            marginBottom: 4,
-                          }}
-                        >
-                          Standing
-                        </div>
-                        <div
-                          style={{
-                            fontFamily: 'var(--font-serif)',
-                            fontSize: 15,
-                            color: 'var(--ink)',
-                            letterSpacing: '-0.01em',
-                          }}
-                        >
-                          {p.rankLabel}
-                        </div>
-                      </>
-                    ) : (
-                      <div style={{ fontSize: 12, color: 'var(--ink-30)', fontStyle: 'italic' }}>Building signal</div>
-                    )}
-                  </div>
-                </Link>
-              )
-            })}
+            {signalCards.map((card) => (
+              <ProductSignalCard key={card.productId} card={card} />
+            ))}
           </div>
         )}
       </section>
@@ -528,10 +450,43 @@ export default function BrandHome({
       </section>
 
       <style>{`
+        .product-signal-card:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 0 0 1px var(--mist), 0 8px 24px rgba(28, 38, 32, 0.08);
+        }
+        .product-signal-tip {
+          position: absolute;
+          right: 0;
+          bottom: calc(100% + 8px);
+          z-index: 2;
+          max-width: 240px;
+          padding: 8px 10px;
+          border-radius: 6px;
+          background: var(--sage-dark);
+          color: var(--cream);
+          font-size: 11px;
+          line-height: 1.4;
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+        }
+        .product-signal-locked:hover .product-signal-tip,
+        .product-signal-locked:focus-within .product-signal-tip {
+          opacity: 1;
+          visibility: visible;
+        }
         @media (max-width: 720px) {
           .brand-home-cats,
-          .brand-home-studies { grid-template-columns: 1fr !important; }
+          .brand-home-studies,
+          .brand-home-signal { grid-template-columns: 1fr !important; }
           .brand-home-pulse { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .product-signal-card,
+          .product-signal-card:hover {
+            transition: none !important;
+            transform: none !important;
+          }
         }
       `}</style>
     </div>

@@ -5,6 +5,7 @@ import type { BrandSnapshot, ProductIntelligence, CompetitiveSnapshot, PortalUse
 import { createClient } from '@/lib/supabase'
 import { exitImpersonationAction } from '../admin/impersonation/actions'
 import type { BrandHomeModel } from '@/lib/brandHome/selectHomeModel'
+import type { ProductSignalCardModel } from '@/lib/brandHome/productSignalCards'
 import BrandHome from '@/components/brandHome/BrandHome'
 import BrandProfileCard from '@/components/brandHome/BrandProfileCard'
 import ProductCategoryStandingCard from '@/components/brandHome/ProductCategoryStandingCard'
@@ -54,6 +55,7 @@ type Props = {
   totalBattles?: number
   homeModel: BrandHomeModel
   categoriesCount?: number
+  signalCards?: ProductSignalCardModel[]
 }
 
 function fmt(n: number | null | undefined): string {
@@ -70,7 +72,7 @@ function delta(n: number | null | undefined): string {
   return r > 0 ? `+${r}` : `${r}`
 }
 
-export default function DashboardClient({ portalUser, brand, subscription, snapshot, history: _history, productIntelligence, competitive: _competitive, allProducts, narrative: _narrative, isImpersonating, totalProductCount, totalBattles = 0, homeModel, categoriesCount }: Props) {
+export default function DashboardClient({ portalUser, brand, subscription, snapshot, history: _history, productIntelligence, competitive: _competitive, allProducts, narrative: _narrative, isImpersonating, totalProductCount, totalBattles = 0, homeModel, categoriesCount, signalCards = [] }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const [period, setPeriod] = useState<Period>('30d')
@@ -152,6 +154,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
         <BrandHome
           model={homeModel}
           totalProductCount={totalProductCount ?? allProducts.length}
+          signalCards={signalCards}
           profileSlot={
             <BrandProfileCard
               brand={brand}

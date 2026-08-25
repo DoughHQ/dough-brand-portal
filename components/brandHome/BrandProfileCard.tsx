@@ -720,10 +720,10 @@ export default function BrandProfileCard({
                 letterSpacing: '-0.02em',
                 fontVariantNumeric: 'tabular-nums',
               }}
-              title="Times your products have appeared in a head-to-head. A battle between two of your products counts for each."
-            >
+              title="Distinct head-to-head comparisons that included at least one of your products."
+              >
               {totalBattles.toLocaleString()}
-            </div>
+              </div>
           </div>
           {showCategories ? (
             <>
