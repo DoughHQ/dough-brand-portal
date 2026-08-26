@@ -176,24 +176,11 @@ export default function RowOverflowMenu({
       <button
         ref={buttonRef}
         type="button"
+        className={`studies-kebab${open ? ' is-open' : ''}`}
         aria-label={label}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 8,
-          border: '1px solid transparent',
-          background: open ? 'var(--surface-1)' : 'transparent',
-          cursor: 'pointer',
-          color: 'var(--ink-50)',
-          fontSize: 18,
-          lineHeight: 1,
-          display: 'grid',
-          placeItems: 'center',
-          fontFamily: 'var(--font-sans)',
-        }}
       >
         ⋯
       </button>

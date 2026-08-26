@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import type { OperatorStudyRow } from '@/lib/studies/types'
 
 function isActive(row: OperatorStudyRow): boolean {
@@ -51,28 +51,22 @@ export function computeStudyMetrics(rows: OperatorStudyRow[]): {
   }
 }
 
-const card: CSSProperties = {
-  background: 'var(--white)',
-  border: '1px solid var(--ink-10)',
-  borderRadius: 12,
-  padding: '16px 18px',
-  display: 'flex',
-  alignItems: 'center',
-  gap: 14,
-  minHeight: 80,
-}
-
-const iconWell: CSSProperties = {
-  width: 36,
-  height: 36,
-  borderRadius: 18,
-  background: 'var(--sage-soft, var(--sage-pale))',
-  color: 'var(--sage-dark, var(--sage))',
-  display: 'grid',
-  placeItems: 'center',
-  flexShrink: 0,
-  fontSize: 14,
-  fontWeight: 600,
+function Glyph({ d }: { d: string | string[] }) {
+  const paths = Array.isArray(d) ? d : [d]
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      {paths.map((path) => (
+        <path
+          key={path}
+          d={path}
+          stroke="currentColor"
+          strokeWidth="1.7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      ))}
+    </svg>
+  )
 }
 
 function MetricCard({
@@ -85,33 +79,13 @@ function MetricCard({
   value: string
 }) {
   return (
-    <div style={card}>
-      <div style={iconWell} aria-hidden>
+    <div className="studies-metric-card">
+      <div className="studies-metric-icon" aria-hidden>
         {icon}
       </div>
-      <div style={{ minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: 12,
-            fontWeight: 500,
-            color: 'var(--ink-50)',
-            marginBottom: 4,
-          }}
-        >
-          {label}
-        </div>
-        <div
-          style={{
-            fontSize: 24,
-            fontWeight: 600,
-            color: 'var(--ink)',
-            fontVariantNumeric: 'tabular-nums',
-            letterSpacing: '-0.02em',
-            lineHeight: 1.1,
-          }}
-        >
-          {value}
-        </div>
+      <div className="studies-metric-copy">
+        <div className="studies-metric-label">{label}</div>
+        <div className="studies-metric-value">{value}</div>
       </div>
     </div>
   )
@@ -119,36 +93,65 @@ function MetricCard({
 
 export default function StudiesMetricStrip({
   rows,
+  draftCount,
+  completedCount,
 }: {
   rows: OperatorStudyRow[]
+  /** Wizard drafts from list_study_drafts — not mission lifecycle_state === 'draft'. */
+  draftCount: number
+  /** Same collection as the Completed section. */
+  completedCount: number
 }) {
   const m = computeStudyMetrics(rows)
-  const showAvg = m.avgCompletion != null
-  const cols = showAvg ? 4 : 3
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(auto-fit, minmax(${showAvg ? 200 : 220}px, 1fr))`,
-        gap: 12,
-      }}
-      data-metric-cols={cols}
-    >
-      <MetricCard icon="●" label="Active studies" value={String(m.active)} />
+    <div className="studies-metric-strip">
       <MetricCard
-        icon="≡"
+        icon={
+          <Glyph
+            d={[
+              'M10 2v7.5L4.2 19.2A2 2 0 0 0 5.9 22h12.2a2 2 0 0 0 1.7-2.8L14 9.5V2',
+              'M8.5 2h7',
+              'M7 14h10',
+            ]}
+          />
+        }
+        label="Active studies"
+        value={String(m.active)}
+      />
+      <MetricCard
+        icon={
+          <Glyph
+            d={[
+              'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z',
+              'M14 3v5h5',
+            ]}
+          />
+        }
+        label="Drafts"
+        value={String(draftCount)}
+      />
+      <MetricCard
+        icon={
+          <Glyph d={['M22 11.08V12a10 10 0 1 1-5.93-9.14', 'M22 4 12 14.01l-3-3']} />
+        }
+        label="Completed"
+        value={String(completedCount)}
+      />
+      <MetricCard
+        icon={
+          <Glyph
+            d={[
+              'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2',
+              'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+              'M22 21v-2a4 4 0 0 0-3-3.87',
+              'M16 3.13a4 4 0 0 1 0 7.75',
+            ]}
+          />
+        }
         label="Responses collected"
         value={String(m.responses)}
       />
-      {showAvg ? (
-        <MetricCard
-          icon="↑"
-          label="Avg completion"
-          value={`${m.avgCompletion}%`}
-        />
-      ) : null}
-      <MetricCard icon="◇" label="Drafts" value={String(m.drafts)} />
     </div>
   )
 }

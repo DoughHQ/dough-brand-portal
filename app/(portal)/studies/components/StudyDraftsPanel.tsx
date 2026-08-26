@@ -11,6 +11,8 @@ import {
 import { unbindByServerDraftId } from '@/lib/studies/draftServerBindings'
 import { openServerStudyDraft } from '@/lib/studies/openServerDraft'
 import { formatResumeWhen } from '@/lib/studies/useServerStudyDraft'
+import RowOverflowMenu from './RowOverflowMenu'
+import { ICON_FILE, StudiesGlyph } from './studiesIcons'
 
 type Props = {
   drafts: StudyDraftListItem[]
@@ -33,7 +35,7 @@ function asTestType(raw: string): StudyDraftTestType | null {
 
 /**
  * Server-persisted wizard drafts for the current brand scope.
- * Open hydrates local cache + navigates to the matching builder edit URL.
+ * Continue hydrates local cache + navigates to the matching builder edit URL.
  */
 export default function StudyDraftsPanel({
   drafts,
@@ -129,191 +131,125 @@ export default function StudyDraftsPanel({
     [drafts, onChange, onError, onToast, renameValue]
   )
 
-  if (drafts.length === 0) return null
+  if (drafts.length === 0) {
+    return <p className="studies-empty-quiet">No drafts.</p>
+  }
 
   return (
-    <section style={{ marginBottom: 28 }} aria-label="Saved drafts">
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          marginBottom: 14,
-        }}
-      >
-        <h2
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 20,
-            fontWeight: 400,
-            color: 'var(--sage-dark)',
-            margin: 0,
-          }}
-        >
-          Drafts
-        </h2>
-        <span style={{ fontSize: 12, color: 'var(--ink-30)' }}>
-          {drafts.length} saved · sync across devices
-        </span>
-      </div>
-
-      <div
-        style={{
-          background: 'var(--paper, var(--white))',
-          border: '1px solid var(--mist, var(--ink-10))',
-          borderRadius: 12,
-          overflow: 'hidden',
-        }}
-      >
-        {drafts.map((row, i) => {
-          const busy = busyId === row.id || pending
-          const renaming = renamingId === row.id
-          return (
-            <div
-              key={row.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 16,
-                padding: '14px 18px',
-                borderBottom:
-                  i < drafts.length - 1 ? '1px solid var(--mist, var(--ink-10))' : 'none',
-              }}
-            >
-              <div style={{ minWidth: 0, flex: 1 }}>
-                {renaming ? (
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      void saveRename(row)
-                    }}
-                    style={{ display: 'flex', gap: 8, alignItems: 'center' }}
-                  >
-                    <input
-                      autoFocus
-                      value={renameValue}
-                      onChange={(e) => setRenameValue(e.target.value)}
-                      disabled={busy}
-                      aria-label="Draft title"
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        fontFamily: 'var(--font-sans)',
-                        fontSize: 14,
-                        fontWeight: 500,
-                        padding: '8px 10px',
-                        borderRadius: 8,
-                        border: '1px solid var(--mist, var(--ink-10))',
-                        color: 'var(--ink)',
-                        background: 'var(--cream, var(--surface))',
-                      }}
-                    />
-                    <button
-                      type="submit"
-                      disabled={busy || !renameValue.trim()}
-                      style={quietPrimary}
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={cancelRename}
-                      style={quietGhost}
-                    >
-                      Cancel
-                    </button>
-                  </form>
-                ) : (
-                  <>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        marginBottom: 4,
-                        minWidth: 0,
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 500,
-                          color: 'var(--ink)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {row.title?.trim() || 'Untitled study'}
-                      </span>
-                      <span
-                        style={{
-                          flexShrink: 0,
-                          fontSize: 11,
-                          fontWeight: 500,
-                          letterSpacing: '0.04em',
-                          textTransform: 'uppercase',
-                          padding: '3px 8px',
-                          borderRadius: 8,
-                          color: 'var(--ink-50)',
-                          background: 'var(--surface-1, var(--cream))',
-                        }}
-                      >
-                        {typeLabel(row.test_type)}
+    <div className="studies-list">
+      {drafts.map((row) => {
+        const busy = busyId === row.id || pending
+        const renaming = renamingId === row.id
+        return (
+          <div key={row.id} className="studies-study-row studies-study-row--draft">
+            {renaming ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  void saveRename(row)
+                }}
+                style={{
+                  display: 'flex',
+                  gap: 8,
+                  alignItems: 'center',
+                  flex: 1,
+                  minWidth: 0,
+                }}
+              >
+                <input
+                  autoFocus
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  disabled={busy}
+                  aria-label="Draft title"
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 14,
+                    fontWeight: 500,
+                    padding: '8px 10px',
+                    borderRadius: 8,
+                    border: '1px solid var(--mist, var(--ink-10))',
+                    color: 'var(--ink)',
+                    background: 'var(--cream, var(--surface))',
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={busy || !renameValue.trim()}
+                  style={quietPrimary}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={cancelRename}
+                  style={quietGhost}
+                >
+                  Cancel
+                </button>
+              </form>
+            ) : (
+              <>
+                <div className="studies-study-main">
+                  <div className="studies-study-mark studies-study-mark-neutral">
+                    <StudiesGlyph d={ICON_FILE} size={16} />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div className="studies-study-name">
+                      {row.title?.trim() || 'Untitled study'}
+                    </div>
+                    <div className="studies-study-meta">
+                      <span className="studies-type-badge">{typeLabel(row.test_type)}</span>
+                      <span className="studies-study-sub">
+                        Updated {formatResumeWhen(row.updated_at)}
                       </span>
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--ink-30)' }}>
-                      Updated {formatResumeWhen(row.updated_at)}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {!renaming ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  </div>
+                </div>
+                <div className="studies-study-actions">
                   <button
                     type="button"
-                    disabled={busy}
-                    onClick={() => startRename(row)}
-                    style={quietGhost}
-                  >
-                    Rename
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => {
-                      if (
-                        typeof window !== 'undefined' &&
-                        !window.confirm(
-                          `Delete “${row.title?.trim() || 'Untitled study'}”? This can’t be undone.`
-                        )
-                      ) {
-                        return
-                      }
-                      void deleteDraft(row)
-                    }}
-                    style={{ ...quietGhost, color: 'var(--coral, #c45c4a)' }}
-                  >
-                    Delete
-                  </button>
-                  <button
-                    type="button"
+                    className="studies-row-cta"
                     disabled={busy}
                     onClick={() => void openDraft(row)}
-                    style={quietPrimary}
                   >
-                    {busyId === row.id ? 'Opening…' : 'Open'}
+                    {busyId === row.id ? 'Opening…' : 'Continue →'}
                   </button>
+                  <RowOverflowMenu
+                    actions={[
+                      {
+                        label: 'Rename',
+                        disabled: busy,
+                        onClick: () => startRename(row),
+                      },
+                      {
+                        label: 'Delete',
+                        tone: 'danger',
+                        disabled: busy,
+                        onClick: () => {
+                          if (
+                            typeof window !== 'undefined' &&
+                            !window.confirm(
+                              `Delete “${row.title?.trim() || 'Untitled study'}”? This can’t be undone.`
+                            )
+                          ) {
+                            return
+                          }
+                          void deleteDraft(row)
+                        },
+                      },
+                    ]}
+                  />
                 </div>
-              ) : null}
-            </div>
-          )
-        })}
-      </div>
-    </section>
+              </>
+            )}
+          </div>
+        )
+      })}
+    </div>
   )
 }
 

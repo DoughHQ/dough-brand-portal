@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import {
   useCallback,
   useEffect,
@@ -23,69 +23,24 @@ import {
 import { closeStudyAction } from './closeStudyAction'
 import ConfirmDialog from './ConfirmDialog'
 import StudiesMetricStrip from './components/StudiesMetricStrip'
-import RowOverflowMenu from './components/RowOverflowMenu'
 import StudyDraftsPanel from './components/StudyDraftsPanel'
+import RowOverflowMenu from './components/RowOverflowMenu'
+import {
+  ActiveStudyList,
+  CompletedSectionHead,
+  CompletedStudyList,
+  DraftsSectionHead,
+  InProgressEmpty,
+  InProgressSectionHead,
+} from './components/StudyLifecycleLists'
+import { ICON_ARCHIVE, StudiesGlyph } from './components/studiesIcons'
 import type { StudyDraftListItem } from './drafts/actions'
-
-type StudiesTab = 'active' | 'complete'
-
-const TAB_KEYS: StudiesTab[] = ['active', 'complete']
-
-const TAB_LABELS: Record<StudiesTab, string> = {
-  active: 'Active',
-  complete: 'Complete',
-}
+import './studiesPage.css'
 
 const COMPLETE_ORDER: Record<string, number> = {
   completed: 0,
   expired: 1,
   archived: 2,
-}
-
-const GRID_WITH_STATUS =
-  'minmax(220px, 2.2fr) 110px 150px 110px 100px 120px 44px'
-const GRID_NO_STATUS =
-  'minmax(220px, 2.2fr) 110px 160px 100px 120px 44px'
-const GRID_NO_OVERFLOW =
-  'minmax(220px, 2.2fr) 110px 160px 100px 120px'
-const GRID_NO_OVERFLOW_STATUS =
-  'minmax(220px, 2.2fr) 110px 150px 110px 100px 120px'
-
-function studyLabel(missionType: string): string {
-  if (missionType === 'concept_test') return 'Concept'
-  if (missionType === 'product_discovery') return 'Discovery'
-  if (missionType === 'verified_purchase') return 'Verified purchase'
-  if (missionType === 'brand_challenge') return 'Challenge'
-  return 'Study'
-}
-
-function publishedTypeLabel(missionType: string | null | undefined): string {
-  if (!missionType) return 'Study'
-  return studyLabel(missionType)
-}
-
-/** Prefer RPC test_type; fall back to mission_type labels. */
-function typeBadgeLabel(row: OperatorStudyRow): string {
-  if (row.test_type === 'concept') return 'Concept'
-  if (row.test_type === 'ihut') return 'iHUT'
-  return publishedTypeLabel(row.mission_type)
-}
-
-/** Only for 2-session iHUT — single-session and concept show nothing. */
-function showTwoSessionIndicator(row: OperatorStudyRow): boolean {
-  return row.test_type === 'ihut' && row.session_count === 2
-}
-
-const typePillStyle: CSSProperties = {
-  display: 'inline-block',
-  fontSize: 11,
-  fontWeight: 500,
-  letterSpacing: '0.04em',
-  textTransform: 'uppercase',
-  padding: '3px 8px',
-  borderRadius: 8,
-  color: 'var(--ink-50)',
-  background: 'var(--surface-1, var(--cream))',
 }
 
 function relativeTime(iso: string): string {
@@ -102,10 +57,6 @@ function lifecycleOf(row: OperatorStudyRow): OperatorStudyLifecycleState {
   return row.lifecycle_state
 }
 
-function isActiveBucket(state: OperatorStudyLifecycleState): boolean {
-  return state === 'active' || state === 'paused' || state === 'scheduled'
-}
-
 function isCompleteBucket(state: OperatorStudyLifecycleState): boolean {
   return state === 'completed' || state === 'expired' || state === 'archived'
 }
@@ -114,16 +65,11 @@ function isDraftBucket(state: OperatorStudyLifecycleState): boolean {
   return state === 'draft'
 }
 
-function tabForRow(row: OperatorStudyRow): StudiesTab | null {
+/** Same buckets the Active/Complete tabs used. Draft operator rows stay hidden. */
+function bucketForRow(row: OperatorStudyRow): 'active' | 'complete' | null {
   const state = lifecycleOf(row)
-  // Legacy mission drafts are no longer surfaced — includeDrafts is false.
   if (isDraftBucket(state)) return null
   if (isCompleteBucket(state)) return 'complete'
-  return 'active'
-}
-
-function parseTab(raw: string | null): StudiesTab {
-  if (raw === 'complete') return 'complete'
   return 'active'
 }
 
@@ -141,81 +87,8 @@ function isMultiBrand(args: {
   return ids.size > 1
 }
 
-function claimProgress(row: OperatorStudyRow): {
-  label: string
-  ratio: number | null
-} {
-  const completed =
-    typeof row.completed_claims === 'number' && Number.isFinite(row.completed_claims)
-      ? row.completed_claims
-      : 0
-  const target =
-    typeof row.target_completions === 'number' && row.target_completions > 0
-      ? row.target_completions
-      : null
-  if (target != null) {
-    return {
-      label: `${completed} of ${target}`,
-      ratio: Math.min(1, completed / target),
-    }
-  }
-  if (completed === 0) return { label: 'No responses yet', ratio: null }
-  return { label: `${completed} completed`, ratio: null }
-}
-
 function inFlightEstimate(row: OperatorStudyRow): number {
   return Math.max(0, row.total_claims - row.completed_claims)
-}
-
-function statusPill(state: OperatorStudyLifecycleState): {
-  label: string
-  color: string
-  background: string
-} {
-  switch (state) {
-    case 'draft':
-      return {
-        label: 'Draft',
-        color: 'var(--amber, #C07818)',
-        background: 'var(--amber-pale, #FBF3E8)',
-      }
-    case 'completed':
-      return {
-        label: 'Completed',
-        color: 'var(--sage-dark)',
-        background: 'var(--sage-soft, var(--sage-pale))',
-      }
-    case 'expired':
-      return {
-        label: 'Expired',
-        color: 'var(--ink-50)',
-        background: 'var(--mist, var(--surface-1))',
-      }
-    case 'archived':
-      return {
-        label: 'Archived',
-        color: 'var(--ink-30)',
-        background: 'var(--surface-1)',
-      }
-    case 'paused':
-      return {
-        label: 'Paused',
-        color: 'var(--amber, #C07818)',
-        background: 'var(--amber-pale, #FBF3E8)',
-      }
-    case 'scheduled':
-      return {
-        label: 'Scheduled',
-        color: 'var(--ink-50)',
-        background: 'var(--surface-1)',
-      }
-    default:
-      return {
-        label: 'Active',
-        color: 'var(--sage-dark)',
-        background: 'var(--sage-soft, var(--sage-pale))',
-      }
-  }
 }
 
 function withdrawnFromStudy(row: OperatorStudyRow): WithdrawnStudyRow {
@@ -234,13 +107,6 @@ function withdrawnFromStudy(row: OperatorStudyRow): WithdrawnStudyRow {
     created_at: row.created_at,
     deleted_at: new Date().toISOString(),
   }
-}
-
-function reportHref(row: OperatorStudyRow): string {
-  if (row.test_type === 'concept' || row.mission_type === 'concept_test') {
-    return `/studies/concept/${row.mission_id}/report`
-  }
-  return `/reports/${row.mission_id}`
 }
 
 function sortComplete(a: OperatorStudyRow, b: OperatorStudyRow): number {
@@ -263,32 +129,6 @@ const ghostBtn: CSSProperties = {
   fontWeight: 500,
   padding: '4px 0',
   color: 'var(--ink-50)',
-}
-
-const headerCell: CSSProperties = {
-  fontSize: 11,
-  fontWeight: 600,
-  letterSpacing: '0.04em',
-  textTransform: 'uppercase',
-  color: 'var(--ink-30)',
-  padding: '10px 12px',
-}
-
-const primaryBtn: CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 8,
-  background: 'var(--sage)',
-  color: 'var(--white, #fff)',
-  border: 'none',
-  borderRadius: 'var(--r-sm, 8px)',
-  padding: '10px 16px',
-  fontFamily: 'var(--font-sans)',
-  fontSize: 13,
-  fontWeight: 600,
-  cursor: 'pointer',
-  textDecoration: 'none',
-  whiteSpace: 'nowrap',
 }
 
 type ConfirmState =
@@ -314,6 +154,7 @@ interface Props {
   brandName?: string | null
 }
 
+
 export default function StudiesClient({
   studies,
   withdrawn,
@@ -322,19 +163,16 @@ export default function StudiesClient({
   canOperate,
 }: Props) {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [pending, startTransition] = useTransition()
   const [busyId, setBusyId] = useState<string | null>(null)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [errorBanner, setErrorBanner] = useState<string | null>(null)
   const [confirm, setConfirm] = useState<ConfirmState>(null)
+  const [isArchiveOpen, setIsArchiveOpen] = useState(false)
 
   const [studyRows, setStudyRows] = useState(studies)
   const [withdrawnRows, setWithdrawnRows] = useState(withdrawn)
   const [draftRows, setDraftRows] = useState(initialDrafts)
-  const [tab, setTab] = useState<StudiesTab>(() =>
-    parseTab(searchParams.get('tab'))
-  )
 
   useEffect(() => {
     setStudyRows(studies)
@@ -344,10 +182,6 @@ export default function StudiesClient({
   useEffect(() => {
     setDraftRows(initialDrafts)
   }, [initialDrafts])
-
-  useEffect(() => {
-    setTab(parseTab(searchParams.get('tab')))
-  }, [searchParams])
 
   useEffect(() => {
     if (!toast) return
@@ -361,34 +195,17 @@ export default function StudiesClient({
     [studyRows, withdrawnRows]
   )
 
-  const counts = useMemo(() => {
-    let active = 0
-    let complete = 0
-    for (const row of studyRows) {
-      const bucket = tabForRow(row)
-      if (bucket === 'active') active += 1
-      else if (bucket === 'complete') complete += 1
-    }
-    return { active, complete }
+  const activeRows = useMemo(() => {
+    return studyRows
+      .filter((row) => bucketForRow(row) === 'active')
+      .sort(sortByCreatedDesc)
   }, [studyRows])
 
-  const visibleRows = useMemo(() => {
-    const filtered = studyRows.filter((row) => tabForRow(row) === tab)
-    if (tab === 'complete') return [...filtered].sort(sortComplete)
-    return [...filtered].sort(sortByCreatedDesc)
-  }, [studyRows, tab])
-
-  const selectTab = useCallback(
-    (next: StudiesTab) => {
-      setTab(next)
-      const params = new URLSearchParams(searchParams.toString())
-      if (next === 'active') params.delete('tab')
-      else params.set('tab', next)
-      const qs = params.toString()
-      router.replace(qs ? `/studies?${qs}` : '/studies', { scroll: false })
-    },
-    [router, searchParams]
-  )
+  const completeRows = useMemo(() => {
+    return studyRows
+      .filter((row) => bucketForRow(row) === 'complete')
+      .sort(sortComplete)
+  }, [studyRows])
 
   const refresh = useCallback(() => {
     startTransition(() => {
@@ -505,12 +322,6 @@ export default function StudiesClient({
   )
 
   const confirmBusy = confirm != null && busyId != null
-  const noStudiesAtAll = studyRows.length === 0
-
-  const emptyCopy: Record<StudiesTab, string> = {
-    active: 'No active studies right now.',
-    complete: 'No finished studies yet. Closed or expired work will show up here.',
-  }
 
   return (
     <div
@@ -520,48 +331,15 @@ export default function StudiesClient({
         fontFamily: 'var(--font-sans)',
       }}
     >
-      <div
-        style={{
-          maxWidth: 1000,
-          margin: '0 auto',
-          padding: '32px 28px 48px',
-        }}
-      >
-        <header
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-            gap: 24,
-            marginBottom: 28,
-          }}
-        >
+      <div className="studies-canvas">
+        <header className="studies-header">
           <div style={{ minWidth: 0 }}>
-            <h1
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 32,
-                fontWeight: 400,
-                color: 'var(--sage-dark)',
-                letterSpacing: '-0.02em',
-                margin: 0,
-                lineHeight: 1.15,
-              }}
-            >
-              Studies
-            </h1>
-            <p
-              style={{
-                margin: '8px 0 0',
-                fontSize: 14,
-                color: 'var(--ink-muted, var(--ink-50))',
-                lineHeight: 1.45,
-              }}
-            >
-              Preference results from verified consumers.
+            <h1 className="studies-title">Studies</h1>
+            <p className="studies-lede">
+              Preference studies and results from verified consumers.
             </p>
           </div>
-          <Link href="/studies/new" style={primaryBtn}>
+          <Link href="/studies/new" className="studies-new-study">
             <span aria-hidden style={{ fontSize: 16, lineHeight: 1, marginTop: -1 }}>
               +
             </span>
@@ -569,17 +347,13 @@ export default function StudiesClient({
           </Link>
         </header>
 
-        <div style={{ marginBottom: 28 }}>
-          <StudiesMetricStrip rows={studyRows} />
+        <div className="studies-kpi-wrap">
+          <StudiesMetricStrip
+            rows={studyRows}
+            draftCount={draftRows.length}
+            completedCount={completeRows.length}
+          />
         </div>
-
-        <StudyDraftsPanel
-          drafts={draftRows}
-          effectiveBrandId={effectiveBrandId}
-          onChange={setDraftRows}
-          onError={(message) => setErrorBanner(message || null)}
-          onToast={(message) => setToast({ kind: 'plain', message })}
-        />
 
         {canOperate ? (
           <>
@@ -684,490 +458,133 @@ export default function StudiesClient({
           </div>
         ) : null}
 
-        <section style={{ marginTop: 8 }}>
-          <div
-            role="tablist"
-            aria-label="Study lifecycle"
-            style={{
-              display: 'flex',
-              gap: 0,
-              borderBottom: '1px solid var(--mist, var(--ink-10))',
-              marginBottom: 0,
-            }}
-          >
-            {TAB_KEYS.map((key) => {
-              const selected = tab === key
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => selectTab(key)}
-                  style={{
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: 13,
-                    fontWeight: selected ? 600 : 500,
-                    color: selected ? 'var(--ink)' : 'var(--ink-30)',
-                    padding: '10px 14px 12px',
-                    marginBottom: -1,
-                    borderBottom: selected
-                      ? '2px solid var(--sage)'
-                      : '2px solid transparent',
-                    display: 'inline-flex',
-                    alignItems: 'baseline',
-                    gap: 8,
-                  }}
-                >
-                  <span>{TAB_LABELS[key]}</span>
-                  <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 500,
-                      fontVariantNumeric: 'tabular-nums',
-                      color: selected ? 'var(--ink-50)' : 'var(--ink-30)',
-                    }}
-                  >
-                    {counts[key]}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-
-          {visibleRows.length === 0 ? (
-            <div
-              style={{
-                background: 'var(--paper, var(--white))',
-                border: '1px solid var(--mist, var(--ink-10))',
-                borderTop: 'none',
-                borderRadius: '0 0 12px 12px',
-                padding: '40px 24px',
-                textAlign: 'center',
-              }}
-            >
-              {tab === 'active' && noStudiesAtAll ? (
-                <>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: 22,
-                      color: 'var(--sage-dark)',
-                      marginBottom: 10,
-                    }}
-                  >
-                    No studies yet.
-                  </div>
-                  <p
-                    style={{
-                      fontSize: 14,
-                      color: 'var(--ink-muted, var(--ink-50))',
-                      margin: '0 0 20px',
-                      lineHeight: 1.55,
-                      maxWidth: 400,
-                      marginLeft: 'auto',
-                      marginRight: 'auto',
-                    }}
-                  >
-                    Launch your first study to start gathering verified preference data from
-                    real consumers.
-                  </p>
-                  <Link href="/studies/new" style={primaryBtn}>
-                    <span aria-hidden style={{ fontSize: 16, lineHeight: 1, marginTop: -1 }}>
-                      +
-                    </span>
-                    New study
-                  </Link>
-                </>
-              ) : (
-                <p
-                  style={{
-                    fontSize: 14,
-                    color: 'var(--ink-50)',
-                    margin: 0,
-                    lineHeight: 1.55,
-                  }}
-                >
-                  {emptyCopy[tab]}
-                </p>
-              )}
-            </div>
+        <section className="studies-lifecycle">
+          <InProgressSectionHead />
+          {activeRows.length === 0 ? (
+            <InProgressEmpty />
           ) : (
-            <div
-              style={{
-                background: 'var(--paper, var(--white))',
-                border: '1px solid var(--mist, var(--ink-10))',
-                borderTop: 'none',
-                borderRadius: '0 0 12px 12px',
-                overflowX: 'auto',
-              }}
-            >
-              {(() => {
-                const showStatus = tab !== 'active'
-                const grid = canOperate
-                  ? showStatus
-                    ? GRID_WITH_STATUS
-                    : GRID_NO_STATUS
-                  : showStatus
-                    ? GRID_NO_OVERFLOW_STATUS
-                    : GRID_NO_OVERFLOW
-                return (
-                  <>
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: grid,
-                        alignItems: 'center',
-                        borderBottom: '1px solid var(--mist, var(--ink-10))',
-                        background: 'var(--surface-1, var(--cream))',
-                      }}
-                    >
-                      <div style={headerCell}>Study</div>
-                      <div style={headerCell}>Type</div>
-                      <div style={headerCell}>Progress</div>
-                      {showStatus ? <div style={headerCell}>Status</div> : null}
-                      <div style={headerCell}>Created</div>
-                      <div style={headerCell}>Action</div>
-                      {canOperate ? (
-                        <div style={{ ...headerCell, paddingRight: 8 }} />
-                      ) : null}
-                    </div>
+            <ActiveStudyList
+              rows={activeRows}
+              canOperate={canOperate}
+              busyId={busyId}
+              pending={pending}
+              showBrand={showBrand}
+              onClose={(row) => setConfirm({ kind: 'close', row })}
+              onWithdraw={(row) => void executeWithdraw(row)}
+            />
+          )}
+        </section>
 
-                    {visibleRows.map((row) => {
-                      const state = lifecycleOf(row)
-                      const progress = claimProgress(row)
-                      const pill = showStatus ? statusPill(state) : null
-                      const typeLabel = typeBadgeLabel(row)
-                      const meta =
-                        row.test_type === 'concept' || row.mission_type === 'concept_test'
-                          ? 'Concept field'
-                          : (row.focal_product_name ?? 'Product pending')
-                      const canClose =
-                        canOperate && tab === 'active' && isActiveBucket(state)
-                      const primaryHref = reportHref(row)
-                      const primaryLabel = 'View report →'
+        <section className="studies-lifecycle">
+          <DraftsSectionHead />
+          <StudyDraftsPanel
+            drafts={draftRows}
+            effectiveBrandId={effectiveBrandId}
+            onChange={setDraftRows}
+            onError={(message) => setErrorBanner(message || null)}
+            onToast={(message) => setToast({ kind: 'plain', message })}
+          />
+        </section>
 
-                      const overflow = [
-                        ...(canClose
-                          ? [
-                              {
-                                label: 'Close study',
-                                disabled: busyId === row.mission_id || pending,
-                                onClick: () => setConfirm({ kind: 'close', row }),
-                              },
-                            ]
-                          : []),
-                        {
-                          label: 'Withdraw',
-                          disabled: busyId === row.mission_id || pending,
-                          onClick: () => void executeWithdraw(row),
-                        },
-                      ]
-
-                      return (
-                        <div
-                          key={row.mission_id}
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: grid,
-                            alignItems: 'center',
-                            borderBottom: '1px solid var(--mist, var(--ink-10))',
-                            transition: 'background 0.12s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'var(--surface-1, var(--cream))'
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'transparent'
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 12,
-                              padding: '14px 12px',
-                              minWidth: 0,
-                            }}
-                          >
-                            <div
-                              aria-hidden
-                              style={{
-                                width: 36,
-                                height: 36,
-                                borderRadius: 18,
-                                background: 'var(--sage-soft, var(--sage-pale))',
-                                color: 'var(--sage-dark)',
-                                display: 'grid',
-                                placeItems: 'center',
-                                fontSize: 12,
-                                fontWeight: 600,
-                                flexShrink: 0,
-                              }}
-                            >
-                              {typeLabel.slice(0, 1)}
-                            </div>
-                            <div style={{ minWidth: 0 }}>
-                              <div
-                                style={{
-                                  fontSize: 14,
-                                  fontWeight: 600,
-                                  color: 'var(--ink)',
-                                  lineHeight: 1.3,
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                }}
-                                title={row.title}
-                              >
-                                {row.title ||
-                                  `${typeLabel}${
-                                    row.brand_name ? ` · ${row.brand_name}` : ''
-                                  }`}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: 12,
-                                  color: 'var(--ink-50)',
-                                  marginTop: 3,
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                {meta}
-                                {showBrand && row.brand_name ? ` · ${row.brand_name}` : ''}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div
-                            style={{
-                              padding: '14px 12px',
-                              display: 'flex',
-                              flexWrap: 'wrap',
-                              alignItems: 'center',
-                              gap: 6,
-                            }}
-                          >
-                            <span style={typePillStyle}>{typeLabel}</span>
-                            {showTwoSessionIndicator(row) ? (
-                              <span style={typePillStyle}>2 sessions</span>
-                            ) : null}
-                          </div>
-
-                          <div style={{ padding: '14px 12px', minWidth: 0 }}>
-                            <div
-                              style={{
-                                fontSize: 12,
-                                fontWeight: 500,
-                                color: 'var(--ink)',
-                                fontVariantNumeric: 'tabular-nums',
-                                marginBottom: progress.ratio != null ? 6 : 0,
-                              }}
-                            >
-                              {progress.label}
-                            </div>
-                            {progress.ratio != null ? (
-                              <div
-                                style={{
-                                  height: 4,
-                                  borderRadius: 2,
-                                  background: 'var(--mist, var(--surface-1))',
-                                  overflow: 'hidden',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    width: `${Math.round(progress.ratio * 100)}%`,
-                                    height: '100%',
-                                    background: 'var(--sage)',
-                                    borderRadius: 2,
-                                  }}
-                                />
-                              </div>
-                            ) : null}
-                          </div>
-
-                          {showStatus ? (
-                            <div style={{ padding: '14px 12px' }}>
-                              {pill ? (
-                                <span
-                                  style={{
-                                    display: 'inline-block',
-                                    fontSize: 11,
-                                    fontWeight: 600,
-                                    letterSpacing: '0.03em',
-                                    textTransform: 'uppercase',
-                                    padding: '3px 8px',
-                                    borderRadius: 8,
-                                    color: pill.color,
-                                    background: pill.background,
-                                  }}
-                                >
-                                  {pill.label}
-                                </span>
-                              ) : null}
-                            </div>
-                          ) : null}
-
-                          <div
-                            style={{
-                              padding: '14px 12px',
-                              fontSize: 12,
-                              color: 'var(--ink-50)',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {relativeTime(row.created_at)}
-                          </div>
-
-                          <div style={{ padding: '14px 8px 14px 12px' }}>
-                            <Link
-                              href={primaryHref}
-                              style={{
-                                fontSize: 13,
-                                fontWeight: 600,
-                                color: 'var(--sage)',
-                                textDecoration: 'none',
-                              }}
-                            >
-                              {primaryLabel}
-                            </Link>
-                          </div>
-
-                          {canOperate ? (
-                            <div
-                              style={{
-                                padding: '8px 8px 8px 0',
-                                display: 'flex',
-                                justifyContent: 'flex-end',
-                              }}
-                            >
-                              <RowOverflowMenu actions={overflow} />
-                            </div>
-                          ) : null}
-                        </div>
-                      )
-                    })}
-                  </>
-                )
-              })()}
-            </div>
+        <section className="studies-lifecycle">
+          <CompletedSectionHead />
+          {completeRows.length === 0 ? (
+            <p className="studies-empty-quiet">No completed studies yet.</p>
+          ) : (
+            <CompletedStudyList
+              rows={completeRows}
+              canOperate={canOperate}
+              busyId={busyId}
+              pending={pending}
+              showBrand={showBrand}
+              onClose={(row) => setConfirm({ kind: 'close', row })}
+              onWithdraw={(row) => void executeWithdraw(row)}
+            />
           )}
         </section>
 
         {canOperate && withdrawnRows.length > 0 ? (
-          <section style={{ marginTop: 40, opacity: 0.9 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'baseline',
-                justifyContent: 'space-between',
-                marginBottom: 14,
-              }}
-            >
-              <h3
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: 20,
-                  fontWeight: 400,
-                  color: 'var(--ink-50)',
-                  margin: 0,
-                }}
+          <section>
+            <div className={`studies-archive-card${isArchiveOpen ? ' is-open' : ''}`}>
+              <button
+                type="button"
+                className="studies-archive-toggle"
+                aria-expanded={isArchiveOpen}
+                aria-controls="archived-studies-panel"
+                onClick={() => setIsArchiveOpen((open) => !open)}
               >
-                Withdrawn
-              </h3>
-              <span style={{ fontSize: 12, color: 'var(--ink-30)' }}>
-                {withdrawnRows.length} archived
-              </span>
-            </div>
+                <span className="studies-archive-toggle-left">
+                  <span className="studies-archive-icon">
+                    <StudiesGlyph d={ICON_ARCHIVE} size={16} />
+                  </span>
+                  <h2 className="studies-archive-title">Archived studies</h2>
+                  <span className="studies-archive-count">({withdrawnRows.length})</span>
+                </span>
+                <svg
+                  className={`studies-archive-chevron${isArchiveOpen ? ' is-open' : ''}`}
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden
+                >
+                  <path
+                    d="M4 6l4 4 4-4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
 
-            <div
-              style={{
-                background: 'var(--paper, var(--white))',
-                border: '1px solid var(--mist, var(--ink-10))',
-                borderRadius: 12,
-                overflow: 'hidden',
-              }}
-            >
-              {withdrawnRows.map((row, i) => {
-                const canHardDelete = row.total_claims === 0
-                return (
-                  <div
-                    key={row.mission_id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 16,
-                      width: '100%',
-                      padding: '16px 20px',
-                      borderBottom:
-                        i < withdrawnRows.length - 1
-                          ? '1px solid var(--mist, var(--ink-10))'
-                          : 'none',
-                    }}
-                  >
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 500,
-                          color: 'var(--ink-50)',
-                          marginBottom: 4,
-                        }}
-                      >
-                        {row.title}
+              {isArchiveOpen ? (
+                <div id="archived-studies-panel" className="studies-archive-body">
+                  {withdrawnRows.map((row) => {
+                    const canHardDelete = row.total_claims === 0
+                    const meta = [
+                      row.focal_product_name ?? 'No product',
+                      showBrand && row.brand_name ? row.brand_name : null,
+                      relativeTime(row.deleted_at),
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')
+                    return (
+                      <div key={row.mission_id} className="studies-archive-row">
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div className="studies-archive-name">{row.title}</div>
+                          <div className="studies-archive-meta">
+                            <span className="studies-withdrawn-badge">Withdrawn</span>
+                            {meta}
+                          </div>
+                        </div>
+                        <div className="studies-archive-actions">
+                          <button
+                            type="button"
+                            className="studies-archive-restore"
+                            disabled={busyId === row.mission_id || pending}
+                            onClick={() => void runRestore(row.mission_id)}
+                          >
+                            Restore
+                          </button>
+                          {canHardDelete ? (
+                            <RowOverflowMenu
+                              actions={[
+                                {
+                                  label: 'Delete forever',
+                                  tone: 'danger',
+                                  disabled: busyId === row.mission_id || pending,
+                                  onClick: () => setConfirm({ kind: 'hard_delete', row }),
+                                },
+                              ]}
+                            />
+                          ) : null}
+                        </div>
                       </div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: 'var(--ink-30)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {row.focal_product_name ?? 'No product'}
-                        {showBrand && row.brand_name ? ` · ${row.brand_name}` : ''}
-                        {` · Withdrawn ${relativeTime(row.deleted_at)}`}
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                      <button
-                        type="button"
-                        disabled={busyId === row.mission_id || pending}
-                        onClick={() => void runRestore(row.mission_id)}
-                        style={{
-                          ...ghostBtn,
-                          color: 'var(--sage)',
-                          opacity: busyId === row.mission_id ? 0.5 : 1,
-                        }}
-                      >
-                        Restore
-                      </button>
-                      {canHardDelete ? (
-                        <button
-                          type="button"
-                          disabled={busyId === row.mission_id || pending}
-                          onClick={() => setConfirm({ kind: 'hard_delete', row })}
-                          style={{
-                            ...ghostBtn,
-                            color: 'var(--ink-50)',
-                            opacity: busyId === row.mission_id ? 0.5 : 1,
-                          }}
-                        >
-                          Delete forever
-                        </button>
-                      ) : null}
-                    </div>
-                  </div>
-                )
-              })}
+                    )
+                  })}
+                </div>
+              ) : null}
             </div>
           </section>
         ) : null}
