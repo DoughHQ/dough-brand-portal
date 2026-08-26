@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import { getBrand } from '@/lib/queries'
+import { fetchBrandAdjacentCategories } from '@/lib/adjacentCategories.server'
 import CategoryLauncher from '@/components/categories/CategoryLauncher'
+import '@/components/categories/categoriesPage.css'
 
 export default async function BrandCategoriesPage() {
   const scope = await getPortalBrandScope()
@@ -13,12 +15,15 @@ export default async function BrandCategoriesPage() {
     redirect('/admin/categories')
   }
 
-  const brand = await getBrand(effectiveBrandId)
+  const [brand, adjacentCategories] = await Promise.all([
+    getBrand(effectiveBrandId),
+    fetchBrandAdjacentCategories({ brandId: effectiveBrandId }),
+  ])
   if (!brand) redirect('/login')
 
   return (
-    <div style={{ fontFamily: 'var(--font-sans)', maxWidth: 960, margin: '0 auto', padding: '36px 32px 80px' }}>
-      <CategoryLauncher brandName={brand.brand_name} />
+    <div className="cat-page">
+      <CategoryLauncher brandName={brand.brand_name} adjacentCategories={adjacentCategories} />
     </div>
   )
 }

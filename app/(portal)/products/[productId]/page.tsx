@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import { fetchProductMaster } from '@/lib/productMaster/fetch'
+import { fetchProductHeroStudies } from '@/lib/productMaster/fetchProductHeroStudies.server'
 import ProductMasterClient from './ProductMasterClient'
 import { ProductLoadError } from './ProductLoadError'
 
@@ -25,7 +26,10 @@ export default async function ProductDetailPage({ params }: Props) {
 
   const { portalUser, effectiveBrandId, isImpersonating } = scope
   const supabase = await createServerSupabaseClient()
-  const result = await fetchProductMaster(supabase, id)
+  const [result, heroStudies] = await Promise.all([
+    fetchProductMaster(supabase, id),
+    fetchProductHeroStudies({ productId: id, brandId: effectiveBrandId }),
+  ])
 
   if (!result.ok) {
     const hint = result.hint
@@ -63,6 +67,7 @@ export default async function ProductDetailPage({ params }: Props) {
       portalUser={portalUser}
       effectiveBrandId={effectiveBrandId}
       initial={result.data}
+      studies={heroStudies}
       isImpersonating={isImpersonating}
     />
   )

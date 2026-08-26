@@ -87,7 +87,7 @@ export function humanizeRpcError(error: RpcErrorLike): string {
     case 'SKU_NOT_FOUND':
     case 'NUTRITION_NOT_FOUND':
     case 'INGREDIENTS_NOT_FOUND':
-      return 'This package changed. Reloading…'
+      return 'This SKU changed. Reloading…'
     case 'INVALID_PRICE':
       return 'Price must be greater than zero.'
     case 'EMPTY_PATCH':

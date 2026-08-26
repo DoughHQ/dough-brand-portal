@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import type { PortalUser, Brand, BrandSubscription, BrandProduct } from '@/lib/queries'
+import '@/components/categories/categoriesPage.css'
+import './productsPage.css'
 
 type PortfolioProduct = {
   product_id: number
@@ -31,13 +33,99 @@ interface ProductsClientProps {
   isImpersonating?: boolean
 }
 
+function n(value: number): string {
+  return Math.max(0, Math.trunc(value)).toLocaleString()
+}
+
+function SageGlyph({ d }: { d: string }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d={d} stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function SummaryCard({
+  label,
+  value,
+  hint,
+  icon,
+}: {
+  label: string
+  value: number
+  hint: string
+  icon: string
+}) {
+  return (
+    <div className="cat-summary-card">
+      <div className="cat-summary-icon">
+        <SageGlyph d={icon} />
+      </div>
+      <div>
+        <div className="cat-summary-label">{label}</div>
+        <div className="cat-summary-value">{n(value)}</div>
+        <div className="cat-summary-hint">{hint}</div>
+      </div>
+    </div>
+  )
+}
+
+function ProductArt({ product }: { product: PortfolioProduct }) {
+  if (product.image_url) {
+    return (
+      <div className="prod-tile-art">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={product.image_url} alt="" />
+      </div>
+    )
+  }
+  const letter = (product.product_name_clean.trim().slice(0, 1) || '?').toUpperCase()
+  return (
+    <div className="prod-tile-art" aria-hidden>
+      <span className="prod-tile-letter">{letter}</span>
+    </div>
+  )
+}
+
+function ProductCard({ product }: { product: PortfolioProduct }) {
+  const href = `/products/${product.product_id}`
+  const category = product.l3_name ?? product.l2_name
+  return (
+    <Link href={href} className="cat-tile">
+      <ProductArt product={product} />
+      <div className="cat-tile-body">
+        {category ? <div className="cat-kicker">{category}</div> : null}
+        <div className="prod-tile-name">{product.product_name_clean}</div>
+        {product.primary_barcode ? (
+          <div className="prod-tile-meta">{product.primary_barcode}</div>
+        ) : null}
+        <div className="cat-tile-chip-row">
+          {product.has_battle_data ? (
+            <span className="cat-chip cat-chip-live">
+              <span className="cat-chip-dot" aria-hidden />
+              With battle data
+            </span>
+          ) : (
+            <span className="cat-chip cat-chip-empty">
+              <span className="cat-chip-dot" aria-hidden />
+              No signal yet
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="cat-tile-action">
+        <span className="cat-tile-btn cat-tile-btn-solid">Manage product</span>
+      </div>
+    </Link>
+  )
+}
+
 export default function ProductsClient({
   brand,
   products: serverProducts,
   claimedIds,
   isImpersonating,
 }: ProductsClientProps) {
-  const router = useRouter()
   const [portfolioProducts, setPortfolioProducts] = useState<PortfolioProduct[]>([])
   const [portfolioError, setPortfolioError] = useState<string | null>(null)
   const [usingFallback, setUsingFallback] = useState(false)
@@ -62,7 +150,6 @@ export default function ProductsClient({
           setPortfolioProducts(rows)
           setUsingFallback(false)
         } else {
-          // Portfolio empty or failed — use server list so the page isn't a dead end.
           setPortfolioProducts(
             serverProducts.map((p) => ({
               product_id: p.product_id,
@@ -91,312 +178,259 @@ export default function ProductsClient({
     return () => {
       cancelled = true
     }
-    // serverProducts is the SSR catalog for this brand; re-run if brand changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brand.brand_id])
 
   const claimedIdSet = new Set(claimedIds)
-  const filtered = portfolioProducts.filter(p => {
-    const matchSearch = !search || p.product_name_clean.toLowerCase().includes(search.toLowerCase())
+  const filtered = portfolioProducts.filter((p) => {
+    const matchSearch =
+      !search || p.product_name_clean.toLowerCase().includes(search.toLowerCase())
     const matchBattled = !showBattledOnly || p.has_battle_data
     return matchSearch && matchBattled
   })
-  const battledCount = portfolioProducts.filter(p => p.has_battle_data).length
+  const battledCount = portfolioProducts.filter((p) => p.has_battle_data).length
+  const categoryCount = new Set(
+    portfolioProducts.map((p) => p.l2_name).filter((name): name is string => Boolean(name))
+  ).size
+  const awaitingClaim = portfolioProducts.filter((p) => !claimedIdSet.has(p.product_id)).length
 
   return (
-    <div style={{ fontFamily: 'var(--font-sans)', maxWidth: 1200, margin: '0 auto', padding: '36px 32px' }}>
-
-      {isImpersonating && (
-        <div style={{ background: 'var(--amber-pale)', border: '1px solid rgba(192,120,24,0.2)', borderRadius: 'var(--r-md)', padding: '10px 16px', marginBottom: 24, fontSize: 12, color: 'var(--amber)' }}>
+    <div className="cat-page">
+      {isImpersonating ? (
+        <div
+          style={{
+            background: 'var(--amber-pale)',
+            border: '1px solid rgba(192,120,24,0.2)',
+            borderRadius: 13,
+            padding: '10px 16px',
+            marginBottom: 24,
+            fontSize: 12,
+            color: 'var(--amber)',
+          }}
+        >
           Viewing as {brand.brand_name} — this is exactly what they see.
         </div>
-      )}
+      ) : null}
 
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28 }}>
-        <div>
-          <div style={{ fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 400, color: 'var(--ink)', marginBottom: 4 }}>
-            Your products
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--ink-50)' }}>
-            {portfolioProducts.length.toLocaleString()} products · {battledCount} with battle data
-            {usingFallback ? ' · catalog list' : ''}
-          </div>
+      <header className="cat-header">
+        <div className="cat-header-copy">
+          <div className="cat-eyebrow">{brand.brand_name}</div>
+          <h1 className="cat-title">Your products</h1>
+          <p className="cat-lede">
+            Manage the products your brand has on Dough and see where signal is beginning to build.
+          </p>
           {(portfolioError || usingFallback) && (
-            <div style={{ fontSize: 12, color: 'var(--amber)', marginTop: 6 }}>
+            <p style={{ fontSize: 12, color: 'var(--amber)', marginTop: 8, lineHeight: 1.45 }}>
               {portfolioError
                 ? `Portfolio RPC failed (${portfolioError}). Showing server catalog.`
                 : 'Portfolio returned no rows — showing server catalog so you can still open products.'}
-            </div>
+            </p>
           )}
         </div>
-        <button
-          onClick={() => alert('Add product coming soon')}
-          style={{
-            padding: '9px 18px',
-            background: 'var(--sage)',
-            color: 'white',
-            fontSize: 13,
-            fontWeight: 500,
-            borderRadius: 'var(--r-sm)',
-            border: 'none',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-sans)',
-          }}
-        >
-          + Add product
-        </button>
+        <div className="prod-header-actions">
+          <button type="button" className="cat-primary-cta" onClick={() => alert('Add product coming soon')}>
+            + Add product
+          </button>
+        </div>
+      </header>
+
+      <div className="cat-summary">
+        <SummaryCard
+          label="Products"
+          value={portfolioProducts.length}
+          hint="In your portfolio"
+          icon="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+        />
+        <SummaryCard
+          label="With battle data"
+          value={battledCount}
+          hint="Products with signal"
+          icon="M4 14l4-4 4 3 6-7"
+        />
+        <SummaryCard
+          label="Categories represented"
+          value={categoryCount}
+          hint="Across your portfolio"
+          icon="M4 6h16M4 12h16M4 18h10"
+        />
+        <SummaryCard
+          label="Awaiting claim"
+          value={awaitingClaim}
+          hint="Unclaimed products"
+          icon="M12 8v5l3 2M12 21a9 9 0 1 0-9-9"
+        />
       </div>
 
-      <div style={{ display: 'flex', gap: 10, marginBottom: 24, alignItems: 'center' }}>
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search products..."
-          style={{
-            flex: 1,
-            padding: '10px 14px',
-            borderRadius: 'var(--r-sm)',
-            border: '1px solid var(--ink-10)',
-            background: 'var(--white)',
-            fontSize: 13,
-            color: 'var(--ink)',
-            fontFamily: 'var(--font-sans)',
-            outline: 'none',
-          }}
-          onFocus={e => { e.target.style.borderColor = 'var(--ink-30)' }}
-          onBlur={e => { e.target.style.borderColor = 'var(--ink-10)' }}
-        />
+      <div className="prod-toolbar">
+        <div className="cat-browse-search-wrap" style={{ margin: 0 }}>
+          <svg className="cat-browse-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+          <input
+            className="cat-browse-search"
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search products…"
+            aria-label="Search products"
+          />
+        </div>
         <button
+          type="button"
+          className={`prod-filter${showBattledOnly ? ' prod-filter-on' : ''}`}
           onClick={() => setShowBattledOnly(!showBattledOnly)}
-          style={{
-            padding: '9px 14px',
-            borderRadius: 'var(--r-sm)',
-            fontSize: 12,
-            fontWeight: showBattledOnly ? 500 : 400,
-            color: showBattledOnly ? 'var(--sage)' : 'var(--ink-50)',
-            background: showBattledOnly ? 'var(--sage-pale)' : 'transparent',
-            border: showBattledOnly ? '1px solid rgba(74,124,89,0.3)' : '1px solid var(--ink-10)',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-sans)',
-            whiteSpace: 'nowrap',
-          }}
         >
           With battle data
         </button>
-        <div style={{ display: 'flex', gap: 2, background: 'var(--surface-1)', borderRadius: 'var(--r-sm)', padding: 3 }}>
-          {(['grid', 'list'] as const).map(mode => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              style={{
-                padding: '4px 10px',
-                borderRadius: 4,
-                fontSize: 12,
-                color: viewMode === mode ? 'var(--ink)' : 'var(--ink-50)',
-                background: viewMode === mode ? 'var(--white)' : 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-sans)',
-                boxShadow: viewMode === mode ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              }}
-            >
-              {mode === 'grid' ? '⊞' : '☰'}
-            </button>
-          ))}
+        <div className="prod-view-toggle" role="group" aria-label="View mode">
+          <button
+            type="button"
+            className={`prod-view-btn${viewMode === 'grid' ? ' prod-view-btn-on' : ''}`}
+            onClick={() => setViewMode('grid')}
+            aria-pressed={viewMode === 'grid'}
+            aria-label="Grid view"
+          >
+            ⊞
+          </button>
+          <button
+            type="button"
+            className={`prod-view-btn${viewMode === 'list' ? ' prod-view-btn-on' : ''}`}
+            onClick={() => setViewMode('list')}
+            aria-pressed={viewMode === 'list'}
+            aria-label="List view"
+          >
+            ☰
+          </button>
         </div>
       </div>
 
-      {loadingPortfolio && (
-        <div style={{ padding: '60px 0', textAlign: 'center', fontSize: 13, color: 'var(--ink-30)' }}>
-          Loading your products...
-        </div>
-      )}
+      {loadingPortfolio ? (
+        <div style={{ padding: '60px 0', fontSize: 14, color: 'var(--ink-30)' }}>Loading your products…</div>
+      ) : null}
 
-      {!loadingPortfolio && viewMode === 'grid' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>
-          {filtered.map(product => {
-            const isClaimed = claimedIdSet.has(product.product_id)
-            return (
-              <div
-                key={product.product_id}
-                onClick={() => router.push(`/products/${product.product_id}`)}
-                style={{
-                  background: 'var(--white)',
-                  border: `1px solid ${isClaimed ? 'var(--sage)' : 'var(--ink-10)'}`,
-                  borderRadius: 'var(--r-lg)',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  transition: 'box-shadow 0.1s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)' }}
-                onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none' }}
-              >
-                <div style={{
-                  height: 140,
-                  background: 'var(--surface-1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                }}>
-                  {product.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={product.image_url}
-                      alt={product.product_name_clean}
-                      style={{ maxHeight: 120, maxWidth: '90%', objectFit: 'contain' }}
-                    />
-                  ) : (
-                    <div style={{ fontSize: 32, fontWeight: 500, color: 'var(--ink-10)', fontFamily: 'var(--font-serif)' }}>
-                      {product.product_name_clean[0]}
-                    </div>
-                  )}
-                  <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
-                    {isClaimed && (
-                      <div style={{ fontSize: 9, fontWeight: 500, color: 'var(--sage)', background: 'white', border: '1px solid var(--sage)', borderRadius: 20, padding: '1px 7px' }}>
-                        ACTIVE
-                      </div>
-                    )}
-                    {product.has_battle_data && (
-                      <div style={{ fontSize: 9, fontWeight: 500, color: 'var(--ink-50)', background: 'white', border: '1px solid var(--ink-10)', borderRadius: 20, padding: '1px 7px' }}>
-                        {product.total_battles} battles
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div style={{ padding: '14px 16px' }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', lineHeight: 1.3, marginBottom: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                    {product.product_name_clean}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--ink-30)', marginBottom: 8 }}>
-                    {product.l3_name ?? product.l2_name ?? ''}
-                    {product.package_size_value ? ` · ${product.package_size_value}${product.package_size_uom ?? ''}` : ''}
-                  </div>
-
-                  {product.primary_barcode && (
-                    <div style={{ fontSize: 10, color: 'var(--ink-30)', fontFamily: 'var(--font-mono, monospace)', marginBottom: 8 }}>
-                      {product.primary_barcode}
-                    </div>
-                  )}
-
-                  {product.elo_score && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--ink-10)' }}>
-                      <div style={{ fontSize: 11, color: 'var(--ink-30)' }}>ELO</div>
-                      <div style={{ fontFamily: 'var(--font-serif)', fontSize: 16, fontWeight: 400, color: 'var(--ink)' }}>
-                        {Math.round(Number(product.elo_score))}
-                      </div>
-                    </div>
-                  )}
-
-                  <button
-                    onClick={e => {
-                      e.stopPropagation()
-                      router.push(`/products/${product.product_id}`)
-                    }}
-                    style={{
-                      width: '100%',
-                      marginTop: 12,
-                      padding: '7px 0',
-                      background: isClaimed ? 'var(--sage-pale)' : 'var(--ink)',
-                      color: isClaimed ? 'var(--sage)' : 'white',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      borderRadius: 'var(--r-sm)',
-                      border: isClaimed ? '1px solid rgba(74,124,89,0.2)' : 'none',
-                      cursor: 'pointer',
-                      fontFamily: 'var(--font-sans)',
-                    }}
-                  >
-                    {isClaimed ? 'View product' : 'Claim this product'}
-                  </button>
-                </div>
-              </div>
-            )
-          })}
-
-          {filtered.length === 0 && !loadingPortfolio && (
-            <div style={{ gridColumn: '1 / -1', padding: '60px 0', textAlign: 'center', fontSize: 13, color: 'var(--ink-30)' }}>
-              {search ? `No products matching "${search}"` : 'No products found.'}
+      {!loadingPortfolio && viewMode === 'grid' ? (
+        filtered.length === 0 ? (
+          <div className="cat-browse-empty">
+            <div className="cat-browse-empty-title">
+              {search ? 'No products found' : 'No products in this portfolio yet.'}
             </div>
-          )}
-        </div>
-      )}
-
-      {!loadingPortfolio && viewMode === 'list' && (
-        <div style={{ background: 'var(--white)', border: '1px solid var(--ink-10)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr 140px 120px 80px 80px 120px', padding: '8px 20px', background: 'var(--surface-1)', borderBottom: '1px solid var(--ink-10)' }}>
-            {['', 'Product', 'Barcode', 'Category', 'Battles', 'ELO', ''].map((h, i) => (
-              <div key={i} style={{ fontSize: 10, fontWeight: 500, color: 'var(--ink-30)', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: i >= 4 ? 'right' : 'left' }}>
-                {h}
-              </div>
+            {search ? (
+              <p className="cat-browse-empty-sub">Try another product name.</p>
+            ) : null}
+          </div>
+        ) : (
+          <div className="cat-tile-grid">
+            {filtered.map((product) => (
+              <ProductCard key={product.product_id} product={product} />
             ))}
           </div>
-          {filtered.map((product, i) => {
-            const isClaimed = claimedIdSet.has(product.product_id)
-            return (
-              <div
-                key={product.product_id}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '48px 1fr 140px 120px 80px 80px 120px',
-                  padding: '12px 20px',
-                  borderBottom: i < filtered.length - 1 ? '1px solid var(--ink-10)' : 'none',
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface-1)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-                onClick={() => router.push(`/products/${product.product_id}`)}
-              >
-                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--surface-1)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px solid var(--ink-10)' }}>
-                  {product.image_url
-                    // eslint-disable-next-line @next/next/no-img-element
-                    ? <img src={product.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                    : <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-30)' }}>{product.product_name_clean[0]}</span>
-                  }
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {product.product_name_clean}
-                  </div>
-                  {product.package_size_value && (
-                    <div style={{ fontSize: 11, color: 'var(--ink-30)', marginTop: 1 }}>
-                      {product.package_size_value} {product.package_size_uom}
-                    </div>
-                  )}
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--ink-30)', fontFamily: 'var(--font-mono, monospace)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {product.primary_barcode ?? '—'}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--ink-50)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {product.l3_name ?? product.l2_name ?? '—'}
-                </div>
-                <div style={{ fontSize: 12, fontWeight: product.total_battles > 0 ? 500 : 400, color: product.total_battles > 0 ? 'var(--ink)' : 'var(--ink-30)', textAlign: 'right' }}>
-                  {product.total_battles > 0 ? product.total_battles : '—'}
-                </div>
-                <div style={{ fontFamily: 'var(--font-serif)', fontSize: 16, color: product.elo_score ? 'var(--ink)' : 'var(--ink-30)', textAlign: 'right' }}>
-                  {product.elo_score ? Math.round(Number(product.elo_score)) : '—'}
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <span style={{
-                    fontSize: 10,
-                    fontWeight: 500,
-                    color: isClaimed ? 'var(--sage)' : 'var(--ink-30)',
-                    background: isClaimed ? 'var(--sage-pale)' : 'var(--surface-1)',
-                    padding: '2px 8px',
-                    borderRadius: 20,
-                  }}>
-                    {isClaimed ? 'Active' : 'Not claimed'}
-                  </span>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
+        )
+      ) : null}
 
+      {!loadingPortfolio && viewMode === 'list' ? (
+        filtered.length === 0 ? (
+          <div className="cat-browse-empty">
+            <div className="cat-browse-empty-title">
+              {search ? 'No products found' : 'No products in this portfolio yet.'}
+            </div>
+          </div>
+        ) : (
+          <div className="prod-list">
+            <div className="prod-list-head">
+              <span />
+              <span>Product</span>
+              <span className="prod-list-hide-narrow">Barcode</span>
+              <span className="prod-list-hide-narrow">Category</span>
+              <span style={{ textAlign: 'right' }}>Battles</span>
+              <span style={{ textAlign: 'right' }}> </span>
+            </div>
+            {filtered.map((product) => {
+              const isClaimed = claimedIdSet.has(product.product_id)
+              return (
+                <Link
+                  key={product.product_id}
+                  href={`/products/${product.product_id}`}
+                  className="prod-list-row"
+                >
+                  <div className="prod-list-thumb">
+                    {product.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={product.image_url} alt="" />
+                    ) : (
+                      <span style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--ink-30)' }}>
+                        {(product.product_name_clean[0] || '?').toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: 'var(--ink)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {product.product_name_clean}
+                    </div>
+                    {product.package_size_value ? (
+                      <div style={{ fontSize: 11, color: 'var(--ink-30)', marginTop: 1 }}>
+                        {product.package_size_value} {product.package_size_uom}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div
+                    className="prod-list-hide-narrow"
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--ink-30)',
+                      fontFamily: 'var(--font-mono, monospace)',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {product.primary_barcode ?? '—'}
+                  </div>
+                  <div
+                    className="prod-list-hide-narrow"
+                    style={{
+                      fontSize: 13,
+                      color: 'var(--ink-50)',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {product.l3_name ?? product.l2_name ?? '—'}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      textAlign: 'right',
+                      color: product.total_battles > 0 ? 'var(--sage-dark)' : 'var(--ink-30)',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {product.total_battles > 0 ? n(product.total_battles) : '—'}
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span
+                      className={`cat-chip ${isClaimed ? 'cat-chip-live' : 'cat-chip-empty'}`}
+                      style={{ justifySelf: 'end' }}
+                    >
+                      {isClaimed ? 'Active' : 'Not claimed'}
+                    </span>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        )
+      ) : null}
     </div>
   )
 }

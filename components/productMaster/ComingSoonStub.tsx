@@ -8,14 +8,16 @@ import { button, caption } from '@/lib/productMaster/styles'
 export function ComingSoonStub({
   label,
   subject,
+  className,
 }: {
   label: string
   subject: string
+  className?: string
 }) {
   const [open, setOpen] = useState(false)
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} style={button}>
+      <button type="button" onClick={() => setOpen(true)} className={className} style={className ? undefined : button}>
         {label}
       </button>
     )

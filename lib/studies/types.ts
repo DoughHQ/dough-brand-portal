@@ -37,6 +37,8 @@ export type OperatorStudyRow = {
   max_claims?: number | null
   created_at: string
   expires_at: string | null
+  /** Present on list_product_hero_studies. True when the session brand owns the campaign. */
+  is_campaign_owner?: boolean
 }
 
 /** Row from list_withdrawn_studies — tenancy enforced server-side by the RPC. */

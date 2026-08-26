@@ -1,121 +1,116 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import {
-  formatCompeteCounts,
   getBrandCategoryLauncher,
   parseBrandCategoryLauncher,
+  competeCategoriesFromLauncher,
   CategoryLauncherError,
   type BrandCategoryLauncher,
   type CategoryLauncherRow,
 } from '@/lib/categoryLauncher'
 import { brandCategoryOverviewHref } from '@/lib/categoryReport/href'
+import BannerArt from '@/components/categories/BannerArt'
+import type { AdjacentCategory } from '@/lib/adjacentCategories'
+import '@/components/categories/categoriesPage.css'
 
 const SEARCH_DEBOUNCE_MS = 280
 
-function sectionLabel(text: string) {
-  return (
-    <div
-      style={{
-        fontSize: 10,
-        fontWeight: 600,
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase',
-        color: 'var(--ink-30)',
-        marginBottom: 12,
-      }}
-    >
-      {text}
-    </div>
-  )
+function n(value: number): string {
+  return Math.max(0, Math.trunc(value)).toLocaleString()
 }
 
-function BannerArt({
-  row,
-  tall,
-}: {
-  row: CategoryLauncherRow
-  tall?: boolean
-}) {
-  const h = tall ? 140 : 88
-  if (row.banner_image_url) {
-    return (
-      <div
-        style={{
-          height: h,
-          borderRadius: tall ? '10px 10px 0 0' : 8,
-          overflow: 'hidden',
-          background: 'var(--surface-1)',
-        }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={row.banner_image_url}
-          alt=""
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-        />
-      </div>
-    )
+function uniqueL1Count(rows: CategoryLauncherRow[]): number {
+  const names = new Set<string>()
+  for (const row of rows) {
+    if (row.l1_name) names.add(row.l1_name)
   }
-  return (
-    <div
-      style={{
-        height: h,
-        borderRadius: tall ? '10px 10px 0 0' : 8,
-        background:
-          'linear-gradient(145deg, var(--surface-1) 0%, var(--mist, #e8e4dc) 100%)',
-        display: 'grid',
-        placeItems: 'center',
-      }}
-      aria-hidden
-    >
-      <span
-        style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize: tall ? 28 : 22,
-          color: 'var(--ink-30)',
-          letterSpacing: '-0.02em',
-        }}
-      >
-        {(row.icon_name || row.l2_name).slice(0, 1).toUpperCase()}
-      </span>
-    </div>
-  )
+  return names.size
 }
 
-function UnlockCta({ subtle }: { subtle?: boolean }) {
+function competeStatus(row: CategoryLauncherRow): 'live' | 'building' | 'empty' {
+  if (row.entitled) return 'live'
+  if (row.total_battles > 0) return 'building'
+  return 'empty'
+}
+
+function StatusChip({ status }: { status: 'live' | 'building' | 'empty' }) {
+  const label =
+    status === 'live' ? 'Live dashboard' : status === 'building' ? 'Building signal' : 'No battles yet'
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        fontSize: 12,
-        fontWeight: 500,
-        color: subtle ? 'var(--ink-30)' : 'var(--ink-50)',
-        cursor: 'not-allowed',
-        userSelect: 'none',
-      }}
-      title="Category dashboard unlocks aren’t available yet"
-      aria-disabled
-    >
-      Unlock dashboard
-      <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-        Soon
-      </span>
+    <span className={`cat-chip cat-chip-${status}`}>
+      <span className="cat-chip-dot" aria-hidden />
+      {label}
     </span>
   )
 }
 
-function OpenOverviewCta({ href }: { href: string }) {
+function MetricCells({
+  row,
+  size,
+}: {
+  row: CategoryLauncherRow
+  size: 'lg' | 'sm'
+}) {
+  const items = [
+    { value: row.total_products, label: 'Products' },
+    { value: row.products_with_battles, label: 'Products with battles' },
+    { value: row.total_battles, label: size === 'lg' ? 'Total battles' : 'Battles' },
+  ]
   return (
-    <Link
-      href={href}
-      style={{ fontSize: 12, fontWeight: 500, color: 'var(--sage)', textDecoration: 'none' }}
-    >
-      Open Overview →
-    </Link>
+    <div className={`cat-metrics${size === 'sm' ? ' cat-metrics-sm' : ''}`}>
+      {items.map((item) => (
+        <div key={item.label} className="cat-metric">
+          <div className={`cat-metric-n ${size === 'lg' ? 'cat-metric-n-lg' : 'cat-metric-n-sm'}`}>
+            {n(item.value)}
+          </div>
+          <div className="cat-metric-label">{item.label}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function SectionHead({ title, sub }: { title: string; sub?: ReactNode }) {
+  return (
+    <div className="cat-section-head">
+      <h2 className="cat-section-title">{title}</h2>
+      {typeof sub === 'string' ? <p className="cat-section-sub">{sub}</p> : sub}
+    </div>
+  )
+}
+
+function SageGlyph({ d }: { d: string }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d={d} stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function SummaryCard({
+  label,
+  value,
+  hint,
+  icon,
+}: {
+  label: string
+  value: number
+  hint: string
+  icon: string
+}) {
+  return (
+    <div className="cat-summary-card">
+      <div className="cat-summary-icon">
+        <SageGlyph d={icon} />
+      </div>
+      <div>
+        <div className="cat-summary-label">{label}</div>
+        <div className="cat-summary-value">{n(value)}</div>
+        <div className="cat-summary-hint">{hint}</div>
+      </div>
+    </div>
   )
 }
 
@@ -124,8 +119,8 @@ function OwnedEmpty() {
     <div
       style={{
         background: 'var(--white)',
-        border: '1px solid var(--ink-10)',
-        borderRadius: 12,
+        border: '1px solid var(--mist)',
+        borderRadius: 13,
         padding: '32px 28px 28px',
       }}
     >
@@ -134,7 +129,7 @@ function OwnedEmpty() {
           fontFamily: 'var(--font-serif)',
           fontSize: 24,
           fontWeight: 400,
-          color: 'var(--ink)',
+          color: 'var(--sage-dark)',
           margin: '0 0 10px',
           letterSpacing: '-0.02em',
           lineHeight: 1.25,
@@ -161,39 +156,30 @@ function OwnedEmpty() {
 function OwnedCard({ row }: { row: CategoryLauncherRow }) {
   const href = brandCategoryOverviewHref(row.l2_id)
   return (
-    <div
-      style={{
-        background: 'var(--white)',
-        border: '1px solid var(--ink-10)',
-        borderRadius: 12,
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <BannerArt row={row} tall />
-      <div style={{ padding: '16px 18px 18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {row.l1_name ? (
-          <div style={{ fontSize: 11, color: 'var(--ink-30)', marginBottom: 4 }}>{row.l1_name}</div>
-        ) : null}
-        <div
-          style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize: 20,
-            fontWeight: 400,
-            color: 'var(--ink)',
-            letterSpacing: '-0.02em',
-            marginBottom: 8,
-            lineHeight: 1.25,
-          }}
-        >
-          {row.l2_name}
+    <div className="cat-feature">
+      <div className="cat-feature-art">
+        {row.banner_image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={row.banner_image_url} alt="" />
+        ) : (
+          <div className="cat-feature-art-fallback" aria-hidden>
+            {(row.icon_name || row.l2_name).slice(0, 1).toUpperCase()}
+          </div>
+        )}
+      </div>
+      <div className="cat-feature-body">
+        <div className="cat-feature-top">
+          <div>
+            {row.l1_name ? <div className="cat-kicker">{row.l1_name}</div> : null}
+            <h3 className="cat-feature-name">{row.l2_name}</h3>
+          </div>
+          <StatusChip status="live" />
         </div>
-        <div style={{ fontSize: 12, color: 'var(--ink-50)', lineHeight: 1.45, marginBottom: 14 }}>
-          {formatCompeteCounts(row)}
-        </div>
-        <div style={{ marginTop: 'auto' }}>
-          <OpenOverviewCta href={href} />
+        <MetricCells row={row} size="lg" />
+        <div className="cat-feature-actions">
+          <Link href={href} className="cat-primary-cta">
+            Open overview →
+          </Link>
         </div>
       </div>
     </div>
@@ -201,95 +187,61 @@ function OwnedCard({ row }: { row: CategoryLauncherRow }) {
 }
 
 function CompeteCard({ row }: { row: CategoryLauncherRow }) {
+  const status = competeStatus(row)
+  const href = brandCategoryOverviewHref(row.l2_id)
+  const cta = status === 'live' ? 'Open overview' : 'View category'
   return (
-    <div
-      style={{
-        background: 'var(--white)',
-        border: '1px solid var(--ink-10)',
-        borderRadius: 12,
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <BannerArt row={row} />
-      <div style={{ padding: '14px 16px 16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {row.l1_name ? (
-          <div style={{ fontSize: 11, color: 'var(--ink-30)', marginBottom: 4 }}>{row.l1_name}</div>
-        ) : null}
-        <div style={{ fontSize: 16, fontWeight: 500, color: 'var(--ink)', marginBottom: 6 }}>
-          {row.l2_name}
+    <Link href={href} className="cat-tile">
+      <BannerArt row={row} height={152} />
+      <div className="cat-tile-body">
+        {row.l1_name ? <div className="cat-kicker">{row.l1_name}</div> : null}
+        <div className="cat-tile-name">{row.l2_name}</div>
+        <div className="cat-tile-chip-row">
+          <StatusChip status={status} />
         </div>
-        <div style={{ fontSize: 12, color: 'var(--ink-50)', lineHeight: 1.45, marginBottom: 14 }}>
-          {formatCompeteCounts(row)}
-        </div>
-        <div style={{ marginTop: 'auto' }}>
-          {row.entitled ? (
-            <OpenOverviewCta href={brandCategoryOverviewHref(row.l2_id)} />
-          ) : (
-            <UnlockCta />
-          )}
+        <div className="cat-tile-metrics">
+          <MetricCells row={row} size="sm" />
         </div>
       </div>
-    </div>
+      <div className="cat-tile-action">
+        <span className="cat-tile-btn cat-tile-btn-solid">{cta}</span>
+      </div>
+    </Link>
   )
 }
 
-function BrowseCard({ row }: { row: CategoryLauncherRow }) {
+function ExploreCard({
+  row,
+}: {
+  row: {
+    l2_id: number
+    l2_name: string
+    l1_name: string | null
+    banner_image_url: string | null
+    icon_name: string | null
+  }
+}) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 14,
-        padding: '12px 0',
-        borderTop: '1px solid var(--mist, var(--ink-10))',
-      }}
-    >
-      <div style={{ width: 56, height: 40, flexShrink: 0, borderRadius: 6, overflow: 'hidden' }}>
-        {row.banner_image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={row.banner_image_url}
-            alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          />
-        ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              background: 'var(--surface-1)',
-              display: 'grid',
-              placeItems: 'center',
-              fontFamily: 'var(--font-serif)',
-              fontSize: 14,
-              color: 'var(--ink-30)',
-            }}
-            aria-hidden
-          >
-            {(row.icon_name || row.l2_name).slice(0, 1).toUpperCase()}
-          </div>
-        )}
+    <Link href={brandCategoryOverviewHref(row.l2_id)} className="cat-tile">
+      <BannerArt row={row} height={152} />
+      <div className="cat-tile-body">
+        {row.l1_name ? <div className="cat-kicker">{row.l1_name}</div> : null}
+        <div className="cat-tile-name">{row.l2_name}</div>
       </div>
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>{row.l2_name}</div>
-        {row.l1_name ? (
-          <div style={{ fontSize: 12, color: 'var(--ink-30)', marginTop: 2 }}>{row.l1_name}</div>
-        ) : null}
+      <div className="cat-tile-action">
+        <span className="cat-tile-btn cat-tile-btn-outline">Explore</span>
       </div>
-      <div style={{ flexShrink: 0 }}>
-        {row.entitled ? (
-          <OpenOverviewCta href={brandCategoryOverviewHref(row.l2_id)} />
-        ) : (
-          <UnlockCta subtle />
-        )}
-      </div>
-    </div>
+    </Link>
   )
 }
 
-export default function CategoryLauncher({ brandName }: { brandName: string }) {
+export default function CategoryLauncher({
+  brandName,
+  adjacentCategories,
+}: {
+  brandName: string
+  adjacentCategories: AdjacentCategory[]
+}) {
   const [data, setData] = useState<BrandCategoryLauncher | null>(null)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -311,7 +263,6 @@ export default function CategoryLauncher({ brandName }: { brandName: string }) {
           baselineRef.current = payload
           setData(payload)
         } else {
-          // Keep owned / has_products stable; only refresh browse from search response
           const base = baselineRef.current
           setData({
             owned: base?.owned ?? payload.owned,
@@ -353,8 +304,8 @@ export default function CategoryLauncher({ brandName }: { brandName: string }) {
       <div
         style={{
           background: 'var(--white)',
-          border: '1px solid var(--ink-10)',
-          borderRadius: 12,
+          border: '1px solid var(--mist)',
+          borderRadius: 13,
           padding: '28px',
         }}
       >
@@ -364,7 +315,7 @@ export default function CategoryLauncher({ brandName }: { brandName: string }) {
             fontSize: 22,
             fontWeight: 400,
             margin: '0 0 8px',
-            color: 'var(--ink)',
+            color: 'var(--sage-dark)',
           }}
         >
           Couldn’t load categories
@@ -377,67 +328,75 @@ export default function CategoryLauncher({ brandName }: { brandName: string }) {
   const owned = data?.owned ?? []
   const hasProducts = data?.has_products ?? []
   const browse = data?.browse ?? []
+  const compete = data ? competeCategoriesFromLauncher(data) : []
+  const represented = compete.length
+  const departments = uniqueL1Count(compete)
+  const productsMapped = compete.reduce((s, r) => s + (r.total_products || 0), 0)
+  const battlesCaptured = compete.reduce((s, r) => s + (r.total_battles || 0), 0)
 
   return (
     <div>
-      <header style={{ marginBottom: 36 }}>
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 500,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'var(--ink-30)',
-            marginBottom: 8,
-          }}
-        >
-          {brandName}
+      <header className="cat-header">
+        <div className="cat-header-copy">
+          <div className="cat-eyebrow">{brandName}</div>
+          <h1 className="cat-title">Categories</h1>
+          <p className="cat-lede">
+            Category dashboards unlock full Overview. Until then, see where your products already
+            compete — honest product and battle counts, no invented rankings.
+          </p>
         </div>
-        <h1
-          style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize: 36,
-            fontWeight: 400,
-            color: 'var(--ink)',
-            margin: '0 0 10px',
-            letterSpacing: '-0.03em',
-          }}
-        >
-          Categories
-        </h1>
-        <p style={{ fontSize: 15, color: 'var(--ink-50)', margin: 0, lineHeight: 1.55, maxWidth: 560 }}>
-          Category dashboards unlock full Overview. Until then, see where your products already
-          compete — honest product and battle counts, no invented rankings.
-        </p>
       </header>
 
-      <section style={{ marginBottom: 40 }}>
-        {sectionLabel('Your dashboards')}
+      <div className="cat-summary">
+        <SummaryCard
+          label="Categories represented"
+          value={represented}
+          hint={departments > 0 ? `Across ${departments} department${departments === 1 ? '' : 's'}` : 'No competing categories yet'}
+          icon="M4 6h16M4 12h16M4 18h10"
+        />
+        <SummaryCard
+          label="Dashboards unlocked"
+          value={owned.length}
+          hint={owned.length === 0 ? 'None live yet' : owned.length === 1 ? '1 live overview' : `${owned.length} live overviews`}
+          icon="M4 19V5h12v14H4zM16 8h4v11h-4"
+        />
+        <SummaryCard
+          label="Products mapped"
+          value={productsMapped}
+          hint="In competing categories"
+          icon="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+        />
+        <SummaryCard
+          label="Battles captured"
+          value={battlesCaptured}
+          hint="Across competing categories"
+          icon="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"
+        />
+      </div>
+
+      <section className="cat-section">
+        <SectionHead
+          title="Ready to explore"
+          sub="Dashboards that are live and ready with enough battle signal."
+        />
         {owned.length === 0 ? (
           <OwnedEmpty />
         ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-              gap: 16,
-            }}
-          >
-            {owned.map((row) => (
-              <OwnedCard key={row.l2_id} row={row} />
-            ))}
-          </div>
+          owned.map((row) => <OwnedCard key={row.l2_id} row={row} />)
         )}
       </section>
 
-      <section style={{ marginBottom: 40 }}>
-        {sectionLabel('Where you compete')}
+      <section className="cat-section">
+        <SectionHead
+          title="Where you compete"
+          sub="These categories are building signal. Dashboards will unlock as battles accumulate."
+        />
         {hasProducts.length === 0 ? (
           <div
             style={{
               background: 'var(--white)',
-              border: '1px solid var(--ink-10)',
-              borderRadius: 12,
+              border: '1px solid var(--mist)',
+              borderRadius: 13,
               padding: '28px 24px',
             }}
           >
@@ -447,7 +406,7 @@ export default function CategoryLauncher({ brandName }: { brandName: string }) {
                 fontSize: 20,
                 fontWeight: 400,
                 margin: '0 0 8px',
-                color: 'var(--ink)',
+                color: 'var(--sage-dark)',
               }}
             >
               No competing categories yet
@@ -455,21 +414,12 @@ export default function CategoryLauncher({ brandName }: { brandName: string }) {
             <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55, margin: '0 0 16px' }}>
               Claim products under Products. Once they sit in a taxonomy category, they appear here.
             </p>
-            <Link
-              href="/products"
-              style={{ fontSize: 13, fontWeight: 500, color: 'var(--sage)', textDecoration: 'none' }}
-            >
+            <Link href="/products" style={{ fontSize: 13, fontWeight: 500, color: 'var(--sage)', textDecoration: 'none' }}>
               Go to Products →
             </Link>
           </div>
         ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-              gap: 14,
-            }}
-          >
+          <div className="cat-tile-grid">
             {hasProducts.map((row) => (
               <CompeteCard key={row.l2_id} row={row} />
             ))}
@@ -477,44 +427,73 @@ export default function CategoryLauncher({ brandName }: { brandName: string }) {
         )}
       </section>
 
-      <section>
-        {sectionLabel('Browse categories')}
-        <div style={{ marginBottom: 16 }}>
+      {adjacentCategories.length > 0 ? (
+        <section className="cat-section">
+          <SectionHead title="Categories next door" sub="Adjacent aisles you’re not in yet." />
+          <div className="cat-tile-grid">
+            {adjacentCategories.map((row) => (
+              <ExploreCard key={row.l2_id} row={row} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="cat-section">
+        <SectionHead
+          title="Browse categories"
+          sub={
+            <>
+              <p className="cat-section-sub">Explore categories beyond your current portfolio.</p>
+              <p className="cat-section-sub">
+                You don’t have products here yet — but you can add them anytime.
+              </p>
+            </>
+          }
+        />
+        <div className="cat-browse-search-wrap">
+          <svg className="cat-browse-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
           <input
+            className="cat-browse-search"
             type="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search categories or parents…"
             aria-label="Search browse categories"
-            style={{
-              width: '100%',
-              maxWidth: 420,
-              padding: '10px 14px',
-              fontSize: 14,
-              fontFamily: 'var(--font-sans)',
-              border: '1px solid var(--ink-10)',
-              borderRadius: 8,
-              background: 'var(--white)',
-              color: 'var(--ink)',
-              outline: 'none',
-            }}
           />
         </div>
         {browse.length === 0 ? (
-          <p style={{ fontSize: 14, color: 'var(--ink-30)', margin: '8px 0 0' }}>
-            {debouncedSearch
-              ? `No categories match “${debouncedSearch}”.`
-              : 'No other categories to browse right now.'}
-          </p>
+          <div className="cat-browse-empty">
+            <div className="cat-browse-empty-title">
+              {debouncedSearch ? 'No categories found' : 'No other categories to browse right now.'}
+            </div>
+            {debouncedSearch ? (
+              <p className="cat-browse-empty-sub">Try another category or parent name.</p>
+            ) : null}
+          </div>
         ) : (
-          <div>
+          <div className="cat-tile-grid">
             {browse.map((row) => (
-              <BrowseCard key={row.l2_id} row={row} />
+              <ExploreCard key={row.l2_id} row={row} />
             ))}
-            <div style={{ borderTop: '1px solid var(--mist, var(--ink-10))' }} />
           </div>
         )}
       </section>
+
+      <div className="cat-note">
+        <div className="cat-note-icon" aria-hidden>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M12 11v5M12 8h.01" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        </div>
+        <span>
+          Dashboards unlock as products collect enough battle activity. We’ll surface them here
+          automatically.
+        </span>
+      </div>
     </div>
   )
 }

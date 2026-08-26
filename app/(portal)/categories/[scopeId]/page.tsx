@@ -3,7 +3,12 @@ import Link from 'next/link'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import { fetchUnlockedCategoryL2Ids } from '@/lib/brandCategories'
 import { fetchCategoryReport } from '@/lib/categoryReport/fetch'
+import {
+  fetchBrandCategoryProductsByL2,
+  fetchTaxonomyNodeDisplayName,
+} from '@/lib/categoryProductsByL2.server'
 import CategoryDashboardCanvas from '@/components/categoryDashboard/CategoryDashboardCanvas'
+import LockedCategoryPreview from '@/components/categories/LockedCategoryPreview'
 
 type Props = {
   params: Promise<{ scopeId: string }>
@@ -38,36 +43,19 @@ export default async function BrandCategoryOverviewPage({ params, searchParams }
 
   const unlockedIds = await fetchUnlockedCategoryL2Ids(effectiveBrandId)
   if (!unlockedIds.includes(scopeId)) {
+    const [productsResult, nodeName] = await Promise.all([
+      fetchBrandCategoryProductsByL2({
+        l2NodeId: scopeId,
+        brandId: effectiveBrandId,
+      }),
+      fetchTaxonomyNodeDisplayName(scopeId),
+    ])
     return (
-      <div style={{ maxWidth: 640, margin: '48px auto', padding: '0 32px', fontFamily: 'var(--font-sans)' }}>
-        <Link
-          href="/categories"
-          style={{ fontSize: 13, color: 'var(--ink-50)', textDecoration: 'none', fontWeight: 500 }}
-        >
-          ← Categories
-        </Link>
-        <h1
-          style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize: 28,
-            fontWeight: 400,
-            margin: '20px 0 10px',
-            letterSpacing: '-0.02em',
-          }}
-        >
-          This category dashboard isn’t unlocked
-        </h1>
-        <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55, margin: '0 0 12px' }}>
-          Overview opens after you unlock a category dashboard. Until then, you can still see where
-          your products compete from Categories — without invented rankings.
-        </p>
-        <p style={{ fontSize: 13, color: 'var(--ink-30)', margin: '0 0 24px' }}>
-          Unlock isn’t available to purchase yet.
-        </p>
-        <Link href="/categories" style={{ fontSize: 13, color: 'var(--sage)', fontWeight: 500 }}>
-          Back to categories →
-        </Link>
-      </div>
+      <LockedCategoryPreview
+        categoryName={nodeName ?? `Category ${scopeId}`}
+        products={productsResult.products}
+        loadFailed={!productsResult.ok}
+      />
     )
   }
 

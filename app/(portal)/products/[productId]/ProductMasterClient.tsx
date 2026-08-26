@@ -2,12 +2,14 @@
 
 import {
   useCallback,
+  useEffect,
   useMemo,
   useState,
   type CSSProperties,
   type ReactNode,
 } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import type { PortalUser } from '@/lib/queries'
 import { createClient } from '@/lib/supabase'
 import { callWriteRpc, fetchProductMaster } from '@/lib/productMaster/fetch'
@@ -31,15 +33,55 @@ import {
   panel,
   panelPending,
   productName as productNameStyle,
-  questionCard,
   sectionHeading,
-  twoCol,
 } from '@/lib/productMaster/styles'
+import ProductDetailTabBar from './tabs/ProductDetailTabBar'
+import ProductSkuSwitcher from './tabs/ProductSkuSwitcher'
+import {
+  ProductActivityTab,
+  ProductImagesTab,
+  ProductIntelligenceTab,
+  ProductNutritionTab,
+  ProductOverviewTab,
+  ProductPackagesTab,
+  ProductPricingTab,
+  ProductProofTab,
+  ProductStudiesTab,
+} from './tabs/ProductDetailTabPanels'
+import {
+  parseProductDetailTab,
+  parseSelectedSkuId,
+  type ProductDetailTab,
+} from './tabs/productDetailTabs'
+import { splitCategoryPath } from './tabs/overviewPresentation'
+import {
+  activeDietaryFlags,
+  dietaryContainsItems,
+  extendedNutrientRows,
+  MACRO_ROWS,
+  MICRO_ROWS,
+  nutritionSummary,
+  presentRows,
+  servingRow,
+  skuHasIngredientStatement,
+  skuHasNutritionFacts,
+  splitIngredientStatement,
+  displayAllCapsPhrase,
+} from './tabs/compositionPresentation'
+import {
+  buildHeadToHeadJobs,
+  intelligenceVolumeStats,
+  jobStatusCopy,
+  pickHeadlineStanding,
+  raterFloorCopy,
+} from './tabs/intelligencePresentation'
+import type { ProductStudyCard } from '@/lib/productMaster/productHeroStudies'
 
 type Props = {
   portalUser: PortalUser
   effectiveBrandId: number
   initial: ProductMaster
+  studies: ProductStudyCard[]
   isImpersonating?: boolean
 }
 
@@ -101,12 +143,6 @@ const sectionTitle: CSSProperties = {
 }
 
 const muted: CSSProperties = { ...caption }
-
-const stack: CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 20,
-}
 
 function formatMoney(n: number | null | undefined): string {
   if (n == null || Number.isNaN(n)) return '—'
@@ -226,10 +262,22 @@ export default function ProductMasterClient({
   portalUser,
   effectiveBrandId,
   initial,
+  studies,
   isImpersonating,
 }: Props) {
   const supabase = useMemo(() => createClient(), [])
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [master, setMaster] = useState(initial)
+  const [tab, setTab] = useState<ProductDetailTab>(() =>
+    parseProductDetailTab(searchParams.get('tab'))
+  )
+  const [skuId, setSkuId] = useState<number | null>(() =>
+    parseSelectedSkuId(
+      searchParams.get('sku'),
+      initial.skus.map((s) => s.sku_variant_id)
+    )
+  )
   const [flash, setFlash] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [stale, setStale] = useState<StaleState | null>(null)
@@ -257,6 +305,50 @@ export default function ProductMasterClient({
   const isAdmin = portalUser.role === 'dough_admin'
   const product = master.product
   const editable = new Set(master.editable_fields ?? [])
+
+  const skuIds = useMemo(() => master.skus.map((s) => s.sku_variant_id), [master.skus])
+
+  useEffect(() => {
+    setTab(parseProductDetailTab(searchParams.get('tab')))
+    setSkuId(parseSelectedSkuId(searchParams.get('sku'), skuIds))
+  }, [searchParams, skuIds])
+
+  const writeProductParams = useCallback(
+    (patch: { tab?: ProductDetailTab; skuId?: number | null }) => {
+      const params = new URLSearchParams(searchParams.toString())
+      const nextTab = patch.tab ?? tab
+      if (nextTab === 'overview') params.delete('tab')
+      else params.set('tab', nextTab)
+
+      const nextSku = patch.skuId !== undefined ? patch.skuId : skuId
+      if (nextSku != null && skuIds.length > 1 && skuIds.includes(nextSku)) {
+        params.set('sku', String(nextSku))
+      } else {
+        params.delete('sku')
+      }
+
+      const qs = params.toString()
+      const path = `/products/${product.product_id}`
+      router.replace(qs ? `${path}?${qs}` : path, { scroll: false })
+    },
+    [router, searchParams, tab, skuId, skuIds, product.product_id]
+  )
+
+  const selectTab = useCallback(
+    (next: ProductDetailTab) => {
+      setTab(next)
+      writeProductParams({ tab: next })
+    },
+    [writeProductParams]
+  )
+
+  const selectSku = useCallback(
+    (next: number) => {
+      setSkuId(next)
+      writeProductParams({ skuId: next })
+    },
+    [writeProductParams]
+  )
 
   const systemFlags = useMemo(
     () => (master.open_corrections ?? []).filter((c) => c.kind === 'system_flag'),
@@ -292,6 +384,20 @@ export default function ProductMasterClient({
   }, [proposals])
 
   const multiSku = master.sku_count >= 2
+  const selectedSku =
+    master.skus.find((s) => s.sku_variant_id === skuId) ?? master.skus[0] ?? null
+
+  const showJobScores = master.compare_groups.results != null
+  const intelJobs = useMemo(
+    () => buildHeadToHeadJobs(master.compare_groups.eligible, master.compare_groups.results),
+    [master.compare_groups.eligible, master.compare_groups.results]
+  )
+  const intelHeadline = useMemo(() => pickHeadlineStanding(intelJobs), [intelJobs])
+  const intelVolume = useMemo(
+    () => intelligenceVolumeStats(master.intelligence),
+    [master.intelligence]
+  )
+  const intelFloor = raterFloorCopy(master.intelligence)
 
   const refetch = useCallback(async () => {
     const result = await fetchProductMaster(supabase, product.product_id)
@@ -590,6 +696,66 @@ export default function ProductMasterClient({
   }
 
   const cov = master.coverage
+  const skuPending =
+    pendingFields.has('nutrition') ||
+    pendingFields.has('ingredients') ||
+    pendingFields.has('price')
+
+  const renderSkuFields = (sku: MasterSku) => (
+    <SkuBlock
+      sku={sku}
+      hideIdentity
+      canEdit={canEdit}
+      correctionTypes={correctionTypes}
+      multiSku={multiSku}
+      showAll={!!showAllNutrients[sku.sku_variant_id]}
+      onToggleAll={() =>
+        setShowAllNutrients((s) => ({
+          ...s,
+          [sku.sku_variant_id]: !s[sku.sku_variant_id],
+        }))
+      }
+      editingMsrp={editingMsrp === sku.sku_variant_id}
+      msrpDraft={msrpDraft[sku.sku_variant_id] ?? ''}
+      onStartMsrp={() => {
+        setEditingMsrp(sku.sku_variant_id)
+        setMsrpDraft((d) => ({
+          ...d,
+          [sku.sku_variant_id]: sku.msrp != null ? String(sku.msrp) : '',
+        }))
+      }}
+      onMsrpDraft={(v) => setMsrpDraft((d) => ({ ...d, [sku.sku_variant_id]: v }))}
+      onSaveMsrp={() => saveMsrp(sku, msrpDraft[sku.sku_variant_id] ?? '')}
+      onCancelMsrp={() => setEditingMsrp(null)}
+      editingIngredients={editingIngredients === sku.sku_variant_id}
+      ingredientsDraft={ingredientsDraft}
+      onStartIngredients={() => {
+        setEditingIngredients(sku.sku_variant_id)
+        setIngredientsDraft(sku.ingredients?.ingredients_text_raw ?? '')
+      }}
+      onIngredientsDraft={setIngredientsDraft}
+      onSaveIngredients={() => saveIngredients(sku, ingredientsDraft)}
+      onCancelIngredients={() => setEditingIngredients(null)}
+      editingNutritionKey={editingNutritionKey}
+      nutritionDraft={nutritionDraft}
+      onStartNutrition={(key, val) => {
+        setEditingNutritionKey(`${sku.sku_variant_id}:${key}`)
+        setNutritionDraft(val ?? '')
+      }}
+      onNutritionDraft={setNutritionDraft}
+      onSaveNutrition={(key) => saveNutritionField(sku, key, nutritionDraft)}
+      onCancelNutrition={() => setEditingNutritionKey(null)}
+      saving={saving}
+    />
+  )
+
+  const ingredientSkus =
+    selectedSku && skuHasIngredientStatement(selectedSku) ? [selectedSku] : []
+  const nutritionSkus =
+    selectedSku && skuHasNutritionFacts(selectedSku) ? [selectedSku] : []
+  const showDietaryCard =
+    master.dietary != null || (ingredientSkus.length === 0 && nutritionSkus.length === 0)
+  const compositionSplit = ingredientSkus.length > 0 && showDietaryCard
 
   return (
     <div style={pageShell}>
@@ -812,7 +978,7 @@ export default function ProductMasterClient({
           </div>
           {master.sku_count > 0 && (
             <div style={{ ...caption, marginTop: 10 }}>
-              {master.sku_count} package{master.sku_count === 1 ? '' : 's'}
+              {master.sku_count} SKU{master.sku_count === 1 ? '' : 's'}
               {master.price?.msrp != null ? ` · MSRP ${formatMoney(master.price.msrp)}` : ''}
               {master.price?.price_tier ? ` · ${master.price.price_tier}` : ''}
             </div>
@@ -820,15 +986,36 @@ export default function ProductMasterClient({
         </div>
       </div>
 
-      <div style={twoCol}>
-        <div style={stack}>
+      <ProductSkuSwitcher
+        options={master.skus.map((sku) => ({
+          id: sku.sku_variant_id,
+          label: displayAllCapsPhrase(skuLabel(sku)),
+          barcode: sku.barcode,
+        }))}
+        selectedId={selectedSku?.sku_variant_id ?? null}
+        canEdit={canEdit}
+        addSubject={`Add SKU — product ${product.product_id}`}
+        onSelect={selectSku}
+      />
+
+      <ProductDetailTabBar
+        active={tab}
+        packageCount={master.sku_count}
+        studyCount={studies.length}
+        onSelect={selectTab}
+      />
+
+      {tab === 'overview' && (
+        <ProductOverviewTab>
           {/* Identity */}
-          <div style={pendingPanelStyle(pendingFields.has('name'))}>
-            <SectionHeading>
+          <div
+            className={`pm-overview-card${pendingFields.has('name') ? ' pm-overview-card-pending' : ''}`}
+          >
+            <OverviewHeading>
               Identity
               <ProposalBadge types={pendingFields} match="name" />
-            </SectionHeading>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            </OverviewHeading>
+            <div className="pm-id-rows">
               {(['product_name_short', 'product_flavor_variant', 'product_variety', 'product_description'] as const).map(
                 (field) => (
                   <IdentityField
@@ -847,283 +1034,36 @@ export default function ProductMasterClient({
                     onCancel={() => setEditingField(null)}
                     saving={saving}
                     multiline={field === 'product_description'}
+                    compact
                   />
                 )
               )}
             </div>
           </div>
-          {/* Packages */}
-          <div
-            style={pendingPanelStyle(
-              pendingFields.has('nutrition') ||
-                pendingFields.has('ingredients') ||
-                pendingFields.has('price')
-            )}
-          >
-            {/* Packages */}
-            <SectionHeading>
-              Packages
-              {multiSku && <ProposalBadge types={pendingFields} match="nutrition" />}
-              {multiSku && <ProposalBadge types={pendingFields} match="ingredients" />}
-              {multiSku && <ProposalBadge types={pendingFields} match="price" />}
-            </SectionHeading>
-
-            {master.sku_count === 0 && (
-              <div>
-                <p style={{ fontSize: 14, color: 'var(--ink)', marginBottom: 8 }}>No packages on file</p>
-                <p style={{ ...muted, marginBottom: 12 }}>
-                  About 37% of the catalog has no package yet. Adding one is how this product becomes
-                  measurable.
-                </p>
-                {canEdit && (
-                  <ComingSoonStub
-                    label="Add a package"
-                    subject={`Add package — product ${product.product_id}`}
-                  />
-                )}
-              </div>
-            )}
-
-            {master.sku_count === 1 && master.skus[0] && (
-              <SkuBlock
-                sku={master.skus[0]}
-                canEdit={canEdit}
-                correctionTypes={correctionTypes}
-                multiSku={false}
-                showAll={!!showAllNutrients[master.skus[0].sku_variant_id]}
-                onToggleAll={() =>
-                  setShowAllNutrients((s) => ({
-                    ...s,
-                    [master.skus[0].sku_variant_id]: !s[master.skus[0].sku_variant_id],
-                  }))
-                }
-                editingMsrp={editingMsrp === master.skus[0].sku_variant_id}
-                msrpDraft={msrpDraft[master.skus[0].sku_variant_id] ?? ''}
-                onStartMsrp={() => {
-                  setEditingMsrp(master.skus[0].sku_variant_id)
-                  setMsrpDraft((d) => ({
-                    ...d,
-                    [master.skus[0].sku_variant_id]:
-                      master.skus[0].msrp != null ? String(master.skus[0].msrp) : '',
-                  }))
-                }}
-                onMsrpDraft={(v) =>
-                  setMsrpDraft((d) => ({ ...d, [master.skus[0].sku_variant_id]: v }))
-                }
-                onSaveMsrp={() => saveMsrp(master.skus[0], msrpDraft[master.skus[0].sku_variant_id] ?? '')}
-                onCancelMsrp={() => setEditingMsrp(null)}
-                editingIngredients={editingIngredients === master.skus[0].sku_variant_id}
-                ingredientsDraft={ingredientsDraft}
-                onStartIngredients={() => {
-                  setEditingIngredients(master.skus[0].sku_variant_id)
-                  setIngredientsDraft(master.skus[0].ingredients?.ingredients_text_raw ?? '')
-                }}
-                onIngredientsDraft={setIngredientsDraft}
-                onSaveIngredients={() => saveIngredients(master.skus[0], ingredientsDraft)}
-                onCancelIngredients={() => setEditingIngredients(null)}
-                editingNutritionKey={editingNutritionKey}
-                nutritionDraft={nutritionDraft}
-                onStartNutrition={(key, val) => {
-                  setEditingNutritionKey(`${master.skus[0].sku_variant_id}:${key}`)
-                  setNutritionDraft(val ?? '')
-                }}
-                onNutritionDraft={setNutritionDraft}
-                onSaveNutrition={(key) => saveNutritionField(master.skus[0], key, nutritionDraft)}
-                onCancelNutrition={() => setEditingNutritionKey(null)}
-                saving={saving}
-              />
-            )}
-
-            {master.sku_count >= 2 && (
-              <div>
-                {canEdit && (
-                  <div style={{ marginBottom: 12 }}>
-                    <ComingSoonStub
-                      label="Add a package"
-                      subject={`Add package — product ${product.product_id}`}
-                    />
-                  </div>
-                )}
-                {master.skus.map((sku) => {
-                  const open = expandedSkus[sku.sku_variant_id] ?? false
-                  return (
-                    <div
-                      key={sku.sku_variant_id}
-                      style={{
-                        borderTop: '1px solid var(--ink-10)',
-                        padding: '12px 0',
-                      }}
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setExpandedSkus((e) => ({ ...e, [sku.sku_variant_id]: !open }))
-                        }
-                        style={{
-                          ...secondaryBtn,
-                          width: '100%',
-                          textAlign: 'left',
-                          border: 'none',
-                          background: 'transparent',
-                          padding: '4px 0',
-                          fontSize: 14,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {open ? '▾' : '▸'} {skuLabel(sku)}
-                        {sku.barcode ? (
-                          <span style={{ ...muted, marginLeft: 8 }}>{sku.barcode}</span>
-                        ) : null}
-                      </button>
-                      {open && (
-                        <div style={{ marginTop: 12 }}>
-                          <SkuBlock
-                            sku={sku}
-                            canEdit={canEdit}
-                            correctionTypes={correctionTypes}
-                            multiSku
-                            showAll={!!showAllNutrients[sku.sku_variant_id]}
-                            onToggleAll={() =>
-                              setShowAllNutrients((s) => ({
-                                ...s,
-                                [sku.sku_variant_id]: !s[sku.sku_variant_id],
-                              }))
-                            }
-                            editingMsrp={editingMsrp === sku.sku_variant_id}
-                            msrpDraft={msrpDraft[sku.sku_variant_id] ?? ''}
-                            onStartMsrp={() => {
-                              setEditingMsrp(sku.sku_variant_id)
-                              setMsrpDraft((d) => ({
-                                ...d,
-                                [sku.sku_variant_id]: sku.msrp != null ? String(sku.msrp) : '',
-                              }))
-                            }}
-                            onMsrpDraft={(v) =>
-                              setMsrpDraft((d) => ({ ...d, [sku.sku_variant_id]: v }))
-                            }
-                            onSaveMsrp={() => saveMsrp(sku, msrpDraft[sku.sku_variant_id] ?? '')}
-                            onCancelMsrp={() => setEditingMsrp(null)}
-                            editingIngredients={editingIngredients === sku.sku_variant_id}
-                            ingredientsDraft={ingredientsDraft}
-                            onStartIngredients={() => {
-                              setEditingIngredients(sku.sku_variant_id)
-                              setIngredientsDraft(sku.ingredients?.ingredients_text_raw ?? '')
-                            }}
-                            onIngredientsDraft={setIngredientsDraft}
-                            onSaveIngredients={() => saveIngredients(sku, ingredientsDraft)}
-                            onCancelIngredients={() => setEditingIngredients(null)}
-                            editingNutritionKey={editingNutritionKey}
-                            nutritionDraft={nutritionDraft}
-                            onStartNutrition={(key, val) => {
-                              setEditingNutritionKey(`${sku.sku_variant_id}:${key}`)
-                              setNutritionDraft(val ?? '')
-                            }}
-                            onNutritionDraft={setNutritionDraft}
-                            onSaveNutrition={(key) => saveNutritionField(sku, key, nutritionDraft)}
-                            onCancelNutrition={() => setEditingNutritionKey(null)}
-                            saving={saving}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-          {/* Images */}
-          <div style={pendingPanelStyle(pendingFields.has('images'))}>
-            {/* Images */}
-            <SectionHeading>
-              Images
-              <ProposalBadge types={pendingFields} match="images" />
-            </SectionHeading>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
-              {master.images.map((img) => (
-                <div key={img.product_image_id} style={{ width: 100, textAlign: 'center' }}>
-                  <div
-                    style={{
-                      width: 100,
-                      height: 100,
-                      borderRadius: 8,
-                      background: 'var(--cream, #faf8f3)',
-                      overflow: 'hidden',
-                      opacity: img.superseded_by_id ? 0.55 : 1,
-                      border: img.is_primary ? '2px solid var(--sage)' : '1px solid var(--ink-10)',
-                    }}
-                  >
-                    {img.public_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={img.public_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                    ) : null}
-                  </div>
-                  <div style={{ marginTop: 4 }}>
-                    <EvidenceRungChip rung={img.evidence_rung} />
-                  </div>
-                  {img.is_primary ? (
-                    <div style={{ fontSize: 13, color: 'var(--sage)', marginTop: 2 }}>Primary</div>
-                  ) : (
-                    canEdit &&
-                    !img.superseded_by_id && (
-                      <button
-                        type="button"
-                        onClick={() => void promoteImage(img.product_image_id)}
-                        style={{ ...secondaryBtn, fontSize: 13, padding: '2px 6px', marginTop: 4 }}
-                      >
-                        Make primary
-                      </button>
-                    )
-                  )}
-                  {img.superseded_by_id && (
-                    <div style={{ fontSize: 13, color: 'var(--ink-30)' }}>History</div>
-                  )}
-                </div>
-              ))}
-            </div>
-            {canEdit && (
-              <label style={{ ...secondaryBtn, display: 'inline-block', cursor: uploading ? 'wait' : 'pointer' }}>
-                {uploading ? 'Uploading…' : 'Upload image'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  disabled={uploading}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0]
-                    if (f) void uploadImage(f)
-                    e.target.value = ''
-                  }}
-                />
-              </label>
-            )}
-          </div>
-        </div>
-
-        <div style={stack}>
           {/* Category */}
-          <div style={pendingPanelStyle(pendingFields.has('category'))}>
-            <SectionHeading>
+          <div
+            className={`pm-overview-card${pendingFields.has('category') ? ' pm-overview-card-pending' : ''}`}
+          >
+            <OverviewHeading>
               Category
               <ProposalBadge types={pendingFields} match="category" />
-            </SectionHeading>
-            <div style={{ ...fieldValue, marginBottom: 6 }}>
-              {product.category_path ?? 'Not yet categorized'}{' '}
-              <span style={{ ...caption, marginLeft: 6 }} title="Shared field">
-                Locked
-              </span>
-            </div>
+            </OverviewHeading>
+            <CategoryBreadcrumb path={product.category_path} />
+            <span className="pm-overview-locked" title="Shared field">
+              Locked
+            </span>
             {(proposalByField.get('category') || systemFlags[0]) && (
               <div style={{ ...caption, marginTop: 6, color: 'var(--amber)' }}>
                 {(proposalByField.get('category') ?? systemFlags[0])!.summary}
               </div>
             )}
             {product.l3_confidence_score != null && (
-              <div style={{ ...muted, marginTop: 8 }}>
+              <p className="pm-overview-meta">
                 Confidence {Math.round(Number(product.l3_confidence_score) * 100)}%
                 {isAdmin && product.l3_source ? ` · ${product.l3_source}` : ''}
-              </div>
+              </p>
             )}
-            <p style={{ ...muted, marginTop: 10 }}>
+            <p className="pm-overview-blurb">
               Category decides which products yours battles. Changes are reviewed because other brands
               are measured in the same set.
               {isAdmin && pendingFields.has('category')
@@ -1150,12 +1090,12 @@ export default function ProductMasterClient({
               </Link>
             )}
             {canEdit && (
-              <div style={{ marginTop: 12 }}>
+              <div className="pm-overview-cat-action">
                 {!categoryOpen ? (
                   <button
                     type="button"
                     onClick={() => setCategoryOpen(true)}
-                    style={secondaryBtn}
+                    className="pm-overview-quiet-btn"
                   >
                     Request a category change
                   </button>
@@ -1248,53 +1188,127 @@ export default function ProductMasterClient({
             )}
           </div>
           {/* Compete */}
-          <div style={panel}>
-            {/* Compare groups */}
-            <SectionHeading>Where this product competes</SectionHeading>
+          <div className="pm-overview-card pm-overview-compete">
+            <OverviewHeading>Where this product competes</OverviewHeading>
             {(master.compare_groups.eligible?.length ?? 0) === 0 ? (
               <p style={caption}>No compare groups on file for this category yet.</p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {master.compare_groups.eligible.map((g) => (
-                  <div key={g.compare_group_id} style={questionCard}>
-                    {g.consumer_question ? (
-                      <p style={consumerQuestion}>&ldquo;{g.consumer_question}&rdquo;</p>
-                    ) : (
-                      <p style={{ ...fieldValue, margin: 0 }}>{g.name}</p>
-                    )}
-                    {g.has_results && (
-                      <div style={{ ...caption, marginTop: 8, color: 'var(--sage)' }}>
-                        Has results
+              <div className="pm-compete-groups">
+                {master.compare_groups.eligible.map((g) => {
+                  const question = g.consumer_question
+                  const setName = g.name && g.name !== question ? g.name : null
+                  const split = Boolean(question && setName)
+                  return (
+                    <div key={g.compare_group_id}>
+                      <div className={`pm-compete-row${split ? '' : ' pm-compete-row-solo'}`}>
+                        <div className="pm-compete-question">
+                          {question ? (
+                            <p>&ldquo;{question}&rdquo;</p>
+                          ) : (
+                            <p>{g.name}</p>
+                          )}
+                        </div>
+                        {split ? <div className="pm-compete-set">{setName}</div> : null}
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            {isAdmin && master.compare_groups.results && master.compare_groups.results.length > 0 && (
-              <div
-                style={{
-                  marginTop: 16,
-                  padding: 12,
-                  background: 'var(--cream, #faf8f3)',
-                  borderRadius: 8,
-                  fontSize: 13,
-                }}
-              >
-                <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--ink-50)' }}>
-                  Admin standing · no confidence interval
-                </div>
-                {master.compare_groups.results.map((r) => (
-                  <div key={r.compare_group_id} style={{ marginBottom: 6, color: 'var(--ink)' }}>
-                    {r.name ?? r.consumer_question} · Elo {r.elo_score != null ? Math.round(r.elo_score) : '—'}
-                    {r.job_rank != null && r.job_total != null
-                      ? ` · ${r.job_rank}/${r.job_total}`
-                      : ''}
-                  </div>
-                ))}
+                      {g.has_results && (
+                        <div className="pm-compete-results">Has results</div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
+        </ProductOverviewTab>
+      )}
+
+      {tab === 'packages' && (
+        <ProductPackagesTab>
+          <div className="pm-sku-header">
+            <div>
+              <h2 className="pm-sku-title">
+                SKUs
+                {multiSku && <ProposalBadge types={pendingFields} match="nutrition" />}
+                {multiSku && <ProposalBadge types={pendingFields} match="ingredients" />}
+                {multiSku && <ProposalBadge types={pendingFields} match="price" />}
+              </h2>
+              <p className="pm-sku-sub">
+                {master.sku_count === 0
+                  ? 'No SKUs associated with this product'
+                  : `${master.sku_count} SKU${master.sku_count === 1 ? '' : 's'} associated with this product`}
+              </p>
+            </div>
+          </div>
+
+          {master.sku_count === 0 ? (
+            <div className="pm-sku-empty">
+              <p className="pm-sku-empty-title">No SKUs yet</p>
+              <p className="pm-sku-empty-copy">
+                About 37% of the catalog has no SKU yet. Adding one is how this product becomes
+                measurable.
+              </p>
+            </div>
+          ) : (
+            <div className={`pm-sku-list${skuPending ? ' pm-sku-list-pending' : ''}`}>
+              {master.skus.map((sku) => {
+                const canToggle = multiSku
+                const open = !canToggle || (expandedSkus[sku.sku_variant_id] ?? false)
+                const isSelected = selectedSku?.sku_variant_id === sku.sku_variant_id
+                return (
+                  <div
+                    key={sku.sku_variant_id}
+                    className={`pm-sku-item${isSelected ? ' pm-sku-item-selected' : ''}`}
+                  >
+                    {canToggle ? (
+                      <button
+                        type="button"
+                        className="pm-sku-row"
+                        aria-expanded={open}
+                        onClick={() => {
+                          selectSku(sku.sku_variant_id)
+                          setExpandedSkus((e) => ({
+                            ...e,
+                            [sku.sku_variant_id]: !open,
+                          }))
+                        }}
+                      >
+                        <span className="pm-sku-chevron" aria-hidden>
+                          {open ? '⌄' : '›'}
+                        </span>
+                        <span className="pm-sku-main">
+                          <span className="pm-sku-name">{skuLabel(sku)}</span>
+                          {sku.barcode ? (
+                            <span className="pm-sku-gtin">
+                              <span className="pm-sku-gtin-label">GTIN</span>
+                              {sku.barcode}
+                            </span>
+                          ) : null}
+                        </span>
+                      </button>
+                    ) : (
+                      <div className="pm-sku-row pm-sku-row-static">
+                        <span className="pm-sku-main">
+                          <span className="pm-sku-name">{skuLabel(sku)}</span>
+                          {sku.barcode ? (
+                            <span className="pm-sku-gtin">
+                              <span className="pm-sku-gtin-label">GTIN</span>
+                              {sku.barcode}
+                            </span>
+                          ) : null}
+                        </span>
+                      </div>
+                    )}
+                    {open && <div className="pm-sku-detail">{renderSkuFields(sku)}</div>}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </ProductPackagesTab>
+      )}
+
+      {tab === 'pricing' && (
+        <ProductPricingTab>
           {/* Price */}
           <div style={pendingPanelStyle(pendingFields.has('price'))}>
             {/* Price comparison surface */}
@@ -1303,9 +1317,16 @@ export default function ProductMasterClient({
               <ProposalBadge types={pendingFields} match="price" />
             </SectionHeading>
             <p style={{ ...muted, marginBottom: 12 }}>
-              MSRP is edited on each package row. This section compares what you say vs what shoppers
+              MSRP is edited on each SKU row. This section compares what you say vs what shoppers
               paid.
             </p>
+            {selectedSku && (
+              <p style={{ ...muted, marginBottom: 12 }}>
+                This SKU
+                {selectedSku.barcode ? ` · GTIN ${selectedSku.barcode}` : ''}: MSRP{' '}
+                {formatMoney(selectedSku.msrp)}
+              </p>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginBottom: 12 }}>
               <Stat label="Product MSRP (aggregate)" value={formatMoney(master.price?.msrp)} />
               <Stat
@@ -1354,85 +1375,395 @@ export default function ProductMasterClient({
               </pre>
             )}
           </div>
-          {/* Dietary */}
-          <div style={pendingPanelStyle(pendingFields.has('allergens'))}>
-            {/* Dietary — read-only */}
-            <SectionHeading>
-              Dietary & allergens
-              <ProposalBadge types={pendingFields} match="allergens" />
-            </SectionHeading>
-            {!master.dietary ? (
-              <p style={muted}>No dietary flags on file.</p>
-            ) : (
-              <div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-                  {(
-                    [
-                      ['is_gluten_free', 'Gluten free'],
-                      ['is_vegan', 'Vegan'],
-                      ['is_vegetarian', 'Vegetarian'],
-                      ['is_organic', 'Organic'],
-                      ['is_non_gmo', 'Non-GMO'],
-                      ['is_kosher', 'Kosher'],
-                      ['is_halal', 'Halal'],
-                      ['is_keto_friendly', 'Keto'],
-                      ['is_paleo', 'Paleo'],
-                    ] as const
+        </ProductPricingTab>
+      )}
+
+      {tab === 'nutrition' && (
+        <ProductNutritionTab>
+          <div className="pm-comp-header">
+            <h2 className="pm-comp-title">Ingredients & nutrition</h2>
+            <p className="pm-comp-sub">
+              Product composition, nutrition, and dietary information.
+            </p>
+          </div>
+          <div className={compositionSplit ? 'pm-comp-grid' : 'pm-comp-stack'}>
+            {ingredientSkus.length > 0 && (
+              <section className="pm-comp-card">
+                <h3 className="pm-comp-heading">
+                  Ingredients
+                  <ProposalBadge types={pendingFields} match="ingredients" />
+                </h3>
+                {ingredientSkus.map((sku) => {
+                  const ing = sku.ingredients
+                  if (!ing?.ingredients_text_raw) return null
+                  return (
+                    <div key={sku.sku_variant_id} className="pm-comp-sku">
+                      <ul className="pm-comp-ing-list">
+                        {splitIngredientStatement(ing.ingredients_text_raw).map((item, i) => (
+                          <li key={`${sku.sku_variant_id}-${i}`}>{displayAllCapsPhrase(item)}</li>
+                        ))}
+                      </ul>
+                      {ing.locked && (
+                        <p className="pm-comp-locked">
+                          Dough verified this against the label.{' '}
+                          <SupportLink subject={`Locked ingredients — SKU ${sku.sku_variant_id}`}>
+                            Contact us to change it
+                          </SupportLink>
+                          .
+                        </p>
+                      )}
+                      {ing.allergens_contains?.length || ing.allergens_may_contain?.length ? (
+                        <p className="pm-comp-allergens">
+                          {ing.allergens_contains?.length
+                            ? `Contains: ${ing.allergens_contains.join(', ')}`
+                            : null}
+                          {ing.allergens_may_contain?.length
+                            ? `${ing.allergens_contains?.length ? ' · ' : ''}May contain: ${ing.allergens_may_contain.join(', ')}`
+                            : null}
+                        </p>
+                      ) : null}
+                      <div className="pm-comp-rung">
+                        <EvidenceRungChip rung={ing.evidence_rung} />
+                      </div>
+                    </div>
                   )
-                    .filter(([k]) => master.dietary?.[k])
-                    .map(([k, label]) => (
-                      <span
-                        key={k}
-                        style={{
-                          fontSize: 13,
-                          padding: '4px 8px',
-                          background: 'var(--sage-soft, rgba(62,107,74,0.12))',
-                          color: 'var(--sage)',
-                          borderRadius: 4,
-                        }}
-                      >
-                        {label}
-                      </span>
-                    ))}
-                  <EvidenceRungChip rung={master.dietary.evidence_rung} />
-                </div>
-                {master.dietary.contains &&
-                  Object.keys(master.dietary.contains).filter((k) => master.dietary?.contains?.[k])
-                    .length > 0 && (
-                    <p style={muted}>
-                      Contains:{' '}
-                      {Object.entries(master.dietary.contains)
-                        .filter(([, v]) => v)
-                        .map(([k]) => k.replace(/_/g, ' '))
-                        .join(', ')}
-                    </p>
-                  )}
-                <p style={{ ...muted, marginTop: 8 }}>Read-only — no write path for dietary flags yet.</p>
-              </div>
+                })}
+              </section>
+            )}
+
+            {showDietaryCard && (
+              <section
+                className={`pm-comp-card pm-comp-dietary${pendingFields.has('allergens') ? ' pm-comp-card-pending' : ''}`}
+              >
+                <h3 className="pm-comp-heading">
+                  Dietary & allergens
+                  <ProposalBadge types={pendingFields} match="allergens" />
+                </h3>
+                {!master.dietary ? (
+                  <p className="pm-comp-empty">No dietary flags on file.</p>
+                ) : (
+                  <>
+                    <div className="pm-comp-flags">
+                      {activeDietaryFlags(master.dietary).map((flag) => (
+                        <span key={flag.key} className="pm-comp-flag">
+                          {flag.label}
+                        </span>
+                      ))}
+                      <EvidenceRungChip rung={master.dietary.evidence_rung} />
+                    </div>
+                    {dietaryContainsItems(master.dietary).length > 0 && (
+                      <div className="pm-comp-contains">
+                        <p className="pm-comp-label">Contains</p>
+                        <p className="pm-comp-contains-value">
+                          {dietaryContainsItems(master.dietary).join(', ')}
+                        </p>
+                      </div>
+                    )}
+                    <p className="pm-comp-note">Read-only — no write path for dietary flags yet.</p>
+                  </>
+                )}
+              </section>
+            )}
+
+            {nutritionSkus.length > 0 && (
+              <section className="pm-comp-card pm-comp-nutrition">
+                <h3 className="pm-comp-heading">
+                  Nutrition
+                  <ProposalBadge types={pendingFields} match="nutrition" />
+                </h3>
+                {nutritionSkus.map((sku) => {
+                  const n = sku.nutrition
+                  if (!n) return null
+                  const summary = nutritionSummary(n)
+                  const serving = servingRow(n)
+                  const macros = presentRows(
+                    n,
+                    summary.length > 0
+                      ? MACRO_ROWS.filter(
+                          (def) =>
+                            !['calories', 'protein_g', 'total_carbs_g', 'total_fat_g'].includes(def.key)
+                        )
+                      : MACRO_ROWS
+                  )
+                  const micros = presentRows(n, MICRO_ROWS)
+                  const extra = extendedNutrientRows(n)
+                  const mainRows = serving ? [serving, ...macros] : macros
+                  return (
+                    <div key={sku.sku_variant_id} className="pm-comp-sku">
+                      {n.locked && (
+                        <p className="pm-comp-locked">
+                          Dough verified this against the label.{' '}
+                          <SupportLink subject={`Locked nutrition — SKU ${sku.sku_variant_id}`}>
+                            Contact us to change it
+                          </SupportLink>
+                          .
+                        </p>
+                      )}
+                      {summary.length > 0 && (
+                        <dl className="pm-comp-summary">
+                          {summary.map((row) => (
+                            <div key={row.label} className="pm-comp-summary-item">
+                              <dt>{row.label}</dt>
+                              <dd>{row.value}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      )}
+                      {mainRows.length > 0 && (
+                        <dl className="pm-comp-rows">
+                          {mainRows.map((row) => (
+                            <div key={row.label} className="pm-comp-row">
+                              <dt>{row.label}</dt>
+                              <dd>{row.value}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      )}
+                      {micros.length > 0 && (
+                        <>
+                          <p className="pm-comp-subhead">Micronutrients</p>
+                          <dl className="pm-comp-rows">
+                            {micros.map((row) => (
+                              <div key={row.label} className="pm-comp-row">
+                                <dt>{row.label}</dt>
+                                <dd>{row.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </>
+                      )}
+                      {extra.length > 0 && (
+                        <dl className="pm-comp-rows">
+                          {extra.map((row) => (
+                            <div key={row.label} className="pm-comp-row">
+                              <dt>{row.label}</dt>
+                              <dd>{row.value}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      )}
+                      <div className="pm-comp-rung">
+                        <EvidenceRungChip rung={n.evidence_rung} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </section>
             )}
           </div>
-          {master.intelligence != null && (
-            <div style={panel}>
-              <SectionHeading>Intelligence</SectionHeading>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                <Stat label="Unique raters" value={String(master.intelligence.unique_raters)} />
-                <Stat label="Total battles" value={String(master.intelligence.total_battles ?? '—')} />
-                <Stat
-                  label="Taste (admin)"
-                  value={
-                    master.intelligence.taste_score != null
-                      ? String(Math.round(master.intelligence.taste_score))
-                      : '—'
-                  }
-                />
+        </ProductNutritionTab>
+      )}
+
+      {tab === 'intelligence' && (
+        <ProductIntelligenceTab>
+          <div className="pm-intel-header">
+            <h2 className="pm-intel-title">Intelligence</h2>
+            <p className="pm-intel-sub">
+              How this product stands in Dough head-to-heads — the jobs shoppers actually vote on.
+            </p>
+          </div>
+
+          {intelHeadline ? (
+            <section className="pm-intel-hero">
+              <p className="pm-intel-eyebrow">Standing</p>
+              <p className="pm-intel-hero-rank">{intelHeadline.rankLabel}</p>
+              <p className="pm-intel-hero-q">&ldquo;{intelHeadline.question}&rdquo;</p>
+              <div className="pm-intel-hero-meta">
+                {intelHeadline.eloLabel ? <span>Elo {intelHeadline.eloLabel}</span> : null}
+                {intelHeadline.recordLabel ? <span>{intelHeadline.recordLabel}</span> : null}
+                {intelHeadline.setName ? <span>{intelHeadline.setName}</span> : null}
               </div>
-              <p style={{ ...muted, marginTop: 8 }}>
-                Admin only. Organic scores have no confidence interval for brand display.
+              <p className="pm-intel-hero-note">
+                Unpublished ranking. Organic Elo has no confidence interval.
+              </p>
+            </section>
+          ) : null}
+
+          {intelVolume.length > 0 ? (
+            <>
+              <dl className="pm-intel-stats">
+                {intelVolume.map((stat) => (
+                  <div key={stat.key} className="pm-intel-stat">
+                    <dt>{stat.label}</dt>
+                    <dd>{stat.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              {intelFloor ? <p className="pm-intel-floor">{intelFloor}</p> : null}
+            </>
+          ) : null}
+
+          {intelJobs.length === 0 ? (
+            <div className="pm-intel-empty">
+              <h3>No comparison jobs on file</h3>
+              <p>
+                This product isn’t in a Dough head-to-head yet. Jobs appear once the category has
+                an active compare group.
               </p>
             </div>
+          ) : (
+            <>
+              <h3 className="pm-intel-section">Head-to-heads</h3>
+              <div className="pm-intel-jobs">
+                {intelJobs.map((job) => {
+                const title = job.question ?? job.setName ?? 'Comparison job'
+                const quoted = Boolean(job.question)
+                const status = jobStatusCopy(job, showJobScores)
+                return (
+                  <article key={job.compareGroupId} className="pm-intel-job">
+                    {job.battleLevelLabel ? (
+                      <p className="pm-intel-eyebrow">{job.battleLevelLabel}</p>
+                    ) : null}
+                    <h3 className="pm-intel-job-q">
+                      {quoted ? <>&ldquo;{title}&rdquo;</> : title}
+                    </h3>
+                    {job.setName && job.question ? (
+                      <p className="pm-intel-job-set">{job.setName}</p>
+                    ) : null}
+
+                    {job.standings.map((standing) => {
+                      const metrics = [
+                        standing.rankLabel
+                          ? { key: 'rank', label: 'Rank', value: standing.rankLabel }
+                          : standing.rankComparable === false
+                            ? { key: 'rank', label: 'Rank', value: 'Not comparable yet' }
+                            : null,
+                        standing.eloLabel
+                          ? { key: 'elo', label: 'Elo', value: standing.eloLabel, sub: 'No confidence interval' }
+                          : null,
+                        standing.recordLabel
+                          ? { key: 'record', label: 'Record', value: standing.recordLabel }
+                          : null,
+                      ].filter((m): m is { key: string; label: string; value: string; sub?: string } => m != null)
+
+                      return (
+                        <div key={standing.key} className="pm-intel-standing">
+                          {metrics.length > 0 ? (
+                            <dl className="pm-intel-metrics">
+                              {metrics.map((metric) => (
+                                <div key={metric.key} className="pm-intel-metric">
+                                  <dt>{metric.label}</dt>
+                                  <dd>{metric.value}</dd>
+                                  {metric.sub ? (
+                                    <p className="pm-intel-metric-sub">{metric.sub}</p>
+                                  ) : null}
+                                </div>
+                              ))}
+                            </dl>
+                          ) : null}
+                          {standing.maturityLabel || standing.seedSource ? (
+                            <p className="pm-intel-hero-note">
+                              {[
+                                standing.maturityLabel,
+                                standing.seedSource ? `Seeded from ${standing.seedSource}` : null,
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </p>
+                          ) : null}
+                        </div>
+                      )
+                    })}
+
+                    {status ? <p className="pm-intel-status">{status}</p> : null}
+                  </article>
+                )
+              })}
+              </div>
+            </>
           )}
-        </div>
-      </div>
+
+          {!showJobScores && intelJobs.length > 0 ? (
+            <p className="pm-intel-note">
+              Published Elo and rankings aren’t shown here. Organic scores have no confidence
+              interval.
+            </p>
+          ) : master.intelligence?.admin_only && showJobScores ? (
+            <p className="pm-intel-note">
+              Admin view. These scores are unpublished and must not be presented as a brand-facing
+              ranking.
+            </p>
+          ) : null}
+        </ProductIntelligenceTab>
+      )}
+
+      {tab === 'studies' && <ProductStudiesTab studies={studies} />}
+
+      {tab === 'proof' && <ProductProofTab />}
+
+      {tab === 'images' && (
+        <ProductImagesTab>
+          {/* Images */}
+          <div style={pendingPanelStyle(pendingFields.has('images'))}>
+            {/* Images */}
+            <SectionHeading>
+              Images
+              <ProposalBadge types={pendingFields} match="images" />
+            </SectionHeading>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
+              {master.images.map((img) => (
+                <div key={img.product_image_id} style={{ width: 100, textAlign: 'center' }}>
+                  <div
+                    style={{
+                      width: 100,
+                      height: 100,
+                      borderRadius: 8,
+                      background: 'var(--cream, #faf8f3)',
+                      overflow: 'hidden',
+                      opacity: img.superseded_by_id ? 0.55 : 1,
+                      border: img.is_primary ? '2px solid var(--sage)' : '1px solid var(--ink-10)',
+                    }}
+                  >
+                    {img.public_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={img.public_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    ) : null}
+                  </div>
+                  <div style={{ marginTop: 4 }}>
+                    <EvidenceRungChip rung={img.evidence_rung} />
+                  </div>
+                  {img.is_primary ? (
+                    <div style={{ fontSize: 13, color: 'var(--sage)', marginTop: 2 }}>Primary</div>
+                  ) : (
+                    canEdit &&
+                    !img.superseded_by_id && (
+                      <button
+                        type="button"
+                        onClick={() => void promoteImage(img.product_image_id)}
+                        style={{ ...secondaryBtn, fontSize: 13, padding: '2px 6px', marginTop: 4 }}
+                      >
+                        Make primary
+                      </button>
+                    )
+                  )}
+                  {img.superseded_by_id && (
+                    <div style={{ fontSize: 13, color: 'var(--ink-30)' }}>History</div>
+                  )}
+                </div>
+              ))}
+            </div>
+            {canEdit && (
+              <label style={{ ...secondaryBtn, display: 'inline-block', cursor: uploading ? 'wait' : 'pointer' }}>
+                {uploading ? 'Uploading…' : 'Upload image'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (f) void uploadImage(f)
+                    e.target.value = ''
+                  }}
+                />
+              </label>
+            )}
+          </div>
+        </ProductImagesTab>
+      )}
+
+      {tab === 'activity' && <ProductActivityTab />}
+
 
       {/* Coverage footer */}
       {cov && (
@@ -1469,6 +1800,40 @@ function SectionHeading({ children }: { children: ReactNode }) {
   return <h2 style={sectionTitle}>{children}</h2>
 }
 
+function OverviewHeading({ children }: { children: ReactNode }) {
+  return <h2 className="pm-overview-heading">{children}</h2>
+}
+
+function CategoryBreadcrumb({ path }: { path: string | null }) {
+  const parts = splitCategoryPath(path)
+  if (parts.length === 0) {
+    return (
+      <div className="pm-overview-path">
+        <span className="pm-overview-path-seg">{path ?? 'Not yet categorized'}</span>
+      </div>
+    )
+  }
+  return (
+    <div className="pm-overview-path">
+      {parts.map((part, i) => {
+        const last = i === parts.length - 1
+        return (
+          <span key={`${part}-${i}`}>
+            {i > 0 ? <span className="pm-overview-path-sep">›</span> : null}
+            <span
+              className={
+                last ? 'pm-overview-path-seg pm-overview-path-current' : 'pm-overview-path-seg'
+              }
+            >
+              {part}
+            </span>
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div style={metricCard}>
@@ -1495,6 +1860,7 @@ function IdentityField({
   saving,
   large,
   multiline,
+  compact,
 }: {
   label: string
   field: string
@@ -1511,11 +1877,11 @@ function IdentityField({
   saving: boolean
   large?: boolean
   multiline?: boolean
+  compact?: boolean
 }) {
   if (editing) {
-    return (
-      <div>
-        <div style={{ ...fieldLabel, marginBottom: 4 }}>{label}</div>
+    const editor = (
+      <>
         {prior && (
           <div style={{ ...muted, marginBottom: 6 }}>
             Overwriting {formatJsonValue(prior.old_value)} → {formatJsonValue(prior.new_value)} set by{' '}
@@ -1535,6 +1901,43 @@ function IdentityField({
             Cancel
           </button>
         </div>
+      </>
+    )
+    if (compact) {
+      return (
+        <div className="pm-id-row">
+          <div className="pm-id-label">{label}</div>
+          <div className="pm-id-edit">{editor}</div>
+        </div>
+      )
+    }
+    return (
+      <div>
+        <div style={{ ...fieldLabel, marginBottom: 4 }}>{label}</div>
+        {editor}
+      </div>
+    )
+  }
+
+  const display = (large ? displayProductName(value) : value) || (canEdit ? 'Add' : '—')
+  const isAdd = !value && canEdit
+
+  if (compact) {
+    return (
+      <div className="pm-id-row">
+        <div className="pm-id-label">
+          {label}
+          {pending && <ProposalBadge types={new Set(['name'])} match="name" />}
+        </div>
+        <button
+          type="button"
+          onClick={canEdit ? onStart : undefined}
+          disabled={!canEdit}
+          className={`pm-id-value${isAdd ? ' pm-id-add' : ''}`}
+          title={canEdit ? 'Click to edit' : undefined}
+        >
+          {display}
+        </button>
       </div>
     )
   }
@@ -1553,7 +1956,7 @@ function IdentityField({
         disabled={!canEdit}
         style={{
           ...(large ? productNameStyle : fieldValue),
-          ...( !value && canEdit ? fieldEmpty : {}),
+          ...(!value && canEdit ? fieldEmpty : {}),
           background: 'transparent',
           border: 'none',
           padding: 0,
@@ -1563,7 +1966,7 @@ function IdentityField({
         }}
         title={canEdit ? 'Click to edit' : undefined}
       >
-        {(large ? displayProductName(value) : value) || (canEdit ? 'Add' : '—')}
+        {display}
       </button>
     </div>
   )
@@ -1668,6 +2071,7 @@ function SkuBlock({
   onSaveNutrition,
   onCancelNutrition,
   saving,
+  hideIdentity,
 }: {
   sku: MasterSku
   canEdit: boolean
@@ -1694,6 +2098,7 @@ function SkuBlock({
   onSaveNutrition: (key: string) => void
   onCancelNutrition: () => void
   saving: boolean
+  hideIdentity?: boolean
 }) {
   const n = sku.nutrition
   const ing = sku.ingredients
@@ -1714,10 +2119,12 @@ function SkuBlock({
 
   return (
     <div>
-      <div style={{ ...muted, marginBottom: 10 }}>
-        {skuLabel(sku)}
-        {sku.barcode ? ` · ${sku.barcode}` : ''}
-      </div>
+      {!hideIdentity && (
+        <div style={{ ...muted, marginBottom: 10 }}>
+          {skuLabel(sku)}
+          {sku.barcode ? ` · ${sku.barcode}` : ''}
+        </div>
+      )}
 
       {/* MSRP on package row */}
       <div style={{ marginBottom: 16 }}>
