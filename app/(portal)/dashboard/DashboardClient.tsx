@@ -6,10 +6,12 @@ import { createClient } from '@/lib/supabase'
 import { exitImpersonationAction } from '../admin/impersonation/actions'
 import type { BrandHomeModel } from '@/lib/brandHome/selectHomeModel'
 import type { ProductSignalCardModel } from '@/lib/brandHome/productSignalCards'
+import type { CatalogHealth } from '@/lib/brandHome/catalogHealth'
 import BrandHome from '@/components/brandHome/BrandHome'
 import BrandProfileCard from '@/components/brandHome/BrandProfileCard'
 import ProductCategoryStandingCard from '@/components/brandHome/ProductCategoryStandingCard'
 import Link from 'next/link'
+import '@/components/brandHome/brandHome.css'
 
 type Period = '7d' | '30d' | '90d' | 'all'
 
@@ -56,6 +58,8 @@ type Props = {
   homeModel: BrandHomeModel
   categoriesCount?: number
   signalCards?: ProductSignalCardModel[]
+  domainVerified?: boolean
+  catalogHealth?: CatalogHealth
 }
 
 function fmt(n: number | null | undefined): string {
@@ -72,7 +76,7 @@ function delta(n: number | null | undefined): string {
   return r > 0 ? `+${r}` : `${r}`
 }
 
-export default function DashboardClient({ portalUser, brand, subscription, snapshot, history: _history, productIntelligence, competitive: _competitive, allProducts, narrative: _narrative, isImpersonating, totalProductCount, totalBattles = 0, homeModel, categoriesCount, signalCards = [] }: Props) {
+export default function DashboardClient({ portalUser, brand, subscription, snapshot, history: _history, productIntelligence, competitive: _competitive, allProducts, narrative: _narrative, isImpersonating, totalProductCount, totalBattles = 0, homeModel, categoriesCount, signalCards = [], domainVerified = false, catalogHealth }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const [period, setPeriod] = useState<Period>('30d')
@@ -154,7 +158,10 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
         <BrandHome
           model={homeModel}
           totalProductCount={totalProductCount ?? allProducts.length}
+          totalBattles={totalBattles}
           signalCards={signalCards}
+          catalogHealth={catalogHealth}
+          domainVerified={domainVerified}
           profileSlot={
             <BrandProfileCard
               brand={brand}
@@ -162,11 +169,12 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
               totalBattles={totalBattles}
               categoriesCount={categoriesCount}
               canSubmitOwnershipCorrection={portalUser.role !== 'brand_viewer'}
+              domainVerified={domainVerified}
             />
           }
         />
 
-        <details style={{ maxWidth: 1100, margin: '0 auto 48px', padding: '0 32px' }}>
+        <details className="bh-more">
           <summary
             style={{
               cursor: 'pointer',

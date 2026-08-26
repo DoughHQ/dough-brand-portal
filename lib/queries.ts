@@ -427,11 +427,14 @@ export async function getCompetitiveSnapshot(
 
 export function generateNarrative(
   snapshot: BrandSnapshot,
-  brandName: string
+  brandName: string,
+  /** Ledger total from get_brand_total_battles — not snapshot.total_battles_all_time. */
+  totalBattles: number
 ): { headline: string; sub: string } {
   const delta30 = snapshot.elo_velocity_30d ?? 0
   const winRate = snapshot.win_rate_30d ?? 0
   const momentum = snapshot.momentum_label
+  const ledgerBattles = Number.isFinite(totalBattles) ? Math.max(0, Math.trunc(totalBattles)) : 0
   if (delta30 > 20 && momentum === 'rising') {
     return {
       headline: `${brandName} is having its best 30 days since joining Dough — up ${Math.round(delta30)} points and winning ${Math.round(winRate * 100)}% of battles.`,
@@ -459,11 +462,11 @@ export function generateNarrative(
   if (snapshot.total_battles_all_time < 50) {
     return {
       headline: `${brandName} is getting started on Dough. Early data is coming in.`,
-      sub: `${snapshot.total_battles_all_time} battles counted so far · Data updates daily`
+      sub: `${ledgerBattles.toLocaleString()} battles counted so far · Data updates daily`
     }
   }
   return {
-    headline: `${brandName} has completed ${snapshot.total_battles_all_time.toLocaleString()} battles on Dough.`,
+    headline: `${brandName} has completed ${ledgerBattles.toLocaleString()} battles on Dough.`,
     sub: `${snapshot.total_battles_30d} battles in the last 30 days · Updated daily`
   }
 }

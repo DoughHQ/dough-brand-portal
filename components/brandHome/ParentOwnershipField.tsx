@@ -12,9 +12,12 @@ import OwnershipCorrectionModal from '@/components/brandHome/OwnershipCorrection
 export default function ParentOwnershipField({
   brandName,
   canSubmitCorrection,
+  variant = 'editor',
 }: {
   brandName: string
   canSubmitCorrection: boolean
+  /** summary = Home identity line (display only). editor = existing correction UI. */
+  variant?: 'summary' | 'editor'
 }) {
   const [payload, setPayload] = useState<BrandOwnershipForPortal | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -40,6 +43,26 @@ export default function ParentOwnershipField({
     ? derivedParentDisplayName(payload.derived, brandName)
     : null
   const pending = payload?.pending_correction ?? null
+
+  if (variant === 'summary') {
+    if (!parentName) return null
+    return (
+      <span className="bp-meta-item">
+        <span className="bp-meta-icon" aria-hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M4 20V10l8-5 8 5v10H4Z"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+            <path d="M10 20v-6h4v6" stroke="currentColor" strokeWidth="1.6" />
+          </svg>
+        </span>
+        Parent company: {parentName}
+      </span>
+    )
+  }
 
   // No derived parent and no pending: only a quiet claim entry (not a normal About field)
   if (!parentName && !pending) {

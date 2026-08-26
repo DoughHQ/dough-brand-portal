@@ -8,6 +8,8 @@ export type BrandCategoryL2 = {
   productCount: number
   battles: number
   productsWithBattles: number
+  /** Taxonomy banner already on the launcher row — omitted when the fetch path has none. */
+  bannerImageUrl?: string | null
 }
 
 /**

@@ -30,6 +30,7 @@ export type HomeCategoryCard = {
   /** False when brand has not purchased this category report. */
   unlocked: boolean
   ctaLabel: string
+  bannerImageUrl: string | null
 }
 
 export type HomeProductChip = 'gaining' | 'stable' | 'building' | 'declining'
@@ -226,6 +227,7 @@ function pickCategories(
         href: unlocked ? brandCategoryOverviewHref(c.l2NodeId) : '/reports',
         unlocked,
         ctaLabel: unlocked ? 'Open Overview →' : 'Unlock in Reports →',
+        bannerImageUrl: c.bannerImageUrl?.trim() || null,
       }
     })
 }
@@ -260,6 +262,18 @@ function pickProducts(
   })
 }
 
+function battlesCountedSoFarBody(totalBattles: number): string {
+  return `${totalBattles.toLocaleString()} battles counted so far · Data updates daily`
+}
+
+function narrativeBodyWithLedger(
+  sub: string,
+  totalBattles: number | undefined
+): string {
+  if (totalBattles == null || !sub.includes('battles counted so far')) return sub
+  return battlesCountedSoFarBody(totalBattles)
+}
+
 function buildHero(args: {
   brandName: string
   narrative: { headline: string; sub: string }
@@ -267,6 +281,7 @@ function buildHero(args: {
   studies: HomeStudyInput[]
   categories: BrandCategoryL2[]
   unlockedL2Ids: Set<number>
+  totalBattles?: number
 }): HomeHero {
   const ready = args.studies.find((s) => s.lifecycle_state === 'completed')
   if (ready) {
@@ -292,7 +307,7 @@ function buildHero(args: {
       kind: 'narrative',
       eyebrow: 'Your strongest signal',
       headline: args.narrative.headline,
-      body: args.narrative.sub,
+      body: narrativeBodyWithLedger(args.narrative.sub, args.totalBattles),
       ctaLabel: 'Browse categories →',
       ctaHref: '/categories',
     }
@@ -334,6 +349,8 @@ export function selectHomeModel(input: {
   productNames: HomeProductName[]
   /** L2 taxonomy node ids the brand has unlocked (report purchase or admin). */
   unlockedL2Ids?: number[]
+  /** get_brand_total_battles.total_battles — same integer as the profile tile. */
+  totalBattles?: number
 }): BrandHomeModel {
   const unlocked = new Set(input.unlockedL2Ids ?? [])
   // Prefer category rollup (launcher) over scanning product names — Home no longer loads the full catalog.
@@ -384,6 +401,7 @@ export function selectHomeModel(input: {
       studies: input.studies,
       categories: input.categories,
       unlockedL2Ids: unlocked,
+      totalBattles: input.totalBattles,
     }),
     pulse,
     categories: pickCategories(input.categories, unlocked),

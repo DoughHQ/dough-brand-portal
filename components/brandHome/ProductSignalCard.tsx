@@ -23,252 +23,149 @@ function LockIcon() {
   )
 }
 
-function PlusIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={20}
-      height={20}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  )
+function BuildingPill() {
+  return <span className="bh-pill">Building signal</span>
 }
 
-function HeroStage({ card }: { card: ProductSignalCardModel }) {
-  if (card.imageUrl) {
-    return (
-      <div
-        style={{
-          height: 220,
-          background: 'var(--cream, #faf8f3)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 20,
-        }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={card.imageUrl}
-          alt=""
-          style={{
-            maxWidth: '100%',
-            maxHeight: '100%',
-            objectFit: 'contain',
-            display: 'block',
-          }}
-        />
-      </div>
-    )
-  }
-
+function UnlockStudy({ card }: { card: ProductSignalCardModel }) {
   return (
-    <div
-      style={{
-        height: 220,
-        background: 'var(--cream, #faf8f3)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        borderBottom: '1px dashed var(--mist)',
-        color: 'var(--sage)',
-      }}
-    >
-      <span
+    <div className="product-signal-locked" style={{ position: 'relative', flexShrink: 0 }}>
+      <Link
+        href="/studies/new"
+        title={card.standing.tooltip}
+        aria-label={card.standing.tooltip}
         style={{
-          width: 40,
-          height: 40,
-          borderRadius: 99,
-          border: '1px dashed rgba(62, 107, 74, 0.35)',
-          background: 'rgba(62, 107, 74, 0.06)',
-          display: 'grid',
-          placeItems: 'center',
-        }}
-      >
-        <PlusIcon />
-      </span>
-      <span
-        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          textDecoration: 'none',
+          color: 'var(--amber)',
           fontSize: 12,
           fontWeight: 600,
-          letterSpacing: '0.02em',
-          color: 'var(--sage)',
+          padding: '6px 10px',
+          borderRadius: 99,
+          border: '1px solid rgba(192, 120, 24, 0.28)',
+          background: 'var(--amber-soft)',
+          whiteSpace: 'nowrap',
         }}
       >
-        Add image
+        <LockIcon />
+        Unlock with a study
+      </Link>
+      <span className="product-signal-tip" role="tooltip">
+        {card.standing.tooltip}
       </span>
     </div>
   )
 }
 
-export default function ProductSignalCard({ card }: { card: ProductSignalCardModel }) {
+function EloFooter({ card }: { card: ProductSignalCardModel }) {
   const showElo = SHOW_POPULATION_ELO && card.populationElo != null
-
+  if (!showElo) return null
   return (
-    <article
-      className="product-signal-card"
+    <div
       style={{
-        background: 'var(--paper)',
-        boxShadow: '0 0 0 1px var(--mist)',
-        borderRadius: 'var(--r-lg, 12px)',
-        overflow: 'hidden',
         display: 'flex',
-        flexDirection: 'column',
-        minWidth: 0,
-        transition: 'transform var(--motion-duration, 200ms) var(--motion-ease), box-shadow var(--motion-duration, 200ms) var(--motion-ease)',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 8,
+        margin: '0 18px 16px',
+        paddingTop: 12,
+        borderTop: '1px solid var(--mist)',
+        fontSize: 11,
+        color: 'var(--ink-50)',
       }}
     >
-      <Link
-        href={card.href}
+      <span>
+        ELO {card.populationElo?.eloScore != null ? Math.round(card.populationElo.eloScore) : '—'}
+        {' · '}
+        {card.populationElo?.winRatePct != null
+          ? `${Math.round(card.populationElo.winRatePct)}% win`
+          : '— win'}
+      </span>
+      <span
         style={{
-          display: 'block',
-          textDecoration: 'none',
-          color: 'inherit',
-          minWidth: 0,
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: '0.02em',
+          color: 'var(--ink-50)',
+          background: 'var(--surface-1)',
+          border: '1px solid var(--mist)',
+          borderRadius: 99,
+          padding: '2px 8px',
         }}
       >
-        <HeroStage card={card} />
-        <div style={{ padding: '16px 18px 0' }}>
-          <div
-            style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: 17,
-              fontWeight: 400,
-              color: 'var(--ink)',
-              letterSpacing: '-0.02em',
-              lineHeight: 1.25,
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
+        n=1 · not population data
+      </span>
+    </div>
+  )
+}
+
+export default function ProductSignalCard({
+  card,
+  variant = 'lead',
+}: {
+  card: ProductSignalCardModel
+  variant?: 'lead' | 'row'
+}) {
+  const hasRank = Boolean(card.standing.unlocked && card.standing.rankLabel)
+  const building = card.comparisonEvents > 0 && !hasRank
+
+  if (variant === 'row') {
+    return (
+      <Link href={card.href} className="bh-product-row">
+        {card.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={card.imageUrl} alt="" className="bh-product-thumb" />
+        ) : (
+          <span className="bh-product-thumb-empty" aria-hidden />
+        )}
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span className="bh-product-name" style={{ fontSize: 14, display: 'block' }}>
             {card.name}
-          </div>
+          </span>
           {card.category ? (
-            <div style={{ fontSize: 12, color: 'var(--ink-30)', marginTop: 4 }}>{card.category}</div>
+            <span className="bh-meta" style={{ display: 'block' }}>
+              {card.category}
+            </span>
           ) : null}
+        </span>
+        <span className="bh-product-stat" style={{ fontSize: 16, marginTop: 0 }}>
+          {card.comparisonEvents.toLocaleString()}
+        </span>
+      </Link>
+    )
+  }
+
+  return (
+    <article>
+      <Link href={card.href} className="bh-product-lead">
+        <div className="bh-product-photo">
+          {card.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={card.imageUrl} alt="" />
+          ) : (
+            <span className="bh-product-photo-empty">Add image</span>
+          )}
+        </div>
+        <div className="bh-product-copy">
+          {hasRank && card.standing.rankLabel ? (
+            <div className="bh-product-rank">{card.standing.rankLabel}</div>
+          ) : null}
+          <div className="bh-product-name">{card.name}</div>
+          {card.category ? <div className="bh-meta">{card.category}</div> : null}
+          <div className="bh-product-stat">{card.comparisonEvents.toLocaleString()}</div>
+          <div className="bh-meta">comparison events</div>
+          {building ? <BuildingPill /> : null}
+          <div className="bh-product-cta">View product →</div>
         </div>
       </Link>
-
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'space-between',
-          gap: 12,
-          padding: '14px 18px 16px',
-          marginTop: 'auto',
-        }}
-      >
-        <div style={{ minWidth: 0 }}>
-          <div
-            style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: 22,
-              lineHeight: 1,
-              color: 'var(--ink)',
-              letterSpacing: '-0.03em',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {card.comparisonEvents.toLocaleString()}
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--ink-50)', marginTop: 5 }}>comparison events</div>
-        </div>
-
-        {card.standing.unlocked && card.standing.rankLabel ? (
-          <div style={{ textAlign: 'right', minWidth: 0, maxWidth: '55%' }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: 14,
-                lineHeight: 1.25,
-                color: 'var(--amber)',
-                letterSpacing: '-0.01em',
-              }}
-            >
-              {card.standing.rankLabel}
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--ink-50)', marginTop: 4 }}>Category standing</div>
-          </div>
-        ) : (
-          <div className="product-signal-locked" style={{ position: 'relative', flexShrink: 0 }}>
-            <Link
-              href="/studies/new"
-              title={card.standing.tooltip}
-              aria-label={card.standing.tooltip}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                textDecoration: 'none',
-                color: 'var(--amber)',
-                fontSize: 12,
-                fontWeight: 600,
-                padding: '6px 10px',
-                borderRadius: 99,
-                border: '1px solid rgba(192, 120, 24, 0.28)',
-                background: 'var(--amber-soft)',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <LockIcon />
-              Unlock with a study
-            </Link>
-            <span className="product-signal-tip" role="tooltip">
-              {card.standing.tooltip}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {showElo ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 8,
-            margin: '0 18px 16px',
-            paddingTop: 12,
-            borderTop: '1px solid var(--mist)',
-            fontSize: 11,
-            color: 'var(--ink-50)',
-          }}
-        >
-          <span>
-            ELO {card.populationElo?.eloScore != null ? Math.round(card.populationElo.eloScore) : '—'}
-            {' · '}
-            {card.populationElo?.winRatePct != null
-              ? `${Math.round(card.populationElo.winRatePct)}% win`
-              : '— win'}
-          </span>
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: '0.02em',
-              color: 'var(--ink-50)',
-              background: 'var(--surface-1)',
-              border: '1px solid var(--mist)',
-              borderRadius: 99,
-              padding: '2px 8px',
-            }}
-          >
-            n=1 · not population data
-          </span>
+      {!hasRank ? (
+        <div style={{ padding: '0 20px 14px' }}>
+          <UnlockStudy card={card} />
         </div>
       ) : null}
+      <EloFooter card={card} />
     </article>
   )
 }

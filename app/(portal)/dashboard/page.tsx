@@ -6,7 +6,6 @@ import {
   getBrandSnapshotHistory,
   getProductIntelligence,
   getCompetitiveSnapshot,
-  getBrandProductCount,
   getTopBrandProducts,
   getBrandProductsByIds,
   generateNarrative,
@@ -23,6 +22,8 @@ import { getOperatorStudies } from '@/lib/studies/fetchOperatorStudies'
 import { selectHomeModel } from '@/lib/brandHome/selectHomeModel'
 import { fetchProductSignalCards } from '@/lib/brandHome/fetchProductSignalCards.server'
 import { fetchBrandTotalBattles } from '@/lib/brandHome/fetchBrandTotalBattles.server'
+import { fetchDomainVerified } from '@/lib/brandHome/fetchDomainVerified.server'
+import { fetchCatalogHealth } from '@/lib/brandHome/fetchCatalogHealth.server'
 import { perfLog, perfNow, timed } from '@/lib/perf'
 import DashboardClient from './DashboardClient'
 import AdminDashboardClient from './AdminDashboardClient'
@@ -50,19 +51,20 @@ export default async function DashboardPage() {
       snapshot,
       history,
       competitive,
-      totalProductCount,
+      catalogHealth,
       topProducts,
       launcher,
       studies,
       signalCards,
       totalBattles,
+      domainVerified,
     ] = await Promise.all([
       getBrand(effectiveBrandId),
       getSubscription(effectiveBrandId),
       getBrandSnapshot(effectiveBrandId),
       getBrandSnapshotHistory(effectiveBrandId, 30),
       getCompetitiveSnapshot(effectiveBrandId),
-      getBrandProductCount(effectiveBrandId),
+      fetchCatalogHealth(effectiveBrandId),
       getTopBrandProducts(effectiveBrandId, HOME_PRODUCT_LIMIT),
       fetchBrandCategoryLauncherServer(),
       getOperatorStudies({
@@ -72,11 +74,13 @@ export default async function DashboardPage() {
       }).catch(() => []),
       fetchProductSignalCards(effectiveBrandId),
       fetchBrandTotalBattles(),
+      fetchDomainVerified(effectiveBrandId),
     ])
 
     const competeRows = competeCategoriesFromLauncher(launcher)
     const categories = launcherRowsToBrandCategoryL2(competeRows)
     const unlockedL2Ids = entitledL2IdsFromLauncher(launcher)
+    const totalProductCount = catalogHealth.total
 
     perfLog('dashboard.brandParallel', perfNow() - tParallel, {
       brandId: effectiveBrandId,
@@ -107,7 +111,7 @@ export default async function DashboardPage() {
     const productNames = [...nameById.values()]
 
     const narrative = snapshot
-      ? generateNarrative(snapshot, brand.brand_name)
+      ? generateNarrative(snapshot, brand.brand_name, totalBattles)
       : {
           headline: `${brand.brand_name} is in the Dough database. Data builds as battles are recorded.`,
           sub: 'Updated daily',
@@ -122,6 +126,7 @@ export default async function DashboardPage() {
       productIntelligence,
       productNames,
       unlockedL2Ids,
+      totalBattles,
     })
 
     perfLog('dashboard.page.total', perfNow() - tPage, {
@@ -148,6 +153,8 @@ export default async function DashboardPage() {
         homeModel={homeModel}
         categoriesCount={categories.length}
         signalCards={signalCards}
+        domainVerified={domainVerified}
+        catalogHealth={catalogHealth}
       />
     )
   } catch (error) {

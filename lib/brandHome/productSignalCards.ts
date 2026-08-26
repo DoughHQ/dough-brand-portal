@@ -91,6 +91,15 @@ export function resolveSignalImageUrl(
   return usable[0]?.public_url?.trim() || null
 }
 
+/** Same pack-shot rule as Home product cards: non-empty image_url or a usable product_images role. */
+export function hasUsablePackShot(
+  imageUrl: string | null | undefined,
+  candidates: ProductImageCandidate[]
+): boolean {
+  if (imageUrl?.trim()) return true
+  return resolveSignalImageUrl(candidates) != null
+}
+
 /** Fill missing card imageUrl from a product_id → url map (portfolio wins when already set). */
 export function applyResolvedImages(
   cards: ProductSignalCardModel[],

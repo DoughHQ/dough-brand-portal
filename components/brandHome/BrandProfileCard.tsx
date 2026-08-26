@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type CSSProperties } from 'react'
+import { useState } from 'react'
 import type { Brand } from '@/lib/queries'
 import {
   BrandPortalProfileError,
@@ -16,8 +16,19 @@ import {
   socialOutboundUrl,
   type SocialLinkKey,
 } from '@/lib/brandHome/socialLinks'
+import {
+  featuredLinkKeys,
+  formatLocationLine,
+  hiddenPopulatedLinkKeys,
+  populatedLinkKeys,
+} from '@/lib/brandHome/brandProfilePresence'
 import { SocialPlatformIcon } from '@/components/brandHome/socialIcons'
 import ParentOwnershipField from '@/components/brandHome/ParentOwnershipField'
+import {
+  BRAND_VERIFICATION_UNAVAILABLE_TITLE,
+  showBrandVerificationComingSoon,
+} from '@/lib/brandHome/brandVerificationUi'
+import './brandHome.css'
 
 type ProfileState = {
   about_text: string
@@ -72,14 +83,6 @@ const LINK_DEFS: { key: SocialLinkKey; label: string; placeholder: string }[] = 
   { key: 'x_handle', label: 'X', placeholder: 'handle' },
   { key: 'linkedin_url', label: 'LinkedIn', placeholder: 'linkedin.com/company/...' },
 ]
-
-const metricDivider: CSSProperties = {
-  width: 1,
-  alignSelf: 'stretch',
-  background: 'var(--ink-10)',
-  margin: '0 20px',
-  flexShrink: 0,
-}
 
 function LinkChip({
   linkKey,
@@ -472,12 +475,52 @@ function AboutField({
   )
 }
 
+function LocationIcon() {
+  return (
+    <span className="bp-meta-icon" aria-hidden>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M12 21s7-6.2 7-11.2A7 7 0 1 0 5 9.8C5 14.8 12 21 12 21Z"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        <circle cx="12" cy="9.8" r="2.2" stroke="currentColor" strokeWidth="1.6" />
+      </svg>
+    </span>
+  )
+}
+
+function PresenceLink({
+  linkKey,
+  stored,
+}: {
+  linkKey: SocialLinkKey
+  stored: string
+}) {
+  const href = socialOutboundUrl(linkKey, stored)
+  const display = displaySocialValue(linkKey, stored)
+  if (!href || !display) return null
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="bp-presence-link"
+    >
+      <SocialPlatformIcon platform={linkKey} />
+      <span>{display}</span>
+    </a>
+  )
+}
+
 export default function BrandProfileCard({
   brand,
-  productCount,
-  totalBattles,
-  categoriesCount,
+  productCount: _productCount,
+  totalBattles: _totalBattles,
+  categoriesCount: _categoriesCount,
   canSubmitOwnershipCorrection = false,
+  domainVerified = false,
 }: {
   brand: Brand
   productCount: number
@@ -486,12 +529,31 @@ export default function BrandProfileCard({
   categoriesCount?: number
   /** brand_admin / dough_admin (incl. impersonation); hide for brand_viewer */
   canSubmitOwnershipCorrection?: boolean
+  /** EXISTS verified row on brand_portal_verification — not has_portal_access. */
+  domainVerified?: boolean
 }) {
+  const canEdit = canSubmitOwnershipCorrection
   const [editing, setEditing] = useState<string | null>(null)
+  const [editingProfile, setEditingProfile] = useState(false)
+  const [profilesOpen, setProfilesOpen] = useState(false)
   const [profile, setProfile] = useState<ProfileState>(() => profileFromBrand(brand))
   const [aboutDraft, setAboutDraft] = useState(brand.about_text ?? '')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+
+  const linkValues = {
+    brand_website_url: profile.brand_website_url,
+    instagram_handle: profile.instagram_handle,
+    tiktok_handle: profile.tiktok_handle,
+    youtube_handle: profile.youtube_handle,
+    x_handle: profile.x_handle,
+    linkedin_url: profile.linkedin_url,
+  }
+  const populated = populatedLinkKeys(linkValues)
+  const featured = featuredLinkKeys(populated)
+  const hidden = hiddenPopulatedLinkKeys(populated, featured)
+  const locationLine = formatLocationLine(profile.headquarters_city, profile.headquarters_state)
+  const showVerify = showBrandVerificationComingSoon(domainVerified)
 
   function onSaved(persisted: PersistedBrandPortalProfile) {
     setProfile(applyPersisted(persisted))
@@ -518,111 +580,52 @@ export default function BrandProfileCard({
     }
   }
 
-  const showCategories =
-    typeof categoriesCount === 'number' && Number.isFinite(categoriesCount) && categoriesCount >= 0
+  function openEditor() {
+    setEditingProfile(true)
+    setProfilesOpen(false)
+    setAboutDraft(profile.about_text)
+    setEditing(null)
+    setSaveError(null)
+  }
+
+  function closeEditor() {
+    setEditingProfile(false)
+    setEditing(null)
+    setAboutDraft(profile.about_text)
+    setSaveError(null)
+  }
 
   return (
-    <div
-      style={{
-        background: 'var(--white)',
-        border: '1px solid var(--ink-10)',
-        borderRadius: 16,
-        overflow: 'hidden',
-      }}
-    >
-      {/* Identity */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(88px, 100px) minmax(0, 1fr) auto',
-          gap: 24,
-          padding: '22px 28px 20px',
-          alignItems: 'center',
-          borderBottom: '1px solid var(--ink-10)',
-        }}
-      >
-        <div
-          style={{
-            width: 96,
-            height: 96,
-            borderRadius: 14,
-            background: 'var(--sage)',
-            display: 'grid',
-            placeItems: 'center',
-            fontFamily: 'var(--font-serif)',
-            fontSize: 42,
-            fontWeight: 400,
-            color: 'white',
-            flexShrink: 0,
-            overflow: 'hidden',
-          }}
-        >
+    <div className="bp">
+      <div className="brand-profile-identity bp-identity">
+        <div className="bp-logo">
           {brand.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={brand.logo_url}
-              alt={brand.brand_name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+            <img src={brand.logo_url} alt={brand.brand_name} />
           ) : (
             brand.brand_name[0]
           )}
         </div>
 
-        <div style={{ minWidth: 0 }}>
-          <div
-            style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: 26,
-              fontWeight: 400,
-              color: 'var(--ink)',
-              marginBottom: 8,
-              lineHeight: 1.15,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            {brand.brand_name}
-          </div>
+        <div className="bp-copy">
+          <div className="bp-title">{brand.brand_name}</div>
 
-          {editing === 'about' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {editingProfile && editing === 'about' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
               <textarea
                 autoFocus
                 value={aboutDraft}
                 onChange={(e) => setAboutDraft(e.target.value)}
                 placeholder={`Tell people a little about ${brand.brand_name}`}
                 rows={3}
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  borderRadius: 'var(--r-sm)',
-                  border: '1px solid var(--ink-30)',
-                  background: 'var(--surface)',
-                  fontSize: 13,
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-sans)',
-                  outline: 'none',
-                  resize: 'vertical',
-                  lineHeight: 1.6,
-                  boxSizing: 'border-box',
-                }}
+                className="bp-about-input"
               />
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => void saveAbout()}
                   disabled={saving}
-                  style={{
-                    padding: '5px 14px',
-                    background: 'var(--sage)',
-                    color: 'white',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    borderRadius: 'var(--r-sm)',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontFamily: 'var(--font-sans)',
-                  }}
+                  className="bp-save"
                 >
                   {saving ? 'Saving...' : 'Save'}
                 </button>
@@ -633,235 +636,157 @@ export default function BrandProfileCard({
                     setAboutDraft(profile.about_text)
                     setSaveError(null)
                   }}
-                  style={{
-                    padding: '5px 14px',
-                    background: 'transparent',
-                    color: 'var(--ink-50)',
-                    fontSize: 12,
-                    borderRadius: 'var(--r-sm)',
-                    border: '1px solid var(--ink-10)',
-                    cursor: 'pointer',
-                    fontFamily: 'var(--font-sans)',
-                  }}
+                  className="bp-cancel"
                 >
                   Cancel
                 </button>
               </div>
             </div>
           ) : (
-            <div>
-              <div
-                style={{
-                  fontSize: 14,
-                  color: profile.about_text ? 'var(--ink-50)' : 'var(--ink-30)',
-                  lineHeight: 1.55,
-                  maxWidth: 480,
-                }}
-              >
-                {profile.about_text || `Tell people a little about ${brand.brand_name}`}
+            <p className={`bp-desc${profile.about_text ? '' : ' is-empty'}`}>
+              {profile.about_text || `Tell people a little about ${brand.brand_name}`}
+            </p>
+          )}
+
+          {!editingProfile ? (
+            <>
+              <div className="bp-meta">
+                {locationLine ? (
+                  <span className="bp-meta-item">
+                    <LocationIcon />
+                    {locationLine}
+                  </span>
+                ) : null}
+                {locationLine ? <span className="bp-dot bp-dot-parent" aria-hidden>·</span> : null}
+                <ParentOwnershipField
+                  brandName={brand.brand_name}
+                  canSubmitCorrection={false}
+                  variant="summary"
+                />
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setAboutDraft(profile.about_text)
-                  setEditing('about')
-                  setSaveError(null)
-                }}
-                style={{
-                  marginTop: 6,
-                  fontSize: 12,
-                  color: 'var(--sage)',
-                  background: 'none',
-                  border: 'none',
-                  padding: 0,
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-sans)',
-                  fontWeight: 500,
-                }}
-              >
-                {profile.about_text ? 'Edit description' : 'Add a brand description'}
+
+              {(featured.length > 0 || hidden.length > 0) ? (
+              <div className="bp-presence">
+                {featured.map((key, i) => (
+                  <span key={key} className="bp-presence-group">
+                    {i > 0 ? <span className="bp-dot" aria-hidden>·</span> : null}
+                    <PresenceLink linkKey={key} stored={linkValues[key]} />
+                  </span>
+                ))}
+                {hidden.length > 0 ? (
+                  <>
+                    {featured.length > 0 ? <span className="bp-dot" aria-hidden>·</span> : null}
+                    <button
+                      type="button"
+                      className="bp-expand"
+                      aria-expanded={profilesOpen}
+                      onClick={() => setProfilesOpen((open) => !open)}
+                    >
+                      {profilesOpen
+                        ? 'Hide profiles'
+                        : `+${hidden.length} profile${hidden.length === 1 ? '' : 's'}`}
+                    </button>
+                  </>
+                ) : null}
+              </div>
+              ) : null}
+
+              {profilesOpen && hidden.length > 0 ? (
+                <div className="bp-presence bp-presence-more">
+                  {hidden.map((key, i) => (
+                    <span key={key} className="bp-presence-group">
+                      {i > 0 ? <span className="bp-dot" aria-hidden>·</span> : null}
+                      <PresenceLink linkKey={key} stored={linkValues[key]} />
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
+              {canEdit ? (
+                <button type="button" className="bp-edit" onClick={openEditor}>
+                  Edit brand profile →
+                </button>
+              ) : null}
+            </>
+          ) : (
+            <div className="bp-editor">
+              {editing !== 'about' ? (
+                <button
+                  type="button"
+                  className="bp-edit"
+                  onClick={() => {
+                    setAboutDraft(profile.about_text)
+                    setEditing('about')
+                    setSaveError(null)
+                  }}
+                >
+                  {profile.about_text ? 'Edit description' : 'Add a brand description'}
+                </button>
+              ) : null}
+
+              <div className="bp-editor-links">
+                {LINK_DEFS.map((def) => (
+                  <LinkChip
+                    key={def.key}
+                    linkKey={def.key}
+                    label={def.label}
+                    stored={profile[def.key]}
+                    placeholder={def.placeholder}
+                    onSaved={onSaved}
+                    onError={(m) => setSaveError(m || null)}
+                  />
+                ))}
+              </div>
+
+              <div className="bp-editor-about">
+                <AboutField
+                  label="City"
+                  value={profile.headquarters_city}
+                  placeholder="New York"
+                  field="headquarters_city"
+                  onSaved={onSaved}
+                  onError={(m) => setSaveError(m || null)}
+                />
+                <AboutField
+                  label="State"
+                  value={profile.headquarters_state}
+                  placeholder="NY"
+                  field="headquarters_state"
+                  width={80}
+                  onSaved={onSaved}
+                  onError={(m) => setSaveError(m || null)}
+                />
+                <AboutField
+                  label="Founded"
+                  value={profile.founded_year}
+                  placeholder="2008"
+                  field="founded_year"
+                  width={80}
+                  onSaved={onSaved}
+                  onError={(m) => setSaveError(m || null)}
+                />
+                <ParentOwnershipField
+                  brandName={brand.brand_name}
+                  canSubmitCorrection={canSubmitOwnershipCorrection}
+                  variant="editor"
+                />
+              </div>
+
+              <button type="button" className="bp-edit" onClick={closeEditor}>
+                Done
               </button>
             </div>
           )}
         </div>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'stretch',
-            flexShrink: 0,
-            paddingLeft: 8,
-          }}
-        >
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 11, color: 'var(--ink-30)', marginBottom: 4 }}>Products on Dough</div>
-            <div
-              style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: 28,
-                fontWeight: 400,
-                color: 'var(--ink)',
-                letterSpacing: '-0.02em',
-                fontVariantNumeric: 'tabular-nums',
-              }}
-            >
-              {productCount.toLocaleString()}
-            </div>
-          </div>
-          <div style={metricDivider} />
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 11, color: 'var(--ink-30)', marginBottom: 4 }}>Total battles</div>
-            <div
-              style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: 28,
-                fontWeight: 400,
-                color: 'var(--ink)',
-                letterSpacing: '-0.02em',
-                fontVariantNumeric: 'tabular-nums',
-              }}
-              title="Distinct head-to-head comparisons that included at least one of your products."
-              >
-              {totalBattles.toLocaleString()}
-              </div>
-          </div>
-          {showCategories ? (
-            <>
-              <div style={metricDivider} />
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 11, color: 'var(--ink-30)', marginBottom: 4 }}>
-                  Categories
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-serif)',
-                    fontSize: 28,
-                    fontWeight: 400,
-                    color: 'var(--ink)',
-                    letterSpacing: '-0.02em',
-                    fontVariantNumeric: 'tabular-nums',
-                  }}
-                >
-                  {categoriesCount!.toLocaleString()}
-                </div>
-              </div>
-            </>
-          ) : null}
-        </div>
       </div>
 
-      {/* Links */}
-      <div style={{ padding: '16px 28px 18px', borderBottom: '1px solid var(--ink-10)' }}>
-        <div
-          style={{
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'var(--ink-30)',
-            marginBottom: 14,
-          }}
-        >
-          Links
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '18px 12px',
-          }}
-        >
-          {LINK_DEFS.map((def) => (
-            <LinkChip
-              key={def.key}
-              linkKey={def.key}
-              label={def.label}
-              stored={profile[def.key]}
-              placeholder={def.placeholder}
-              onSaved={onSaved}
-              onError={(m) => setSaveError(m || null)}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* About */}
-      <div
-        style={{
-          padding: '14px 20px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 8,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'var(--ink-30)',
-            marginRight: 8,
-            paddingLeft: 8,
-          }}
-        >
-          About
-        </div>
-        <AboutField
-          label="City"
-          value={profile.headquarters_city}
-          placeholder="New York"
-          field="headquarters_city"
-          onSaved={onSaved}
-          onError={(m) => setSaveError(m || null)}
-        />
-        <div style={{ width: 1, height: 28, background: 'var(--ink-10)', margin: '0 4px' }} />
-        <AboutField
-          label="State"
-          value={profile.headquarters_state}
-          placeholder="NY"
-          field="headquarters_state"
-          width={80}
-          onSaved={onSaved}
-          onError={(m) => setSaveError(m || null)}
-        />
-        <div style={{ width: 1, height: 28, background: 'var(--ink-10)', margin: '0 4px' }} />
-        <AboutField
-          label="Founded"
-          value={profile.founded_year}
-          placeholder="2008"
-          field="founded_year"
-          width={80}
-          onSaved={onSaved}
-          onError={(m) => setSaveError(m || null)}
-        />
-        <ParentOwnershipField
-          brandName={brand.brand_name}
-          canSubmitCorrection={canSubmitOwnershipCorrection}
-        />
-      </div>
-
-      {saveError ? (
-        <div
-          style={{
-            padding: '10px 28px 14px',
-            fontSize: 12,
-            color: 'var(--red, #b42318)',
-            borderTop: '1px solid var(--ink-10)',
-          }}
-        >
-          {saveError}
-        </div>
+      {showVerify ? (
+        <p className="bp-verify">
+          <span aria-hidden>◇</span> {BRAND_VERIFICATION_UNAVAILABLE_TITLE}
+        </p>
       ) : null}
 
-      <style>{`
-        @media (max-width: 820px) {
-          .brand-profile-identity {
-            grid-template-columns: 88px 1fr !important;
-          }
-        }
-      `}</style>
+      {saveError ? <div className="bp-error">{saveError}</div> : null}
     </div>
   )
 }

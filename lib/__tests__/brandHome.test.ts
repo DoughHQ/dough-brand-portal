@@ -96,6 +96,25 @@ describe('selectHomeModel', () => {
     expect(model.hero.headline).toBe(baseNarrative.headline)
   })
 
+  it('uses the ledger battle total in getting-started hero copy, not the snapshot', () => {
+    const model = selectHomeModel({
+      brandName: 'Odwalla, Inc.',
+      narrative: {
+        headline: 'Odwalla, Inc. is getting started on Dough. Early data is coming in.',
+        sub: '48 battles counted so far · Data updates daily',
+      },
+      snapshot: { total_battles_all_time: 48, elo_velocity_30d: 0 } as BrandSnapshot,
+      categories: [],
+      studies: [],
+      productIntelligence: [],
+      productNames: [],
+      totalBattles: 57,
+    })
+    expect(model.hero.kind).toBe('narrative')
+    expect(model.hero.body).toBe('57 battles counted so far · Data updates daily')
+    expect(model.hero.body).not.toContain('48')
+  })
+
   it('falls back to category then empty', () => {
     const withCat = selectHomeModel({
       brandName: 'Acme',
@@ -157,6 +176,7 @@ describe('selectHomeModel', () => {
     expect(model.categories[0]?.unlocked).toBe(false)
     expect(model.categories[0]?.href).toBe('/reports')
     expect(model.categories[0]?.ctaLabel).toContain('Unlock')
+    expect(model.categories[0]?.bannerImageUrl).toBeNull()
     expect(model.products[0]?.name).toBe('Fast')
     expect(model.products[0]?.chip).toBe('gaining')
     expect(model.studies[0]?.badge).toBe('Live')
@@ -180,5 +200,25 @@ describe('selectHomeModel', () => {
     expect(model.categories[0]?.href).toBe('/categories/2')
     expect(model.categories[0]?.ctaLabel).toContain('Overview')
     expect(model.products[0]?.rankLabel).toBe('Top 12% in category')
+  })
+
+  it('passes through existing category banner urls', () => {
+    const model = selectHomeModel({
+      brandName: 'Acme',
+      narrative: baseNarrative,
+      snapshot: null,
+      categories: [
+        cat({
+          l2NodeId: 2,
+          l2Name: 'Juices',
+          battles: 50,
+          bannerImageUrl: 'https://cdn.example/juices.jpg',
+        }),
+      ],
+      studies: [],
+      productIntelligence: [],
+      productNames: [],
+    })
+    expect(model.categories[0]?.bannerImageUrl).toBe('https://cdn.example/juices.jpg')
   })
 })

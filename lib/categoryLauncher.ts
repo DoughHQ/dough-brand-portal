@@ -70,6 +70,7 @@ export function launcherRowsToBrandCategoryL2(rows: CategoryLauncherRow[]): {
   productCount: number
   battles: number
   productsWithBattles: number
+  bannerImageUrl: string | null
 }[] {
   return rows.map((r) => ({
     l2NodeId: r.l2_id,
@@ -77,6 +78,7 @@ export function launcherRowsToBrandCategoryL2(rows: CategoryLauncherRow[]): {
     productCount: r.total_products,
     battles: r.total_battles,
     productsWithBattles: r.products_with_battles,
+    bannerImageUrl: r.banner_image_url,
   }))
 }
 
