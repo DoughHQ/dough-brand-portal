@@ -100,6 +100,7 @@ export default function PortalLayoutClient({
         { label: 'Impersonate', href: '/admin/impersonate' },
         { label: 'Corrections', href: '/admin/corrections' },
         { label: 'Ownership', href: '/admin/ownership-corrections' },
+        { label: 'Applications', href: '/admin/brand-applications' },
         { label: 'Boxes', href: '/admin/boxes' },
         { label: 'Studies', href: '/studies' },
         { label: 'Products', href: '/products' },

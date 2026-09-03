@@ -125,6 +125,19 @@ a {
   .no-print {
     display: none !important;
   }
+
+  .portal-aside {
+    display: none !important;
+  }
+
+  .portal-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .portal-shell {
+    display: block !important;
+  }
 }
 
 /* Dark mode — legacy portal shell */

@@ -147,6 +147,7 @@ export default function AdminDashboardClient({ stats }: Props) {
             { label: 'Report preview', sub: 'Admin / Overview harness', href: '/admin/report-preview' },
             { label: 'Corrections', sub: 'Review flagged data', href: '/admin/corrections' },
             { label: 'Ownership', sub: 'Brand parent corrections', href: '/admin/ownership-corrections' },
+            { label: 'Applications', sub: 'Brand signup queue', href: '/admin/brand-applications' },
             { label: 'Compare Groups', sub: 'Job / occasion intelligence', href: '/admin/compare-groups' },
             { label: 'Boxes', sub: 'Fulfillment ops', href: '/admin/boxes' },
             { label: 'Studies', sub: 'Active research & reports', href: '/studies' },

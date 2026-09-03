@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import type { PortalUser, Brand, BrandSubscription, BrandProduct } from '@/lib/queries'
+import { ProductArt } from '@/components/products/ProductArt'
 import '@/components/categories/categoriesPage.css'
+import '@/components/products/productTile.css'
 import './productsPage.css'
 
 type PortfolioProduct = {
@@ -70,29 +72,14 @@ function SummaryCard({
   )
 }
 
-function ProductArt({ product }: { product: PortfolioProduct }) {
-  if (product.image_url) {
-    return (
-      <div className="prod-tile-art">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={product.image_url} alt="" />
-      </div>
-    )
-  }
-  const letter = (product.product_name_clean.trim().slice(0, 1) || '?').toUpperCase()
-  return (
-    <div className="prod-tile-art" aria-hidden>
-      <span className="prod-tile-letter">{letter}</span>
-    </div>
-  )
-}
-
 function ProductCard({ product }: { product: PortfolioProduct }) {
   const href = `/products/${product.product_id}`
   const category = product.l3_name ?? product.l2_name
   return (
     <Link href={href} className="cat-tile">
-      <ProductArt product={product} />
+      <ProductArt
+        product={{ name: product.product_name_clean, image_url: product.image_url }}
+      />
       <div className="cat-tile-body">
         {category ? <div className="cat-kicker">{category}</div> : null}
         <div className="prod-tile-name">{product.product_name_clean}</div>

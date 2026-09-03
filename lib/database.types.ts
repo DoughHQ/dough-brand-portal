@@ -4900,6 +4900,9 @@ export type Database = {
           linkedin_url: string | null
           notes: string | null
           primary_category: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by_portal_user_id: string | null
           role_title: string | null
           status: string
           updated_at: string
@@ -4920,6 +4923,9 @@ export type Database = {
           linkedin_url?: string | null
           notes?: string | null
           primary_category?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by_portal_user_id?: string | null
           role_title?: string | null
           status?: string
           updated_at?: string
@@ -4940,6 +4946,9 @@ export type Database = {
           linkedin_url?: string | null
           notes?: string | null
           primary_category?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by_portal_user_id?: string | null
           role_title?: string | null
           status?: string
           updated_at?: string
@@ -43778,6 +43787,14 @@ export type Database = {
         }[]
       }
       set_avatar_url: { Args: { p_avatar_url: string }; Returns: Json }
+      set_brand_application_status: {
+        Args: {
+          p_decision: string
+          p_review_notes?: string
+          p_waitlist_id: string
+        }
+        Returns: Json
+      }
       set_brand_msrp: {
         Args: { p_currency?: string; p_price: number; p_sku_variant_id: number }
         Returns: Json

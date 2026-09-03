@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type CSSProperties } from 'react'
 import { createClient } from '@/lib/supabase'
+import ApplyBrandFlow, { type ApplyStep } from '@/components/auth/ApplyBrandFlow'
 
-type Step = 'waitlist' | 'submitted' | 'login' | 'forgot'
+type Step = ApplyStep | 'login' | 'forgot'
 
 function parseUrlErrors(): { error: string | null; errorCode: string | null } {
   if (typeof window === 'undefined') return { error: null, errorCode: null }
@@ -21,16 +22,10 @@ function parseUrlErrors(): { error: string | null; errorCode: string | null } {
 }
 
 export default function LoginPage() {
-  const [step, setStep] = useState<Step>('waitlist')
+  const [step, setStep] = useState<Step>('search')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
-
-  const [brandName, setBrandName] = useState('')
-  const [contactName, setContactName] = useState('')
-  const [contactEmail, setContactEmail] = useState('')
-  const [brandWebsite, setBrandWebsite] = useState('')
-  const [category, setCategory] = useState('')
 
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
@@ -56,7 +51,9 @@ export default function LoginPage() {
     }
 
     // Safety net: recovery session/hash landed on /login instead of update-password
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         window.location.replace('/auth/update-password')
       }
@@ -71,32 +68,8 @@ export default function LoginPage() {
     }
 
     return () => subscription.unsubscribe()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  async function handleWaitlistSubmit() {
-    if (!brandName.trim() || !contactName.trim() || !contactEmail.trim()) {
-      setError('Brand name, contact name, and email are required.')
-      return
-    }
-    setLoading(true)
-    setError(null)
-    const { error: insertError } = await supabase
-      .from('brand_waitlist')
-      .insert({
-        brand_name: brandName.trim(),
-        contact_name: contactName.trim(),
-        contact_email: contactEmail.trim().toLowerCase(),
-        brand_website: brandWebsite.trim() || null,
-        primary_category: category.trim() || null,
-      })
-    setLoading(false)
-    if (insertError) {
-      setError('Something went wrong. Please try again.')
-      return
-    }
-    setStep('submitted')
-  }
 
   async function handleLogin() {
     if (!loginEmail.trim() || !loginPassword.trim()) {
@@ -143,18 +116,18 @@ export default function LoginPage() {
     )
   }
 
-  const shellStyle = {
+  const shellStyle: CSSProperties = {
     minHeight: '100vh',
     background: 'var(--surface)',
     fontFamily: 'var(--font-sans)',
     display: 'flex',
-    flexDirection: 'column' as const,
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: '40px 20px',
+    justifyContent: step === 'products' ? 'flex-start' : 'center',
+    padding: step === 'products' ? '40px 20px 64px' : '40px 20px',
   }
 
-  const cardStyle = {
+  const cardStyle: CSSProperties = {
     width: '100%',
     maxWidth: 440,
     background: 'var(--white)',
@@ -163,7 +136,12 @@ export default function LoginPage() {
     padding: '36px 40px',
   }
 
-  const inputStyle = {
+  const wideCardStyle: CSSProperties = {
+    ...cardStyle,
+    maxWidth: 880,
+  }
+
+  const inputStyle: CSSProperties = {
     width: '100%',
     padding: '10px 14px',
     borderRadius: 'var(--r-sm)',
@@ -175,7 +153,7 @@ export default function LoginPage() {
     outline: 'none',
   }
 
-  const labelStyle = {
+  const labelStyle: CSSProperties = {
     fontSize: 11,
     fontWeight: 500,
     color: 'var(--ink-50)',
@@ -183,7 +161,7 @@ export default function LoginPage() {
     letterSpacing: '0.04em',
   }
 
-  const primaryBtnStyle = (disabled: boolean) => ({
+  const primaryBtnStyle = (disabled: boolean): CSSProperties => ({
     width: '100%',
     padding: '12px',
     background: disabled ? 'var(--ink-10)' : 'var(--sage)',
@@ -197,197 +175,242 @@ export default function LoginPage() {
     marginTop: 4,
   })
 
+  const isApplyStep =
+    step === 'search' || step === 'products' || step === 'details' || step === 'booking'
+
   return (
     <div style={shellStyle}>
       <div style={{ marginBottom: 48, textAlign: 'center' }}>
-        <div style={{ fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 500, color: 'var(--sage)', letterSpacing: '-0.5px' }}>
+        <div
+          style={{
+            fontFamily: 'var(--font-serif)',
+            fontSize: 28,
+            fontWeight: 500,
+            color: 'var(--sage)',
+            letterSpacing: '-0.5px',
+          }}
+        >
           dough<span style={{ color: 'var(--ink-30)', fontWeight: 400 }}>.</span>
         </div>
-        <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: '1.6px', textTransform: 'uppercase', color: 'var(--ink-30)', marginTop: 4 }}>
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: '1.6px',
+            textTransform: 'uppercase',
+            color: 'var(--ink-30)',
+            marginTop: 4,
+          }}
+        >
           Brand Intelligence
         </div>
       </div>
 
-      <div style={cardStyle}>
-        {step === 'waitlist' && (
-          <>
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: 22, fontWeight: 400, color: 'var(--ink)', marginBottom: 8, lineHeight: 1.3 }}>
-                Request access
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.6 }}>
-                Dough Brand Intelligence is currently invite-only.
-                Submit your information and we will be in touch.
-              </div>
+      {isApplyStep ? (
+        <ApplyBrandFlow
+          step={step}
+          setStep={setStep}
+          error={error}
+          setError={setError}
+          onGoToLogin={() => {
+            setStep('login')
+            setError(null)
+            setInfo(null)
+          }}
+          styles={{
+            cardStyle,
+            wideCardStyle,
+            inputStyle,
+            labelStyle,
+            primaryBtnStyle,
+          }}
+        />
+      ) : null}
+
+      {step === 'login' && (
+        <div style={cardStyle}>
+          <div style={{ marginBottom: 28 }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-serif)',
+                fontSize: 22,
+                fontWeight: 400,
+                color: 'var(--ink)',
+                marginBottom: 8,
+              }}
+            >
+              Sign in
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {[
-                { label: 'Brand name', value: brandName, set: setBrandName, placeholder: 'McCormick', required: true },
-                { label: 'Your name', value: contactName, set: setContactName, placeholder: 'Jane Smith', required: true },
-                { label: 'Work email', value: contactEmail, set: setContactEmail, placeholder: 'jane@brand.com', required: true, type: 'email' as const },
-                { label: 'Brand website', value: brandWebsite, set: setBrandWebsite, placeholder: 'brand.com', required: false },
-                { label: 'Primary category', value: category, set: setCategory, placeholder: 'Spices & Seasonings', required: false },
-              ].map((field) => (
-                <div key={field.label}>
-                  <div style={labelStyle}>
-                    {field.label}{field.required && <span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>}
-                  </div>
-                  <input
-                    type={field.type ?? 'text'}
-                    value={field.value}
-                    onChange={(e) => field.set(e.target.value)}
-                    placeholder={field.placeholder}
-                    style={inputStyle}
-                    onFocus={(e) => { e.target.style.borderColor = 'var(--ink-30)' }}
-                    onBlur={(e) => { e.target.style.borderColor = 'var(--ink-10)' }}
-                  />
-                </div>
-              ))}
-
-              {error && <div style={{ fontSize: 12, color: 'var(--red)', lineHeight: 1.5 }}>{error}</div>}
-
-              <button onClick={handleWaitlistSubmit} disabled={loading} style={primaryBtnStyle(loading)}>
-                {loading ? 'Submitting...' : 'Request access'}
-              </button>
-
-              <div style={{ textAlign: 'center', paddingTop: 4 }}>
-                <button
-                  onClick={() => { setStep('login'); setError(null) }}
-                  style={{ fontSize: 12, color: 'var(--ink-30)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}
-                >
-                  Already have access? Sign in
-                </button>
-              </div>
+            <div style={{ fontSize: 13, color: 'var(--ink-50)' }}>
+              For approved brand partners only.
             </div>
-          </>
-        )}
-
-        {step === 'submitted' && (
-          <div style={{ textAlign: 'center', padding: '12px 0' }}>
-            <div style={{ fontFamily: 'var(--font-serif)', fontSize: 20, fontWeight: 400, color: 'var(--ink)', marginBottom: 12, lineHeight: 1.4 }}>
-              Request received.
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.7, marginBottom: 24 }}>
-              We review every request personally. If your brand is a fit,
-              you will hear from us at {contactEmail} within a few business days.
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--ink-30)' }}>Questions? hello@godough.co</div>
           </div>
-        )}
 
-        {step === 'login' && (
-          <>
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: 22, fontWeight: 400, color: 'var(--ink)', marginBottom: 8 }}>
-                Sign in
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--ink-50)' }}>For approved brand partners only.</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <div style={labelStyle}>Email</div>
+              <input
+                type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                placeholder="you@brand.com"
+                autoComplete="email"
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                style={inputStyle}
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'var(--ink-30)'
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'var(--ink-10)'
+                }}
+              />
+            </div>
+            <div>
+              <div style={labelStyle}>Password</div>
+              <input
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                style={inputStyle}
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'var(--ink-30)'
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'var(--ink-10)'
+                }}
+              />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div>
-                <div style={labelStyle}>Email</div>
-                <input
-                  type="email"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder="you@brand.com"
-                  autoComplete="email"
-                  onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                  style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = 'var(--ink-30)' }}
-                  onBlur={(e) => { e.target.style.borderColor = 'var(--ink-10)' }}
-                />
-              </div>
-              <div>
-                <div style={labelStyle}>Password</div>
-                <input
-                  type="password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                  style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = 'var(--ink-30)' }}
-                  onBlur={(e) => { e.target.style.borderColor = 'var(--ink-10)' }}
-                />
-              </div>
+            {error && (
+              <div style={{ fontSize: 12, color: 'var(--red)', lineHeight: 1.5 }}>{error}</div>
+            )}
 
-              {error && <div style={{ fontSize: 12, color: 'var(--red)', lineHeight: 1.5 }}>{error}</div>}
+            <button onClick={handleLogin} disabled={loading} style={primaryBtnStyle(loading)}>
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
 
-              <button onClick={handleLogin} disabled={loading} style={primaryBtnStyle(loading)}>
-                {loading ? 'Signing in...' : 'Sign in'}
+            <div style={{ textAlign: 'center' }}>
+              <button
+                onClick={() => {
+                  setStep('forgot')
+                  setError(null)
+                  setInfo(null)
+                  setForgotEmail(loginEmail)
+                }}
+                style={{
+                  fontSize: 12,
+                  color: 'var(--ink-30)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                }}
+              >
+                Forgot password?
               </button>
-
-              <div style={{ textAlign: 'center' }}>
-                <button
-                  onClick={() => { setStep('forgot'); setError(null); setInfo(null); setForgotEmail(loginEmail) }}
-                  style={{ fontSize: 12, color: 'var(--ink-30)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}
-                >
-                  Forgot password?
-                </button>
-              </div>
-
-              <div style={{ textAlign: 'center' }}>
-                <button
-                  onClick={() => { setStep('waitlist'); setError(null) }}
-                  style={{ fontSize: 12, color: 'var(--ink-30)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}
-                >
-                  Back
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {step === 'forgot' && (
-          <>
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: 22, fontWeight: 400, color: 'var(--ink)', marginBottom: 8 }}>
-                Reset password
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.6 }}>
-                Enter your work email and we will send a link to set a new password.
-              </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div>
-                <div style={labelStyle}>Email</div>
-                <input
-                  type="email"
-                  value={forgotEmail}
-                  onChange={(e) => setForgotEmail(e.target.value)}
-                  placeholder="you@brand.com"
-                  autoComplete="email"
-                  onKeyDown={(e) => e.key === 'Enter' && handleForgotPassword()}
-                  style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = 'var(--ink-30)' }}
-                  onBlur={(e) => { e.target.style.borderColor = 'var(--ink-10)' }}
-                />
-              </div>
-
-              {error && <div style={{ fontSize: 12, color: 'var(--red)', lineHeight: 1.5 }}>{error}</div>}
-              {info && <div style={{ fontSize: 12, color: 'var(--ink-50)', lineHeight: 1.5 }}>{info}</div>}
-
-              <button onClick={handleForgotPassword} disabled={loading} style={primaryBtnStyle(loading)}>
-                {loading ? 'Sending...' : 'Send reset link'}
+            <div style={{ textAlign: 'center' }}>
+              <button
+                onClick={() => {
+                  setStep('search')
+                  setError(null)
+                }}
+                style={{
+                  fontSize: 12,
+                  color: 'var(--ink-30)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                }}
+              >
+                Back
               </button>
-
-              <div style={{ textAlign: 'center' }}>
-                <button
-                  onClick={() => { setStep('login'); setError(null); setInfo(null) }}
-                  style={{ fontSize: 12, color: 'var(--ink-30)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}
-                >
-                  Back
-                </button>
-              </div>
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
+
+      {step === 'forgot' && (
+        <div style={cardStyle}>
+          <div style={{ marginBottom: 28 }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-serif)',
+                fontSize: 22,
+                fontWeight: 400,
+                color: 'var(--ink)',
+                marginBottom: 8,
+              }}
+            >
+              Reset password
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.6 }}>
+              Enter your work email and we will send a link to set a new password.
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <div style={labelStyle}>Email</div>
+              <input
+                type="email"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                placeholder="you@brand.com"
+                autoComplete="email"
+                onKeyDown={(e) => e.key === 'Enter' && handleForgotPassword()}
+                style={inputStyle}
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'var(--ink-30)'
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'var(--ink-10)'
+                }}
+              />
+            </div>
+
+            {error && (
+              <div style={{ fontSize: 12, color: 'var(--red)', lineHeight: 1.5 }}>{error}</div>
+            )}
+            {info && (
+              <div style={{ fontSize: 12, color: 'var(--ink-50)', lineHeight: 1.5 }}>{info}</div>
+            )}
+
+            <button
+              onClick={handleForgotPassword}
+              disabled={loading}
+              style={primaryBtnStyle(loading)}
+            >
+              {loading ? 'Sending...' : 'Send reset link'}
+            </button>
+
+            <div style={{ textAlign: 'center' }}>
+              <button
+                onClick={() => {
+                  setStep('login')
+                  setError(null)
+                  setInfo(null)
+                }}
+                style={{
+                  fontSize: 12,
+                  color: 'var(--ink-30)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                }}
+              >
+                Back
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ marginTop: 32, fontSize: 11, color: 'var(--ink-30)', textAlign: 'center' }}>
         godough.co · hello@godough.co
