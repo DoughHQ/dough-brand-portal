@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -95,6 +95,213 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      adaptogen_merge_20260901_anchor_backup: {
+        Row: {
+          anchor_tier: number | null
+          created_at: string | null
+          display_label: string | null
+          flag_for_review: boolean | null
+          flag_reason: string | null
+          id: number | null
+          product_id: number | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          anchor_tier?: number | null
+          created_at?: string | null
+          display_label?: string | null
+          flag_for_review?: boolean | null
+          flag_reason?: string | null
+          id?: number | null
+          product_id?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          anchor_tier?: number | null
+          created_at?: string | null
+          display_label?: string | null
+          flag_for_review?: boolean | null
+          flag_reason?: string | null
+          id?: number | null
+          product_id?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: []
+      }
+      adaptogen_merge_20260901_cgm_backup: {
+        Row: {
+          compare_group_id: number | null
+          compare_group_membership_id: number | null
+          created_at: string | null
+          effective_from: string | null
+          effective_to: string | null
+          priority: number | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          compare_group_id?: number | null
+          compare_group_membership_id?: number | null
+          created_at?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          priority?: number | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          compare_group_id?: number | null
+          compare_group_membership_id?: number | null
+          created_at?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          priority?: number | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      adaptogen_merge_20260901_node_backup: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          banner_image_url: string | null
+          basket_section: string | null
+          card_type: string | null
+          compare_group_node_id: number | null
+          created_at: string | null
+          domain_code: string | null
+          hero_image_url: string | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_brand_agnostic: boolean | null
+          is_compare_enabled: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_description: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          path_ids_csv: string | null
+          path_names_csv: string | null
+          replenishment_frequency: string | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          status: string | null
+          store_flow_order: number | null
+          suppress_health_scoring: boolean | null
+          suppress_in_collection: boolean | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+          variety_label: string | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Relationships: []
+      }
+      adaptogen_merge_20260901_product_backup: {
+        Row: {
+          backed_up_at: string | null
+          old_taxonomy_node_id: number | null
+          product_id: number | null
+          product_name_display: string | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+        }
+        Relationships: []
       }
       answer_sets: {
         Row: {
@@ -1601,6 +1808,213 @@ export type Database = {
           },
         ]
       }
+      bp_assign: {
+        Row: {
+          brand_id: number | null
+          chosen_plen: number | null
+          cohort_brands: number | null
+          cohort_prefix: string | null
+          cohort_products: number | null
+          dom_brand_id: number | null
+          dom_share: number | null
+          g13: string | null
+          product_id: number | null
+        }
+        Insert: {
+          brand_id?: number | null
+          chosen_plen?: number | null
+          cohort_brands?: number | null
+          cohort_prefix?: string | null
+          cohort_products?: number | null
+          dom_brand_id?: number | null
+          dom_share?: number | null
+          g13?: string | null
+          product_id?: number | null
+        }
+        Update: {
+          brand_id?: number | null
+          chosen_plen?: number | null
+          cohort_brands?: number | null
+          cohort_prefix?: string | null
+          cohort_products?: number | null
+          dom_brand_id?: number | null
+          dom_share?: number | null
+          g13?: string | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
+      bp_barcode: {
+        Row: {
+          brand_id: number | null
+          g13: string | null
+          g14: string | null
+          gtin_valid: boolean | null
+          is_brand_agnostic: boolean | null
+          product_id: number | null
+          product_status: string | null
+        }
+        Insert: {
+          brand_id?: number | null
+          g13?: string | null
+          g14?: string | null
+          gtin_valid?: boolean | null
+          is_brand_agnostic?: boolean | null
+          product_id?: number | null
+          product_status?: string | null
+        }
+        Update: {
+          brand_id?: number | null
+          g13?: string | null
+          g14?: string | null
+          gtin_valid?: boolean | null
+          is_brand_agnostic?: boolean | null
+          product_id?: number | null
+          product_status?: string | null
+        }
+        Relationships: []
+      }
+      bp_prefix_stats: {
+        Row: {
+          dom_brand_id: number | null
+          dom_n: number | null
+          dom_share: number | null
+          n_brands: number | null
+          n_products: number | null
+          pfx: string | null
+          plen: number | null
+        }
+        Insert: {
+          dom_brand_id?: number | null
+          dom_n?: number | null
+          dom_share?: number | null
+          n_brands?: number | null
+          n_products?: number | null
+          pfx?: string | null
+          plen?: number | null
+        }
+        Update: {
+          dom_brand_id?: number | null
+          dom_n?: number | null
+          dom_share?: number | null
+          n_brands?: number | null
+          n_products?: number | null
+          pfx?: string | null
+          plen?: number | null
+        }
+        Relationships: []
+      }
+      bp20260902_bkey_groups: {
+        Row: {
+          active_products: number | null
+          all_brand_ids: number[] | null
+          conglomerate_conflict: boolean | null
+          decision: string | null
+          group_key: string | null
+          key_length: number | null
+          min_name_similarity: number | null
+          mixed_brand_type: boolean | null
+          reviewer_note: string | null
+          rows_removable: number | null
+          survivor_brand_id: number | null
+          survivor_name: string | null
+          tier: string | null
+          variant_rows: number | null
+          variants: string | null
+        }
+        Insert: {
+          active_products?: number | null
+          all_brand_ids?: number[] | null
+          conglomerate_conflict?: boolean | null
+          decision?: string | null
+          group_key?: string | null
+          key_length?: number | null
+          min_name_similarity?: number | null
+          mixed_brand_type?: boolean | null
+          reviewer_note?: string | null
+          rows_removable?: number | null
+          survivor_brand_id?: number | null
+          survivor_name?: string | null
+          tier?: string | null
+          variant_rows?: number | null
+          variants?: string | null
+        }
+        Update: {
+          active_products?: number | null
+          all_brand_ids?: number[] | null
+          conglomerate_conflict?: boolean | null
+          decision?: string | null
+          group_key?: string | null
+          key_length?: number | null
+          min_name_similarity?: number | null
+          mixed_brand_type?: boolean | null
+          reviewer_note?: string | null
+          rows_removable?: number | null
+          survivor_brand_id?: number | null
+          survivor_name?: string | null
+          tier?: string | null
+          variant_rows?: number | null
+          variants?: string | null
+        }
+        Relationships: []
+      }
+      bp20260902_dupe_groups: {
+        Row: {
+          active_products: number | null
+          all_brand_ids: number[] | null
+          blocked_reason: string | null
+          decision: string | null
+          group_key: string | null
+          may_be_descriptor: boolean | null
+          mixed_brand_type: boolean | null
+          needs_name_review: boolean | null
+          proposed_canonical_name: string | null
+          reviewer_note: string | null
+          rows_removable: number | null
+          survivor_brand_id: number | null
+          tier: string | null
+          trade_brand_refs: number | null
+          variant_rows: number | null
+          variants: string | null
+        }
+        Insert: {
+          active_products?: number | null
+          all_brand_ids?: number[] | null
+          blocked_reason?: string | null
+          decision?: string | null
+          group_key?: string | null
+          may_be_descriptor?: boolean | null
+          mixed_brand_type?: boolean | null
+          needs_name_review?: boolean | null
+          proposed_canonical_name?: string | null
+          reviewer_note?: string | null
+          rows_removable?: number | null
+          survivor_brand_id?: number | null
+          tier?: string | null
+          trade_brand_refs?: number | null
+          variant_rows?: number | null
+          variants?: string | null
+        }
+        Update: {
+          active_products?: number | null
+          all_brand_ids?: number[] | null
+          blocked_reason?: string | null
+          decision?: string | null
+          group_key?: string | null
+          may_be_descriptor?: boolean | null
+          mixed_brand_type?: boolean | null
+          needs_name_review?: boolean | null
+          proposed_canonical_name?: string | null
+          reviewer_note?: string | null
+          rows_removable?: number | null
+          survivor_brand_id?: number | null
+          tier?: string | null
+          trade_brand_refs?: number | null
+          variant_rows?: number | null
+          variants?: string | null
+        }
+        Relationships: []
+      }
       brand_aliases: {
         Row: {
           alias_normalized: string
@@ -1902,6 +2316,182 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
+          },
+        ]
+      }
+      brand_category_entitlement_events: {
+        Row: {
+          actor_kind: string
+          actor_portal_user_id: string | null
+          created_at: string
+          entitlement_id: string
+          event_id: number
+          from_status: string | null
+          reason: string | null
+          to_status: string
+        }
+        Insert: {
+          actor_kind?: string
+          actor_portal_user_id?: string | null
+          created_at?: string
+          entitlement_id: string
+          event_id?: never
+          from_status?: string | null
+          reason?: string | null
+          to_status: string
+        }
+        Update: {
+          actor_kind?: string
+          actor_portal_user_id?: string | null
+          created_at?: string
+          entitlement_id?: string
+          event_id?: never
+          from_status?: string | null
+          reason?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_category_entitlement_events_actor_portal_user_id_fkey"
+            columns: ["actor_portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "brand_portal_users"
+            referencedColumns: ["portal_user_id"]
+          },
+          {
+            foreignKeyName: "brand_category_entitlement_events_entitlement_id_fkey"
+            columns: ["entitlement_id"]
+            isOneToOne: false
+            referencedRelation: "brand_category_entitlements"
+            referencedColumns: ["entitlement_id"]
+          },
+        ]
+      }
+      brand_category_entitlements: {
+        Row: {
+          billing_reference: string | null
+          brand_id: number
+          canceled_at: string | null
+          catalog_id: number | null
+          created_at: string
+          entitlement_id: string
+          expires_at: string | null
+          granted_at: string
+          granted_by_portal_user_id: string | null
+          revoked_at: string | null
+          revoked_reason: string | null
+          source: string
+          status: string
+          subscription_id: string | null
+          taxonomy_node_id: number
+          updated_at: string
+        }
+        Insert: {
+          billing_reference?: string | null
+          brand_id: number
+          canceled_at?: string | null
+          catalog_id?: number | null
+          created_at?: string
+          entitlement_id?: string
+          expires_at?: string | null
+          granted_at?: string
+          granted_by_portal_user_id?: string | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          source: string
+          status?: string
+          subscription_id?: string | null
+          taxonomy_node_id: number
+          updated_at?: string
+        }
+        Update: {
+          billing_reference?: string | null
+          brand_id?: number
+          canceled_at?: string | null
+          catalog_id?: number | null
+          created_at?: string
+          entitlement_id?: string
+          expires_at?: string | null
+          granted_at?: string
+          granted_by_portal_user_id?: string | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          source?: string
+          status?: string
+          subscription_id?: string | null
+          taxonomy_node_id?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_category_entitlements_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_category_entitlements_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_category_entitlements_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_category_entitlements_granted_by_portal_user_id_fkey"
+            columns: ["granted_by_portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "brand_portal_users"
+            referencedColumns: ["portal_user_id"]
+          },
+          {
+            foreignKeyName: "brand_category_entitlements_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "brand_portal_subscriptions"
+            referencedColumns: ["subscription_id"]
+          },
+          {
+            foreignKeyName: "brand_category_entitlements_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "brand_category_entitlements_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "brand_category_entitlements_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "brand_category_entitlements_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "brand_category_entitlements_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
         ]
       }
@@ -2470,343 +3060,6 @@ export type Database = {
           },
         ]
       }
-      brand_merge_map_20260730: {
-        Row: {
-          created_at: string
-          lose_brand_id: number
-          lose_products: number
-          merge_key: string
-          win_brand_id: number
-          win_products: number
-        }
-        Insert: {
-          created_at?: string
-          lose_brand_id: number
-          lose_products: number
-          merge_key: string
-          win_brand_id: number
-          win_products: number
-        }
-        Update: {
-          created_at?: string
-          lose_brand_id?: number
-          lose_products?: number
-          merge_key?: string
-          win_brand_id?: number
-          win_products?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "brand_merge_map_20260730_lose_brand_id_fkey"
-            columns: ["lose_brand_id"]
-            isOneToOne: true
-            referencedRelation: "brands"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_merge_map_20260730_lose_brand_id_fkey"
-            columns: ["lose_brand_id"]
-            isOneToOne: true
-            referencedRelation: "product_packaging_signal"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_merge_map_20260730_lose_brand_id_fkey"
-            columns: ["lose_brand_id"]
-            isOneToOne: true
-            referencedRelation: "product_scan_view"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_merge_map_20260730_win_brand_id_fkey"
-            columns: ["win_brand_id"]
-            isOneToOne: false
-            referencedRelation: "brands"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_merge_map_20260730_win_brand_id_fkey"
-            columns: ["win_brand_id"]
-            isOneToOne: false
-            referencedRelation: "product_packaging_signal"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_merge_map_20260730_win_brand_id_fkey"
-            columns: ["win_brand_id"]
-            isOneToOne: false
-            referencedRelation: "product_scan_view"
-            referencedColumns: ["brand_id"]
-          },
-        ]
-      }
-      brand_merge_product_backup_20260730: {
-        Row: {
-          col: string
-          new_brand_id: number
-          old_brand_id: number
-          product_id: number
-        }
-        Insert: {
-          col: string
-          new_brand_id: number
-          old_brand_id: number
-          product_id: number
-        }
-        Update: {
-          col?: string
-          new_brand_id?: number
-          old_brand_id?: number
-          product_id?: number
-        }
-        Relationships: []
-      }
-      brand_merge_proof_backup_20260730: {
-        Row: {
-          brand_id: number | null
-          brand_name: string | null
-          brand_name_normalized: string | null
-          brand_proof_id: number | null
-          captured_at: string | null
-          created_at: string | null
-          data_source: string | null
-          deleted_at: string | null
-          deletion_reason: string | null
-          enrichment_run_id: string | null
-          founded_year: number | null
-          has_animal_derived_inputs: boolean | null
-          hq_city: string | null
-          hq_country: string | null
-          hq_state: string | null
-          human_reviewed_at: string | null
-          human_reviewed_by: string | null
-          is_b_corp: boolean | null
-          is_cooperative: boolean | null
-          is_deleted: boolean | null
-          is_employee_owned: boolean | null
-          is_independent: boolean | null
-          is_minority_owned: boolean | null
-          is_nonprofit: boolean | null
-          is_woman_owned: boolean | null
-          last_enriched_at: string | null
-          llm_confidence: number | null
-          llm_model_version: string | null
-          llm_reasoning: string | null
-          merge_role: string | null
-          needs_human_review: boolean | null
-          ot1_country_of_origin: string | null
-          ot1_origin_granularity: number | null
-          ot2_ingredient_origin_disclosed: number | null
-          ot3_certifications_origin: string[] | null
-          ot4_dates_harvest_vintage: number | null
-          p1_energy_use: number | null
-          p1_inputs_policy: number | null
-          p1_soil_land_practices: number | null
-          p1_waste_wastewater: number | null
-          p1_water_management: number | null
-          p2_materials_components: number | null
-          p2_pcr_reuse_refill: number | null
-          p2_recyclability_guidance: number | null
-          p3_boundary_disclosed: number | null
-          p3_footprint_metric_disclosed: number | null
-          p3_verification_assurance: number | null
-          p4_chain_of_custody_method: number | null
-          p4_deforestation_policy: number | null
-          p4_high_risk_inputs_identified: number | null
-          parent_company: string | null
-          r1_policy_exists: boolean | null
-          r1_scope_stated: number | null
-          r1_standards_list: number | null
-          r2_audit_body_named: boolean | null
-          r2_audit_frequency: number | null
-          r2_audit_scope: number | null
-          r3_living_wage_commitment: number | null
-          r3_wage_data_disclosed: boolean | null
-          r4_child_labour_policy: number | null
-          r4_forced_labour_policy: number | null
-          r5_mechanism_accessible: number | null
-          r5_mechanism_exists: boolean | null
-          r6_antibiotics_hormones_policy: number | null
-          r6_welfare_cert_verifiable: boolean | null
-          r6_welfare_standards: number | null
-          score_version: string | null
-          source_urls: string[] | null
-          updated_at: string | null
-        }
-        Insert: {
-          brand_id?: number | null
-          brand_name?: string | null
-          brand_name_normalized?: string | null
-          brand_proof_id?: number | null
-          captured_at?: string | null
-          created_at?: string | null
-          data_source?: string | null
-          deleted_at?: string | null
-          deletion_reason?: string | null
-          enrichment_run_id?: string | null
-          founded_year?: number | null
-          has_animal_derived_inputs?: boolean | null
-          hq_city?: string | null
-          hq_country?: string | null
-          hq_state?: string | null
-          human_reviewed_at?: string | null
-          human_reviewed_by?: string | null
-          is_b_corp?: boolean | null
-          is_cooperative?: boolean | null
-          is_deleted?: boolean | null
-          is_employee_owned?: boolean | null
-          is_independent?: boolean | null
-          is_minority_owned?: boolean | null
-          is_nonprofit?: boolean | null
-          is_woman_owned?: boolean | null
-          last_enriched_at?: string | null
-          llm_confidence?: number | null
-          llm_model_version?: string | null
-          llm_reasoning?: string | null
-          merge_role?: string | null
-          needs_human_review?: boolean | null
-          ot1_country_of_origin?: string | null
-          ot1_origin_granularity?: number | null
-          ot2_ingredient_origin_disclosed?: number | null
-          ot3_certifications_origin?: string[] | null
-          ot4_dates_harvest_vintage?: number | null
-          p1_energy_use?: number | null
-          p1_inputs_policy?: number | null
-          p1_soil_land_practices?: number | null
-          p1_waste_wastewater?: number | null
-          p1_water_management?: number | null
-          p2_materials_components?: number | null
-          p2_pcr_reuse_refill?: number | null
-          p2_recyclability_guidance?: number | null
-          p3_boundary_disclosed?: number | null
-          p3_footprint_metric_disclosed?: number | null
-          p3_verification_assurance?: number | null
-          p4_chain_of_custody_method?: number | null
-          p4_deforestation_policy?: number | null
-          p4_high_risk_inputs_identified?: number | null
-          parent_company?: string | null
-          r1_policy_exists?: boolean | null
-          r1_scope_stated?: number | null
-          r1_standards_list?: number | null
-          r2_audit_body_named?: boolean | null
-          r2_audit_frequency?: number | null
-          r2_audit_scope?: number | null
-          r3_living_wage_commitment?: number | null
-          r3_wage_data_disclosed?: boolean | null
-          r4_child_labour_policy?: number | null
-          r4_forced_labour_policy?: number | null
-          r5_mechanism_accessible?: number | null
-          r5_mechanism_exists?: boolean | null
-          r6_antibiotics_hormones_policy?: number | null
-          r6_welfare_cert_verifiable?: boolean | null
-          r6_welfare_standards?: number | null
-          score_version?: string | null
-          source_urls?: string[] | null
-          updated_at?: string | null
-        }
-        Update: {
-          brand_id?: number | null
-          brand_name?: string | null
-          brand_name_normalized?: string | null
-          brand_proof_id?: number | null
-          captured_at?: string | null
-          created_at?: string | null
-          data_source?: string | null
-          deleted_at?: string | null
-          deletion_reason?: string | null
-          enrichment_run_id?: string | null
-          founded_year?: number | null
-          has_animal_derived_inputs?: boolean | null
-          hq_city?: string | null
-          hq_country?: string | null
-          hq_state?: string | null
-          human_reviewed_at?: string | null
-          human_reviewed_by?: string | null
-          is_b_corp?: boolean | null
-          is_cooperative?: boolean | null
-          is_deleted?: boolean | null
-          is_employee_owned?: boolean | null
-          is_independent?: boolean | null
-          is_minority_owned?: boolean | null
-          is_nonprofit?: boolean | null
-          is_woman_owned?: boolean | null
-          last_enriched_at?: string | null
-          llm_confidence?: number | null
-          llm_model_version?: string | null
-          llm_reasoning?: string | null
-          merge_role?: string | null
-          needs_human_review?: boolean | null
-          ot1_country_of_origin?: string | null
-          ot1_origin_granularity?: number | null
-          ot2_ingredient_origin_disclosed?: number | null
-          ot3_certifications_origin?: string[] | null
-          ot4_dates_harvest_vintage?: number | null
-          p1_energy_use?: number | null
-          p1_inputs_policy?: number | null
-          p1_soil_land_practices?: number | null
-          p1_waste_wastewater?: number | null
-          p1_water_management?: number | null
-          p2_materials_components?: number | null
-          p2_pcr_reuse_refill?: number | null
-          p2_recyclability_guidance?: number | null
-          p3_boundary_disclosed?: number | null
-          p3_footprint_metric_disclosed?: number | null
-          p3_verification_assurance?: number | null
-          p4_chain_of_custody_method?: number | null
-          p4_deforestation_policy?: number | null
-          p4_high_risk_inputs_identified?: number | null
-          parent_company?: string | null
-          r1_policy_exists?: boolean | null
-          r1_scope_stated?: number | null
-          r1_standards_list?: number | null
-          r2_audit_body_named?: boolean | null
-          r2_audit_frequency?: number | null
-          r2_audit_scope?: number | null
-          r3_living_wage_commitment?: number | null
-          r3_wage_data_disclosed?: boolean | null
-          r4_child_labour_policy?: number | null
-          r4_forced_labour_policy?: number | null
-          r5_mechanism_accessible?: number | null
-          r5_mechanism_exists?: boolean | null
-          r6_antibiotics_hormones_policy?: number | null
-          r6_welfare_cert_verifiable?: boolean | null
-          r6_welfare_standards?: number | null
-          score_version?: string | null
-          source_urls?: string[] | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      brand_merge_suppress_backup_20260730: {
-        Row: {
-          captured_at: string
-          old_brand_id: number
-          old_is_suppressed: boolean
-          old_suppression_reason: string | null
-          product_id: number
-          product_name_normalized: string | null
-          win_brand_id: number
-        }
-        Insert: {
-          captured_at?: string
-          old_brand_id: number
-          old_is_suppressed: boolean
-          old_suppression_reason?: string | null
-          product_id: number
-          product_name_normalized?: string | null
-          win_brand_id: number
-        }
-        Update: {
-          captured_at?: string
-          old_brand_id?: number
-          old_is_suppressed?: boolean
-          old_suppression_reason?: string | null
-          product_id?: number
-          product_name_normalized?: string | null
-          win_brand_id?: number
-        }
-        Relationships: []
-      }
       brand_mission_reports: {
         Row: {
           attribute_signals: Json | null
@@ -3038,6 +3291,109 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_mission_funnel"
             referencedColumns: ["mission_id"]
+          },
+        ]
+      }
+      brand_ownership_corrections: {
+        Row: {
+          applied_at: string | null
+          asserted_conglomerate_id: number | null
+          assertion_type: string
+          brand_id: number
+          correction_id: string
+          created_at: string
+          current_conglomerate_id: number | null
+          current_value: Json | null
+          evidence_url: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by_portal_user_id: string | null
+          status: string
+          submitted_at: string
+          submitted_by_portal_user_id: string
+          updated_at: string
+          user_notes: string | null
+        }
+        Insert: {
+          applied_at?: string | null
+          asserted_conglomerate_id?: number | null
+          assertion_type: string
+          brand_id: number
+          correction_id?: string
+          created_at?: string
+          current_conglomerate_id?: number | null
+          current_value?: Json | null
+          evidence_url?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by_portal_user_id?: string | null
+          status?: string
+          submitted_at?: string
+          submitted_by_portal_user_id: string
+          updated_at?: string
+          user_notes?: string | null
+        }
+        Update: {
+          applied_at?: string | null
+          asserted_conglomerate_id?: number | null
+          assertion_type?: string
+          brand_id?: number
+          correction_id?: string
+          created_at?: string
+          current_conglomerate_id?: number | null
+          current_value?: Json | null
+          evidence_url?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by_portal_user_id?: string | null
+          status?: string
+          submitted_at?: string
+          submitted_by_portal_user_id?: string
+          updated_at?: string
+          user_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_ownership_corrections_asserted_conglomerate_id_fkey"
+            columns: ["asserted_conglomerate_id"]
+            isOneToOne: false
+            referencedRelation: "conglomerates"
+            referencedColumns: ["conglomerate_id"]
+          },
+          {
+            foreignKeyName: "brand_ownership_corrections_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_ownership_corrections_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_ownership_corrections_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_ownership_corrections_reviewed_by_portal_user_id_fkey"
+            columns: ["reviewed_by_portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "brand_portal_users"
+            referencedColumns: ["portal_user_id"]
+          },
+          {
+            foreignKeyName: "brand_ownership_corrections_submitted_by_portal_user_id_fkey"
+            columns: ["submitted_by_portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "brand_portal_users"
+            referencedColumns: ["portal_user_id"]
           },
         ]
       }
@@ -3526,6 +3882,8 @@ export type Database = {
           failed_reason: string | null
           last_check_at: string | null
           method: string
+          proof_method: string | null
+          proof_passed_at: string | null
           status: string
           token: string
           updated_at: string
@@ -3545,6 +3903,8 @@ export type Database = {
           failed_reason?: string | null
           last_check_at?: string | null
           method?: string
+          proof_method?: string | null
+          proof_passed_at?: string | null
           status?: string
           token?: string
           updated_at?: string
@@ -3564,6 +3924,8 @@ export type Database = {
           failed_reason?: string | null
           last_check_at?: string | null
           method?: string
+          proof_method?: string | null
+          proof_passed_at?: string | null
           status?: string
           token?: string
           updated_at?: string
@@ -3594,6 +3956,48 @@ export type Database = {
             referencedColumns: ["brand_id"]
           },
         ]
+      }
+      brand_prefix_profile: {
+        Row: {
+          brand_id: number | null
+          brand_name: string | null
+          brand_total_barcoded_products: number | null
+          brands_on_prefix: number | null
+          cohort_prefix: string | null
+          computed_at: string | null
+          occupancy: string | null
+          prefix_total_products: number | null
+          products_on_prefix: number | null
+          share_of_brand: number | null
+          share_of_prefix: number | null
+        }
+        Insert: {
+          brand_id?: number | null
+          brand_name?: string | null
+          brand_total_barcoded_products?: number | null
+          brands_on_prefix?: number | null
+          cohort_prefix?: string | null
+          computed_at?: string | null
+          occupancy?: string | null
+          prefix_total_products?: number | null
+          products_on_prefix?: number | null
+          share_of_brand?: number | null
+          share_of_prefix?: number | null
+        }
+        Update: {
+          brand_id?: number | null
+          brand_name?: string | null
+          brand_total_barcoded_products?: number | null
+          brands_on_prefix?: number | null
+          cohort_prefix?: string | null
+          computed_at?: string | null
+          occupancy?: string | null
+          prefix_total_products?: number | null
+          products_on_prefix?: number | null
+          share_of_brand?: number | null
+          share_of_prefix?: number | null
+        }
+        Relationships: []
       }
       brand_product_intelligence: {
         Row: {
@@ -4483,47 +4887,87 @@ export type Database = {
       brand_waitlist: {
         Row: {
           annual_revenue_range: string | null
+          booking_ref: string | null
+          booking_scheduled_at: string | null
+          brand_id: number | null
           brand_name: string
           brand_website: string | null
           contact_email: string
           contact_name: string
           created_at: string
+          flagged_not_mine_product_ids: Json
           invited_at: string | null
+          linkedin_url: string | null
           notes: string | null
           primary_category: string | null
+          role_title: string | null
           status: string
           updated_at: string
           waitlist_id: string
         }
         Insert: {
           annual_revenue_range?: string | null
+          booking_ref?: string | null
+          booking_scheduled_at?: string | null
+          brand_id?: number | null
           brand_name: string
           brand_website?: string | null
           contact_email: string
           contact_name: string
           created_at?: string
+          flagged_not_mine_product_ids?: Json
           invited_at?: string | null
+          linkedin_url?: string | null
           notes?: string | null
           primary_category?: string | null
+          role_title?: string | null
           status?: string
           updated_at?: string
           waitlist_id?: string
         }
         Update: {
           annual_revenue_range?: string | null
+          booking_ref?: string | null
+          booking_scheduled_at?: string | null
+          brand_id?: number | null
           brand_name?: string
           brand_website?: string | null
           contact_email?: string
           contact_name?: string
           created_at?: string
+          flagged_not_mine_product_ids?: Json
           invited_at?: string | null
+          linkedin_url?: string | null
           notes?: string | null
           primary_category?: string | null
+          role_title?: string | null
           status?: string
           updated_at?: string
           waitlist_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "brand_waitlist_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_waitlist_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_waitlist_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
+          },
+        ]
       }
       brands: {
         Row: {
@@ -4541,6 +4985,7 @@ export type Database = {
           brand_name_in_product: string | null
           brand_name_normalized: string
           brand_name_raw: string
+          brand_search_key: string | null
           brand_story: string | null
           brand_submitted_at: string | null
           brand_submitted_by_portal_user_id: string | null
@@ -4561,7 +5006,6 @@ export type Database = {
           labor_policy_url: string | null
           linkedin_url: string | null
           logo_url: string | null
-          manufacturer_brand_id: number | null
           manufacturing_locations: string | null
           parent_brand_id: number | null
           portal_contact_email: string | null
@@ -4594,6 +5038,7 @@ export type Database = {
           brand_name_in_product?: string | null
           brand_name_normalized: string
           brand_name_raw: string
+          brand_search_key?: string | null
           brand_story?: string | null
           brand_submitted_at?: string | null
           brand_submitted_by_portal_user_id?: string | null
@@ -4614,7 +5059,6 @@ export type Database = {
           labor_policy_url?: string | null
           linkedin_url?: string | null
           logo_url?: string | null
-          manufacturer_brand_id?: number | null
           manufacturing_locations?: string | null
           parent_brand_id?: number | null
           portal_contact_email?: string | null
@@ -4647,6 +5091,7 @@ export type Database = {
           brand_name_in_product?: string | null
           brand_name_normalized?: string
           brand_name_raw?: string
+          brand_search_key?: string | null
           brand_story?: string | null
           brand_submitted_at?: string | null
           brand_submitted_by_portal_user_id?: string | null
@@ -4667,7 +5112,6 @@ export type Database = {
           labor_policy_url?: string | null
           linkedin_url?: string | null
           logo_url?: string | null
-          manufacturer_brand_id?: number | null
           manufacturing_locations?: string | null
           parent_brand_id?: number | null
           portal_contact_email?: string | null
@@ -5633,6 +6077,30 @@ export type Database = {
           },
         ]
       }
+      cart_item_ancestry_20260901_backup: {
+        Row: {
+          backed_up_at: string | null
+          id: number | null
+          old_l1: number | null
+          old_l2: number | null
+          taxonomy_l3_node_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          id?: number | null
+          old_l1?: number | null
+          old_l2?: number | null
+          taxonomy_l3_node_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          id?: number | null
+          old_l1?: number | null
+          old_l2?: number | null
+          taxonomy_l3_node_id?: number | null
+        }
+        Relationships: []
+      }
       category_action_weights: {
         Row: {
           action_type: string
@@ -6597,6 +7065,24 @@ export type Database = {
           nm?: string | null
           product_id?: number | null
           to_node?: number | null
+        }
+        Relationships: []
+      }
+      classifier_fn_20260901_backup: {
+        Row: {
+          backed_up_at: string | null
+          proname: unknown
+          prosrc: string | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          proname?: unknown
+          prosrc?: string | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          proname?: unknown
+          prosrc?: string | null
         }
         Relationships: []
       }
@@ -8920,6 +9406,145 @@ export type Database = {
           },
         ]
       }
+      data_change_allowlist: {
+        Row: {
+          added_at: string
+          reason: string
+          target_column: string
+          target_table: string
+        }
+        Insert: {
+          added_at?: string
+          reason: string
+          target_column: string
+          target_table: string
+        }
+        Update: {
+          added_at?: string
+          reason?: string
+          target_column?: string
+          target_table?: string
+        }
+        Relationships: []
+      }
+      data_change_batch: {
+        Row: {
+          applied_at: string | null
+          applied_by: string | null
+          approved_at: string | null
+          approved_by: string | null
+          batch_id: string
+          batch_kind: string
+          created_at: string
+          created_by: string | null
+          evidence: Json
+          failure_reason: string | null
+          item_count: number
+          rationale: string
+          reverted_at: string | null
+          reverted_by: string | null
+          reverts_batch_id: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_by?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          batch_id?: string
+          batch_kind: string
+          created_at?: string
+          created_by?: string | null
+          evidence?: Json
+          failure_reason?: string | null
+          item_count?: number
+          rationale: string
+          reverted_at?: string | null
+          reverted_by?: string | null
+          reverts_batch_id?: string | null
+          status?: string
+          title: string
+        }
+        Update: {
+          applied_at?: string | null
+          applied_by?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          batch_id?: string
+          batch_kind?: string
+          created_at?: string
+          created_by?: string | null
+          evidence?: Json
+          failure_reason?: string | null
+          item_count?: number
+          rationale?: string
+          reverted_at?: string | null
+          reverted_by?: string | null
+          reverts_batch_id?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_change_batch_reverts_batch_id_fkey"
+            columns: ["reverts_batch_id"]
+            isOneToOne: false
+            referencedRelation: "data_change_batch"
+            referencedColumns: ["batch_id"]
+          },
+        ]
+      }
+      data_change_item: {
+        Row: {
+          applied_at: string | null
+          batch_id: string
+          item_id: number
+          new_value: Json | null
+          old_value: Json | null
+          pk_column: string
+          pk_value: string
+          reverted_at: string | null
+          seq: number
+          target_column: string
+          target_table: string
+        }
+        Insert: {
+          applied_at?: string | null
+          batch_id: string
+          item_id?: number
+          new_value?: Json | null
+          old_value?: Json | null
+          pk_column: string
+          pk_value: string
+          reverted_at?: string | null
+          seq: number
+          target_column: string
+          target_table: string
+        }
+        Update: {
+          applied_at?: string | null
+          batch_id?: string
+          item_id?: number
+          new_value?: Json | null
+          old_value?: Json | null
+          pk_column?: string
+          pk_value?: string
+          reverted_at?: string | null
+          seq?: number
+          target_column?: string
+          target_table?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_change_item_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "data_change_batch"
+            referencedColumns: ["batch_id"]
+          },
+        ]
+      }
       data_invariant_runs: {
         Row: {
           detail: string | null
@@ -9172,6 +9797,93 @@ export type Database = {
           title?: string
           write_error?: string | null
           write_status?: string | null
+        }
+        Relationships: []
+      }
+      dropped_fn_20260901_backup: {
+        Row: {
+          drop_reason: string | null
+          dropped_at: string | null
+          full_definition: string | null
+          proname: unknown
+          prosrc: string | null
+        }
+        Insert: {
+          drop_reason?: string | null
+          dropped_at?: string | null
+          full_definition?: string | null
+          proname?: unknown
+          prosrc?: string | null
+        }
+        Update: {
+          drop_reason?: string | null
+          dropped_at?: string | null
+          full_definition?: string | null
+          proname?: unknown
+          prosrc?: string | null
+        }
+        Relationships: []
+      }
+      dropped_table_20260901_backup: {
+        Row: {
+          columns_ddl: string | null
+          constraints_ddl: string | null
+          drop_reason: string | null
+          dropped_at: string | null
+          indexes_ddl: string | null
+          policies_ddl: string | null
+          row_count: number | null
+          table_name: string | null
+          triggers_ddl: string | null
+        }
+        Insert: {
+          columns_ddl?: string | null
+          constraints_ddl?: string | null
+          drop_reason?: string | null
+          dropped_at?: string | null
+          indexes_ddl?: string | null
+          policies_ddl?: string | null
+          row_count?: number | null
+          table_name?: string | null
+          triggers_ddl?: string | null
+        }
+        Update: {
+          columns_ddl?: string | null
+          constraints_ddl?: string | null
+          drop_reason?: string | null
+          dropped_at?: string | null
+          indexes_ddl?: string | null
+          policies_ddl?: string | null
+          row_count?: number | null
+          table_name?: string | null
+          triggers_ddl?: string | null
+        }
+        Relationships: []
+      }
+      energy_gels_20260901_product_backup: {
+        Row: {
+          backed_up_at: string | null
+          old_l1: string | null
+          old_l3: string | null
+          old_taxonomy_node_id: number | null
+          product_id: number | null
+          product_name_display: string | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_l1?: string | null
+          old_l3?: string | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_l1?: string | null
+          old_l3?: string | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
         }
         Relationships: []
       }
@@ -9911,6 +10623,333 @@ export type Database = {
           ing?: string | null
           nm?: string | null
           product_id?: number | null
+        }
+        Relationships: []
+      }
+      fw_merge_20260901_node_backup: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          banner_image_url: string | null
+          basket_section: string | null
+          card_type: string | null
+          compare_group_node_id: number | null
+          created_at: string | null
+          domain_code: string | null
+          hero_image_url: string | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_brand_agnostic: boolean | null
+          is_compare_enabled: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_description: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          path_ids_csv: string | null
+          path_names_csv: string | null
+          replenishment_frequency: string | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          status: string | null
+          store_flow_order: number | null
+          suppress_health_scoring: boolean | null
+          suppress_in_collection: boolean | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+          variety_label: string | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Relationships: []
+      }
+      fw_powders_20260901_anchor_backup: {
+        Row: {
+          anchor_tier: number | null
+          created_at: string | null
+          display_label: string | null
+          flag_for_review: boolean | null
+          flag_reason: string | null
+          id: number | null
+          product_id: number | null
+          taxonomy_node_id: number | null
+        }
+        Insert: {
+          anchor_tier?: number | null
+          created_at?: string | null
+          display_label?: string | null
+          flag_for_review?: boolean | null
+          flag_reason?: string | null
+          id?: number | null
+          product_id?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Update: {
+          anchor_tier?: number | null
+          created_at?: string | null
+          display_label?: string | null
+          flag_for_review?: boolean | null
+          flag_reason?: string | null
+          id?: number | null
+          product_id?: number | null
+          taxonomy_node_id?: number | null
+        }
+        Relationships: []
+      }
+      fw_powders_20260901_cgm_backup: {
+        Row: {
+          compare_group_id: number | null
+          compare_group_membership_id: number | null
+          created_at: string | null
+          effective_from: string | null
+          effective_to: string | null
+          priority: number | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          compare_group_id?: number | null
+          compare_group_membership_id?: number | null
+          created_at?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          priority?: number | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          compare_group_id?: number | null
+          compare_group_membership_id?: number | null
+          created_at?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          priority?: number | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      fw_powders_20260901_node_backup: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          banner_image_url: string | null
+          basket_section: string | null
+          card_type: string | null
+          compare_group_node_id: number | null
+          created_at: string | null
+          domain_code: string | null
+          hero_image_url: string | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_brand_agnostic: boolean | null
+          is_compare_enabled: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_description: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          path_ids_csv: string | null
+          path_names_csv: string | null
+          replenishment_frequency: string | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          status: string | null
+          store_flow_order: number | null
+          suppress_health_scoring: boolean | null
+          suppress_in_collection: boolean | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+          variety_label: string | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Relationships: []
+      }
+      fw_powders_20260901_product_backup: {
+        Row: {
+          backed_up_at: string | null
+          old_taxonomy_node_id: number | null
+          product_id: number | null
+          product_name_display: string | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
         }
         Relationships: []
       }
@@ -11470,6 +12509,24 @@ export type Database = {
           product_id?: number | null
           product_name_display?: string | null
           to_node?: number | null
+        }
+        Relationships: []
+      }
+      juice_merge_20260829_backup: {
+        Row: {
+          old_node: number | null
+          pk: string | null
+          src: string | null
+        }
+        Insert: {
+          old_node?: number | null
+          pk?: string | null
+          src?: string | null
+        }
+        Update: {
+          old_node?: number | null
+          pk?: string | null
+          src?: string | null
         }
         Relationships: []
       }
@@ -15294,6 +16351,276 @@ export type Database = {
         }
         Relationships: []
       }
+      orphan_adopt_20260901_node_backup: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          banner_image_url: string | null
+          basket_section: string | null
+          card_type: string | null
+          compare_group_node_id: number | null
+          created_at: string | null
+          domain_code: string | null
+          hero_image_url: string | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_brand_agnostic: boolean | null
+          is_compare_enabled: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_description: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          path_ids_csv: string | null
+          path_names_csv: string | null
+          replenishment_frequency: string | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          status: string | null
+          store_flow_order: number | null
+          suppress_health_scoring: boolean | null
+          suppress_in_collection: boolean | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+          variety_label: string | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Relationships: []
+      }
+      otc_promotion_20260901_node_backup: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          banner_image_url: string | null
+          basket_section: string | null
+          card_type: string | null
+          compare_group_node_id: number | null
+          created_at: string | null
+          domain_code: string | null
+          hero_image_url: string | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_brand_agnostic: boolean | null
+          is_compare_enabled: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_description: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          path_ids_csv: string | null
+          path_names_csv: string | null
+          replenishment_frequency: string | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          status: string | null
+          store_flow_order: number | null
+          suppress_health_scoring: boolean | null
+          suppress_in_collection: boolean | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+          variety_label: string | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Relationships: []
+      }
+      otc_promotion_20260901_product_backup: {
+        Row: {
+          backed_up_at: string | null
+          is_suppressed: boolean | null
+          old_l1: string | null
+          old_l3: string | null
+          old_taxonomy_node_id: number | null
+          product_id: number | null
+          product_name_display: string | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          is_suppressed?: boolean | null
+          old_l1?: string | null
+          old_l3?: string | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          is_suppressed?: boolean | null
+          old_l1?: string | null
+          old_l3?: string | null
+          old_taxonomy_node_id?: number | null
+          product_id?: number | null
+          product_name_display?: string | null
+        }
+        Relationships: []
+      }
       other_node_assignability_20260813: {
         Row: {
           evicted: number | null
@@ -16749,239 +18076,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
-          },
-        ]
-      }
-      product_brand_facts: {
-        Row: {
-          allergens_contains: string[] | null
-          allergens_may_contain: string[] | null
-          brand_id: number
-          brand_verified: boolean | null
-          certifications: Json | null
-          data_source: string
-          ingredients_text: string | null
-          is_gluten_free: boolean | null
-          is_halal: boolean | null
-          is_kosher: boolean | null
-          is_non_gmo: boolean | null
-          is_organic: boolean | null
-          is_product_level_default: boolean
-          is_vegan: boolean | null
-          is_vegetarian: boolean | null
-          key_ingredient_origin: string | null
-          last_updated_at: string | null
-          manufactured_in: string | null
-          msrp_cents: number | null
-          net_weight_uom: string | null
-          net_weight_value: number | null
-          packaging_material: string | null
-          packaging_recyclable: string | null
-          product_brand_facts_id: number
-          product_description: string | null
-          product_id: number
-          product_website_url: string | null
-          sku_variant_id: number | null
-          submitted_at: string | null
-          submitted_by_portal_user_id: string | null
-        }
-        Insert: {
-          allergens_contains?: string[] | null
-          allergens_may_contain?: string[] | null
-          brand_id: number
-          brand_verified?: boolean | null
-          certifications?: Json | null
-          data_source?: string
-          ingredients_text?: string | null
-          is_gluten_free?: boolean | null
-          is_halal?: boolean | null
-          is_kosher?: boolean | null
-          is_non_gmo?: boolean | null
-          is_organic?: boolean | null
-          is_product_level_default?: boolean
-          is_vegan?: boolean | null
-          is_vegetarian?: boolean | null
-          key_ingredient_origin?: string | null
-          last_updated_at?: string | null
-          manufactured_in?: string | null
-          msrp_cents?: number | null
-          net_weight_uom?: string | null
-          net_weight_value?: number | null
-          packaging_material?: string | null
-          packaging_recyclable?: string | null
-          product_brand_facts_id?: never
-          product_description?: string | null
-          product_id: number
-          product_website_url?: string | null
-          sku_variant_id?: number | null
-          submitted_at?: string | null
-          submitted_by_portal_user_id?: string | null
-        }
-        Update: {
-          allergens_contains?: string[] | null
-          allergens_may_contain?: string[] | null
-          brand_id?: number
-          brand_verified?: boolean | null
-          certifications?: Json | null
-          data_source?: string
-          ingredients_text?: string | null
-          is_gluten_free?: boolean | null
-          is_halal?: boolean | null
-          is_kosher?: boolean | null
-          is_non_gmo?: boolean | null
-          is_organic?: boolean | null
-          is_product_level_default?: boolean
-          is_vegan?: boolean | null
-          is_vegetarian?: boolean | null
-          key_ingredient_origin?: string | null
-          last_updated_at?: string | null
-          manufactured_in?: string | null
-          msrp_cents?: number | null
-          net_weight_uom?: string | null
-          net_weight_value?: number | null
-          packaging_material?: string | null
-          packaging_recyclable?: string | null
-          product_brand_facts_id?: never
-          product_description?: string | null
-          product_id?: number
-          product_website_url?: string | null
-          sku_variant_id?: number | null
-          submitted_at?: string | null
-          submitted_by_portal_user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_brand_facts_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brands"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "product_packaging_signal"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "product_scan_view"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "mv_top_cpg_products"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_decision_velocity"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_momentum_signal"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_packaging_signal"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_price_view"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_ranked"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_scan_view"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "product_time_preference"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products_renderable"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "user_produce_passport"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "v_allergen_filter"
-            referencedColumns: ["product_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_sku_variant_id_fkey"
-            columns: ["sku_variant_id"]
-            isOneToOne: false
-            referencedRelation: "product_scan_view"
-            referencedColumns: ["sku_variant_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_sku_variant_id_fkey"
-            columns: ["sku_variant_id"]
-            isOneToOne: false
-            referencedRelation: "product_skus_view"
-            referencedColumns: ["sku_variant_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_sku_variant_id_fkey"
-            columns: ["sku_variant_id"]
-            isOneToOne: false
-            referencedRelation: "sku_detail_view"
-            referencedColumns: ["sku_variant_id"]
-          },
-          {
-            foreignKeyName: "product_brand_facts_sku_variant_id_fkey"
-            columns: ["sku_variant_id"]
-            isOneToOne: false
-            referencedRelation: "sku_variants"
-            referencedColumns: ["sku_variant_id"]
           },
         ]
       }
@@ -21180,6 +22274,7 @@ export type Database = {
           product_id: number
           product_name_clean: string | null
           product_name_display: string | null
+          product_name_short: string | null
           protein_percentile: number | null
           search_tap_count: number
           search_vector: unknown
@@ -21231,6 +22326,7 @@ export type Database = {
           product_id: number
           product_name_clean?: string | null
           product_name_display?: string | null
+          product_name_short?: string | null
           protein_percentile?: number | null
           search_tap_count?: number
           search_vector?: unknown
@@ -21282,6 +22378,7 @@ export type Database = {
           product_id?: number
           product_name_clean?: string | null
           product_name_display?: string | null
+          product_name_short?: string | null
           protein_percentile?: number | null
           search_tap_count?: number
           search_vector?: unknown
@@ -24782,32 +25879,38 @@ export type Database = {
       search_autocomplete: {
         Row: {
           ac_id: number
+          display_clean: string | null
           display_name: string
           display_name_norm: string
           entity_id: number
           icon_name: string | null
           logo_url: string | null
           product_count: number
+          search_key: string | null
           suggestion_type: string
         }
         Insert: {
           ac_id?: number
+          display_clean?: string | null
           display_name: string
           display_name_norm: string
           entity_id: number
           icon_name?: string | null
           logo_url?: string | null
           product_count?: number
+          search_key?: string | null
           suggestion_type: string
         }
         Update: {
           ac_id?: number
+          display_clean?: string | null
           display_name?: string
           display_name_norm?: string
           entity_id?: number
           icon_name?: string | null
           logo_url?: string | null
           product_count?: number
+          search_key?: string | null
           suggestion_type?: string
         }
         Relationships: []
@@ -24824,6 +25927,7 @@ export type Database = {
           weight_fts: number
           weight_personalize: number
           weight_popularity: number
+          weight_scans: number
         }
         Insert: {
           anchor_boost?: number
@@ -24836,6 +25940,7 @@ export type Database = {
           weight_fts?: number
           weight_personalize?: number
           weight_popularity?: number
+          weight_scans?: number
         }
         Update: {
           anchor_boost?: number
@@ -24848,6 +25953,7 @@ export type Database = {
           weight_fts?: number
           weight_personalize?: number
           weight_popularity?: number
+          weight_scans?: number
         }
         Relationships: []
       }
@@ -27215,6 +28321,33 @@ export type Database = {
           },
         ]
       }
+      sw_backfill_20260901_flag_backup: {
+        Row: {
+          backed_up_at: string | null
+          classification_flagged: boolean | null
+          classification_flagged_at: string | null
+          classification_flagged_reason: string | null
+          is_suppressed: boolean | null
+          product_id: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          classification_flagged?: boolean | null
+          classification_flagged_at?: string | null
+          classification_flagged_reason?: string | null
+          is_suppressed?: boolean | null
+          product_id?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          classification_flagged?: boolean | null
+          classification_flagged_at?: string | null
+          classification_flagged_reason?: string | null
+          is_suppressed?: boolean | null
+          product_id?: number | null
+        }
+        Relationships: []
+      }
       system_alerts: {
         Row: {
           acknowledged_at: string | null
@@ -27305,6 +28438,126 @@ export type Database = {
           system_default_weight_id?: never
           updated_at?: string
           weight_price?: number
+        }
+        Relationships: []
+      }
+      taxonomy_denorm_20260901_backup: {
+        Row: {
+          ancestor_l0_node_id: number | null
+          ancestor_l1_node_id: number | null
+          ancestor_l2_node_id: number | null
+          banner_image_url: string | null
+          basket_section: string | null
+          card_type: string | null
+          compare_group_node_id: number | null
+          created_at: string | null
+          domain_code: string | null
+          hero_image_url: string | null
+          icon_name: string | null
+          is_assignable: boolean | null
+          is_brand_agnostic: boolean | null
+          is_compare_enabled: boolean | null
+          is_leaf: boolean | null
+          l1_node_name: string | null
+          l2_node_name: string | null
+          node_code: string | null
+          node_color_dark: string | null
+          node_color_light: string | null
+          node_description: string | null
+          node_level: number | null
+          node_name_display: string | null
+          node_name_normalized: string | null
+          parent_taxonomy_node_id: number | null
+          path_ids_csv: string | null
+          path_names_csv: string | null
+          replenishment_frequency: string | null
+          root_taxonomy_node_id: number | null
+          sort_order: number | null
+          status: string | null
+          store_flow_order: number | null
+          suppress_health_scoring: boolean | null
+          suppress_in_collection: boolean | null
+          taxonomy_node_id: number | null
+          updated_at: string | null
+          variety_label: string | null
+        }
+        Insert: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
+        }
+        Update: {
+          ancestor_l0_node_id?: number | null
+          ancestor_l1_node_id?: number | null
+          ancestor_l2_node_id?: number | null
+          banner_image_url?: string | null
+          basket_section?: string | null
+          card_type?: string | null
+          compare_group_node_id?: number | null
+          created_at?: string | null
+          domain_code?: string | null
+          hero_image_url?: string | null
+          icon_name?: string | null
+          is_assignable?: boolean | null
+          is_brand_agnostic?: boolean | null
+          is_compare_enabled?: boolean | null
+          is_leaf?: boolean | null
+          l1_node_name?: string | null
+          l2_node_name?: string | null
+          node_code?: string | null
+          node_color_dark?: string | null
+          node_color_light?: string | null
+          node_description?: string | null
+          node_level?: number | null
+          node_name_display?: string | null
+          node_name_normalized?: string | null
+          parent_taxonomy_node_id?: number | null
+          path_ids_csv?: string | null
+          path_names_csv?: string | null
+          replenishment_frequency?: string | null
+          root_taxonomy_node_id?: number | null
+          sort_order?: number | null
+          status?: string | null
+          store_flow_order?: number | null
+          suppress_health_scoring?: boolean | null
+          suppress_in_collection?: boolean | null
+          taxonomy_node_id?: number | null
+          updated_at?: string | null
+          variety_label?: string | null
         }
         Relationships: []
       }
@@ -28481,95 +29734,6 @@ export type Database = {
             foreignKeyName: "user_basket_profile_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
-      user_cart_profiles: {
-        Row: {
-          alloc_pct_beverages: number | null
-          alloc_pct_dairy: number | null
-          alloc_pct_meals: number | null
-          alloc_pct_pantry: number | null
-          alloc_pct_produce: number | null
-          alloc_pct_protein: number | null
-          alloc_pct_snacks: number | null
-          context_type: string
-          created_at: string | null
-          deleted_at: string | null
-          generation_count: number | null
-          id: number
-          is_active: boolean | null
-          last_generated_at: string | null
-          target_slot_count: number | null
-          updated_at: string | null
-          user_id: number
-        }
-        Insert: {
-          alloc_pct_beverages?: number | null
-          alloc_pct_dairy?: number | null
-          alloc_pct_meals?: number | null
-          alloc_pct_pantry?: number | null
-          alloc_pct_produce?: number | null
-          alloc_pct_protein?: number | null
-          alloc_pct_snacks?: number | null
-          context_type: string
-          created_at?: string | null
-          deleted_at?: string | null
-          generation_count?: number | null
-          id?: number
-          is_active?: boolean | null
-          last_generated_at?: string | null
-          target_slot_count?: number | null
-          updated_at?: string | null
-          user_id: number
-        }
-        Update: {
-          alloc_pct_beverages?: number | null
-          alloc_pct_dairy?: number | null
-          alloc_pct_meals?: number | null
-          alloc_pct_pantry?: number | null
-          alloc_pct_produce?: number | null
-          alloc_pct_protein?: number | null
-          alloc_pct_snacks?: number | null
-          context_type?: string
-          created_at?: string | null
-          deleted_at?: string | null
-          generation_count?: number | null
-          id?: number
-          is_active?: boolean | null
-          last_generated_at?: string | null
-          target_slot_count?: number | null
-          updated_at?: string | null
-          user_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_cart_profiles_context_type_fkey"
-            columns: ["context_type"]
-            isOneToOne: false
-            referencedRelation: "cart_contexts"
-            referencedColumns: ["context_type"]
-          },
-          {
-            foreignKeyName: "user_cart_profiles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_discovery_leaderboard"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "user_cart_profiles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_level_summary"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "user_cart_profiles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["user_id"]
           },
@@ -32330,6 +33494,8 @@ export type Database = {
       }
       user_product_experiences: {
         Row: {
+          battle_freeze_compare_group_id: number | null
+          battle_freeze_opponent_ids: number[] | null
           created_at: string
           deleted_at: string | null
           first_scanned_at: string | null
@@ -32362,6 +33528,8 @@ export type Database = {
           user_product_experience_id: number
         }
         Insert: {
+          battle_freeze_compare_group_id?: number | null
+          battle_freeze_opponent_ids?: number[] | null
           created_at?: string
           deleted_at?: string | null
           first_scanned_at?: string | null
@@ -32394,6 +33562,8 @@ export type Database = {
           user_product_experience_id?: number
         }
         Update: {
+          battle_freeze_compare_group_id?: number | null
+          battle_freeze_opponent_ids?: number[] | null
           created_at?: string
           deleted_at?: string | null
           first_scanned_at?: string | null
@@ -32426,6 +33596,13 @@ export type Database = {
           user_product_experience_id?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "user_product_experiences_battle_freeze_cg_fkey"
+            columns: ["battle_freeze_compare_group_id"]
+            isOneToOne: false
+            referencedRelation: "compare_groups"
+            referencedColumns: ["compare_group_id"]
+          },
           {
             foreignKeyName: "user_product_experiences_inferred_spot_role_id_fkey"
             columns: ["inferred_spot_role_id"]
@@ -39300,6 +40477,18 @@ export type Database = {
           strength: number
         }[]
       }
+      _bce_actor: { Args: never; Returns: string }
+      _bce_log_event: {
+        Args: {
+          p_actor: string
+          p_actor_kind: string
+          p_entitlement_id: string
+          p_from: string
+          p_reason: string
+          p_to: string
+        }
+        Returns: undefined
+      }
       _box_possession_gate: {
         Args: { p_mission_claim_id: string; p_session_number: number }
         Returns: Json
@@ -39312,6 +40501,15 @@ export type Database = {
         Returns: Json
       }
       _cg_resolve_actor: { Args: never; Returns: Record<string, unknown> }
+      _dc_coltype: {
+        Args: { p_column: string; p_table: string }
+        Returns: string
+      }
+      _dc_is_pk: {
+        Args: { p_column: string; p_table: string }
+        Returns: boolean
+      }
+      _dc_require_admin: { Args: never; Returns: string }
       _hard_delete_mission_internal: {
         Args: { p_mission_id: string }
         Returns: Json
@@ -39578,11 +40776,16 @@ export type Database = {
           products_updated: number
         }[]
       }
+      apply_change_batch: { Args: { p_batch_id: string }; Returns: Json }
       apply_sku_allergens_to_product_flags: {
         Args: { p_product_id: number; p_sku_variant_id: number }
         Returns: undefined
       }
       apply_user_archetype: { Args: { p_user_id: number }; Returns: string }
+      approve_change_batch: {
+        Args: { p_batch_id: string; p_note?: string }
+        Returns: Json
+      }
       approve_follow_request: {
         Args: { p_requester_id: number; p_target_auth_id: string }
         Returns: Json
@@ -39684,11 +40887,13 @@ export type Database = {
         Args: { p_target_user_id: number; p_viewer_auth_id: string }
         Returns: Json
       }
+      brand_identity_key: { Args: { p_name: string }; Returns: string }
       brand_key: { Args: { p_name: string }; Returns: string }
       brand_label: {
         Args: { p_display: string; p_name: string }
         Returns: string
       }
+      brand_verify_product: { Args: { p_product_id: number }; Returns: Json }
       browse_products: {
         Args: {
           p_filters?: Json
@@ -39758,6 +40963,19 @@ export type Database = {
         Args: { p_object_name: string }
         Returns: boolean
       }
+      cancel_category_entitlement: {
+        Args: {
+          p_brand_id: number
+          p_period_end: string
+          p_reason?: string
+          p_taxonomy_node_id: number
+        }
+        Returns: Json
+      }
+      canonical_product_name: {
+        Args: { p_display: string; p_short: string }
+        Returns: string
+      }
       cg_question_slug: { Args: { p_q: string }; Returns: string }
       check_and_award_badges: {
         Args: { p_context?: Json; p_trigger: string; p_user_id: number }
@@ -39766,6 +40984,14 @@ export type Database = {
           badge_name: string
           emoji: string
           points: number
+        }[]
+      }
+      check_battle_counter_drift: {
+        Args: never
+        Returns: {
+          counter: string
+          net_drift: number
+          rows_off: number
         }[]
       }
       check_compare_group_similarity: {
@@ -40294,13 +41520,6 @@ export type Database = {
         }
         Returns: Json
       }
-      consolidate_duplicate_brands: {
-        Args: never
-        Returns: {
-          rows_affected: number
-          step: string
-        }[]
-      }
       correction_jsonb_is_empty: { Args: { p_value: Json }; Returns: boolean }
       count_box_qualifiers: {
         Args: {
@@ -40400,6 +41619,8 @@ export type Database = {
         }[]
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      daitch_mokotoff: { Args: { "": string }; Returns: string[] }
+      delete_simulated_studies: { Args: never; Returns: Json }
       delete_study_draft: { Args: { p_draft_id: string }; Returns: boolean }
       deny_follow_request: {
         Args: { p_requester_id: number; p_target_auth_id: string }
@@ -40417,6 +41638,8 @@ export type Database = {
         }[]
       }
       display_brand_name: { Args: { p_brand_name: string }; Returns: string }
+      dmetaphone: { Args: { "": string }; Returns: string }
+      dmetaphone_alt: { Args: { "": string }; Returns: string }
       drain_job_elo_recompute_queue: {
         Args: { p_limit?: number }
         Returns: {
@@ -40543,6 +41766,15 @@ export type Database = {
         }
         Returns: Json
       }
+      generate_brand_merge_batch: { Args: { p_tier: string }; Returns: string }
+      generate_brand_merge_batch_bkey: {
+        Args: { p_tier: string }
+        Returns: string
+      }
+      generate_brand_normalize_batch: {
+        Args: { p_phase: string }
+        Returns: string
+      }
       generate_concept_session_plan: {
         Args: { p_mission_claim_id: string; p_session_number?: number }
         Returns: Json
@@ -40565,6 +41797,16 @@ export type Database = {
       }
       generate_mission_session_plan: {
         Args: { p_mission_claim_id: string; p_session_number?: number }
+        Returns: Json
+      }
+      generate_simulated_experienced_study: {
+        Args: {
+          p_competitor_product_ids: number[]
+          p_focal_product_id: number
+          p_focal_win_rate: number
+          p_label: string
+          p_n: number
+        }
         Returns: Json
       }
       get_active_consent_document: {
@@ -40592,12 +41834,35 @@ export type Database = {
         Args: { p_brand_id?: number }
         Returns: number[]
       }
+      get_brand_adjacent_categories: {
+        Args: { p_brand_id?: number }
+        Returns: Json
+      }
+      get_brand_category_launcher: {
+        Args: { p_brand_id?: number; p_search?: string }
+        Returns: Json
+      }
       get_brand_category_products: {
         Args: { p_brand_id: number; p_taxonomy_node_id: number }
         Returns: {
           battles_total: number
           elo_score: number
           image_url: string
+          product_id: number
+          product_name_clean: string
+          user_percentile: number
+          win_rate_pct: number
+        }[]
+      }
+      get_brand_category_products_by_l2: {
+        Args: { p_brand_id?: number; p_l2_node_id: number }
+        Returns: {
+          battles_ledger: number
+          battles_total_upe: number
+          elo_score: number
+          image_url: string
+          l3_name: string
+          l3_node_id: number
           product_id: number
           product_name_clean: string
           user_percentile: number
@@ -40623,6 +41888,15 @@ export type Database = {
         }[]
       }
       get_brand_ownership: { Args: { p_brand_id: number }; Returns: Json }
+      get_brand_ownership_for_portal: { Args: never; Returns: Json }
+      get_brand_product_category_standing: {
+        Args: { p_brand_id?: number; p_min_battles?: number }
+        Returns: Json
+      }
+      get_brand_products_for_application: {
+        Args: { p_brand_id: number; p_limit?: number }
+        Returns: Json
+      }
       get_brand_products_portfolio: {
         Args: { p_brand_id: number }
         Returns: {
@@ -40667,6 +41941,7 @@ export type Database = {
           user_percentile: number
         }[]
       }
+      get_brand_total_battles: { Args: { p_brand_id?: number }; Returns: Json }
       get_bridge_candidates: {
         Args: {
           p_compare_group_id: number
@@ -41287,6 +42562,7 @@ export type Database = {
         Args: { p_subject_id: number; p_viewer_id: number }
         Returns: Json
       }
+      get_your_brands: { Args: { p_limit?: number }; Returns: Json }
       get_your_day: {
         Args: {
           p_half_life?: number
@@ -41316,6 +42592,18 @@ export type Database = {
           taxonomy_node_id: number
         }[]
       }
+      grant_category_entitlement: {
+        Args: {
+          p_billing_reference?: string
+          p_brand_id: number
+          p_catalog_id?: number
+          p_expires_at?: string
+          p_source: string
+          p_subscription_id?: string
+          p_taxonomy_node_id: number
+        }
+        Returns: Json
+      }
       gtin_key: { Args: { p_code: string }; Returns: string }
       hard_delete_mission: { Args: { p_mission_id: string }; Returns: Json }
       has_ai_ingredients: {
@@ -41324,10 +42612,6 @@ export type Database = {
       }
       has_ai_nutrition: { Args: { p_sku_variant_id: number }; Returns: boolean }
       has_capability: { Args: { p_capability: string }; Returns: boolean }
-      has_gluten_in_allergen_array: {
-        Args: { p_product_id: number }
-        Returns: boolean
-      }
       hex_blend: {
         Args: { hex1: string; hex2: string; ratio: number }
         Returns: string
@@ -41404,6 +42688,7 @@ export type Database = {
         Args: { p_product_id: number; p_user_id: number; p_window?: string }
         Returns: boolean
       }
+      list_brand_waitlist_applications: { Args: never; Returns: Json }
       list_compare_groups: { Args: { p_scope?: string }; Returns: Json }
       list_operator_box_fulfillments: {
         Args: { p_box_id: string }
@@ -41482,7 +42767,33 @@ export type Database = {
           total_claims: number
         }[]
       }
+      list_pending_ownership_corrections: { Args: never; Returns: Json }
       list_product_barcodes: { Args: { p_product_id: number }; Returns: Json }
+      list_product_hero_studies: {
+        Args: { p_product_id: number }
+        Returns: {
+          brand_id: number
+          brand_name: string
+          completed_claims: number
+          created_at: string
+          expires_at: string
+          focal_product_id: number
+          focal_product_name: string
+          is_campaign_owner: boolean
+          is_finished: boolean
+          lifecycle_state: string
+          max_claims: number
+          mission_id: string
+          mission_type: string
+          session_count: number
+          status: string
+          target_completions: number
+          template_code: string
+          test_type: string
+          title: string
+          total_claims: number
+        }[]
+      }
       list_study_drafts: {
         Args: never
         Returns: {
@@ -41633,11 +42944,13 @@ export type Database = {
         Args: { p_product_id: number; p_user_id: number }
         Returns: boolean
       }
+      normalize_brand_website: { Args: { p_raw: string }; Returns: string }
       normalize_gtin: { Args: { p_code: string }; Returns: string }
       normalize_nutrition_for_product: {
         Args: { p_product_id: number }
         Returns: string
       }
+      normalize_social_handle: { Args: { p_raw: string }; Returns: string }
       normalize_us_state: { Args: { p_raw: string }; Returns: string }
       nutrition_basis_plausible: { Args: { p_value: Json }; Returns: boolean }
       parse_fda_allergens: { Args: { p_raw: string }; Returns: string[] }
@@ -41670,6 +42983,10 @@ export type Database = {
           p_uom: string
         }
         Returns: number
+      }
+      product_has_declared_gluten: {
+        Args: { p_product_id: number }
+        Returns: boolean
       }
       products_in_node: {
         Args: { p_node_id: number }
@@ -41799,25 +43116,15 @@ export type Database = {
           score: number
         }[]
       }
-      rank_opponents_for_job_v2: {
+      reactivate_category_entitlement: {
         Args: {
-          p_compare_group_id: number
-          p_limit?: number
-          p_primary_product_id: number
-          p_user_id: number
+          p_brand_id: number
+          p_expires_at?: string
+          p_taxonomy_node_id: number
         }
-        Returns: {
-          anchor_tier: number
-          candidate_elo: number
-          confidence: number
-          elo_gap: number
-          layer: string
-          pair_plays: number
-          product_id: number
-          scans: number
-          score: number
-        }[]
+        Returns: Json
       }
+      rebuild_taxonomy_denorm: { Args: never; Returns: number }
       recompute_category_tries: {
         Args: { p_node_id: number; p_user_id: number }
         Returns: number
@@ -42165,8 +43472,23 @@ export type Database = {
         }[]
       }
       restore_mission: { Args: { p_mission_id: string }; Returns: Json }
+      resync_cart_item_ancestors: { Args: never; Returns: number }
+      resync_grocery_slot_ancestors: { Args: never; Returns: number }
       retract_product_recommendation: {
         Args: { p_recommendation_id: number }
+        Returns: Json
+      }
+      revert_change_batch: {
+        Args: { p_batch_id: string; p_reason: string }
+        Returns: Json
+      }
+      review_brand_ownership_correction: {
+        Args: {
+          p_correction_id: string
+          p_decision: string
+          p_override_stale?: boolean
+          p_review_notes?: string
+        }
         Returns: Json
       }
       review_correction: {
@@ -42176,6 +43498,14 @@ export type Database = {
           p_notes?: string
           p_sku_variant_id?: number
           p_submission_id: string
+        }
+        Returns: Json
+      }
+      revoke_category_entitlement: {
+        Args: {
+          p_brand_id: number
+          p_reason: string
+          p_taxonomy_node_id: number
         }
         Returns: Json
       }
@@ -42266,6 +43596,10 @@ export type Database = {
           top_elo: number
         }[]
       }
+      search_brands_for_application: {
+        Args: { p_query: string }
+        Returns: Json
+      }
       search_brands_in_taste: {
         Args: { p_query: string; p_user_id: number }
         Returns: {
@@ -42285,6 +43619,7 @@ export type Database = {
         }
         Returns: Json
       }
+      search_display_clean: { Args: { p_name: string }; Returns: string }
       search_fetch_products: {
         Args: { p_product_ids: number[] }
         Returns: {
@@ -42299,6 +43634,7 @@ export type Database = {
           product_id: number
           product_name_display: string
           product_name_normalized: string
+          product_name_short: string
           proofe_score: number
           score_confidence: string
           taste_display_score: number
@@ -42306,6 +43642,7 @@ export type Database = {
           taxonomy_node_id: number
         }[]
       }
+      search_key_norm: { Args: { p_name: string }; Returns: string }
       search_products_admin: {
         Args: { p_query: string }
         Returns: {
@@ -42325,99 +43662,38 @@ export type Database = {
           win_rate_pct: number
         }[]
       }
-      search_products_fast:
-        | {
-            Args: {
-              p_limit?: number
-              p_offset?: number
-              p_query: string
-              p_scoring_tier?: number
-              p_user_id?: number
-              p_weight_health?: number
-              p_weight_price?: number
-              p_weight_proofe?: number
-              p_weight_taste?: number
-            }
-            Returns: {
-              brand_id: number
-              brand_name: string
-              category_affinity: number
-              dough_score: number
-              health_score: number
-              image_url: string
-              logo_url: string
-              node_name_display: string
-              price_tier: number
-              price_tier_label: string
-              product_id: number
-              product_name_display: string
-              relevance_score: number
-              score_confidence: string
-              taste_display_score: number
-              taste_score: number
-              taxonomy_node_id: number
-            }[]
-          }
-        | {
-            Args: {
-              p_limit?: number
-              p_offset?: number
-              p_query: string
-              p_user_id?: number
-              p_weight_health?: number
-              p_weight_taste?: number
-            }
-            Returns: {
-              brand_id: number
-              brand_name: string
-              category_affinity: number
-              dough_score: number
-              health_score: number
-              image_url: string
-              logo_url: string
-              node_name_display: string
-              price_tier: number
-              price_tier_label: string
-              product_id: number
-              product_name_display: string
-              relevance_score: number
-              score_confidence: string
-              taste_display_score: number
-              taste_score: number
-              taxonomy_node_id: number
-            }[]
-          }
-        | {
-            Args: {
-              p_limit?: number
-              p_offset?: number
-              p_query: string
-              p_user_id?: number
-              p_weight_health?: number
-              p_weight_price?: number
-              p_weight_proofe?: number
-              p_weight_taste?: number
-            }
-            Returns: {
-              brand_id: number
-              brand_name: string
-              category_affinity: number
-              dough_score: number
-              health_score: number
-              image_url: string
-              logo_url: string
-              node_name_display: string
-              price_tier: number
-              price_tier_label: string
-              product_id: number
-              product_name_display: string
-              relevance_score: number
-              score_confidence: string
-              taste_display_score: number
-              taste_score: number
-              taxonomy_node_id: number
-            }[]
-          }
+      search_products_fast: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_query: string
+          p_scoring_tier?: number
+          p_user_id?: number
+          p_weight_health?: number
+          p_weight_price?: number
+          p_weight_proofe?: number
+          p_weight_taste?: number
+        }
+        Returns: {
+          brand_id: number
+          brand_name: string
+          category_affinity: number
+          dough_score: number
+          health_score: number
+          image_url: string
+          logo_url: string
+          node_name_display: string
+          price_tier: number
+          price_tier_label: string
+          product_id: number
+          product_name_display: string
+          relevance_score: number
+          score_confidence: string
+          taste_display_score: number
+          taste_score: number
+          taxonomy_node_id: number
+        }[]
+      }
       search_products_fuzzy: {
         Args: { p_limit?: number; p_query: string; p_user_id?: number }
         Returns: Json
@@ -42585,6 +43861,16 @@ export type Database = {
         Args: { p_product_id: number }
         Returns: Json
       }
+      soundex: { Args: { "": string }; Returns: string }
+      stage_change_batch: {
+        Args: {
+          p_evidence?: Json
+          p_kind: string
+          p_rationale: string
+          p_title: string
+        }
+        Returns: string
+      }
       start_concept_session: {
         Args: { p_mission_claim_id: string; p_session_number?: number }
         Returns: Json
@@ -42640,6 +43926,15 @@ export type Database = {
           was_duplicate: boolean
         }[]
       }
+      submit_brand_ownership_correction: {
+        Args: {
+          p_asserted_conglomerate_id?: number
+          p_assertion_type: string
+          p_evidence_url?: string
+          p_user_notes?: string
+        }
+        Returns: Json
+      }
       submit_data_request: {
         Args: { p_product_id: number; p_requested_data_types?: string[] }
         Returns: Json
@@ -42660,6 +43955,7 @@ export type Database = {
         Args: { p_product_id: number; p_user_id: number }
         Returns: undefined
       }
+      text_soundex: { Args: { "": string }; Returns: string }
       transition_discovery_status: {
         Args: {
           p_discovery_id: number
@@ -42687,6 +43983,7 @@ export type Database = {
         Args: { p_user_id: number }
         Returns: undefined
       }
+      update_brand_portal_profile: { Args: { p_patch: Json }; Returns: Json }
       update_compare_group_fields: {
         Args: {
           p_battle_level?: number
@@ -42873,6 +44170,7 @@ export type Database = {
           tz_known: boolean
         }[]
       }
+      validate_change_batch: { Args: { p_batch_id: string }; Returns: Json }
       withdraw_mission: { Args: { p_mission_id: string }; Returns: Json }
     }
     Enums: {
@@ -43016,12 +44314,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -43045,11 +44343,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -43070,11 +44368,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -43095,11 +44393,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -43112,11 +44410,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
