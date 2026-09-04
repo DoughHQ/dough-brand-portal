@@ -1,24 +1,48 @@
 'use client'
 
-const inputStyle: React.CSSProperties = {
+import type { CSSProperties } from 'react'
+import './authShell.css'
+
+export const authInputStyle: CSSProperties = {
   width: '100%',
-  padding: '10px 14px',
-  borderRadius: 'var(--r-sm)',
-  border: '1px solid var(--ink-10)',
-  background: 'var(--surface)',
-  fontSize: 13,
+  padding: '14px 16px',
+  borderRadius: 12,
+  border: '1px solid rgba(28, 38, 32, 0.14)',
+  background: 'var(--white)',
+  fontSize: 16,
   color: 'var(--ink)',
   fontFamily: 'var(--font-sans)',
   outline: 'none',
-  transition: 'border-color 0.12s',
+  transition: 'border-color 0.12s, box-shadow 0.12s',
 }
 
-const labelStyle: React.CSSProperties = {
+export const authLabelStyle: CSSProperties = {
   fontSize: 11,
   fontWeight: 500,
   color: 'var(--ink-50)',
   marginBottom: 6,
   letterSpacing: '0.04em',
+}
+
+export const authCardStyle: CSSProperties = {
+  width: '100%',
+}
+
+export function authPrimaryBtnStyle(disabled: boolean): CSSProperties {
+  return {
+    width: '100%',
+    padding: '12px',
+    background: disabled ? 'var(--ink-10)' : 'var(--sage)',
+    color: disabled ? 'var(--ink-30)' : 'white',
+    borderRadius: 'var(--r-sm)',
+    fontSize: 13,
+    fontWeight: 500,
+    border: 'none',
+    cursor: disabled ? 'default' : 'pointer',
+    fontFamily: 'var(--font-sans)',
+    transition: 'background 0.12s',
+    marginTop: 4,
+  }
 }
 
 export function AuthInput({
@@ -40,17 +64,23 @@ export function AuthInput({
 }) {
   return (
     <div>
-      <div style={labelStyle}>{label}</div>
+      <div style={authLabelStyle}>{label}</div>
       <input
         type={type}
+        className="auth-input"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         onKeyDown={onKeyDown}
         autoComplete={autoComplete}
-        style={inputStyle}
-        onFocus={(e) => { e.target.style.borderColor = 'var(--ink-30)' }}
-        onBlur={(e) => { e.target.style.borderColor = 'var(--ink-10)' }}
+        style={authInputStyle}
+        onFocus={(e) => {
+          e.target.style.borderColor = 'var(--sage)'
+        }}
+        onBlur={(e) => {
+          e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
+          e.target.style.boxShadow = 'none'
+        }}
       />
     </div>
   )
@@ -66,24 +96,7 @@ export function AuthPrimaryButton({
   disabled?: boolean
 }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        width: '100%',
-        padding: '12px',
-        background: disabled ? 'var(--ink-10)' : 'var(--sage)',
-        color: disabled ? 'var(--ink-30)' : 'white',
-        borderRadius: 'var(--r-sm)',
-        fontSize: 13,
-        fontWeight: 500,
-        border: 'none',
-        cursor: disabled ? 'default' : 'pointer',
-        fontFamily: 'var(--font-sans)',
-        transition: 'background 0.12s',
-        marginTop: 4,
-      }}
-    >
+    <button onClick={onClick} disabled={disabled} style={authPrimaryBtnStyle(!!disabled)}>
       {children}
     </button>
   )
@@ -92,20 +105,23 @@ export function AuthPrimaryButton({
 export function AuthTextButton({
   children,
   onClick,
+  muted = false,
 }: {
   children: React.ReactNode
   onClick: () => void
+  muted?: boolean
 }) {
   return (
     <button
       onClick={onClick}
       style={{
-        fontSize: 12,
-        color: 'var(--ink-30)',
+        fontSize: 13,
+        color: muted ? 'var(--ink-50)' : 'var(--sage)',
         background: 'none',
         border: 'none',
         cursor: 'pointer',
         fontFamily: 'var(--font-sans)',
+        fontWeight: 500,
       }}
     >
       {children}
@@ -113,61 +129,38 @@ export function AuthTextButton({
   )
 }
 
-export default function AuthShell({ children }: { children: React.ReactNode }) {
+export default function AuthShell({
+  children,
+  wide = false,
+  align = 'center',
+}: {
+  children: React.ReactNode
+  wide?: boolean
+  align?: 'center' | 'start'
+}) {
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'var(--surface)',
-        fontFamily: 'var(--font-sans)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '40px 20px',
-      }}
-    >
-      <div style={{ marginBottom: 48, textAlign: 'center' }}>
-        <div
-          style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize: 28,
-            fontWeight: 500,
-            color: 'var(--sage)',
-            letterSpacing: '-0.5px',
-          }}
-        >
-          dough<span style={{ color: 'var(--ink-30)', fontWeight: 400 }}>.</span>
+    <div className={`auth-shell${align === 'start' ? ' auth-shell--start' : ''}`}>
+      <div className="auth-shell__brand">
+        <div className="auth-shell__mark" aria-hidden>
+          {/* App icon mark — rolling-pin D on sage */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/dough-mark.png" alt="" width={72} height={72} />
         </div>
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 500,
-            letterSpacing: '1.6px',
-            textTransform: 'uppercase',
-            color: 'var(--ink-30)',
-            marginTop: 4,
-          }}
-        >
-          Brand Intelligence
+        <div className="auth-shell__wordmark">
+          dough<span className="auth-shell__wordmark-dot">.</span>
         </div>
       </div>
 
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 440,
-          background: 'var(--white)',
-          border: '1px solid var(--ink-10)',
-          borderRadius: 'var(--r-xl)',
-          padding: '36px 40px',
-        }}
-      >
+      <div className={`auth-shell__panel${wide ? ' auth-shell__panel--wide' : ''}`}>
         {children}
       </div>
 
-      <div style={{ marginTop: 32, fontSize: 11, color: 'var(--ink-30)', textAlign: 'center' }}>
-        godough.co · hello@godough.co
+      <div className="auth-shell__footer">
+        <a href="https://godough.co/brands" style={{ color: 'inherit', textDecoration: 'none' }}>
+          godough.co/brands
+        </a>
+        {' · '}
+        hello@godough.co
       </div>
     </div>
   )

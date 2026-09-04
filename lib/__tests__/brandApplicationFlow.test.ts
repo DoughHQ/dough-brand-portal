@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  isValidWorkEmail,
-  parseBrandSearchHits,
-  parseProductPreview,
-} from '../brandApplicationFlow'
+import { isValidWorkEmail, parseBrandSearchHits } from '../brandApplicationFlow'
 
 describe('parseBrandSearchHits', () => {
   it('parses a jsonb array of brand hits', () => {
@@ -24,23 +20,6 @@ describe('parseBrandSearchHits', () => {
   it('returns empty for non-arrays', () => {
     expect(parseBrandSearchHits({ brands: [] })).toEqual([])
     expect(parseBrandSearchHits(null)).toEqual([])
-  })
-})
-
-describe('parseProductPreview', () => {
-  it('parses preview envelope', () => {
-    const preview = parseProductPreview({
-      brand_id: 9,
-      total_count: 1570,
-      with_image_count: 0,
-      products: [
-        { product_id: 1, name: 'York Peppermint', image_url: null },
-        { product_id: 2, name: '', image_url: null },
-      ],
-    })
-    expect(preview?.total_count).toBe(1570)
-    expect(preview?.with_image_count).toBe(0)
-    expect(preview?.products).toHaveLength(1)
   })
 })
 

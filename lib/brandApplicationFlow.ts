@@ -1,17 +1,8 @@
-import type { ApplicationProduct } from '@/components/products/ApplicationProductTile'
-
 export type ApplicationBrandHit = {
   brand_id: number
   brand_name: string
   product_count: number
   sample_products: string[]
-}
-
-export type ApplicationProductPreview = {
-  brand_id: number
-  total_count: number
-  with_image_count: number
-  products: ApplicationProduct[]
 }
 
 function asFiniteNumber(value: unknown): number | null {
@@ -45,41 +36,6 @@ export function parseBrandSearchHits(data: unknown): ApplicationBrandHit[] {
     })
   }
   return out
-}
-
-export function parseProductPreview(data: unknown): ApplicationProductPreview | null {
-  if (!data || typeof data !== 'object') return null
-  const o = data as Record<string, unknown>
-  const brandId = asFiniteNumber(o.brand_id)
-  if (brandId == null || brandId <= 0) return null
-
-  const total = asFiniteNumber(o.total_count)
-  const withImage = asFiniteNumber(o.with_image_count)
-  const productsRaw = Array.isArray(o.products) ? o.products : []
-  const products: ApplicationProduct[] = []
-
-  for (const raw of productsRaw) {
-    if (!raw || typeof raw !== 'object') continue
-    const p = raw as Record<string, unknown>
-    const productId = asFiniteNumber(p.product_id)
-    const name = String(p.name ?? '').trim()
-    if (productId == null || productId <= 0 || !name) continue
-    products.push({
-      product_id: productId,
-      name,
-      image_url:
-        p.image_url == null || String(p.image_url).trim() === ''
-          ? null
-          : String(p.image_url).trim(),
-    })
-  }
-
-  return {
-    brand_id: brandId,
-    total_count: total != null && total >= 0 ? Math.floor(total) : products.length,
-    with_image_count: withImage != null && withImage >= 0 ? Math.floor(withImage) : 0,
-    products,
-  }
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

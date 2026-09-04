@@ -1,4 +1,4 @@
-/* Shared product tile primitives — used by portal Products + login application flow. */
+/* Shared product tile primitives — used by portal Products. */
 
 .prod-tile-art {
   height: 152px;
@@ -44,74 +44,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Application-flow tile (non-linking) */
-.apply-product-tile {
-  display: flex;
-  flex-direction: column;
-  background: var(--white);
-  border: 1px solid var(--mist);
-  border-radius: 13px;
-  overflow: hidden;
-  text-align: left;
-  transition: border-color 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
-}
-
-.apply-product-tile.is-flagged {
-  border-color: rgba(192, 120, 24, 0.45);
-  background: rgba(192, 120, 24, 0.04);
-  opacity: 0.88;
-}
-
-.apply-product-tile-body {
-  padding: 12px 14px 8px;
-  flex: 1;
-  min-width: 0;
-}
-
-.apply-product-tile-action {
-  padding: 0 14px 14px;
-}
-
-.apply-product-tile-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  font-family: var(--font-sans);
-  cursor: pointer;
-  border: 1px solid var(--mist);
-  background: var(--surface-1);
-  color: var(--ink-50);
-}
-
-.apply-product-tile-btn.is-flagged {
-  border-color: rgba(192, 120, 24, 0.35);
-  background: var(--amber-pale, rgba(192, 120, 24, 0.12));
-  color: var(--amber, #a66a14);
-  font-weight: 600;
-}
-
-.apply-product-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-@media (max-width: 720px) {
-  .apply-product-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 480px) {
-  .apply-product-grid {
-    grid-template-columns: 1fr;
-  }
-
   .prod-tile-art {
     height: 120px;
   }

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" aria-hidden="true">
+  <!-- Rolling-pin stem -->
+  <rect x="28" y="30" width="22" height="68" rx="11" fill="currentColor"/>
+  <rect x="32.5" y="18" width="13" height="14" rx="6.5" fill="currentColor"/>
+  <rect x="32.5" y="96" width="13" height="14" rx="6.5" fill="currentColor"/>
+  <!-- D bowl -->
+  <path
+    fill="currentColor"
+    d="M58 30h8c24.3 0 44 19.7 44 44s-19.7 44-44 44h-8V98h8c16.6 0 30-13.4 30-30s-13.4-30-30-30h-8V30z"
+  />
+</svg>

@@ -1,21 +1,18 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createClient } from '@/lib/supabase'
-import { ApplicationProductTile } from '@/components/products/ApplicationProductTile'
 import {
   isValidWorkEmail,
   normalizeLinkedInInput,
   normalizeRoleTitle,
   parseBrandSearchHits,
-  parseProductPreview,
   type ApplicationBrandHit,
-  type ApplicationProductPreview,
 } from '@/lib/brandApplicationFlow'
 import { safeLinkedInHref } from '@/lib/brandApplications'
-import '@/components/products/productTile.css'
+import '@/components/auth/authShell.css'
 
-export type ApplyStep = 'search' | 'products' | 'details' | 'booking'
+export type ApplyStep = 'search' | 'details' | 'booking'
 
 type Props = {
   step: ApplyStep
@@ -25,7 +22,6 @@ type Props = {
   onGoToLogin: () => void
   styles: {
     cardStyle: CSSProperties
-    wideCardStyle: CSSProperties
     inputStyle: CSSProperties
     labelStyle: CSSProperties
     primaryBtnStyle: (disabled: boolean) => CSSProperties
@@ -53,9 +49,6 @@ export default function ApplyBrandFlow({
 
   const [selectedBrand, setSelectedBrand] = useState<ApplicationBrandHit | null>(null)
   const [typedBrandName, setTypedBrandName] = useState('')
-  const [preview, setPreview] = useState<ApplicationProductPreview | null>(null)
-  const [loadingPreview, setLoadingPreview] = useState(false)
-  const [flaggedIds, setFlaggedIds] = useState<number[]>([])
 
   const [contactName, setContactName] = useState('')
   const [contactEmail, setContactEmail] = useState('')
@@ -104,62 +97,18 @@ export default function ApplyBrandFlow({
     return () => window.clearTimeout(t)
   }, [query, setError])
 
-  const loadPreview = useCallback(
-    async (brandId: number) => {
-      setLoadingPreview(true)
-      setError(null)
-      const supabase = createClient()
-      try {
-        const { data, error: rpcError } = await supabase.rpc('get_brand_products_for_application', {
-          p_brand_id: brandId,
-          p_limit: 12,
-        })
-        if (rpcError) {
-          setPreview(null)
-          setError('Couldn’t load your catalogue. Try again.')
-          return false
-        }
-        const parsed = parseProductPreview(data)
-        if (!parsed) {
-          setPreview(null)
-          setError('Couldn’t load your catalogue. Try again.')
-          return false
-        }
-        setPreview(parsed)
-        return true
-      } catch {
-        setPreview(null)
-        setError('Couldn’t load your catalogue. Try again.')
-        return false
-      } finally {
-        setLoadingPreview(false)
-      }
-    },
-    [setError]
-  )
-
-  async function selectBrand(hit: ApplicationBrandHit) {
+  function selectBrand(hit: ApplicationBrandHit) {
     setSelectedBrand(hit)
     setTypedBrandName(hit.brand_name)
-    setFlaggedIds([])
-    setPreview(null)
-    setStep('products')
-    await loadPreview(hit.brand_id)
+    setError(null)
+    setStep('details')
   }
 
   function chooseNetNew() {
     setSelectedBrand(null)
     setTypedBrandName(query.trim())
-    setPreview(null)
-    setFlaggedIds([])
     setError(null)
     setStep('details')
-  }
-
-  function toggleFlagged(productId: number) {
-    setFlaggedIds((prev) =>
-      prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
-    )
   }
 
   async function handleSubmit() {
@@ -194,7 +143,7 @@ export default function ApplyBrandFlow({
       brand_id: selectedBrand?.brand_id ?? null,
       role_title: normalizeRoleTitle(roleTitle),
       linkedin_url: normalizeLinkedInInput(linkedinUrl),
-      flagged_not_mine_product_ids: flaggedIds,
+      flagged_not_mine_product_ids: [],
     })
 
     setSubmitting(false)
@@ -206,52 +155,50 @@ export default function ApplyBrandFlow({
     setStep('booking')
   }
 
-  const cardStyle = step === 'products' ? styles.wideCardStyle : styles.cardStyle
-
   return (
-    <div style={cardStyle}>
+    <div style={styles.cardStyle}>
       {step === 'search' && (
         <>
-          <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 18 }}>
             <div
               style={{
                 fontFamily: 'var(--font-serif)',
-                fontSize: 22,
+                fontSize: 28,
                 fontWeight: 400,
                 color: 'var(--ink)',
+                lineHeight: 1.2,
+                letterSpacing: '-0.02em',
                 marginBottom: 8,
-                lineHeight: 1.3,
               }}
             >
               What’s your brand?
             </div>
-            <div style={{ fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.6 }}>
-              Search Dough’s catalogue. Sample products help you recognise the right legal-entity
-              row — even when the brand name looks unfamiliar.
+            <div style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.5 }}>
+              See how shoppers already choose your products — apply and we’ll get you set up.
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div>
-              <div style={styles.labelStyle}>Brand name</div>
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Start typing — McCormick, Hershey…"
-                autoFocus
-                style={styles.inputStyle}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--ink-30)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--ink-10)'
-                }}
-              />
-            </div>
+          <input
+            type="search"
+            className="auth-input"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Type your brand name"
+            aria-label="Brand name"
+            autoFocus
+            style={styles.inputStyle}
+            onFocus={(e) => {
+              e.target.style.borderColor = 'var(--sage)'
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
+              e.target.style.boxShadow = 'none'
+            }}
+          />
 
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
             {searching ? (
-              <div style={{ fontSize: 12, color: 'var(--ink-30)' }}>Searching…</div>
+              <div style={{ fontSize: 13, color: 'var(--ink-50)' }}>Searching…</div>
             ) : null}
 
             {error ? (
@@ -259,63 +206,18 @@ export default function ApplyBrandFlow({
             ) : null}
 
             {hits.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {hits.map((hit) => (
                   <button
                     key={hit.brand_id}
                     type="button"
-                    onClick={() => void selectBrand(hit)}
-                    style={{
-                      textAlign: 'left',
-                      padding: '12px 14px',
-                      borderRadius: 10,
-                      border: '1px solid var(--ink-10)',
-                      background: 'var(--surface)',
-                      cursor: 'pointer',
-                      fontFamily: 'var(--font-sans)',
-                    }}
+                    className="auth-hit"
+                    onClick={() => selectBrand(hit)}
                   >
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        gap: 12,
-                        alignItems: 'baseline',
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 600,
-                          color: 'var(--ink)',
-                          letterSpacing: '-0.01em',
-                        }}
-                      >
-                        {hit.brand_name}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: 'var(--ink-30)',
-                          whiteSpace: 'nowrap',
-                          fontVariantNumeric: 'tabular-nums',
-                        }}
-                      >
-                        {formatCount(hit.product_count)} products
-                      </div>
-                    </div>
-                    {hit.sample_products.length > 0 ? (
-                      <div
-                        style={{
-                          marginTop: 6,
-                          fontSize: 13,
-                          color: 'var(--ink-50)',
-                          lineHeight: 1.45,
-                        }}
-                      >
-                        {hit.sample_products.join(' · ')}
-                      </div>
-                    ) : null}
+                    <span className="auth-hit__name">{hit.brand_name}</span>
+                    <span className="auth-hit__count">
+                      {formatCount(hit.product_count)} products
+                    </span>
                   </button>
                 ))}
               </div>
@@ -331,7 +233,7 @@ export default function ApplyBrandFlow({
               type="button"
               onClick={chooseNetNew}
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 color: 'var(--sage)',
                 background: 'none',
                 border: 'none',
@@ -340,148 +242,16 @@ export default function ApplyBrandFlow({
                 fontWeight: 500,
                 textAlign: 'left',
                 padding: 0,
+                marginTop: hits.length > 0 ? 4 : 0,
               }}
             >
               I don’t see my brand →
             </button>
-
-            <div style={{ textAlign: 'center', paddingTop: 4 }}>
-              <button
-                type="button"
-                onClick={onGoToLogin}
-                style={{
-                  fontSize: 12,
-                  color: 'var(--ink-30)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-sans)',
-                }}
-              >
-                Already have access? Sign in
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {step === 'products' && (
-        <>
-          <div style={{ marginBottom: 20 }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: 22,
-                fontWeight: 400,
-                color: 'var(--ink)',
-                marginBottom: 8,
-                lineHeight: 1.3,
-              }}
-            >
-              Are these your products?
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.6 }}>
-              Here’s your catalogue in Dough
-              {selectedBrand ? (
-                <>
-                  {' '}
-                  for <strong style={{ color: 'var(--ink)', fontWeight: 600 }}>{selectedBrand.brand_name}</strong>
-                </>
-              ) : null}
-              .
-            </div>
-            {preview ? (
-              <div
-                style={{
-                  marginTop: 10,
-                  fontSize: 13,
-                  color: 'var(--ink)',
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              >
-                {formatCount(preview.total_count)} products · {formatCount(preview.with_image_count)}{' '}
-                with photos
-              </div>
-            ) : null}
           </div>
 
-          {error ? (
-            <div style={{ fontSize: 12, color: 'var(--red)', lineHeight: 1.5, marginBottom: 12 }}>
-              {error}
-            </div>
-          ) : null}
-
-          {loadingPreview ? (
-            <div style={{ padding: '32px 0', fontSize: 13, color: 'var(--ink-30)' }}>
-              Loading catalogue…
-            </div>
-          ) : preview && preview.products.length > 0 ? (
-            <div className="apply-product-grid" style={{ marginBottom: 16 }}>
-              {preview.products.map((product) => (
-                <ApplicationProductTile
-                  key={product.product_id}
-                  product={product}
-                  flagged={flaggedIds.includes(product.product_id)}
-                  onToggleFlagged={() => toggleFlagged(product.product_id)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div
-              style={{
-                padding: '28px 16px',
-                textAlign: 'center',
-                border: '1px dashed var(--ink-10)',
-                borderRadius: 12,
-                marginBottom: 16,
-                fontSize: 13,
-                color: 'var(--ink-50)',
-                lineHeight: 1.5,
-              }}
-            >
-              No products returned for this brand yet. You can still continue.
-            </div>
-          )}
-
-          <div style={{ fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.55, marginBottom: 16 }}>
-            Missing photos? Something not right? Let’s get you set up.
-            {flaggedIds.length > 0 ? (
-              <span style={{ color: 'var(--amber)', display: 'block', marginTop: 6 }}>
-                {flaggedIds.length} marked as not yours — we’ll review that on the call.
-              </span>
-            ) : null}
-          </div>
-
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={() => {
-                setError(null)
-                setStep('details')
-              }}
-              disabled={loadingPreview}
-              style={{ ...styles.primaryBtnStyle(loadingPreview), width: 'auto', flex: 1, minWidth: 160 }}
-            >
-              These look right — continue
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setError(null)
-                setStep('search')
-              }}
-              style={{
-                padding: '12px 16px',
-                borderRadius: 'var(--r-sm)',
-                border: '1px solid var(--ink-10)',
-                background: 'transparent',
-                color: 'var(--ink-50)',
-                fontSize: 13,
-                fontFamily: 'var(--font-sans)',
-                cursor: 'pointer',
-              }}
-            >
-              Back
+          <div className="auth-panel-foot">
+            <button type="button" className="auth-panel-foot__btn" onClick={onGoToLogin}>
+              Already have access? <span>Sign in</span>
             </button>
           </div>
         </>
@@ -509,6 +279,12 @@ export default function ApplyBrandFlow({
                   <strong style={{ color: 'var(--ink)', fontWeight: 600 }}>
                     {selectedBrand.brand_name}
                   </strong>
+                  {selectedBrand.product_count > 0 ? (
+                    <>
+                      {' '}
+                      · {formatCount(selectedBrand.product_count)} products already in dough
+                    </>
+                  ) : null}
                   .
                 </>
               ) : (
@@ -525,15 +301,17 @@ export default function ApplyBrandFlow({
                 </div>
                 <input
                   type="text"
+                  className="auth-input"
                   value={typedBrandName}
                   onChange={(e) => setTypedBrandName(e.target.value)}
                   placeholder="Your brand as you’d like it listed"
                   style={styles.inputStyle}
                   onFocus={(e) => {
-                    e.target.style.borderColor = 'var(--ink-30)'
+                    e.target.style.borderColor = 'var(--sage)'
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = 'var(--ink-10)'
+                    e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
+                    e.target.style.boxShadow = 'none'
                   }}
                 />
               </div>
@@ -545,15 +323,17 @@ export default function ApplyBrandFlow({
               </div>
               <input
                 type="text"
+                className="auth-input"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
                 placeholder="Jane Smith"
                 style={styles.inputStyle}
                 onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--ink-30)'
+                  e.target.style.borderColor = 'var(--sage)'
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--ink-10)'
+                  e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
+                  e.target.style.boxShadow = 'none'
                 }}
               />
             </div>
@@ -564,16 +344,18 @@ export default function ApplyBrandFlow({
               </div>
               <input
                 type="email"
+                className="auth-input"
                 value={contactEmail}
                 onChange={(e) => setContactEmail(e.target.value)}
                 placeholder="jane@brand.com"
                 autoComplete="email"
                 style={styles.inputStyle}
                 onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--ink-30)'
+                  e.target.style.borderColor = 'var(--sage)'
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--ink-10)'
+                  e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
+                  e.target.style.boxShadow = 'none'
                 }}
               />
             </div>
@@ -582,15 +364,17 @@ export default function ApplyBrandFlow({
               <div style={styles.labelStyle}>Your role at the brand</div>
               <input
                 type="text"
+                className="auth-input"
                 value={roleTitle}
                 onChange={(e) => setRoleTitle(e.target.value)}
                 placeholder="Brand manager, founder…"
                 style={styles.inputStyle}
                 onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--ink-30)'
+                  e.target.style.borderColor = 'var(--sage)'
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--ink-10)'
+                  e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
+                  e.target.style.boxShadow = 'none'
                 }}
               />
             </div>
@@ -599,15 +383,17 @@ export default function ApplyBrandFlow({
               <div style={styles.labelStyle}>LinkedIn profile</div>
               <input
                 type="text"
+                className="auth-input"
                 value={linkedinUrl}
                 onChange={(e) => setLinkedinUrl(e.target.value)}
                 placeholder="linkedin.com/in/you"
                 style={styles.inputStyle}
                 onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--ink-30)'
+                  e.target.style.borderColor = 'var(--sage)'
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--ink-10)'
+                  e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
+                  e.target.style.boxShadow = 'none'
                 }}
               />
             </div>
@@ -630,7 +416,7 @@ export default function ApplyBrandFlow({
                 type="button"
                 onClick={() => {
                   setError(null)
-                  setStep(selectedBrand ? 'products' : 'search')
+                  setStep('search')
                 }}
                 style={{
                   fontSize: 12,
