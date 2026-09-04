@@ -24,7 +24,7 @@ const dmMono = DM_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'dough. — Brand Intelligence',
+  title: 'Dough — Brand Intelligence',
   description: 'Real consumer preference data for your brand.',
 }
 

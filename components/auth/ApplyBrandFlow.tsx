@@ -282,7 +282,7 @@ export default function ApplyBrandFlow({
                   {selectedBrand.product_count > 0 ? (
                     <>
                       {' '}
-                      · {formatCount(selectedBrand.product_count)} products already in dough
+                      · {formatCount(selectedBrand.product_count)} products already in Dough
                     </>
                   ) : null}
                   .

@@ -1,7 +1,7 @@
 import DesignPreviewClient from './DesignPreviewClient'
 
 export const metadata = {
-  title: 'dough. — Design preview',
+  title: 'Dough — Design preview',
   robots: 'noindex',
 }
 

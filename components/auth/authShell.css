@@ -64,11 +64,6 @@
   line-height: 1;
 }
 
-.auth-shell__wordmark-dot {
-  color: var(--auth-fg-faint);
-  font-weight: 400;
-}
-
 .auth-shell__panel {
   width: 100%;
   max-width: min(560px, 92vw);

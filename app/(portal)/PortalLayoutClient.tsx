@@ -139,10 +139,7 @@ export default function PortalLayoutClient({
     <div className={`portal-shell${dark ? ' dark' : ''}`}>
       <aside className="portal-aside">
         <div className="portal-mark">
-          <div className="portal-mark-name">
-            dough
-            <span className="portal-mark-dot">.</span>
-          </div>
+          <div className="portal-mark-name">Dough</div>
           <div className="portal-mark-sub">
             {isPlatform ? 'Platform' : 'Brand Intelligence'}
           </div>

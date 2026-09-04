@@ -146,9 +146,7 @@ export default function AuthShell({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/dough-mark.png" alt="" width={72} height={72} />
         </div>
-        <div className="auth-shell__wordmark">
-          dough<span className="auth-shell__wordmark-dot">.</span>
-        </div>
+        <div className="auth-shell__wordmark">Dough</div>
       </div>
 
       <div className={`auth-shell__panel${wide ? ' auth-shell__panel--wide' : ''}`}>
