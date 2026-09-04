@@ -174,7 +174,7 @@ export default function ApplyBrandFlow({
               What’s your brand?
             </div>
             <div style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.5 }}>
-              See how shoppers already choose your products — apply and we’ll get you set up.
+              Dough is where shoppers compare real products — find your brand and apply.
             </div>
           </div>
 
