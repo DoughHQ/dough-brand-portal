@@ -24,6 +24,22 @@
   border-bottom: 1px solid rgba(250, 248, 243, 0.08);
 }
 
+.portal-mark-lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.portal-mark-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+  background: var(--sage, #3e6b4a);
+}
+
 .portal-mark-name {
   font-family: var(--font-serif);
   font-size: 22px;
@@ -39,7 +55,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(250, 248, 243, 0.42);
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .portal-workspace {

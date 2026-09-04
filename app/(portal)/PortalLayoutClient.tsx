@@ -139,9 +139,21 @@ export default function PortalLayoutClient({
     <div className={`portal-shell${dark ? ' dark' : ''}`}>
       <aside className="portal-aside">
         <div className="portal-mark">
-          <div className="portal-mark-name">Dough</div>
-          <div className="portal-mark-sub">
-            {isPlatform ? 'Platform' : 'Brand Intelligence'}
+          <div className="portal-mark-lockup">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className="portal-mark-icon"
+              src="/dough-mark.png"
+              alt=""
+              width={36}
+              height={36}
+            />
+            <div>
+              <div className="portal-mark-name">Dough</div>
+              <div className="portal-mark-sub">
+                {isPlatform ? 'Platform' : 'Brand Intelligence'}
+              </div>
+            </div>
           </div>
         </div>
 
