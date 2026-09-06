@@ -9,6 +9,8 @@ import {
 } from '@/lib/transparency/disclosures'
 import { formatProofCode } from '@/lib/transparency/displayMap'
 import { rowPresence, type RowPresence } from '@/lib/transparency/proofChapters'
+import { composePlaceLine, provenanceWhisperFromTier } from '@/lib/transparency/storyLines'
+import ShopperPreview from '@/components/transparency/ShopperPreview'
 import {
   displayAllCapsPhrase,
   splitIngredientStatement,
@@ -98,19 +100,6 @@ function presenceCopy(p: RowPresence): string {
     default:
       return '—'
   }
-}
-
-/** Composed place line for scan + shopper preview. */
-export function composePlaceLine(args: {
-  country?: string | null
-  region?: string | null
-  producer?: string | null
-}): string {
-  const parts: string[] = []
-  if (args.country?.trim()) parts.push(formatProofCode(args.country.trim().toUpperCase()))
-  if (args.region?.trim()) parts.push(args.region.trim())
-  if (args.producer?.trim()) parts.push(args.producer.trim())
-  return parts.join(' · ')
 }
 
 function storyPresence(
@@ -564,19 +553,14 @@ function PlaceStoryEditor({
   return (
     <div className="tx-origin__story">
       {previewPlace ? (
-        <div className="tx-origin__preview" aria-live="polite">
-          <p className="tx-origin__preview-kicker">Shoppers will read</p>
-          <p className="tx-origin__preview-line">
-            {previewSubject} — {previewPlace}
-          </p>
-          <p className="tx-origin__preview-whisper">
-            {(anchor?.sourceTier ?? 'brand_stated') === 'third_party_verified'
-              ? `Verified by ${anchor?.issuerName?.trim() || 'a third party'}`
-              : (anchor?.sourceTier ?? 'brand_stated') === 'brand_document'
-                ? 'Brand document'
-                : 'Stated by the brand'}
-          </p>
-        </div>
+        <ShopperPreview
+          line={`${previewSubject} — ${previewPlace}`}
+          whisper={provenanceWhisperFromTier({
+            status: 'disclosed',
+            sourceTier: anchor?.sourceTier,
+            issuerName: anchor?.issuerName,
+          })}
+        />
       ) : null}
 
       <div className="tx-formula__block">

@@ -7,6 +7,8 @@ import {
   type ProofSubMetricRow,
 } from '@/lib/transparency/disclosures'
 import { rowPresence, type RowPresence } from '@/lib/transparency/proofChapters'
+import { composeFormulaLine } from '@/lib/transparency/storyLines'
+import ShopperPreview from '@/components/transparency/ShopperPreview'
 import {
   displayAllCapsPhrase,
   splitIngredientStatement,
@@ -343,6 +345,13 @@ function AmountBlock({
         Percentage of <strong>{subject}</strong> in the formula. Optional — only disclose what
         you want shoppers to see.
       </p>
+      <ShopperPreview
+        line={
+          row?.draft.valueNum != null
+            ? composeFormulaLine({ subject, percent: row.draft.valueNum })
+            : ''
+        }
+      />
       <div className="tx-inline" style={{ marginBottom: 12, maxWidth: 220 }}>
         <input
           type="number"

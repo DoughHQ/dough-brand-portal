@@ -10,6 +10,12 @@ import {
 import { formatProofCode } from '@/lib/transparency/displayMap'
 import { rowPresence, type RowPresence } from '@/lib/transparency/proofChapters'
 import {
+  composeKeptLine,
+  composeMadeLine,
+  provenanceWhisperFromTier,
+} from '@/lib/transparency/storyLines'
+import ShopperPreview from '@/components/transparency/ShopperPreview'
+import {
   displayAllCapsPhrase,
   splitIngredientStatement,
 } from '@/app/(portal)/products/[productId]/tabs/compositionPresentation'
@@ -105,25 +111,6 @@ export function isOilOrFatLike(name: string): boolean {
 
 export function isNaturalFlavorPhrase(name: string): boolean {
   return /\bnatural\s+flavou?rs?\b/i.test(name.trim())
-}
-
-export function composeMadeLine(method?: string | null, parameter?: string | null): string {
-  const parts: string[] = []
-  if (method?.trim()) parts.push(formatProofCode(method.trim()))
-  if (parameter?.trim()) parts.push(parameter.trim())
-  return parts.join(' · ')
-}
-
-export function composeKeptLine(
-  condition?: string | null,
-  basis?: string | null,
-  note?: string | null,
-): string {
-  const parts: string[] = []
-  if (condition?.trim()) parts.push(formatProofCode(condition.trim()))
-  if (basis?.trim()) parts.push(formatProofCode(basis.trim()))
-  if (note?.trim()) parts.push(note.trim())
-  return parts.join(' · ')
 }
 
 type LabelLine = { name: string; display: string; fromLabel: boolean }
@@ -496,9 +483,15 @@ function MadeKeptEditor(
       </div>
 
       {preview ? (
-        <div className="tx-origin__preview" style={{ marginBottom: 12 }}>
-          <p className="tx-origin__preview-kicker">Shoppers will read</p>
-          <p className="tx-origin__preview-line">{preview}</p>
+        <div style={{ marginBottom: 12 }}>
+          <ShopperPreview
+            line={preview}
+            whisper={provenanceWhisperFromTier({
+              status: 'disclosed',
+              sourceTier: anchor?.sourceTier,
+              issuerName: anchor?.issuerName,
+            })}
+          />
         </div>
       ) : null}
 

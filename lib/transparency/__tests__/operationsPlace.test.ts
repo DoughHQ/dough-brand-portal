@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
-  composeKeptLine,
-  composeMadeLine,
   isNaturalFlavorPhrase,
   isOilOrFatLike,
 } from '@/components/transparency/OperationsSheet'
+import { composeKeptLine, composeMadeLine } from '@/lib/transparency/storyLines'
 
 describe('operations helpers', () => {
   it('detects oils and natural flavors', () => {

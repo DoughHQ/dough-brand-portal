@@ -25,6 +25,9 @@ import OperationsSheet, {
   OPS_KEPT_CODES,
   OPS_MADE_CODES,
 } from '@/components/transparency/OperationsSheet'
+import PlanetSheet, {
+  PLANET_PACK_CODES,
+} from '@/components/transparency/PlanetSheet'
 import {
   PROOF_CHAPTERS,
   chapterForMetric,
@@ -841,6 +844,62 @@ export default function ProductTransparencyStudio({
         }
         continue
       }
+      if (ch.id === 'planet') {
+        const slot = (codes: readonly string[]) => {
+          let started = false
+          let published = false
+          for (const code of codes) {
+            for (const row of rowsByMetric[code] ?? []) {
+              const p = rowPresence(row.draft)
+              if (p !== 'not_started') started = true
+              if (p === 'published') published = true
+            }
+          }
+          return { started, published }
+        }
+        const pcf = slot(['product_carbon_footprint'])
+        const packSubjects = new Set<string>()
+        for (const code of PLANET_PACK_CODES) {
+          for (const row of rowsByMetric[code] ?? []) {
+            const s = (row.draft.subjectLabel ?? '').trim().toLowerCase().replace(/\s+/g, ' ')
+            if (s) packSubjects.add(s)
+          }
+        }
+        let packStarted = 0
+        let packPublished = 0
+        for (const s of packSubjects) {
+          let anyStarted = false
+          let anyPublished = false
+          for (const code of PLANET_PACK_CODES) {
+            const row = (rowsByMetric[code] ?? []).find(
+              (r) =>
+                (r.draft.subjectLabel ?? '').trim().toLowerCase().replace(/\s+/g, ' ') === s,
+            )
+            if (!row) continue
+            const p = rowPresence(row.draft)
+            if (p !== 'not_started') anyStarted = true
+            if (p === 'published') anyPublished = true
+          }
+          if (anyStarted) packStarted += 1
+          if (anyPublished) packPublished += 1
+        }
+        const restFields = fieldsByChapter.planet.filter(
+          (f) =>
+            f.metric_code === 'land_and_soil' || f.metric_code === 'corporate_footprint',
+        )
+        const rest = chapterProgress(restFields, rowsByMetric)
+        const pcfTotal = fieldsByChapter.planet.some(
+          (f) => f.sub_metric_code === 'product_carbon_footprint',
+        )
+          ? 1
+          : 0
+        out.planet = {
+          total: pcfTotal + packSubjects.size + rest.total,
+          started: (pcf.started ? pcfTotal : 0) + packStarted + rest.started,
+          published: (pcf.published ? pcfTotal : 0) + packPublished + rest.published,
+        }
+        continue
+      }
       out[ch.id] = chapterProgress(fieldsByChapter[ch.id], rowsByMetric)
     }
     return out
@@ -1115,7 +1174,7 @@ export default function ProductTransparencyStudio({
       const row = (rowsByMetric[code] ?? [])[0]
       if (!field || !row) continue
       if (!anchor) anchor = row.draft
-      const hasValue = Boolean(row.draft.valueText?.trim())
+      const hasValue = Boolean(row.draft.valueText?.trim()) || row.draft.valueNum != null
       if (!hasValue) continue
       items.push({ field, row, draft: row.draft })
     }
@@ -1203,10 +1262,69 @@ export default function ProductTransparencyStudio({
     return map
   }, [fieldsByChapter.operations])
 
+  const planetFieldsByCode = useMemo(() => {
+    const map: Record<string, ProofSubMetricRow | undefined> = {}
+    for (const f of fieldsByChapter.planet) {
+      map[f.sub_metric_code] = f
+    }
+    return map
+  }, [fieldsByChapter.planet])
+
   const journeyGroups = useMemo(
     () => groupsInChapter.filter((g) => g.metricCode !== 'origin'),
     [groupsInChapter],
   )
+
+  const planetRestGroups = useMemo(
+    () =>
+      groupsInChapter.filter(
+        (g) => g.metricCode === 'land_and_soil' || g.metricCode === 'corporate_footprint',
+      ),
+    [groupsInChapter],
+  )
+
+  const depthSummary = (chId: ProofChapterId): string => {
+    const p = progressByChapter[chId]
+    if (chId === 'origin') {
+      const verified = ORIGIN_DEPTH_CODES.reduce((n, code) => {
+        return (
+          n +
+          (rowsByMetric[code] ?? []).filter(
+            (r) =>
+              rowPresence(r.draft) !== 'not_started' &&
+              r.draft.sourceTier === 'third_party_verified',
+          ).length
+        )
+      }, 0)
+      const places = p.started
+      if (places === 0) return 'No places yet'
+      return verified > 0 ? `${places} places · ${verified} verified` : `${places} places`
+    }
+    if (chId === 'planet') {
+      const pcfOn = (rowsByMetric['product_carbon_footprint'] ?? []).some(
+        (r) => rowPresence(r.draft) !== 'not_started',
+      )
+      const packN = new Set(
+        PLANET_PACK_CODES.flatMap((code) =>
+          (rowsByMetric[code] ?? [])
+            .map((r) => (r.draft.subjectLabel ?? '').trim().toLowerCase())
+            .filter(Boolean),
+        ),
+      ).size
+      const bits = [
+        pcfOn ? 'PCF' : null,
+        packN > 0 ? `${packN} pack` : null,
+      ].filter(Boolean)
+      return bits.length ? bits.join(' · ') : 'Not started'
+    }
+    if (chId === 'formula') {
+      return p.started > 0 ? `${p.started} ingredients` : 'Not started'
+    }
+    if (chId === 'operations') {
+      return p.started > 0 ? `${p.published}/${p.total} live` : 'Not started'
+    }
+    return p.started > 0 ? `${p.published}/${p.total} published` : 'Not started'
+  }
 
   const renderInventoryGroups = (
     groups: typeof groupsInChapter,
@@ -1353,9 +1471,7 @@ export default function ProductTransparencyStudio({
                 </span>
                 <span className="tx-rail__meta">
                   <span className="tx-rail__name">{ch.name}</span>
-                  <span className="tx-rail__progress">
-                    {p.published}/{p.total} published
-                  </span>
+                  <span className="tx-rail__progress">{depthSummary(ch.id)}</span>
                   <span className="tx-rail__bar" aria-hidden>
                     <span style={{ width: `${pct}%` }} />
                   </span>
@@ -1444,6 +1560,40 @@ export default function ProductTransparencyStudio({
               onSaveBundle={(codes, key) => void handleSaveOpsBundle(codes, key)}
               onClearStoryError={() => setStoryError(null)}
             />
+          ) : activeChapter.id === 'planet' ? (
+            <>
+              <PlanetSheet
+                fieldsByCode={planetFieldsByCode}
+                rowsByCode={rowsByMetric}
+                canEdit={canEdit}
+                savingKey={savingKey}
+                storyError={storyError}
+                errors={errors}
+                onChange={updateRow}
+                onEnsureRow={ensureSubjectRow}
+                onSaveRow={(field, row) => void handleSave(field, row)}
+                onSaveBundle={(codes, key) => void handleSaveOpsBundle(codes, key)}
+                onClearStoryError={() => setStoryError(null)}
+                onSeedPackComponents={(names) => {
+                  const material = fields.find(
+                    (f) => f.sub_metric_code === 'packaging_primary_material',
+                  )
+                  if (!material) return
+                  for (const name of names) ensureSubjectRow(material, name)
+                }}
+              />
+              {planetRestGroups.length > 0 ? (
+                <div className="tx-origin__journey">
+                  <div className="tx-origin__journey-head">
+                    <p className="tx-group__label">Land & corporate</p>
+                    <p className="tx-origin__journey-lede">
+                      Practices and corporate footprint — still available as inventory.
+                    </p>
+                  </div>
+                  {renderInventoryGroups(planetRestGroups, { forceGroupLabel: true })}
+                </div>
+              ) : null}
+            </>
           ) : (
             renderInventoryGroups(groupsInChapter)
           )}

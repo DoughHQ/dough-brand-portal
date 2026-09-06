@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { composePlaceLine } from '@/components/transparency/OriginSheet'
+import { composePlaceLine } from '@/lib/transparency/storyLines'
 
 describe('composePlaceLine', () => {
   it('joins country, region, and producer', () => {
