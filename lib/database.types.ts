@@ -2753,6 +2753,133 @@ export type Database = {
           },
         ]
       }
+      brand_disclosures: {
+        Row: {
+          asof_date: string | null
+          boundary_code: string | null
+          brand_id: number
+          credential_id: string | null
+          data_quality: string | null
+          disclosure_id: number
+          expires_at: string | null
+          is_current: boolean
+          issuer_name: string | null
+          method_code: string | null
+          other_text: string | null
+          published: boolean
+          source_tier: string
+          source_url: string | null
+          status: string
+          sub_metric_code: string
+          sub_metric_version: number
+          submitted_at: string
+          submitted_by_portal_user_id: string | null
+          superseded_by: number | null
+          value_bool: boolean | null
+          value_date: string | null
+          value_num: number | null
+          value_text: string | null
+          value_unit: string | null
+        }
+        Insert: {
+          asof_date?: string | null
+          boundary_code?: string | null
+          brand_id: number
+          credential_id?: string | null
+          data_quality?: string | null
+          disclosure_id?: never
+          expires_at?: string | null
+          is_current?: boolean
+          issuer_name?: string | null
+          method_code?: string | null
+          other_text?: string | null
+          published?: boolean
+          source_tier: string
+          source_url?: string | null
+          status: string
+          sub_metric_code: string
+          sub_metric_version: number
+          submitted_at?: string
+          submitted_by_portal_user_id?: string | null
+          superseded_by?: number | null
+          value_bool?: boolean | null
+          value_date?: string | null
+          value_num?: number | null
+          value_text?: string | null
+          value_unit?: string | null
+        }
+        Update: {
+          asof_date?: string | null
+          boundary_code?: string | null
+          brand_id?: number
+          credential_id?: string | null
+          data_quality?: string | null
+          disclosure_id?: never
+          expires_at?: string | null
+          is_current?: boolean
+          issuer_name?: string | null
+          method_code?: string | null
+          other_text?: string | null
+          published?: boolean
+          source_tier?: string
+          source_url?: string | null
+          status?: string
+          sub_metric_code?: string
+          sub_metric_version?: number
+          submitted_at?: string
+          submitted_by_portal_user_id?: string | null
+          superseded_by?: number | null
+          value_bool?: boolean | null
+          value_date?: string | null
+          value_num?: number | null
+          value_text?: string | null
+          value_unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_disclosures_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_disclosures_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_disclosures_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_disclosures_sub_metric_code_fkey"
+            columns: ["sub_metric_code"]
+            isOneToOne: false
+            referencedRelation: "proof_sub_metrics"
+            referencedColumns: ["sub_metric_code"]
+          },
+          {
+            foreignKeyName: "brand_disclosures_submitted_by_portal_user_id_fkey"
+            columns: ["submitted_by_portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "brand_portal_users"
+            referencedColumns: ["portal_user_id"]
+          },
+          {
+            foreignKeyName: "brand_disclosures_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "brand_disclosures"
+            referencedColumns: ["disclosure_id"]
+          },
+        ]
+      }
       brand_intelligence_snapshots: {
         Row: {
           audience_summary: Json
@@ -5268,6 +5395,96 @@ export type Database = {
           product_id?: number | null
         }
         Relationships: []
+      }
+      browse_filter_events: {
+        Row: {
+          created_at: string
+          device_platform: string | null
+          facet_types: string[] | null
+          filter_event_id: number
+          filters: Json
+          result_count: number | null
+          taxonomy_node_id: number | null
+          user_id: number | null
+        }
+        Insert: {
+          created_at?: string
+          device_platform?: string | null
+          facet_types?: string[] | null
+          filter_event_id?: never
+          filters?: Json
+          result_count?: number | null
+          taxonomy_node_id?: number | null
+          user_id?: number | null
+        }
+        Update: {
+          created_at?: string
+          device_platform?: string | null
+          facet_types?: string[] | null
+          filter_event_id?: never
+          filters?: Json
+          result_count?: number | null
+          taxonomy_node_id?: number | null
+          user_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "browse_filter_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "browse_filter_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "browse_filter_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "browse_filter_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "browse_filter_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "browse_filter_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "browse_filter_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "browse_filter_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       campaign_wallets: {
         Row: {
@@ -19118,6 +19335,233 @@ export type Database = {
           },
         ]
       }
+      product_disclosures: {
+        Row: {
+          asof_date: string | null
+          boundary_code: string | null
+          brand_id: number
+          credential_id: string | null
+          data_quality: string | null
+          disclosure_id: number
+          expires_at: string | null
+          is_current: boolean
+          issuer_name: string | null
+          method_code: string | null
+          other_text: string | null
+          product_id: number
+          published: boolean
+          source_tier: string
+          source_url: string | null
+          status: string
+          sub_metric_code: string
+          sub_metric_version: number
+          subject_kind: string
+          subject_label: string | null
+          submitted_at: string
+          submitted_by_portal_user_id: string | null
+          superseded_by: number | null
+          value_bool: boolean | null
+          value_date: string | null
+          value_num: number | null
+          value_text: string | null
+          value_unit: string | null
+        }
+        Insert: {
+          asof_date?: string | null
+          boundary_code?: string | null
+          brand_id: number
+          credential_id?: string | null
+          data_quality?: string | null
+          disclosure_id?: never
+          expires_at?: string | null
+          is_current?: boolean
+          issuer_name?: string | null
+          method_code?: string | null
+          other_text?: string | null
+          product_id: number
+          published?: boolean
+          source_tier: string
+          source_url?: string | null
+          status: string
+          sub_metric_code: string
+          sub_metric_version: number
+          subject_kind?: string
+          subject_label?: string | null
+          submitted_at?: string
+          submitted_by_portal_user_id?: string | null
+          superseded_by?: number | null
+          value_bool?: boolean | null
+          value_date?: string | null
+          value_num?: number | null
+          value_text?: string | null
+          value_unit?: string | null
+        }
+        Update: {
+          asof_date?: string | null
+          boundary_code?: string | null
+          brand_id?: number
+          credential_id?: string | null
+          data_quality?: string | null
+          disclosure_id?: never
+          expires_at?: string | null
+          is_current?: boolean
+          issuer_name?: string | null
+          method_code?: string | null
+          other_text?: string | null
+          product_id?: number
+          published?: boolean
+          source_tier?: string
+          source_url?: string | null
+          status?: string
+          sub_metric_code?: string
+          sub_metric_version?: number
+          subject_kind?: string
+          subject_label?: string | null
+          submitted_at?: string
+          submitted_by_portal_user_id?: string | null
+          superseded_by?: number | null
+          value_bool?: boolean | null
+          value_date?: string | null
+          value_num?: number | null
+          value_text?: string | null
+          value_unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_disclosures_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_sub_metric_code_fkey"
+            columns: ["sub_metric_code"]
+            isOneToOne: false
+            referencedRelation: "proof_sub_metrics"
+            referencedColumns: ["sub_metric_code"]
+          },
+          {
+            foreignKeyName: "product_disclosures_subject_kind_fkey"
+            columns: ["subject_kind"]
+            isOneToOne: false
+            referencedRelation: "proof_subject_kinds"
+            referencedColumns: ["subject_kind"]
+          },
+          {
+            foreignKeyName: "product_disclosures_submitted_by_portal_user_id_fkey"
+            columns: ["submitted_by_portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "brand_portal_users"
+            referencedColumns: ["portal_user_id"]
+          },
+          {
+            foreignKeyName: "product_disclosures_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "product_disclosures"
+            referencedColumns: ["disclosure_id"]
+          },
+        ]
+      }
       product_discovery_queue: {
         Row: {
           ai_allergens_text: string | null
@@ -19852,6 +20296,7 @@ export type Database = {
           facet_type_id: number | null
           facet_value: string
           facet_value_id: number | null
+          facet_value_num: number | null
           product_id: number
         }
         Insert: {
@@ -19863,6 +20308,7 @@ export type Database = {
           facet_type_id?: number | null
           facet_value: string
           facet_value_id?: number | null
+          facet_value_num?: number | null
           product_id: number
         }
         Update: {
@@ -19874,6 +20320,7 @@ export type Database = {
           facet_type_id?: number | null
           facet_value?: string
           facet_value_id?: number | null
+          facet_value_num?: number | null
           product_id?: number
         }
         Relationships: [
@@ -23109,6 +23556,36 @@ export type Database = {
         }
         Relationships: []
       }
+      proof_metrics: {
+        Row: {
+          created_at: string
+          definition: string | null
+          is_active: boolean
+          label: string
+          level: string
+          metric_code: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          definition?: string | null
+          is_active?: boolean
+          label: string
+          level: string
+          metric_code: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          definition?: string | null
+          is_active?: boolean
+          label?: string
+          level?: string
+          metric_code?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       proof_peer_groups: {
         Row: {
           created_at: string
@@ -23151,6 +23628,132 @@ export type Database = {
           small_n_label?: string
           taxonomy_node_id?: number | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      proof_sub_metrics: {
+        Row: {
+          allowed_boundaries: string[] | null
+          allowed_data_qualities: string[] | null
+          allowed_methods: string[] | null
+          allowed_units: string[] | null
+          allowed_values: string[] | null
+          applicability_rule: string | null
+          created_at: string
+          definition: string
+          facet_type: string | null
+          is_active: boolean
+          is_searchable: boolean
+          label: string
+          level: string
+          metric_code: string
+          provenance: string
+          requires_boundary: boolean
+          requires_data_quality: boolean
+          requires_method: boolean
+          sort_order: number
+          spec_ref: string | null
+          sub_metric_code: string
+          subject_kind_default: string
+          unit: string | null
+          unit_source: string
+          updated_at: string
+          value_kind: string
+          version: number
+        }
+        Insert: {
+          allowed_boundaries?: string[] | null
+          allowed_data_qualities?: string[] | null
+          allowed_methods?: string[] | null
+          allowed_units?: string[] | null
+          allowed_values?: string[] | null
+          applicability_rule?: string | null
+          created_at?: string
+          definition: string
+          facet_type?: string | null
+          is_active?: boolean
+          is_searchable?: boolean
+          label: string
+          level: string
+          metric_code: string
+          provenance: string
+          requires_boundary?: boolean
+          requires_data_quality?: boolean
+          requires_method?: boolean
+          sort_order?: number
+          spec_ref?: string | null
+          sub_metric_code: string
+          subject_kind_default?: string
+          unit?: string | null
+          unit_source?: string
+          updated_at?: string
+          value_kind: string
+          version?: number
+        }
+        Update: {
+          allowed_boundaries?: string[] | null
+          allowed_data_qualities?: string[] | null
+          allowed_methods?: string[] | null
+          allowed_units?: string[] | null
+          allowed_values?: string[] | null
+          applicability_rule?: string | null
+          created_at?: string
+          definition?: string
+          facet_type?: string | null
+          is_active?: boolean
+          is_searchable?: boolean
+          label?: string
+          level?: string
+          metric_code?: string
+          provenance?: string
+          requires_boundary?: boolean
+          requires_data_quality?: boolean
+          requires_method?: boolean
+          sort_order?: number
+          spec_ref?: string | null
+          sub_metric_code?: string
+          subject_kind_default?: string
+          unit?: string | null
+          unit_source?: string
+          updated_at?: string
+          value_kind?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proof_sub_metrics_metric_code_fkey"
+            columns: ["metric_code"]
+            isOneToOne: false
+            referencedRelation: "proof_metrics"
+            referencedColumns: ["metric_code"]
+          },
+          {
+            foreignKeyName: "proof_sub_metrics_subject_kind_default_fkey"
+            columns: ["subject_kind_default"]
+            isOneToOne: false
+            referencedRelation: "proof_subject_kinds"
+            referencedColumns: ["subject_kind"]
+          },
+        ]
+      }
+      proof_subject_kinds: {
+        Row: {
+          is_active: boolean
+          label: string
+          requires_label: boolean
+          subject_kind: string
+        }
+        Insert: {
+          is_active?: boolean
+          label: string
+          requires_label?: boolean
+          subject_kind: string
+        }
+        Update: {
+          is_active?: boolean
+          label?: string
+          requires_label?: boolean
+          subject_kind?: string
         }
         Relationships: []
       }
@@ -25974,6 +26577,7 @@ export type Database = {
           device_platform: string | null
           intent_parsed: Json | null
           low_confidence: boolean | null
+          node_attribution_method: string | null
           query_normalized: string | null
           query_raw: string
           response_ms: number | null
@@ -25981,6 +26585,7 @@ export type Database = {
           search_event_id: number
           search_mode: string | null
           tapped_product_id: number | null
+          taxonomy_node_id: number | null
           top_result_product_id: number | null
           user_id: number | null
         }
@@ -25991,6 +26596,7 @@ export type Database = {
           device_platform?: string | null
           intent_parsed?: Json | null
           low_confidence?: boolean | null
+          node_attribution_method?: string | null
           query_normalized?: string | null
           query_raw: string
           response_ms?: number | null
@@ -25998,6 +26604,7 @@ export type Database = {
           search_event_id?: number
           search_mode?: string | null
           tapped_product_id?: number | null
+          taxonomy_node_id?: number | null
           top_result_product_id?: number | null
           user_id?: number | null
         }
@@ -26008,6 +26615,7 @@ export type Database = {
           device_platform?: string | null
           intent_parsed?: Json | null
           low_confidence?: boolean | null
+          node_attribution_method?: string | null
           query_normalized?: string | null
           query_raw?: string
           response_ms?: number | null
@@ -26015,6 +26623,7 @@ export type Database = {
           search_event_id?: number
           search_mode?: string | null
           tapped_product_id?: number | null
+          taxonomy_node_id?: number | null
           top_result_product_id?: number | null
           user_id?: number | null
         }
@@ -26186,6 +26795,41 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_allergen_filter"
             referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "search_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "search_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "search_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "search_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "search_events_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
           {
             foreignKeyName: "search_events_user_id_fkey"
@@ -42302,6 +42946,34 @@ export type Database = {
           user_percentile: number
         }[]
       }
+      get_product_disclosures: {
+        Args: { p_product_id: number }
+        Returns: {
+          asof_date: string
+          boundary_code: string
+          credential_id: string
+          data_quality: string
+          expires_at: string
+          issuer_name: string
+          label: string
+          method_code: string
+          metric_code: string
+          metric_label: string
+          other_text: string
+          source_tier: string
+          source_url: string
+          status: string
+          sub_metric_code: string
+          sub_metric_version: number
+          subject_kind: string
+          subject_label: string
+          value_bool: boolean
+          value_date: string
+          value_num: number
+          value_text: string
+          value_unit: string
+        }[]
+      }
       get_product_dough_score: {
         Args: { p_product_id: number; p_user_id: number }
         Returns: number
@@ -42697,6 +43369,7 @@ export type Database = {
         Args: { p_product_id: number; p_user_id: number; p_window?: string }
         Returns: boolean
       }
+      jsonb_keys_array: { Args: { j: Json }; Returns: string[] }
       list_brand_waitlist_applications: { Args: never; Returns: Json }
       list_compare_groups: { Args: { p_scope?: string }; Returns: Json }
       list_operator_box_fulfillments: {
@@ -42849,6 +43522,16 @@ export type Database = {
           title: string
           total_claims: number
         }[]
+      }
+      log_browse_filters: {
+        Args: {
+          p_device_platform?: string
+          p_filters: Json
+          p_node_id: number
+          p_offset?: number
+          p_result_count: number
+        }
+        Returns: undefined
       }
       log_session_entry: {
         Args: {
@@ -43962,6 +44645,10 @@ export type Database = {
       }
       sweep_expired_box_claims: { Args: { p_dry_run?: boolean }; Returns: Json }
       sweep_expired_study_drafts: { Args: never; Returns: number }
+      sync_disclosure_facets: {
+        Args: { p_product_id: number }
+        Returns: undefined
+      }
       sync_product_search_index:
         | { Args: { p_force?: boolean; p_limit?: number }; Returns: string }
         | {

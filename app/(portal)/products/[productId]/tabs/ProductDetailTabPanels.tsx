@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import type { ProductStudyCard } from '@/lib/productMaster/productHeroStudies'
+import ProductTransparencyStudio from '@/components/transparency/ProductTransparencyStudio'
 import './productDetailTabs.css'
 
 export function ProductTabStack({ children }: { children: ReactNode }) {
@@ -132,12 +133,24 @@ export function ProductStudiesTab({ studies }: { studies: ProductStudyCard[] }) 
   )
 }
 
-export function ProductProofTab() {
+export function ProductProofTab({
+  productId,
+  brandId,
+  canEdit,
+  ingredientStatement = null,
+}: {
+  productId: number
+  brandId: number
+  canEdit: boolean
+  ingredientStatement?: string | null
+}) {
   return (
-    <div className="pm-empty-tab">
-      <h2>Proof</h2>
-      <p>Supporting sustainability, sourcing, certification, and product evidence will live here.</p>
-    </div>
+    <ProductTransparencyStudio
+      productId={productId}
+      brandId={brandId}
+      canEdit={canEdit}
+      ingredientStatement={ingredientStatement}
+    />
   )
 }
 

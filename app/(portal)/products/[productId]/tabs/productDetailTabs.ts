@@ -19,7 +19,7 @@ export const PRODUCT_DETAIL_TAB_LABELS: Record<ProductDetailTab, string> = {
   nutrition: 'Ingredients & nutrition',
   intelligence: 'Intelligence',
   studies: 'Studies',
-  proof: 'Proof',
+  proof: 'Transparency',
   images: 'Images',
   activity: 'Activity',
 }

@@ -330,7 +330,6 @@ export function parseExperiencedReportPayload(raw: unknown): ExperiencedReportPa
   const focal_product = parseFocal(o.focal_product)
   if (!focal_product) return null
   const headline_win_rate = parseHeadline(o.headline_win_rate)
-  if (headline_win_rate.length === 0) return null
 
   return {
     focal_product,

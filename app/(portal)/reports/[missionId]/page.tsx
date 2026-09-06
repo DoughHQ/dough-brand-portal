@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
@@ -91,6 +92,21 @@ const PREVIEW_ALIASES: Record<string, string> = {
   head_to_head_loyalty: EXPERIENCED_PREVIEW_MISSIONS.head_to_head_loyalty,
   loyalty: EXPERIENCED_PREVIEW_MISSIONS.head_to_head_loyalty,
   h2h: EXPERIENCED_PREVIEW_MISSIONS.head_to_head_loyalty,
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { missionId } = await params
+  const scope = await getPortalBrandScope()
+  if (!scope) return { title: 'Study report' }
+
+  const supabase = await createServerSupabaseClient()
+  const result = await fetchExperiencedMissionReport(supabase, missionId)
+  if (!result.ok) {
+    const copy = messageForCode(result.code)
+    return { title: copy.title }
+  }
+  const name = result.envelope.report.focal_product.name
+  return { title: `${name} · Study report` }
 }
 
 export default async function MissionReportPage({ params, searchParams }: Props) {

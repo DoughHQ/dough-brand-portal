@@ -15,45 +15,85 @@ import {
   formatOf100,
   formatPct01,
   formatSnapshotDate,
-  plainWithheldReason,
 } from '@/lib/experiencedReport/withheldCopy'
+import {
+  headlineStatusChip,
+  leadHeadlineRow,
+  orderedHeadlineRows,
+  stageChipLabel,
+} from '@/lib/experiencedReport/headline'
+import {
+  participationLine,
+  STRIP_CONFIDENCE_NOTE,
+} from '@/lib/experiencedReport/executiveSummary'
 import { CombatantPortrait } from '@/components/conceptReport/CombatantPortrait'
 import { SimulatedDataBanner } from '@/components/conceptReport/SimulatedDataBanner'
 import { ExportReportButton } from '@/components/conceptReport/ExportReportButton'
-import { ExperienceSplitLabel } from './ExperienceSplitLabel'
+import { ExperienceSplitLabel, experienceSplitLabel } from './ExperienceSplitLabel'
 import { WithheldMetric } from './WithheldMetric'
-import { Chip, DECK_WIDTH, ProportionTrack, SectionShell } from './deckChrome'
+import { Chip, CoinFlipTrack, SectionShell, ShareBar, BipolarTrack } from './deckChrome'
+import { ReportSectionRail } from './ReportSectionRail'
+import { REPORT_SECTIONS, pushNote, type SectionMethodNotes } from './reportSections'
+import { ExecutiveSummaryStrip } from './ExecutiveSummaryStrip'
+import './experiencedReport.css'
 
-function stageChipLabel(stage: ExperiencedReportEnvelope['report']['report_stage']): string {
-  if (stage.is_final || stage.stage === 'final') return 'Final'
-  return 'Preliminary — still collecting'
-}
-
-function headlineStatusChip(rows: HeadlineWinRateRow[]): {
-  label: string
-  tone: 'pro' | 'amber' | 'neutral'
-} {
-  if (rows.length === 0) return { label: 'No headline', tone: 'neutral' }
-  if (rows.every((r) => !r.reportable)) return { label: 'Below floor', tone: 'amber' }
-  if (rows.some((r) => r.reportable)) return { label: 'Reportable', tone: 'pro' }
-  return { label: 'Measured', tone: 'neutral' }
-}
-
-/** Stronger claim first — never pool. */
-function orderedHeadlineRows(rows: HeadlineWinRateRow[]): HeadlineWinRateRow[] {
-  return [...rows].sort((a, b) => {
-    const rank = (s: string) =>
-      s === 'experienced_vs_experienced' ? 0 : s === 'experienced_vs_hypothetical' ? 1 : 2
-    return rank(String(a.experience_split)) - rank(String(b.experience_split))
-  })
-}
+const PREFERENCE_METHOD_NOTE =
+  'What was measured — not a launch recommendation. Experience splits are never pooled.'
 
 function toOf100(value: number): number {
   return value <= 1 ? Math.round(value * 100) : Math.round(value)
 }
 
-function toPct(value: number): number {
-  return value <= 1 ? value * 100 : value
+function notesFor(bucket: SectionMethodNotes[], section: number): string[] {
+  return bucket.find((b) => b.section === section)?.texts ?? []
+}
+
+function uniqueSplitDetails(rows: OpponentRow[], focalName: string): string[] {
+  const seen = new Set<string>()
+  const details: string[] = []
+  for (const row of rows) {
+    if (!row.experience_split) continue
+    const { detail } = experienceSplitLabel(row.experience_split, focalName)
+    if (detail && !seen.has(detail)) {
+      seen.add(detail)
+      details.push(detail)
+    }
+  }
+  return details
+}
+
+function collectMethodNotes(envelope: ExperiencedReportEnvelope): SectionMethodNotes[] {
+  const { report } = envelope
+  const bucket: SectionMethodNotes[] = []
+  const s = REPORT_SECTIONS
+
+  pushNote(bucket, 1, s[0].title, PREFERENCE_METHOD_NOTE)
+
+  pushNote(bucket, 2, s[1].title, report.choice_drivers?.timing_note)
+  pushNote(bucket, 2, s[1].title, report.choice_drivers?.presentation_control)
+
+  const multi =
+    typeof report.methodology?.multiple_comparison_note === 'string'
+      ? report.methodology.multiple_comparison_note
+      : null
+  pushNote(bucket, 3, s[2].title, multi)
+
+  pushNote(bucket, 4, s[3].title, report.attribute_importance?.estimator_note)
+  pushNote(bucket, 4, s[3].title, report.attribute_importance?.variance_note)
+  pushNote(bucket, 4, s[3].title, report.attribute_importance?.presentation_control)
+
+  pushNote(bucket, 5, s[4].title, report.repurchase_intent?.timing_note)
+  pushNote(bucket, 5, s[4].title, report.repurchase_intent?.presentation_control)
+
+  pushNote(bucket, 6, s[5].title, report.rank_validation?.undetermined_note)
+
+  const drift =
+    typeof report.methodology?.drift_causality_note === 'string'
+      ? report.methodology.drift_causality_note
+      : null
+  pushNote(bucket, 7, s[6].title, drift)
+
+  return bucket
 }
 
 function CiCaption({ lo, hi }: { lo: number | null; hi: number | null }) {
@@ -61,33 +101,24 @@ function CiCaption({ lo, hi }: { lo: number | null; hi: number | null }) {
   const a = toOf100(lo)
   const b = toOf100(hi)
   return (
-    <p
-      style={{
-        fontFamily: 'var(--font-sans)',
-        fontSize: 12,
-        color: 'var(--ink-muted)',
-        margin: '8px 0 0',
-      }}
-    >
+    <p className="report-footnote" style={{ margin: '8px 0 0' }}>
       Likely between {Math.min(a, b)} and {Math.max(a, b)} out of 100.
     </p>
   )
 }
 
 function QuietNote({ children }: { children: ReactNode }) {
+  return <p className="report-footnote" style={{ margin: '12px 0 0', fontStyle: 'italic' }}>{children}</p>
+}
+
+function SectionEmpty({ reason }: { reason?: string | null }) {
   return (
-    <p
-      style={{
-        fontFamily: 'var(--font-sans)',
-        fontSize: 12,
-        lineHeight: 1.5,
-        color: 'var(--ink-faint)',
-        margin: '16px 0 0',
-        maxWidth: 640,
+    <WithheldMetric
+      metric={{
+        reportable: false,
+        withheld_reason: reason?.trim() || 'Not enough responses yet to report this',
       }}
-    >
-      {children}
-    </p>
+    />
   )
 }
 
@@ -102,26 +133,16 @@ function DeckColdOpen({
   const focal = report.focal_product
   const stage = report.report_stage
   const status = headlineStatusChip(report.headline_win_rate)
-  const lead = orderedHeadlineRows(report.headline_win_rate)[0]
+  const lead = leadHeadlineRow(report.headline_win_rate)
   const nDecisive = lead?.n_decisive
-  const metaParts = [
-    `${report.participation.n_users} people who’ve had it`,
-    `${report.participation.n_sessions} sessions`,
-  ]
-  if (nDecisive != null) metaParts.push(`${nDecisive} choices`)
+  const metaParts = [participationLine(report.participation)]
+  if (typeof nDecisive === 'number' && nDecisive > 0) {
+    metaParts.push(`${nDecisive} choices`)
+  }
 
   return (
-    <header
-      className="deck-cold-open"
-      style={{
-        position: 'relative',
-        padding: '56px 28px 48px',
-        background:
-          'linear-gradient(165deg, #fffdf8 0%, var(--cream) 45%, rgba(62, 107, 74, 0.08) 100%)',
-        borderBottom: '1px solid var(--mist)',
-      }}
-    >
-      <div style={{ maxWidth: DECK_WIDTH, margin: '0 auto' }}>
+    <header className="report-cold-open">
+      <div className="report-cold-open-top">
         <a
           href={backHref}
           className="no-print"
@@ -129,69 +150,47 @@ function DeckColdOpen({
             fontSize: 12,
             color: 'var(--ink-faint)',
             textDecoration: 'none',
-            display: 'inline-block',
-            marginBottom: 28,
           }}
         >
           ← Back to studies
         </a>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-          <Chip tone="neutral">{stageChipLabel(stage)}</Chip>
-          <Chip tone={status.tone}>{status.label}</Chip>
-          {formatSnapshotDate(envelope.snapshot_date ?? envelope.computed_at) ? (
-            <Chip>
-              Snapshot {formatSnapshotDate(envelope.snapshot_date ?? envelope.computed_at)}
-            </Chip>
-          ) : null}
-          <Chip>Frozen · reproducible</Chip>
+        <div className="report-export no-print">
+          <ExportReportButton />
         </div>
+      </div>
 
-        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-          <CombatantPortrait name={focal.name} battleIntent="own_concept_arm" size={72} />
-          <div style={{ minWidth: 0 }}>
-            {focal.brand ? (
-              <p
-                style={{
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: 'var(--sage-dark)',
-                  margin: '0 0 8px',
-                }}
-              >
-                {focal.brand}
-              </p>
-            ) : null}
-            <h1
-              className="deck-enter-title"
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(36px, 5.5vw, 52px)',
-                fontWeight: 400,
-                lineHeight: 1.08,
-                letterSpacing: '-0.03em',
-                color: 'var(--ink)',
-                margin: '0 0 16px',
-                maxWidth: 780,
-              }}
-            >
-              {focal.name}
-            </h1>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+        <CombatantPortrait name={focal.name} battleIntent="own_concept_arm" size={56} />
+        <div style={{ minWidth: 0, flex: 1 }}>
+          {focal.brand ? (
             <p
               style={{
                 fontFamily: 'var(--font-sans)',
-                fontSize: 16,
-                lineHeight: 1.5,
-                color: 'var(--ink-muted)',
-                margin: 0,
-                maxWidth: 560,
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: 'var(--sage-dark)',
+                margin: '0 0 6px',
               }}
             >
-              {metaParts.join(' · ')}
+              {focal.brand}
             </p>
+          ) : null}
+          <div className="report-title-row">
+            <h1 className="deck-enter-title">{focal.name}</h1>
+            <Chip tone="neutral">{stageChipLabel(stage)}</Chip>
+            <Chip tone={status.tone}>{status.label}</Chip>
+            {formatSnapshotDate(envelope.snapshot_date ?? envelope.computed_at) ? (
+              <Chip>
+                Snapshot {formatSnapshotDate(envelope.snapshot_date ?? envelope.computed_at)}
+              </Chip>
+            ) : null}
+            <Chip>Frozen · reproducible</Chip>
           </div>
+          <p className="report-body" style={{ margin: 0 }}>
+            {metaParts.join(' · ')}
+          </p>
         </div>
       </div>
     </header>
@@ -206,24 +205,16 @@ function HeadlineClaim({
   focalName: string
 }) {
   return (
-    <div style={{ marginBottom: 36 }}>
+    <div style={{ marginBottom: 28 }}>
       <ExperienceSplitLabel split={row.experience_split} focalName={focalName} />
       <WithheldMetric metric={row}>
         <div className="deck-enter-verdict">
-          <div
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(56px, 8vw, 80px)',
-              lineHeight: 0.95,
-              letterSpacing: '-0.04em',
-              color: 'var(--sage-dark)',
-            }}
-          >
+          <div className="report-headline-figure">
             {row.value != null ? formatOf100(row.value) : '—'}
             <span
               style={{
                 fontFamily: 'var(--font-sans)',
-                fontSize: 16,
+                fontSize: 13,
                 fontWeight: 500,
                 color: 'var(--ink-muted)',
                 marginLeft: 10,
@@ -232,36 +223,15 @@ function HeadlineClaim({
               of 100
             </span>
           </div>
-          <p
-            style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: 17,
-              lineHeight: 1.45,
-              color: 'var(--ink)',
-              margin: '16px 0 0',
-              maxWidth: 520,
-            }}
-          >
-            Chose {focalName}{' '}
-            {row.value != null ? `${formatOf100(row.value)} of 100` : '—'} forced choices in this
-            slice.
-          </p>
-          <ProportionTrack
+          <CoinFlipTrack
             value={row.value ?? 0}
             ciLow={row.ci_low}
             ciHigh={row.ci_high}
-            own
+            tone="own"
           />
           <CiCaption lo={row.ci_low} hi={row.ci_high} />
-          {row.n_decisive != null ? (
-            <p
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 12,
-                color: 'var(--ink-faint)',
-                margin: '8px 0 0',
-              }}
-            >
+          {typeof row.n_decisive === 'number' && row.n_decisive > 0 ? (
+            <p className="report-footnote" style={{ margin: '8px 0 0' }}>
               {row.n_wins != null ? `${row.n_wins} wins` : null}
               {row.n_wins != null && row.n_decisive != null ? ' · ' : null}
               {row.n_decisive} decisive
@@ -274,149 +244,150 @@ function HeadlineClaim({
   )
 }
 
-function DeckVerdict({ envelope }: { envelope: ExperiencedReportEnvelope }) {
+function DeckVerdict({
+  envelope,
+  notes,
+}: {
+  envelope: ExperiencedReportEnvelope
+  notes: string[]
+}) {
   const { report } = envelope
   const rows = orderedHeadlineRows(report.headline_win_rate)
   const focalName = report.focal_product.name
 
   return (
-    <section
-      style={{
-        maxWidth: DECK_WIDTH,
-        margin: '0 auto',
-        padding: '48px 28px 40px',
-      }}
+    <SectionShell
+      id={REPORT_SECTIONS[0].id}
+      number={1}
+      title={REPORT_SECTIONS[0].title}
+      notes={notes}
     >
-      <p
-        style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          color: 'var(--ink-faint)',
-          margin: '0 0 12px',
-        }}
-      >
-        Preference among people who’ve consumed it
-      </p>
-      <p
-        style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: 14,
-          lineHeight: 1.5,
-          color: 'var(--ink-muted)',
-          margin: '0 0 28px',
-          maxWidth: 560,
-        }}
-      >
-        What was measured — not a launch recommendation. Experience splits are never pooled.
-      </p>
-      {rows.map((row, i) => (
-        <HeadlineClaim
-          key={`${row.experience_split}-${i}`}
-          row={row}
-          focalName={focalName}
-        />
-      ))}
-    </section>
+      {rows.length === 0 ? (
+        <SectionEmpty />
+      ) : (
+        rows.map((row, i) => (
+          <HeadlineClaim
+            key={`${row.experience_split}-${i}`}
+            row={row}
+            focalName={focalName}
+          />
+        ))
+      )}
+    </SectionShell>
   )
 }
 
 function DeckField({
   rows,
   focalName,
-  methodologyNote,
+  notes,
 }: {
   rows: OpponentRow[] | null
   focalName: string
-  methodologyNote?: string | null
+  notes: string[]
 }) {
-  if (rows == null) return null
-
-  const ranked = [...rows].sort((a, b) => {
+  const ranked = [...(rows ?? [])].sort((a, b) => {
     if (a.reportable && b.reportable && a.value != null && b.value != null) {
       return b.value - a.value
     }
     if (a.reportable !== b.reportable) return a.reportable ? -1 : 1
     return a.opponent_name.localeCompare(b.opponent_name)
   })
+  const splitKeys = [
+    ...new Set(ranked.map((r) => r.experience_split).filter((s): s is string => Boolean(s))),
+  ]
+  const mixedSplits = splitKeys.length > 1
+  const hoistedDetails = uniqueSplitDetails(ranked, focalName)
 
   return (
     <SectionShell
-      title="Against the shelf"
-      sub={`${focalName} vs each named competitor — directional under one primary signal.`}
-      caveat={methodologyNote}
+      id={REPORT_SECTIONS[2].id}
+      number={3}
+      title={REPORT_SECTIONS[2].title}
+      sub={[
+        `${focalName} vs each named competitor — directional under one primary signal.`,
+        ...hoistedDetails,
+      ]}
+      notes={notes}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-        {ranked.map((row) => (
-          <div
-            key={`${row.opponent_product_id ?? row.opponent_name}-${row.experience_split ?? ''}`}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'auto 1fr auto',
-              gap: 18,
-              alignItems: 'start',
-            }}
-          >
-            <CombatantPortrait
-              name={row.opponent_name}
-              battleIntent="direct_competitor"
-              size={52}
-            />
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  fontWeight: 600,
-                  fontSize: 16,
-                  color: 'var(--ink)',
-                  marginBottom: 4,
-                }}
-              >
-                {row.opponent_name}
-              </div>
-              {row.opponent_brand ? (
-                <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>
-                  {row.opponent_brand}
+      {ranked.length === 0 ? (
+        <SectionEmpty />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+          {ranked.map((row) => (
+            <div
+              key={`${row.opponent_product_id ?? row.opponent_name}-${row.experience_split ?? ''}`}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr auto',
+                gap: 14,
+                alignItems: 'start',
+              }}
+            >
+              <CombatantPortrait
+                name={row.opponent_name}
+                battleIntent="direct_competitor"
+                size={44}
+              />
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: 'var(--ink)',
+                    marginBottom: 2,
+                  }}
+                >
+                  {row.opponent_name}
                 </div>
-              ) : null}
-              {row.experience_split ? (
-                <ExperienceSplitLabel split={row.experience_split} focalName={focalName} />
-              ) : null}
-              <WithheldMetric metric={row}>
-                <ProportionTrack
-                  value={row.value ?? 0}
-                  ciLow={row.ci_low}
-                  ciHigh={row.ci_high}
-                  own={false}
-                />
-                <CiCaption lo={row.ci_low} hi={row.ci_high} />
-              </WithheldMetric>
-            </div>
-            <div style={{ textAlign: 'right', minWidth: 64 }}>
-              {row.reportable && row.value != null ? (
-                <>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: 32,
-                      lineHeight: 1,
-                      color: 'var(--ink)',
-                    }}
-                  >
-                    {formatOf100(row.value)}
+                {row.opponent_brand ? (
+                  <div className="report-footnote" style={{ marginBottom: 6 }}>
+                    {row.opponent_brand}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 4 }}>
-                    of 100
-                  </div>
-                </>
-              ) : (
-                <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>Withheld</div>
-              )}
+                ) : null}
+                {mixedSplits && row.experience_split ? (
+                  <ExperienceSplitLabel
+                    split={row.experience_split}
+                    focalName={focalName}
+                    showDetail={false}
+                  />
+                ) : null}
+                <WithheldMetric metric={row}>
+                  <CoinFlipTrack
+                    value={row.value ?? 0}
+                    ciLow={row.ci_low}
+                    ciHigh={row.ci_high}
+                    tone="own"
+                  />
+                  <CiCaption lo={row.ci_low} hi={row.ci_high} />
+                </WithheldMetric>
+              </div>
+              <div style={{ textAlign: 'right', minWidth: 52 }}>
+                {row.reportable && row.value != null ? (
+                  <>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontSize: 28,
+                        lineHeight: 1,
+                        color: 'var(--sage-dark)',
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
+                      {formatOf100(row.value)}
+                    </div>
+                    <div className="report-footnote" style={{ marginTop: 4 }}>
+                      of 100
+                    </div>
+                  </>
+                ) : (
+                  <div className="report-footnote">Withheld</div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </SectionShell>
   )
 }
@@ -425,27 +396,28 @@ function DriverColumn({
   title,
   emptyCopy,
   drivers,
+  tone,
 }: {
   title: string
   emptyCopy: string
   drivers: DriverRow[]
+  tone: 'own' | 'against'
 }) {
-  const allWithheld =
-    drivers.length > 0 && drivers.every((d) => !d.reportable)
+  const allWithheld = drivers.length > 0 && drivers.every((d) => !d.reportable)
   const showEmpty = drivers.length === 0 || allWithheld
-  const withheldSeed = drivers[0]
+  const withheldSeed = drivers.find(() => true)
 
   return (
     <div style={{ minWidth: 0 }}>
       <h3
         style={{
           fontFamily: 'var(--font-sans)',
-          fontSize: 13,
+          fontSize: 11,
           fontWeight: 600,
           letterSpacing: '0.04em',
           textTransform: 'uppercase',
           color: 'var(--ink-muted)',
-          margin: '0 0 16px',
+          margin: '0 0 12px',
         }}
       >
         {title}
@@ -464,7 +436,7 @@ function DriverColumn({
           {null}
         </WithheldMetric>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {drivers.map((d) => (
             <div key={d.driver}>
               <div
@@ -473,7 +445,7 @@ function DriverColumn({
                   justifyContent: 'space-between',
                   gap: 12,
                   fontFamily: 'var(--font-sans)',
-                  fontSize: 14,
+                  fontSize: 13,
                   color: 'var(--ink)',
                 }}
               >
@@ -485,25 +457,7 @@ function DriverColumn({
                 ) : null}
               </div>
               <WithheldMetric metric={d}>
-                <div
-                  style={{
-                    marginTop: 6,
-                    height: 8,
-                    background: 'var(--surface-1)',
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                  }}
-                  aria-hidden
-                >
-                  <div
-                    style={{
-                      width: `${Math.max(0, Math.min(100, toPct(d.share ?? 0)))}%`,
-                      height: '100%',
-                      background: 'var(--sage)',
-                      opacity: 0.85,
-                    }}
-                  />
-                </div>
+                <ShareBar share={d.share ?? 0} tone={tone} />
               </WithheldMetric>
             </div>
           ))}
@@ -515,150 +469,111 @@ function DriverColumn({
 
 function DeckDrivers({
   drivers,
+  notes,
 }: {
   drivers: ChoiceDrivers | null
+  notes: string[]
 }) {
-  if (drivers == null) return null
-  const won = drivers.by_outcome.focal_won
-  const lost = drivers.by_outcome.focal_lost
+  const won = drivers?.by_outcome?.focal_won ?? []
+  const lost = drivers?.by_outcome?.focal_lost ?? []
 
   return (
     <SectionShell
-      title="Why they chose — or didn’t"
-      sub={drivers.interpretation ?? undefined}
-      caveat={drivers.timing_note}
+      id={REPORT_SECTIONS[1].id}
+      number={2}
+      title={REPORT_SECTIONS[1].title}
+      sub={drivers?.interpretation ?? undefined}
+      notes={notes}
     >
-      <div
-        className="deck-drivers-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 40,
-        }}
-      >
+      <div className="deck-drivers-grid" style={{ display: 'grid', gap: 24 }}>
         <DriverColumn
           title="When they chose you"
           emptyCopy="Not enough decisive wins to break down yet."
           drivers={won}
+          tone="own"
         />
         <DriverColumn
           title="When they chose against you"
           emptyCopy="Not enough decisive losses to break down yet."
           drivers={lost}
+          tone="against"
         />
       </div>
-      {drivers.presentation_control ? (
-        <QuietNote>{drivers.presentation_control}</QuietNote>
-      ) : null}
     </SectionShell>
   )
 }
 
 function DeckAttributeImportance({
   data,
+  notes,
 }: {
   data: AttributeImportance | null
+  notes: string[]
 }) {
-  if (data == null) return null
-  const attrs = data.attributes
+  const attrs = data?.attributes ?? []
 
   return (
     <SectionShell
-      title="What matters in the category"
-      sub={data.interpretation ?? 'Best-minus-worst importance — compelling vs objectionable.'}
-      caveat={data.estimator_note}
+      id={REPORT_SECTIONS[3].id}
+      number={4}
+      title={REPORT_SECTIONS[3].title}
+      sub={data?.interpretation ?? 'Best-minus-worst importance — compelling vs objectionable.'}
+      notes={notes}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {attrs.map((a) => {
-          const score = a.bw_score
-          const mid = 50
-          const pct =
-            score == null ? mid : mid + Math.max(-1, Math.min(1, score)) * 50
+      {attrs.length === 0 ? (
+        <SectionEmpty />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="bipolar-labels" style={{ marginBottom: 4 }}>
+            <span>Objectionable</span>
+            <span>Compelling</span>
+          </div>
+          {attrs.map((a) => {
+            const score = a.bw_score
+            const nearZero = score != null && Math.abs(score) < 0.05
 
-          return (
-            <div key={a.attribute}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: 14,
-                  marginBottom: 6,
-                }}
-              >
-                <span style={{ fontWeight: 500, color: 'var(--ink)' }}>{a.attribute}</span>
-                {a.reportable && score != null ? (
-                  <span style={{ color: 'var(--ink-muted)', fontVariantNumeric: 'tabular-nums' }}>
-                    {score > 0 ? '+' : ''}
-                    {score.toFixed(2)}
-                  </span>
-                ) : null}
-              </div>
-              <WithheldMetric metric={a}>
+            return (
+              <div key={a.attribute}>
                 <div
                   style={{
-                    position: 'relative',
-                    height: 14,
-                    background: 'var(--surface-1)',
-                    borderRadius: 2,
-                    overflow: 'hidden',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 13,
+                    marginBottom: 6,
                   }}
-                  aria-hidden
-                  title={
-                    score != null && Math.abs(score) < 0.05
-                      ? 'Near zero means neither compelling nor objectionable — not that it was rarely seen.'
-                      : undefined
-                  }
                 >
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: '50%',
-                      top: 0,
-                      bottom: 0,
-                      width: 1,
-                      background: 'var(--mist)',
-                    }}
-                  />
-                  {a.bw_ci_low != null && a.bw_ci_high != null ? (
-                    <div
+                  <span style={{ fontWeight: 500, color: 'var(--ink)' }}>{a.attribute}</span>
+                  {a.reportable && score != null ? (
+                    <span
                       style={{
-                        position: 'absolute',
-                        left: `${mid + Math.max(-1, Math.min(1, a.bw_ci_low)) * 50}%`,
-                        width: `${Math.abs(
-                          (Math.max(-1, Math.min(1, a.bw_ci_high)) -
-                            Math.max(-1, Math.min(1, a.bw_ci_low))) *
-                            50
-                        )}%`,
-                        top: 2,
-                        bottom: 2,
-                        background: 'var(--fill-pro)',
-                        opacity: 0.45,
+                        color:
+                          nearZero
+                            ? 'var(--ink-muted)'
+                            : score < 0
+                              ? 'var(--clay)'
+                              : 'var(--sage-dark)',
+                        fontVariantNumeric: 'tabular-nums',
                       }}
-                    />
+                    >
+                      {score > 0 ? '+' : ''}
+                      {score.toFixed(2)}
+                    </span>
                   ) : null}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: score != null && score < 0 ? `${pct}%` : '50%',
-                      width:
-                        score == null
-                          ? 0
-                          : `${Math.abs(score) * 50}%`,
-                      top: 3,
-                      bottom: 3,
-                      background: score != null && score < 0 ? 'var(--amber)' : 'var(--sage)',
-                      borderRadius: 1,
-                    }}
-                  />
                 </div>
-              </WithheldMetric>
-            </div>
-          )
-        })}
-      </div>
-      {data.variance_note ? <QuietNote>{data.variance_note}</QuietNote> : null}
+                <WithheldMetric metric={a}>
+                  <BipolarTrack
+                    score={score}
+                    ciLow={a.bw_ci_low}
+                    ciHigh={a.bw_ci_high}
+                  />
+                </WithheldMetric>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </SectionShell>
   )
 }
@@ -678,11 +593,9 @@ function repurchaseMetricLabel(metric: string): string {
   }
 }
 
-function DeckLoyalty({ data }: { data: RepurchaseIntent | null }) {
-  if (data == null) return null
-
+function DeckLoyalty({ data, notes }: { data: RepurchaseIntent | null; notes: string[] }) {
   const bySession = new Map<number, RepurchaseSessionMetric[]>()
-  for (const row of data.by_session) {
+  for (const row of data?.by_session ?? []) {
     const list = bySession.get(row.session_number) ?? []
     list.push(row)
     bySession.set(row.session_number, list)
@@ -691,105 +604,123 @@ function DeckLoyalty({ data }: { data: RepurchaseIntent | null }) {
 
   return (
     <SectionShell
-      title="Would they buy again"
+      id={REPORT_SECTIONS[4].id}
+      number={5}
+      title={REPORT_SECTIONS[4].title}
       sub={
-        data.interpretation ??
+        data?.interpretation ??
         'Full yes / no / yes+maybe set — top-two-box is never shown alone.'
       }
-      caveat={data.timing_note}
+      notes={notes}
     >
-      {sessions.map((session) => {
-        const rows = bySession.get(session) ?? []
-        const ordered = [...rows].sort((a, b) => {
-          const ia = REPURCHASE_ORDER.indexOf(a.metric as (typeof REPURCHASE_ORDER)[number])
-          const ib = REPURCHASE_ORDER.indexOf(b.metric as (typeof REPURCHASE_ORDER)[number])
-          return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
-        })
-        // Always render the full set together — never feature top_two_box alone as a headline.
-        const set =
-          ordered.length === 1 && ordered[0].metric === 'top_two_box'
-            ? ordered
-            : ordered
+      {sessions.length === 0 ? (
+        <SectionEmpty />
+      ) : (
+        sessions.map((session) => {
+          const rows = bySession.get(session) ?? []
+          const ordered = [...rows].sort((a, b) => {
+            const ia = REPURCHASE_ORDER.indexOf(a.metric as (typeof REPURCHASE_ORDER)[number])
+            const ib = REPURCHASE_ORDER.indexOf(b.metric as (typeof REPURCHASE_ORDER)[number])
+            return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
+          })
+          const set =
+            ordered.length === 1 && ordered[0]?.metric === 'top_two_box' ? ordered : ordered
 
-        return (
-          <div key={session} style={{ marginBottom: 32 }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                color: 'var(--ink-faint)',
-                marginBottom: 14,
-              }}
-            >
-              Session {session}
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: `repeat(${Math.max(set.length, 1)}, minmax(0, 1fr))`,
-                gap: 16,
-              }}
-            >
-              {set.map((row) => (
-                <div
-                  key={`${session}-${row.metric}`}
-                  style={{
-                    padding: 14,
-                    background: 'var(--paper)',
-                    borderRadius: 8,
-                    border: '1px solid var(--mist)',
-                  }}
-                >
+          return (
+            <div key={session} style={{ marginBottom: 24 }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: 'var(--ink-faint)',
+                  marginBottom: 12,
+                }}
+              >
+                Session {session}
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${Math.max(set.length, 1)}, minmax(0, 1fr))`,
+                  gap: 12,
+                }}
+              >
+                {set.map((row) => (
                   <div
+                    key={`${session}-${row.metric}`}
                     style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      letterSpacing: '0.05em',
-                      textTransform: 'uppercase',
-                      color: 'var(--ink-faint)',
-                      marginBottom: 10,
+                      padding: 12,
+                      background: 'var(--paper)',
+                      borderRadius: 8,
+                      border: '1px solid var(--mist)',
                     }}
                   >
-                    {repurchaseMetricLabel(row.metric)}
-                  </div>
-                  <WithheldMetric metric={row}>
                     <div
                       style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: 36,
-                        lineHeight: 1,
-                        color: 'var(--ink)',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                        color: 'var(--ink-faint)',
+                        marginBottom: 8,
                       }}
                     >
-                      {row.rate != null ? formatPct01(row.rate) : '—'}
+                      {repurchaseMetricLabel(row.metric)}
                     </div>
-                    {row.ci_low != null && row.ci_high != null ? (
-                      <p
+                    <WithheldMetric metric={row}>
+                      <div
+                        className={
+                          row.metric === 'definite_yes'
+                            ? 'loyalty-numeral--own'
+                            : row.metric === 'no'
+                              ? 'loyalty-numeral--against'
+                              : 'loyalty-numeral--neutral'
+                        }
                         style={{
-                          fontSize: 12,
-                          color: 'var(--ink-muted)',
-                          margin: '8px 0 0',
+                          fontFamily: 'var(--font-display)',
+                          fontSize: 32,
+                          lineHeight: 1,
+                          fontVariantNumeric: 'tabular-nums',
                         }}
                       >
-                        Likely {formatPct01(row.ci_low)}–{formatPct01(row.ci_high)}
-                      </p>
-                    ) : null}
-                  </WithheldMetric>
-                </div>
-              ))}
+                        {row.rate != null ? formatPct01(row.rate) : '—'}
+                      </div>
+                      {row.ci_low != null && row.ci_high != null ? (
+                        <p className="report-footnote" style={{ margin: '8px 0 0' }}>
+                          Likely {formatPct01(row.ci_low)}–{formatPct01(row.ci_high)}
+                        </p>
+                      ) : null}
+                    </WithheldMetric>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )
-      })}
+          )
+        })
+      )}
     </SectionShell>
   )
 }
 
-function DeckLift({ lift }: { lift: ExperienceLift | null }) {
-  if (lift == null) return null
+function DeckLift({ lift, notes }: { lift: ExperienceLift | null; notes: string[] }) {
+  const sub = 'Organic preference drift after claiming — associational, not causal.'
+
+  if (lift == null) {
+    return (
+      <SectionShell
+        id={REPORT_SECTIONS[6].id}
+        number={7}
+        title={REPORT_SECTIONS[6].title}
+        sub={sub}
+        notes={notes}
+      >
+        <SectionEmpty />
+      </SectionShell>
+    )
+  }
 
   const warning =
     lift.confound_warning?.trim() ||
@@ -797,43 +728,17 @@ function DeckLift({ lift }: { lift: ExperienceLift | null }) {
 
   return (
     <SectionShell
-      title="Did preference move"
-      sub="Organic preference drift after claiming — associational, not causal."
+      id={REPORT_SECTIONS[6].id}
+      number={7}
+      title={REPORT_SECTIONS[6].title}
+      sub={sub}
+      notes={notes}
     >
-      <div
-        role="note"
-        style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: 14,
-          lineHeight: 1.55,
-          color: 'var(--text-warning)',
-          background: 'var(--bg-warning)',
-          borderRadius: 8,
-          padding: '14px 16px',
-          marginBottom: 20,
-          border: '1px solid rgba(138, 75, 15, 0.2)',
-        }}
-      >
-        {warning}
-      </div>
-
       {!lift.reportable ? (
-        <div
-          style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: 15,
-            lineHeight: 1.55,
-            color: 'var(--ink)',
-            padding: '4px 0 8px',
-          }}
-        >
-          <p style={{ margin: '0 0 8px', fontWeight: 500 }}>
-            {plainWithheldReason(lift.withheld_reason, {
-              n_users: lift.n_users_no_baseline ?? lift.n_users,
-            })}
-          </p>
-          {lift.n_users_no_baseline != null ? (
-            <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-muted)' }}>
+        <div>
+          <SectionEmpty reason={lift.withheld_reason} />
+          {lift.n_users_no_baseline != null && lift.n_users_no_baseline > 0 ? (
+            <p className="report-body" style={{ margin: '8px 0 0' }}>
               {lift.n_users_no_baseline} respondents had no prior baseline preference history to
               measure drift against
               {lift.n_users_with_baseline != null
@@ -842,39 +747,53 @@ function DeckLift({ lift }: { lift: ExperienceLift | null }) {
               .
             </p>
           ) : null}
+          <QuietNote>{warning}</QuietNote>
         </div>
       ) : (
+        <>
+      <div
+        role="note"
+        style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize: 13,
+          lineHeight: 1.55,
+          color: 'var(--text-warning)',
+          background: 'var(--bg-warning)',
+          borderRadius: 8,
+          padding: '12px 14px',
+          marginBottom: 16,
+          border: '1px solid rgba(138, 75, 15, 0.2)',
+        }}
+      >
+        {warning}
+      </div>
         <div>
-          <p
-            style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: 15,
-              lineHeight: 1.5,
-              color: 'var(--ink-muted)',
-              margin: '0 0 12px',
-            }}
-          >
-            Organic preference changed after claiming (associational, not caused by the study).
-          </p>
           <div
+            className={
+              lift.mean_elo_delta == null || lift.mean_elo_delta === 0
+                ? 'lift-numeral--neutral'
+                : lift.mean_elo_delta > 0
+                  ? 'lift-numeral--own'
+                  : 'lift-numeral--against'
+            }
             style={{
               fontFamily: 'var(--font-display)',
               fontSize: 48,
               lineHeight: 1,
-              color: 'var(--sage-dark)',
+              fontVariantNumeric: 'tabular-nums',
             }}
           >
             {lift.mean_elo_delta != null
               ? `${lift.mean_elo_delta > 0 ? '+' : ''}${lift.mean_elo_delta.toFixed(1)}`
               : '—'}
           </div>
-          <p style={{ fontSize: 13, color: 'var(--ink-muted)', margin: '10px 0 0' }}>
+          <p className="report-body" style={{ margin: '10px 0 0' }}>
             Mean Elo delta
             {lift.ci_low != null && lift.ci_high != null
               ? ` · likely ${lift.ci_low.toFixed(1)} to ${lift.ci_high.toFixed(1)}`
               : ''}
           </p>
-          <p style={{ fontSize: 12, color: 'var(--ink-faint)', margin: '8px 0 0' }}>
+          <p className="report-footnote" style={{ margin: '8px 0 0' }}>
             {[
               lift.n_moved_up != null ? `${lift.n_moved_up} up` : null,
               lift.n_moved_down != null ? `${lift.n_moved_down} down` : null,
@@ -884,90 +803,102 @@ function DeckLift({ lift }: { lift: ExperienceLift | null }) {
               .join(' · ')}
           </p>
         </div>
+        </>
       )}
     </SectionShell>
   )
 }
 
-function DeckRankValidation({ data }: { data: RankValidation | null }) {
-  if (data == null) return null
-
+function DeckRankValidation({
+  data,
+  notes,
+}: {
+  data: RankValidation | null
+  notes: string[]
+}) {
   const order = (c: string) => (c === 'battled' ? 0 : c === 'inferred' ? 1 : 2)
-  const rows = [...data.by_pair_class].sort(
+  const rows = [...(data?.by_pair_class ?? [])].sort(
     (a, b) => order(String(a.pair_class)) - order(String(b.pair_class))
   )
 
   return (
     <SectionShell
-      title="Does the ranking hold up"
-      sub={data.interpretation ?? undefined}
-      caveat={data.undetermined_note}
+      id={REPORT_SECTIONS[5].id}
+      number={6}
+      title={REPORT_SECTIONS[5].title}
+      sub={data?.interpretation ?? undefined}
+      notes={notes}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-        {rows.map((row) => {
-          const isBattled = row.pair_class === 'battled'
-          const title = isBattled
-            ? 'Battled pairs — stated ranking vs choices made'
-            : row.pair_class === 'inferred'
-              ? 'Inferred pairs — model accuracy on unseen pairs (not evidence about the product)'
-              : String(row.pair_class).replace(/_/g, ' ')
+      {rows.length === 0 ? (
+        <SectionEmpty />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+          {rows.map((row) => {
+            const isBattled = row.pair_class === 'battled'
+            const title = isBattled
+              ? 'Battled pairs — stated ranking vs choices made'
+              : row.pair_class === 'inferred'
+                ? 'Inferred pairs — model accuracy on unseen pairs (not evidence about the product)'
+                : String(row.pair_class).replace(/_/g, ' ')
 
-          return (
-            <div key={String(row.pair_class)}>
-              <h3
-                style={{
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: 'var(--ink)',
-                  margin: '0 0 10px',
-                }}
-              >
-                {title}
-              </h3>
-              <WithheldMetric metric={row}>
-                <div
+            return (
+              <div key={String(row.pair_class)}>
+                <h3
                   style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 40,
-                    lineHeight: 1,
-                    color: isBattled ? 'var(--sage-dark)' : 'var(--ink-muted)',
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: 'var(--ink)',
+                    margin: '0 0 8px',
                   }}
                 >
-                  {row.agreement_rate != null ? formatPct01(row.agreement_rate) : '—'}
-                  <span
+                  {title}
+                </h3>
+                <WithheldMetric metric={row}>
+                  <div
                     style={{
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: 'var(--ink-muted)',
-                      marginLeft: 10,
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 40,
+                      lineHeight: 1,
+                      color: 'var(--ink)',
+                      fontVariantNumeric: 'tabular-nums',
                     }}
                   >
-                    agreement
-                  </span>
-                </div>
-                {row.ci_low != null && row.ci_high != null ? (
-                  <p style={{ fontSize: 12, color: 'var(--ink-muted)', margin: '8px 0 0' }}>
-                    Likely {formatPct01(row.ci_low)}–{formatPct01(row.ci_high)}
+                    {row.agreement_rate != null ? formatPct01(row.agreement_rate) : '—'}
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: 'var(--ink-muted)',
+                        marginLeft: 8,
+                      }}
+                    >
+                      agreement
+                    </span>
+                  </div>
+                  {row.ci_low != null && row.ci_high != null ? (
+                    <p className="report-footnote" style={{ margin: '8px 0 0' }}>
+                      Likely {formatPct01(row.ci_low)}–{formatPct01(row.ci_high)}
+                    </p>
+                  ) : null}
+                  <p className="report-footnote" style={{ margin: '6px 0 0' }}>
+                    {[
+                      row.n_agree != null ? `${row.n_agree} agree` : null,
+                      row.n_disagree != null ? `${row.n_disagree} disagree` : null,
+                      row.n_undetermined != null
+                        ? `${row.n_undetermined} undetermined`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </p>
-                ) : null}
-                <p style={{ fontSize: 12, color: 'var(--ink-faint)', margin: '6px 0 0' }}>
-                  {[
-                    row.n_agree != null ? `${row.n_agree} agree` : null,
-                    row.n_disagree != null ? `${row.n_disagree} disagree` : null,
-                    row.n_undetermined != null
-                      ? `${row.n_undetermined} undetermined`
-                      : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </p>
-              </WithheldMetric>
-            </div>
-          )
-        })}
-      </div>
+                </WithheldMetric>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </SectionShell>
   )
 }
@@ -996,53 +927,71 @@ function methodologyProse(m: Record<string, unknown> | null | undefined): string
   return out
 }
 
-function DeckTrust({ envelope }: { envelope: ExperiencedReportEnvelope }) {
+function DeckTrust({
+  envelope,
+  sectionNotes,
+}: {
+  envelope: ExperiencedReportEnvelope
+  sectionNotes: SectionMethodNotes[]
+}) {
   const { report } = envelope
   const rel = report.reliability
   const evidence = report.evidence_composition
-  const method = report.methodology
-  const prose = methodologyProse(method as Record<string, unknown> | null)
+  const already = new Set(sectionNotes.flatMap((n) => n.texts))
+  const prose = methodologyProse(report.methodology as Record<string, unknown> | null).filter(
+    (p) => !already.has(p)
+  )
 
   return (
     <section
-      style={{
-        maxWidth: DECK_WIDTH,
-        margin: '0 auto',
-        padding: '24px 28px 64px',
-        borderTop: '1px solid var(--mist)',
-      }}
+      id="report-appendix"
+      className="report-section report-appendix"
+      style={{ paddingTop: 8 }}
     >
       <details className="deck-trust-details">
         <summary
           style={{
             fontFamily: 'var(--font-sans)',
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: 600,
             color: 'var(--sage-dark)',
             cursor: 'pointer',
             listStyle: 'none',
           }}
         >
-          Evidence quality & methodology
+          Methodology & exclusions
         </summary>
 
         <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {sectionNotes.length > 0 ? (
+            <div className="report-appendix-notes">
+              {sectionNotes.map((block) => (
+                <div key={block.section}>
+                  <h3>
+                    {block.section} · {block.heading}
+                  </h3>
+                  {block.texts.map((t) => (
+                    <p key={t.slice(0, 64)}>{t}</p>
+                  ))}
+                </div>
+              ))}
+              <div>
+                <h3>Executive summary</h3>
+                <p>{STRIP_CONFIDENCE_NOTE}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="report-appendix-notes">
+              <h3>Executive summary</h3>
+              <p>{STRIP_CONFIDENCE_NOTE}</p>
+            </div>
+          )}
+
           {rel ? (
             <div>
-              <h3
-                style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  color: 'var(--ink-faint)',
-                  margin: '0 0 10px',
-                }}
-              >
-                Test–retest reliability
-              </h3>
+              <h3>Test–retest reliability</h3>
               <WithheldMetric metric={rel}>
-                <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--ink)', margin: 0 }}>
+                <p className="report-body" style={{ color: 'var(--ink)', margin: 0 }}>
                   Consistency{' '}
                   {rel.consistency_rate != null ? formatPct01(rel.consistency_rate) : '—'}
                   {rel.n_users_with_repeats != null
@@ -1057,21 +1006,8 @@ function DeckTrust({ envelope }: { envelope: ExperiencedReportEnvelope }) {
 
           {evidence ? (
             <div>
-              <h3
-                style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  color: 'var(--ink-faint)',
-                  margin: '0 0 10px',
-                }}
-              >
-                How we know they consumed it
-              </h3>
-              {evidence.receipt_note ? (
-                <QuietNote>{evidence.receipt_note}</QuietNote>
-              ) : null}
+              <h3>How we know they consumed it</h3>
+              {evidence.receipt_note ? <QuietNote>{evidence.receipt_note}</QuietNote> : null}
               <ul
                 style={{
                   listStyle: 'none',
@@ -1085,10 +1021,9 @@ function DeckTrust({ envelope }: { envelope: ExperiencedReportEnvelope }) {
                 {evidence.by_grade.map((g, i) => {
                   const key = g.evidence_split ?? `grade-${i}`
                   const semantics =
-                    (g.evidence_split && evidence.grade_semantics[g.evidence_split]) ||
-                    undefined
+                    (g.evidence_split && evidence.grade_semantics[g.evidence_split]) || undefined
                   return (
-                    <li key={key} style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--ink)' }}>
+                    <li key={key} className="report-body" style={{ color: 'var(--ink)' }}>
                       <strong style={{ textTransform: 'capitalize' }}>
                         {(g.evidence_split ?? 'grade').replace(/_/g, ' ')}
                       </strong>
@@ -1113,18 +1048,7 @@ function DeckTrust({ envelope }: { envelope: ExperiencedReportEnvelope }) {
 
           {prose.length > 0 ? (
             <div>
-              <h3
-                style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  color: 'var(--ink-faint)',
-                  margin: '0 0 10px',
-                }}
-              >
-                Methodology
-              </h3>
+              <h3>Methodology</h3>
               <ul
                 style={{
                   listStyle: 'none',
@@ -1132,14 +1056,11 @@ function DeckTrust({ envelope }: { envelope: ExperiencedReportEnvelope }) {
                   padding: 0,
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 12,
+                  gap: 10,
                 }}
               >
                 {prose.map((p) => (
-                  <li
-                    key={p.slice(0, 48)}
-                    style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--ink-muted)' }}
-                  >
+                  <li key={p.slice(0, 48)} className="report-footnote" style={{ fontStyle: 'italic' }}>
                     {p}
                   </li>
                 ))}
@@ -1154,21 +1075,19 @@ function DeckTrust({ envelope }: { envelope: ExperiencedReportEnvelope }) {
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           gap: 12,
           marginTop: 32,
           paddingTop: 24,
           borderTop: '1px solid var(--mist)',
         }}
       >
-        <ExportReportButton />
-        <div style={{ fontSize: 12, color: 'var(--ink-faint)', textAlign: 'right' }}>
+        <div className="report-footnote" style={{ textAlign: 'right' }}>
           {formatSnapshotDate(envelope.snapshot_date ?? envelope.computed_at) ? (
             <div>
               Snapshot {formatSnapshotDate(envelope.snapshot_date ?? envelope.computed_at)}
             </div>
           ) : null}
-          <div>Frozen · reproducible</div>
         </div>
       </footer>
     </section>
@@ -1183,31 +1102,65 @@ export function ExperiencedReportDeck({
   backHref?: string
 }) {
   const { report } = envelope
-  const multiNote =
-    typeof report.methodology?.multiple_comparison_note === 'string'
-      ? report.methodology.multiple_comparison_note
-      : null
+  const sectionNotes = collectMethodNotes(envelope)
 
   return (
-    <div
-      className="experienced-report-deck concept-report-deck"
-      style={{ background: 'var(--cream)', minHeight: '100vh' }}
-    >
+    <div className="experienced-report-deck concept-report-deck">
       {envelope.is_simulated === true ? <SimulatedDataBanner /> : null}
 
-      <DeckColdOpen envelope={envelope} backHref={backHref} />
-      <DeckVerdict envelope={envelope} />
-      <DeckField
-        rows={report.per_opponent}
-        focalName={report.focal_product.name}
-        methodologyNote={multiNote}
-      />
-      <DeckDrivers drivers={report.choice_drivers} />
-      <DeckAttributeImportance data={report.attribute_importance} />
-      <DeckLoyalty data={report.repurchase_intent} />
-      <DeckLift lift={report.experience_lift_vs_baseline} />
-      <DeckRankValidation data={report.rank_validation} />
-      <DeckTrust envelope={envelope} />
+      <div className="experienced-report-frame">
+        <ReportSectionRail />
+        <div className="experienced-report-document">
+          <DeckColdOpen envelope={envelope} backHref={backHref} />
+          <ExecutiveSummaryStrip envelope={envelope} />
+
+          <div className="report-row report-row--7-5">
+            <div className="report-span-7">
+              <DeckVerdict envelope={envelope} notes={notesFor(sectionNotes, 1)} />
+            </div>
+            <div className="report-span-5">
+              <DeckDrivers drivers={report.choice_drivers} notes={notesFor(sectionNotes, 2)} />
+            </div>
+          </div>
+
+          <div className="report-row report-row--2up">
+            <div className="report-span-6">
+              <DeckField
+                rows={report.per_opponent}
+                focalName={report.focal_product.name}
+                notes={notesFor(sectionNotes, 3)}
+              />
+            </div>
+            <div className="report-span-6">
+              <DeckAttributeImportance
+                data={report.attribute_importance}
+                notes={notesFor(sectionNotes, 4)}
+              />
+            </div>
+          </div>
+
+          <div className="report-row report-row--2up">
+            <div className="report-span-6">
+              <DeckLoyalty data={report.repurchase_intent} notes={notesFor(sectionNotes, 5)} />
+            </div>
+            <div className="report-span-6">
+              <DeckRankValidation data={report.rank_validation} notes={notesFor(sectionNotes, 6)} />
+            </div>
+          </div>
+
+          <div className="report-row report-row--full">
+            <div className="report-span-12">
+              <DeckLift lift={report.experience_lift_vs_baseline} notes={notesFor(sectionNotes, 7)} />
+            </div>
+          </div>
+
+          <div className="report-row report-row--full">
+            <div className="report-span-12">
+              <DeckTrust envelope={envelope} sectionNotes={sectionNotes} />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

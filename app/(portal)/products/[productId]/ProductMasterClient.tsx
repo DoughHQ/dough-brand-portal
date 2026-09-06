@@ -1689,7 +1689,16 @@ export default function ProductMasterClient({
 
       {tab === 'studies' && <ProductStudiesTab studies={studies} />}
 
-      {tab === 'proof' && <ProductProofTab />}
+      {tab === 'proof' && (
+        <ProductProofTab
+          productId={product.product_id}
+          brandId={effectiveBrandId}
+          canEdit={canEdit}
+          ingredientStatement={
+            selectedSku?.ingredients?.ingredients_text_raw ?? null
+          }
+        />
+      )}
 
       {tab === 'images' && (
         <ProductImagesTab>

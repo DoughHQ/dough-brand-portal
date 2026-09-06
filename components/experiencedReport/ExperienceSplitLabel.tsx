@@ -26,17 +26,20 @@ export function experienceSplitLabel(
 export function ExperienceSplitLabel({
   split,
   focalName,
+  showDetail = true,
 }: {
   split: ExperienceSplit
   focalName: string
+  /** When false, only the short title — detail is hoisted to the section. */
+  showDetail?: boolean
 }) {
   const { title, detail } = experienceSplitLabel(split, focalName)
   return (
-    <div style={{ marginBottom: 10 }}>
+    <div style={{ marginBottom: showDetail && detail ? 10 : 6 }}>
       <div
         style={{
           fontFamily: 'var(--font-sans)',
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: 600,
           letterSpacing: '0.04em',
           textTransform: 'uppercase',
@@ -45,11 +48,11 @@ export function ExperienceSplitLabel({
       >
         {title}
       </div>
-      {detail ? (
+      {showDetail && detail ? (
         <div
           style={{
             fontFamily: 'var(--font-sans)',
-            fontSize: 12,
+            fontSize: 13,
             lineHeight: 1.45,
             color: 'var(--ink-muted)',
             marginTop: 4,

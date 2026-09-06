@@ -30,11 +30,13 @@ export function WithheldMetric({ metric, label, children }: Props) {
   })
 
   const counts: string[] = []
-  if (metric.n_answers != null) counts.push(`${metric.n_answers} answers`)
-  if (metric.n_decisive != null) counts.push(`${metric.n_decisive} decisive`)
-  if (metric.n_positive != null && metric.n_answers != null) {
+  if (metric.n_answers != null && metric.n_answers > 0) counts.push(`${metric.n_answers} answers`)
+  if (metric.n_decisive != null && metric.n_decisive > 0) {
+    counts.push(`${metric.n_decisive} decisive`)
+  }
+  if (metric.n_positive != null && metric.n_answers != null && metric.n_answers > 0) {
     counts.push(`${metric.n_positive} of ${metric.n_answers} positive`)
-  } else if (metric.n_citing != null) {
+  } else if (metric.n_citing != null && metric.n_citing > 0) {
     counts.push(`${metric.n_citing} citing`)
   }
 
@@ -45,10 +47,10 @@ export function WithheldMetric({ metric, label, children }: Props) {
         fontSize: 13,
         lineHeight: 1.5,
         color: 'var(--ink-muted)',
-        background: 'var(--surface-1)',
-        borderRadius: 8,
-        padding: '12px 14px',
-        border: '1px dashed var(--mist)',
+        background: 'transparent',
+        borderRadius: 0,
+        padding: '0',
+        border: 'none',
       }}
     >
       {label ? (

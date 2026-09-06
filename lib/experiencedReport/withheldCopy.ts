@@ -73,7 +73,8 @@ export function formatSnapshotDate(iso: string | null | undefined): string | nul
   if (!iso) return null
   try {
     const d = new Date(iso.includes('T') ? iso : `${iso}T12:00:00`)
-    return d.toLocaleDateString(undefined, {
+    if (Number.isNaN(d.getTime())) return iso
+    return d.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
