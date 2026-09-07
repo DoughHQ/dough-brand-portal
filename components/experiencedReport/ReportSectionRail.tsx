@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { REPORT_SECTIONS } from './reportSections'
+import { REPORT_SECTIONS, type ReportSectionId } from './reportSections'
 
 export function ReportSectionRail() {
-  const [active, setActive] = useState<string>(REPORT_SECTIONS[0].id)
+  const [active, setActive] = useState<ReportSectionId>(REPORT_SECTIONS[0].id)
 
   useEffect(() => {
     const ratios = new Map<string, number>()
@@ -13,7 +13,7 @@ export function ReportSectionRail() {
         for (const entry of entries) {
           ratios.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0)
         }
-        let bestId = REPORT_SECTIONS[0].id
+        let bestId: ReportSectionId = REPORT_SECTIONS[0].id
         let best = -1
         for (const section of REPORT_SECTIONS) {
           const ratio = ratios.get(section.id) ?? 0
