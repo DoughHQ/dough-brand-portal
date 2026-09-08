@@ -28,6 +28,15 @@ import OperationsSheet, {
 import PlanetSheet, {
   PLANET_PACK_CODES,
 } from '@/components/transparency/PlanetSheet'
+import RightsSheet, {
+  RIGHTS_CERT_CODES,
+  RIGHTS_DILIGENCE_CODES,
+  RIGHTS_GRIEVANCE_CODES,
+  RIGHTS_LABOR_CODES,
+  RIGHTS_LIVING_CODES,
+  RIGHTS_RISK_METRIC,
+  RIGHTS_SUPPLIER_CODES,
+} from '@/components/transparency/RightsSheet'
 import {
   PROOF_CHAPTERS,
   chapterForMetric,
@@ -900,7 +909,43 @@ export default function ProductTransparencyStudio({
         }
         continue
       }
-      out[ch.id] = chapterProgress(fieldsByChapter[ch.id], rowsByMetric)
+      if (ch.id === 'rights') {
+        const slot = (codes: readonly string[]) => {
+          let started = false
+          let published = false
+          let present = false
+          for (const code of codes) {
+            if (fieldsByChapter.rights.some((f) => f.sub_metric_code === code)) {
+              present = true
+            }
+            for (const row of rowsByMetric[code] ?? []) {
+              const p = rowPresence(row.draft)
+              if (p !== 'not_started') started = true
+              if (p === 'published') published = true
+            }
+          }
+          return { present, started, published }
+        }
+        const living = slot(RIGHTS_LIVING_CODES)
+        const labor = slot(RIGHTS_LABOR_CODES)
+        const cert = slot(RIGHTS_CERT_CODES)
+        const diligence = slot(RIGHTS_DILIGENCE_CODES)
+        const grievance = slot(RIGHTS_GRIEVANCE_CODES)
+        const supplier = slot(RIGHTS_SUPPLIER_CODES)
+        const slots = [living, labor, cert, diligence, grievance, supplier]
+        const riskFields = fieldsByChapter.rights.filter(
+          (f) => f.metric_code === RIGHTS_RISK_METRIC,
+        )
+        const risk = chapterProgress(riskFields, rowsByMetric)
+        out.rights = {
+          total: slots.filter((s) => s.present).length + risk.total,
+          started:
+            slots.filter((s) => s.present && s.started).length + risk.started,
+          published:
+            slots.filter((s) => s.present && s.published).length + risk.published,
+        }
+        continue
+      }
     }
     return out
   }, [fieldsByChapter, rowsByMetric, ingredientStatement])
@@ -1270,6 +1315,14 @@ export default function ProductTransparencyStudio({
     return map
   }, [fieldsByChapter.planet])
 
+  const rightsFieldsByCode = useMemo(() => {
+    const map: Record<string, ProofSubMetricRow | undefined> = {}
+    for (const f of fieldsByChapter.rights) {
+      map[f.sub_metric_code] = f
+    }
+    return map
+  }, [fieldsByChapter.rights])
+
   const journeyGroups = useMemo(
     () => groupsInChapter.filter((g) => g.metricCode !== 'origin'),
     [groupsInChapter],
@@ -1280,6 +1333,11 @@ export default function ProductTransparencyStudio({
       groupsInChapter.filter(
         (g) => g.metricCode === 'land_and_soil' || g.metricCode === 'corporate_footprint',
       ),
+    [groupsInChapter],
+  )
+
+  const rightsRestGroups = useMemo(
+    () => groupsInChapter.filter((g) => g.metricCode === RIGHTS_RISK_METRIC),
     [groupsInChapter],
   )
 
@@ -1321,6 +1379,9 @@ export default function ProductTransparencyStudio({
       return p.started > 0 ? `${p.started} ingredients` : 'Not started'
     }
     if (chId === 'operations') {
+      return p.started > 0 ? `${p.published}/${p.total} live` : 'Not started'
+    }
+    if (chId === 'rights') {
       return p.started > 0 ? `${p.published}/${p.total} live` : 'Not started'
     }
     return p.started > 0 ? `${p.published}/${p.total} published` : 'Not started'
@@ -1591,6 +1652,33 @@ export default function ProductTransparencyStudio({
                     </p>
                   </div>
                   {renderInventoryGroups(planetRestGroups, { forceGroupLabel: true })}
+                </div>
+              ) : null}
+            </>
+          ) : activeChapter.id === 'rights' ? (
+            <>
+              <RightsSheet
+                fieldsByCode={rightsFieldsByCode}
+                rowsByCode={rowsByMetric}
+                canEdit={canEdit}
+                savingKey={savingKey}
+                storyError={storyError}
+                errors={errors}
+                onChange={updateRow}
+                onSaveRow={(field, row) => void handleSave(field, row)}
+                onSaveBundle={(codes, key) => void handleSaveOpsBundle(codes, key)}
+                onClearStoryError={() => setStoryError(null)}
+              />
+              {rightsRestGroups.length > 0 ? (
+                <div className="tx-origin__journey">
+                  <div className="tx-origin__journey-head">
+                    <p className="tx-group__label">High-risk inputs</p>
+                    <p className="tx-origin__journey-lede">
+                      Named ingredients — certifications, deforestation cut-offs, and chain of
+                      custody. Add each input you want to disclose.
+                    </p>
+                  </div>
+                  {renderInventoryGroups(rightsRestGroups, { forceGroupLabel: true })}
                 </div>
               ) : null}
             </>

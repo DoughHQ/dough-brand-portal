@@ -1,13 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import {
   chapterForMetric,
+  composeDiligenceLine,
   composeFormulaLine,
   composeKeptLine,
+  composeLaborLine,
+  composeLivingLine,
   composeMadeLine,
   composePackLine,
   composePcfLine,
   composePlaceLine,
   composePlaceStory,
+  composeRiskInputLine,
+  composeSocialCertLine,
+  composeSupplierLine,
   groupDisclosuresByChapter,
 } from '@/lib/transparency/storyLines'
 
@@ -16,6 +22,7 @@ describe('storyLines', () => {
     expect(chapterForMetric('product_footprint')).toBe('planet')
     expect(chapterForMetric('origin')).toBe('origin')
     expect(chapterForMetric('ingredients')).toBe('formula')
+    expect(chapterForMetric('animal_welfare')).toBe('rights')
   })
 
   it('composes place, formula, ops, planet lines', () => {
@@ -55,12 +62,47 @@ describe('storyLines', () => {
     ).toBe('Bottle · PET (#1) · Curbside recyclable · 30% recycled')
   })
 
+  it('composes rights lines', () => {
+    expect(
+      composeLivingLine({
+        welfare: 'Certified_Humane',
+        antibiotics: 'no_antibiotics_ever',
+      }),
+    ).toBe('Certified Humane · No antibiotics ever')
+    expect(
+      composeLaborLine({ standard: 'SA8000', scope: 'tier_1_suppliers' }),
+    ).toBe('SA8000 · Tier 1 suppliers')
+    expect(composeSocialCertLine('Fairtrade')).toBe('Fairtrade')
+    expect(
+      composeDiligenceLine({
+        step: 'identify_and_assess',
+        geography: 'Extra diligence in cocoa origins',
+      }),
+    ).toBe('Identify and assess · Extra diligence in cocoa origins')
+    expect(
+      composeSupplierLine({ depth: 'farm_level', coveragePct: 80 }),
+    ).toBe('Farm level · 80% covered')
+    expect(
+      composeRiskInputLine({
+        ingredient: 'palm oil',
+        standard: 'RSPO',
+        custody: 'mass_balance',
+      }),
+    ).toBe('Palm oil · RSPO · Mass balance')
+  })
+
   it('groups disclosures by chapter order', () => {
     const groups = groupDisclosuresByChapter([
       { metric_code: 'ingredients', id: 1 },
       { metric_code: 'product_footprint', id: 2 },
       { metric_code: 'origin', id: 3 },
+      { metric_code: 'animal_welfare', id: 4 },
     ])
-    expect(groups.map((g) => g.chapter.id)).toEqual(['planet', 'origin', 'formula'])
+    expect(groups.map((g) => g.chapter.id)).toEqual([
+      'planet',
+      'rights',
+      'origin',
+      'formula',
+    ])
   })
 })
