@@ -39,6 +39,7 @@ import ProductDetailTabBar from './tabs/ProductDetailTabBar'
 import ProductSkuSwitcher from './tabs/ProductSkuSwitcher'
 import {
   ProductActivityTab,
+  ProductFacetsTab,
   ProductImagesTab,
   ProductIntelligenceTab,
   ProductNutritionTab,
@@ -1688,6 +1689,10 @@ export default function ProductMasterClient({
       )}
 
       {tab === 'studies' && <ProductStudiesTab studies={studies} />}
+
+      {tab === 'facets' && (
+        <ProductFacetsTab productId={product.product_id} canEdit={canEdit} />
+      )}
 
       {tab === 'proof' && (
         <ProductProofTab

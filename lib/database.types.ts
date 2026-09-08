@@ -42569,6 +42569,47 @@ export type Database = {
           win_rate_pct: number
         }[]
       }
+      get_product_facet_summary: {
+        Args: { p_product_ids: number[] }
+        Returns: {
+          product_id: number
+          derived_count: number
+          declared_count: number
+          pending_count: number
+          declarable_total: number
+          declarable_filled: number
+          completeness_pct: number
+        }[]
+      }
+      get_declarable_facets_for_product: {
+        Args: { p_product_id: number }
+        Returns: {
+          facet_type: string
+          display_name: string
+          cardinality: string
+          polarity: string
+          assignability: string
+          editable: boolean
+          requires_evidence: boolean
+          available_values: Json
+          derived_values: Json
+          declared_values: Json
+        }[]
+      }
+      declare_product_facet: {
+        Args: {
+          p_product_id: number
+          p_facet_type: string
+          p_facet_value: string
+          p_evidence_url?: string
+          p_evidence_note?: string
+        }
+        Returns: number
+      }
+      withdraw_product_facet_declaration: {
+        Args: { p_declaration_id: number; p_supersede?: boolean }
+        Returns: boolean
+      }
       get_brand_products_with_taxonomy: {
         Args: { p_brand_id: number }
         Returns: {

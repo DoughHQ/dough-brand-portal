@@ -23,6 +23,13 @@ describe('parseProductDetailTab', () => {
     expect(PRODUCT_DETAIL_TAB_LABELS.packages).toBe('SKUs')
     expect(parseProductDetailTab('packages')).toBe('packages')
   })
+
+  it('places Facets beside Transparency in the tab order', () => {
+    expect(PRODUCT_DETAIL_TAB_LABELS.facets).toBe('Facets')
+    expect(PRODUCT_DETAIL_TABS.indexOf('facets')).toBe(
+      PRODUCT_DETAIL_TABS.indexOf('proof') - 1,
+    )
+  })
 })
 
 describe('parseSelectedSkuId', () => {
