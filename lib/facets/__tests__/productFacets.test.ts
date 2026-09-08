@@ -95,13 +95,16 @@ describe('productFacets helpers', () => {
     ).toBe('Pineapple · Organic · Fair Trade')
   })
 
-  it('normalizes and denylists diet_zero derived chips', () => {
+  it('normalizes derived values and keeps intense_sweetener visible', () => {
     expect(
       filterDerivedValues('sweetener', [
-        { value: 'diet_zero', source: 'ingredients' },
+        { value: 'intense_sweetener', source: 'ingredients' },
         { value: 'cane_sugar', source: 'ingredients' },
       ]),
-    ).toEqual([{ value: 'cane_sugar', source: 'ingredients' }])
+    ).toEqual([
+      { value: 'intense_sweetener', source: 'ingredients' },
+      { value: 'cane_sugar', source: 'ingredients' },
+    ])
     expect(normalizeDerivedValues([{ value: 'x', source: 'product_name' }])).toEqual([
       { value: 'x', source: 'product_name' },
     ])

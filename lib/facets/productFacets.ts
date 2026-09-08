@@ -40,8 +40,11 @@ export type DeclarableFacetRow = {
   declared_values: FacetDeclaredValue[] | null
 }
 
-/** Poison derived labels — never show as Sage “Derived by Dough” chips. */
-export const DERIVED_FACET_DENYLIST = new Set(['sweetener:diet_zero', 'diet_zero'])
+/**
+ * Derived labels that must never render as Sage chips.
+ * Empty after diet_zero → intense_sweetener; keep the hook for future poison.
+ */
+export const DERIVED_FACET_DENYLIST = new Set<string>()
 
 export function isDeniedDerived(facetType: string, value: string): boolean {
   const v = value.trim().toLowerCase()
