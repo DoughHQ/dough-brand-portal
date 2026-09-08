@@ -89,7 +89,7 @@
 
 .prod-list-row {
   border-bottom: 1px solid var(--mist);
-  cursor: pointer;
+  cursor: default;
   text-decoration: none;
   color: inherit;
 }
@@ -100,6 +100,36 @@
 
 .prod-list-row:hover {
   background: var(--surface-1);
+}
+
+.prod-list-row--split {
+  cursor: default;
+}
+
+.prod-list-row__main {
+  display: contents;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.prod-tile-link {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.prod-tile-link:hover .cat-tile-btn-solid {
+  background: var(--sage);
+  border-color: var(--sage);
+}
+
+.cat-tile:has(.prod-tile-link:hover) {
+  border-color: rgba(36, 61, 44, 0.18);
 }
 
 .prod-list-thumb {

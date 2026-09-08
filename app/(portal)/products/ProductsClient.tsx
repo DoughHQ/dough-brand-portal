@@ -1,12 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import type { PortalUser, Brand, BrandSubscription, BrandProduct } from '@/lib/queries'
 import { ProductArt } from '@/components/products/ProductArt'
+import { fetchProductFacetSummaries } from '@/lib/facets/api'
+import {
+  facetFooterParts,
+  formatFacetFooterLine,
+  type FacetSummaryRow,
+} from '@/lib/facets/productFacets'
 import '@/components/categories/categoriesPage.css'
 import '@/components/products/productTile.css'
+import '@/components/products/productFacets.css'
 import './productsPage.css'
 
 type PortfolioProduct = {
@@ -72,38 +79,80 @@ function SummaryCard({
   )
 }
 
-function ProductCard({ product }: { product: PortfolioProduct }) {
+function FacetFooterLink({
+  productId,
+  summary,
+}: {
+  productId: number
+  summary: FacetSummaryRow | undefined
+}) {
+  if (!summary) return null
+  const parts = facetFooterParts(summary)
+  if (!parts) return null
+
+  return (
+    <div className="pf-footer">
+      <Link href={`/products/${productId}?tab=facets`} className="pf-footer__hit">
+        <span className="pf-footer__text">
+          {parts.map((p, i) => (
+            <span key={i}>
+              {i > 0 ? ' · ' : null}
+              <span className={p.className}>{p.text}</span>
+            </span>
+          ))}
+        </span>
+        {summary.pending_count > 0 ? (
+          <span className="pf-footer__pending">{summary.pending_count} pending review</span>
+        ) : null}
+        <span className="pf-footer__chev" aria-hidden>
+          ›
+        </span>
+      </Link>
+    </div>
+  )
+}
+
+function ProductCard({
+  product,
+  summary,
+}: {
+  product: PortfolioProduct
+  summary: FacetSummaryRow | undefined
+}) {
   const href = `/products/${product.product_id}`
   const category = product.l3_name ?? product.l2_name
   return (
-    <Link href={href} className="cat-tile">
-      <ProductArt
-        product={{ name: product.product_name_clean, image_url: product.image_url }}
-      />
-      <div className="cat-tile-body">
-        {category ? <div className="cat-kicker">{category}</div> : null}
-        <div className="prod-tile-name">{product.product_name_clean}</div>
-        {product.primary_barcode ? (
-          <div className="prod-tile-meta">{product.primary_barcode}</div>
-        ) : null}
-        <div className="cat-tile-chip-row">
-          {product.has_battle_data ? (
-            <span className="cat-chip cat-chip-live">
-              <span className="cat-chip-dot" aria-hidden />
-              With battle data
-            </span>
-          ) : (
-            <span className="cat-chip cat-chip-empty">
-              <span className="cat-chip-dot" aria-hidden />
-              No signal yet
-            </span>
-          )}
+    <article className="cat-tile">
+      <Link href={href} className="prod-tile-link">
+        <ProductArt
+          product={{ name: product.product_name_clean, image_url: product.image_url }}
+        />
+        <div className="cat-tile-body">
+          {category ? <div className="cat-kicker">{category}</div> : null}
+          <div className="prod-tile-name">{product.product_name_clean}</div>
+          {product.primary_barcode ? (
+            <div className="prod-tile-meta">{product.primary_barcode}</div>
+          ) : null}
+          <div className="cat-tile-chip-row">
+            {product.has_battle_data ? (
+              <span className="cat-chip cat-chip-live">
+                <span className="cat-chip-dot" aria-hidden />
+                With battle data
+              </span>
+            ) : (
+              <span className="cat-chip cat-chip-empty">
+                <span className="cat-chip-dot" aria-hidden />
+                No signal yet
+              </span>
+            )}
+          </div>
         </div>
-      </div>
-      <div className="cat-tile-action">
-        <span className="cat-tile-btn cat-tile-btn-solid">Manage product</span>
-      </div>
-    </Link>
+        <div className="cat-tile-action">
+          <span className="cat-tile-btn cat-tile-btn-solid">Manage product</span>
+        </div>
+      </Link>
+      <FacetFooterLink productId={product.product_id} summary={summary} />
+    </article>
   )
 }
 
@@ -120,6 +169,23 @@ export default function ProductsClient({
   const [search, setSearch] = useState('')
   const [showBattledOnly, setShowBattledOnly] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [facetById, setFacetById] = useState<Record<number, FacetSummaryRow>>({})
+  const [facetError, setFacetError] = useState<string | null>(null)
+
+  const loadFacetSummaries = useCallback(async (products: PortfolioProduct[]) => {
+    const ids = products.map((p) => p.product_id)
+    if (ids.length === 0) {
+      setFacetById({})
+      return
+    }
+    const supabase = createClient()
+    const { rows, error } = await fetchProductFacetSummaries(supabase, ids)
+    if (error) setFacetError(error)
+    else setFacetError(null)
+    const map: Record<number, FacetSummaryRow> = {}
+    for (const row of rows) map[row.product_id] = row
+    setFacetById(map)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -133,34 +199,36 @@ export default function ProductsClient({
           setPortfolioError(error.message)
         }
         const rows = (data ?? []) as PortfolioProduct[]
+        let next: PortfolioProduct[]
         if (rows.length > 0) {
+          next = rows
           setPortfolioProducts(rows)
           setUsingFallback(false)
         } else {
-          setPortfolioProducts(
-            serverProducts.map((p) => ({
-              product_id: p.product_id,
-              product_name_clean: p.product_name_clean,
-              product_name_display: p.product_name_display,
-              image_url: p.image_url,
-              primary_barcode: null,
-              l2_name: p.l2_name,
-              l3_name: p.l3_name,
-              price_tier_label: p.price_tier_label,
-              total_battles: p.total_battles ?? p.battles_total ?? 0,
-              elo_score: p.elo_score,
-              win_rate_pct:
-                p.battles_total > 0
-                  ? Math.round((p.battles_won / p.battles_total) * 1000) / 10
-                  : null,
-              has_battle_data: (p.battles_total ?? 0) > 0,
-              package_size_value: null,
-              package_size_uom: null,
-            }))
-          )
+          next = serverProducts.map((p) => ({
+            product_id: p.product_id,
+            product_name_clean: p.product_name_clean,
+            product_name_display: p.product_name_display,
+            image_url: p.image_url,
+            primary_barcode: null,
+            l2_name: p.l2_name,
+            l3_name: p.l3_name,
+            price_tier_label: p.price_tier_label,
+            total_battles: p.total_battles ?? p.battles_total ?? 0,
+            elo_score: p.elo_score,
+            win_rate_pct:
+              p.battles_total > 0
+                ? Math.round((p.battles_won / p.battles_total) * 1000) / 10
+                : null,
+            has_battle_data: (p.battles_total ?? 0) > 0,
+            package_size_value: null,
+            package_size_uom: null,
+          }))
+          setPortfolioProducts(next)
           setUsingFallback(true)
         }
         setLoadingPortfolio(false)
+        void loadFacetSummaries(next)
       })
     return () => {
       cancelled = true
@@ -213,6 +281,11 @@ export default function ProductsClient({
                 : 'Portfolio returned no rows — showing server catalog so you can still open products.'}
             </p>
           )}
+          {facetError ? (
+            <p style={{ fontSize: 12, color: 'var(--amber)', marginTop: 8, lineHeight: 1.45 }}>
+              Attributes summary unavailable ({facetError}).
+            </p>
+          ) : null}
         </div>
         <div className="prod-header-actions">
           <button type="button" className="cat-primary-cta" onClick={() => alert('Add product coming soon')}>
@@ -309,7 +382,11 @@ export default function ProductsClient({
         ) : (
           <div className="cat-tile-grid">
             {filtered.map((product) => (
-              <ProductCard key={product.product_id} product={product} />
+              <ProductCard
+                key={product.product_id}
+                product={product}
+                summary={facetById[product.product_id]}
+              />
             ))}
           </div>
         )
@@ -328,82 +405,103 @@ export default function ProductsClient({
               <span />
               <span>Product</span>
               <span className="prod-list-hide-narrow">Barcode</span>
-              <span className="prod-list-hide-narrow">Category</span>
+              <span className="prod-list-hide-narrow">Attributes</span>
               <span style={{ textAlign: 'right' }}>Battles</span>
               <span style={{ textAlign: 'right' }}> </span>
             </div>
             {filtered.map((product) => {
               const isClaimed = claimedIdSet.has(product.product_id)
+              const summary = facetById[product.product_id]
+              const line = summary ? formatFacetFooterLine(summary) : null
+              const href = `/products/${product.product_id}`
               return (
-                <Link
-                  key={product.product_id}
-                  href={`/products/${product.product_id}`}
-                  className="prod-list-row"
-                >
-                  <div className="prod-list-thumb">
-                    {product.image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={product.image_url} alt="" />
-                    ) : (
-                      <span style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--ink-30)' }}>
-                        {(product.product_name_clean[0] || '?').toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ minWidth: 0 }}>
+                <div key={product.product_id} className="prod-list-row prod-list-row--split">
+                  <Link href={href} className="prod-list-row__main">
+                    <div className="prod-list-thumb">
+                      {product.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={product.image_url} alt="" />
+                      ) : (
+                        <span style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--ink-30)' }}>
+                          {(product.product_name_clean[0] || '?').toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 500,
+                          color: 'var(--ink)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {product.product_name_clean}
+                      </div>
+                      {product.package_size_value ? (
+                        <div style={{ fontSize: 11, color: 'var(--ink-30)', marginTop: 1 }}>
+                          {product.package_size_value} {product.package_size_uom}
+                        </div>
+                      ) : null}
+                    </div>
                     <div
+                      className="prod-list-hide-narrow"
                       style={{
-                        fontSize: 14,
-                        fontWeight: 500,
-                        color: 'var(--ink)',
+                        fontSize: 11,
+                        color: 'var(--ink-30)',
+                        fontFamily: 'var(--font-mono, monospace)',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {product.product_name_clean}
+                      {product.primary_barcode ?? '—'}
                     </div>
-                    {product.package_size_value ? (
-                      <div style={{ fontSize: 11, color: 'var(--ink-30)', marginTop: 1 }}>
-                        {product.package_size_value} {product.package_size_uom}
-                      </div>
-                    ) : null}
+                  </Link>
+                  <div className="prod-list-hide-narrow" style={{ minWidth: 0 }}>
+                    {line && summary ? (
+                      <Link
+                        href={`/products/${product.product_id}?tab=facets`}
+                        className="pf-list-facet"
+                      >
+                        <span>
+                          {summary.derived_count} from Dough
+                          {summary.declared_count > 0 ? (
+                            <>
+                              {' · '}
+                              <span className="pf-list-facet__added">
+                                {summary.declared_count} added
+                              </span>
+                            </>
+                          ) : null}
+                          {' · '}
+                          {Math.max(0, summary.declarable_total - summary.declarable_filled)} to
+                          add
+                        </span>
+                        {summary.pending_count > 0 ? (
+                          <span className="pf-list-facet__pending">
+                            {summary.pending_count} pending
+                          </span>
+                        ) : null}
+                      </Link>
+                    ) : (
+                      <span style={{ fontSize: 12, color: 'var(--ink-30)' }}>—</span>
+                    )}
                   </div>
-                  <div
-                    className="prod-list-hide-narrow"
-                    style={{
-                      fontSize: 11,
-                      color: 'var(--ink-30)',
-                      fontFamily: 'var(--font-mono, monospace)',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {product.primary_barcode ?? '—'}
-                  </div>
-                  <div
-                    className="prod-list-hide-narrow"
-                    style={{
-                      fontSize: 13,
-                      color: 'var(--ink-50)',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {product.l3_name ?? product.l2_name ?? '—'}
-                  </div>
-                  <div
+                  <Link
+                    href={href}
                     style={{
                       fontSize: 13,
                       textAlign: 'right',
                       color: product.total_battles > 0 ? 'var(--sage-dark)' : 'var(--ink-30)',
                       fontVariantNumeric: 'tabular-nums',
+                      textDecoration: 'none',
                     }}
                   >
                     {product.total_battles > 0 ? n(product.total_battles) : '—'}
-                  </div>
+                  </Link>
                   <div style={{ textAlign: 'right' }}>
                     <span
                       className={`cat-chip ${isClaimed ? 'cat-chip-live' : 'cat-chip-empty'}`}
@@ -412,7 +510,7 @@ export default function ProductsClient({
                       {isClaimed ? 'Active' : 'Not claimed'}
                     </span>
                   </div>
-                </Link>
+                </div>
               )
             })}
           </div>

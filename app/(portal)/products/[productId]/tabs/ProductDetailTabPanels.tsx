@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import type { ProductStudyCard } from '@/lib/productMaster/productHeroStudies'
 import ProductTransparencyStudio from '@/components/transparency/ProductTransparencyStudio'
+import ProductAttributesEditor from '@/components/products/ProductAttributesEditor'
 import './productDetailTabs.css'
 
 export function ProductTabStack({ children }: { children: ReactNode }) {
@@ -151,6 +152,20 @@ export function ProductProofTab({
       canEdit={canEdit}
       ingredientStatement={ingredientStatement}
     />
+  )
+}
+
+export function ProductFacetsTab({
+  productId,
+  canEdit,
+}: {
+  productId: number
+  canEdit: boolean
+}) {
+  return (
+    <div className="pm-facets-tab">
+      <ProductAttributesEditor productId={productId} canEdit={canEdit} />
+    </div>
   )
 }
 
