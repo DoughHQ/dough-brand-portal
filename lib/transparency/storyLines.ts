@@ -124,6 +124,76 @@ export function composePackLine(args: {
   return parts.join(' · ')
 }
 
+/** Living things — welfare standard + antibiotic/hormone policy. */
+export function composeLivingLine(args: {
+  welfare?: string | null
+  antibiotics?: string | null
+}): string {
+  const parts: string[] = []
+  if (args.welfare?.trim()) parts.push(formatProofCode(args.welfare.trim()))
+  if (args.antibiotics?.trim()) parts.push(formatProofCode(args.antibiotics.trim()))
+  return parts.join(' · ')
+}
+
+/** Labor code — standard + supply-chain scope. */
+export function composeLaborLine(args: {
+  standard?: string | null
+  scope?: string | null
+}): string {
+  const parts: string[] = []
+  if (args.standard?.trim()) parts.push(formatProofCode(args.standard.trim()))
+  if (args.scope?.trim()) parts.push(formatProofCode(args.scope.trim()))
+  return parts.join(' · ')
+}
+
+export function composeSocialCertLine(cert?: string | null): string {
+  return cert?.trim() ? formatProofCode(cert.trim()) : ''
+}
+
+/** Due-diligence stance — OECD step plus optional policy text. */
+export function composeDiligenceLine(args: {
+  step?: string | null
+  geography?: string | null
+  remediation?: string | null
+}): string {
+  const parts: string[] = []
+  if (args.step?.trim()) parts.push(formatProofCode(args.step.trim()))
+  if (args.geography?.trim()) parts.push(args.geography.trim())
+  if (args.remediation?.trim()) parts.push(args.remediation.trim())
+  return parts.join(' · ')
+}
+
+export function composeGrievanceLine(text?: string | null): string {
+  return text?.trim() ?? ''
+}
+
+export function composeSupplierLine(args: {
+  depth?: string | null
+  coveragePct?: number | null
+}): string {
+  const parts: string[] = []
+  if (args.depth?.trim()) parts.push(formatProofCode(args.depth.trim()))
+  if (args.coveragePct != null && !Number.isNaN(args.coveragePct)) {
+    parts.push(`${args.coveragePct}% covered`)
+  }
+  return parts.join(' · ')
+}
+
+export function composeRiskInputLine(args: {
+  ingredient: string
+  standard?: string | null
+  deforestation?: string | null
+  custody?: string | null
+}): string {
+  const parts = [
+    args.ingredient.trim().charAt(0).toUpperCase() + args.ingredient.trim().slice(1),
+  ]
+  if (args.standard?.trim()) parts.push(formatProofCode(args.standard.trim()))
+  if (args.deforestation?.trim()) parts.push(formatProofCode(args.deforestation.trim()))
+  if (args.custody?.trim()) parts.push(formatProofCode(args.custody.trim()))
+  return parts.join(' · ')
+}
+
 export function provenanceWhisperFromTier(args: {
   status?: string | null
   sourceTier?: string | null
