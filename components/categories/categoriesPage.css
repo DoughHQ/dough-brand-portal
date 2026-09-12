@@ -76,7 +76,8 @@
 
 .cat-summary {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* Mobile-first: 2×2. Four-up only when the canvas is wide enough. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 32px;
 }
@@ -535,9 +536,44 @@ a.cat-tile:hover .cat-tile-btn-outline {
   line-height: 1.5;
 }
 
-@container cat-page (min-width: 560px) {
+@container cat-page (max-width: 559px) {
   .cat-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .cat-summary-card {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .cat-summary-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .cat-summary-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .cat-summary-label {
+    margin-bottom: 4px;
+  }
+
+  .cat-summary-value {
+    font-size: 22px;
+    letter-spacing: -0.03em;
+  }
+
+  /* Snapshot, not a dashboard — drop supporting copy on the narrow canvas. */
+  .cat-summary-hint {
+    display: none;
   }
 }
 

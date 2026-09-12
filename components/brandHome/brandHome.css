@@ -659,6 +659,40 @@
   .bh-hero-pulse {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .bh-strip {
+    min-height: 0;
+    margin-bottom: 22px;
+  }
+
+  .bh-strip-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 14px 12px 14px 0;
+  }
+
+  .bh-strip-cell + .bh-strip-cell {
+    padding-left: 12px;
+  }
+
+  .bh-strip-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .bh-strip-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .bh-strip-value {
+    font-size: 22px;
+  }
+
+  .bh-strip-sub {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
