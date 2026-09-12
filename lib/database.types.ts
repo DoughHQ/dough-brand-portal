@@ -21388,6 +21388,7 @@ export type Database = {
       product_facet_brand_declarations: {
         Row: {
           brand_id: number
+          brand_note: string | null
           declaration_id: number
           declared_at: string
           declared_by: string | null
@@ -21403,6 +21404,7 @@ export type Database = {
         }
         Insert: {
           brand_id: number
+          brand_note?: string | null
           declaration_id?: never
           declared_at?: string
           declared_by?: string | null
@@ -21418,6 +21420,7 @@ export type Database = {
         }
         Update: {
           brand_id?: number
+          brand_note?: string | null
           declaration_id?: never
           declared_at?: string
           declared_by?: string | null
@@ -44019,6 +44022,7 @@ export type Database = {
       }
       declare_product_facet: {
         Args: {
+          p_brand_note?: string
           p_evidence_note?: string
           p_evidence_url?: string
           p_facet_type: string
@@ -46019,28 +46023,17 @@ export type Database = {
         Args: { p_item_id: number; p_user_id: number }
         Returns: undefined
       }
-      report_product_availability:
-        | {
-            Args: {
-              p_geo_region_id?: number
-              p_product_id: number
-              p_retail_location_id?: number
-              p_retailer_id: number
-              p_sku_variant_id?: number
-            }
-            Returns: number
-          }
-        | {
-            Args: {
-              p_geo_region_id?: number
-              p_product_id: number
-              p_retail_location_id?: number
-              p_retailer_id: number
-              p_scanned_code?: string
-              p_sku_variant_id?: number
-            }
-            Returns: number
-          }
+      report_product_availability: {
+        Args: {
+          p_geo_region_id?: number
+          p_product_id: number
+          p_retail_location_id?: number
+          p_retailer_id: number
+          p_scanned_code?: string
+          p_sku_variant_id?: number
+        }
+        Returns: number
+      }
       resolve_availability_scope: {
         Args: {
           p_geo_region_id: number
@@ -46106,6 +46099,15 @@ export type Database = {
           taxonomy_node_id: number
           total_finds: number
           variety_name: string
+        }[]
+      }
+      resolve_postal_to_distribution_regions: {
+        Args: { p_postal_code: string }
+        Returns: {
+          geo_region_id: number
+          region_code: string
+          region_name: string
+          region_type: string
         }[]
       }
       resolve_product_by_barcode: { Args: { p_barcode: string }; Returns: Json }
