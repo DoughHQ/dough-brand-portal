@@ -2,10 +2,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/database.types'
 import {
   messageFromFacetError,
+  normalizeDeclaredValues,
   normalizeDerivedValues,
   type DeclarableFacetRow,
   type FacetAvailableValue,
-  type FacetDeclaredValue,
   type FacetSummaryRow,
 } from '@/lib/facets/productFacets'
 
@@ -17,9 +17,6 @@ function normalizeDeclarableRow(raw: Record<string, unknown>): DeclarableFacetRo
   const available = Array.isArray(raw.available_values)
     ? (raw.available_values as FacetAvailableValue[])
     : null
-  const declared = Array.isArray(raw.declared_values)
-    ? (raw.declared_values as FacetDeclaredValue[])
-    : null
   return {
     facet_type: String(raw.facet_type ?? ''),
     display_name: String(raw.display_name ?? raw.facet_type ?? ''),
@@ -30,7 +27,9 @@ function normalizeDeclarableRow(raw: Record<string, unknown>): DeclarableFacetRo
     requires_evidence: Boolean(raw.requires_evidence),
     available_values: available,
     derived_values: normalizeDerivedValues(raw.derived_values),
-    declared_values: declared,
+    declared_values: Array.isArray(raw.declared_values)
+      ? normalizeDeclaredValues(raw.declared_values)
+      : null,
   }
 }
 

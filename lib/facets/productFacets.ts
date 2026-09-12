@@ -1,5 +1,7 @@
 /** Brand-declarable product facet surface — portal types. */
 
+import { formatProofCode } from '@/lib/transparency/displayMap'
+
 export type FacetSummaryRow = {
   product_id: number
   derived_count: number
@@ -19,11 +21,15 @@ export type FacetDeclaredValue = {
   value: string
   declaration_id: number
   review_state: string
+  /** facet_values.display_name from the RPC — omit when blank. */
+  label?: string
 }
 
 export type FacetDerivedValue = {
   value: string
   source: string | null
+  /** facet_values.display_name from the RPC — omit when blank. */
+  label?: string
 }
 
 export type DeclarableFacetRow = {
@@ -52,7 +58,16 @@ export function isDeniedDerived(facetType: string, value: string): boolean {
   return DERIVED_FACET_DENYLIST.has(v) || DERIVED_FACET_DENYLIST.has(`${t}:${v}`)
 }
 
-/** Accept RPC `{ value, source }` or legacy bare strings. */
+/** Trimmed display label; `display_name` accepted as an RPC alias. Never spreads extras. */
+function pickLabel(item: object): string | undefined {
+  const rec = item as { label?: unknown; display_name?: unknown }
+  const raw = rec.label ?? rec.display_name
+  if (raw == null) return undefined
+  const s = String(raw).trim()
+  return s || undefined
+}
+
+/** Accept RPC `{ value, source, label }` or legacy bare strings. */
 export function normalizeDerivedValues(
   raw: unknown,
 ): FacetDerivedValue[] {
@@ -68,11 +83,35 @@ export function normalizeDerivedValues(
       const value = String((item as { value: unknown }).value ?? '').trim()
       if (!value) continue
       const sourceRaw = (item as { source?: unknown }).source
-      out.push({
+      const next: FacetDerivedValue = {
         value,
         source: sourceRaw == null || sourceRaw === '' ? null : String(sourceRaw),
-      })
+      }
+      const label = pickLabel(item)
+      if (label) next.label = label
+      out.push(next)
     }
+  }
+  return out
+}
+
+export function normalizeDeclaredValues(raw: unknown): FacetDeclaredValue[] {
+  if (!Array.isArray(raw)) return []
+  const out: FacetDeclaredValue[] = []
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue
+    const rec = item as { value?: unknown; declaration_id?: unknown; review_state?: unknown }
+    const value = String(rec.value ?? '').trim()
+    const declaration_id = Number(rec.declaration_id)
+    if (!value || !Number.isFinite(declaration_id)) continue
+    const next: FacetDeclaredValue = {
+      value,
+      declaration_id,
+      review_state: String(rec.review_state ?? ''),
+    }
+    const label = pickLabel(item)
+    if (label) next.label = label
+    out.push(next)
   }
   return out
 }
@@ -81,12 +120,26 @@ export function filterDerivedValues(
   facetType: string,
   values: FacetDerivedValue[] | string[] | null | undefined,
 ): FacetDerivedValue[] {
-  const normalized = Array.isArray(values)
-    ? typeof values[0] === 'string'
-      ? normalizeDerivedValues(values)
-      : (values as FacetDerivedValue[])
-    : []
-  return normalized.filter((d) => !isDeniedDerived(facetType, d.value))
+  return normalizeDerivedValues(values).filter((d) => !isDeniedDerived(facetType, d.value))
+}
+
+/**
+ * Chip / summary copy for a facet value.
+ * Prefer the item's RPC label, then picker vocabulary, then a humanised code.
+ * Never uses the facet *type* display_name.
+ * The formatProofCode fallback is defensive — no live derived-only value has a blank display_name.
+ */
+export function facetValueLabel(
+  row: Pick<DeclarableFacetRow, 'available_values'>,
+  value: string,
+  label?: string | null,
+): string {
+  const fromItem = (label ?? '').trim()
+  if (fromItem) return fromItem
+  const hit = (row.available_values ?? []).find((v) => v.value === value)
+  const fromVocab = hit?.label?.trim()
+  if (fromVocab) return fromVocab
+  return formatProofCode(value) || value
 }
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -154,12 +207,15 @@ export function facetFooterParts(
   return parts
 }
 
+export type ShopperFacetItem = {
+  facetType: string
+  value: string
+  label: string
+}
+
 /** Values shoppers can filter/find — derived + live declared, denylist applied. */
-export function composeShopperFacetLine(
-  rows: DeclarableFacetRow[],
-  labelOf: (facetType: string, value: string) => string,
-): string {
-  const parts: string[] = []
+export function listShopperFacets(rows: DeclarableFacetRow[]): ShopperFacetItem[] {
+  const out: ShopperFacetItem[] = []
   const seen = new Set<string>()
   for (const row of rows) {
     const derived = filterDerivedValues(row.facet_type, row.derived_values)
@@ -167,7 +223,11 @@ export function composeShopperFacetLine(
       const key = `${row.facet_type}:${d.value}`
       if (seen.has(key)) continue
       seen.add(key)
-      parts.push(labelOf(row.facet_type, d.value))
+      out.push({
+        facetType: row.facet_type,
+        value: d.value,
+        label: facetValueLabel(row, d.value, d.label),
+      })
     }
     for (const dec of row.declared_values ?? []) {
       const s = (dec.review_state || '').toLowerCase()
@@ -175,10 +235,20 @@ export function composeShopperFacetLine(
       const key = `${row.facet_type}:${dec.value}`
       if (seen.has(key)) continue
       seen.add(key)
-      parts.push(labelOf(row.facet_type, dec.value))
+      out.push({
+        facetType: row.facet_type,
+        value: dec.value,
+        label: facetValueLabel(row, dec.value, dec.label),
+      })
     }
   }
-  return parts.join(' · ')
+  return out
+}
+
+export function composeShopperFacetLine(rows: DeclarableFacetRow[]): string {
+  return listShopperFacets(rows)
+    .map((item) => item.label)
+    .join(' · ')
 }
 
 /** Prefer combobox over radio walls once vocabulary is this long. */

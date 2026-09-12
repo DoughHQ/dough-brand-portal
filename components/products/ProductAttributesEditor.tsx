@@ -2,35 +2,32 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase'
-import { formatProofCode } from '@/lib/transparency/displayMap'
 import {
   declareProductFacet,
   fetchDeclarableFacets,
-  fetchProductFacetSummaries,
   withdrawProductFacetDeclaration,
 } from '@/lib/facets/api'
 import {
-  composeShopperFacetLine,
+  facetValueLabel,
   filterDerivedValues,
-  formatFacetFooterLine,
+  listShopperFacets,
   provenanceLabelFromSource,
   rowIsPickerEditable,
   type DeclarableFacetRow,
   type FacetDeclaredValue,
   type FacetDerivedValue,
-  type FacetSummaryRow,
 } from '@/lib/facets/productFacets'
 import { FacetChipAdd, FacetSearchSelect } from '@/components/products/FacetValuePicker'
+import {
+  FacetChevronGlyph,
+  FacetGlyph,
+  FacetInfoGlyph,
+  FacetSearchGlyph,
+} from '@/components/products/facetGlyphs'
 import './productFacets.css'
 
 export const FACETS_LEDE =
   "We derive what we can from labels and ingredients. Add what only you know — it helps shoppers find your product. Allergens and ingredients are derived by Dough and can't be edited here."
-
-function labelFor(row: DeclarableFacetRow, value: string): string {
-  const hit = (row.available_values ?? []).find((v) => v.value === value)
-  if (hit?.label) return hit.label
-  return formatProofCode(value) || value
-}
 
 function isLiveDeclared(d: FacetDeclaredValue): boolean {
   const s = (d.review_state || '').toLowerCase()
@@ -60,7 +57,6 @@ export default function ProductAttributesEditor({
   onChanged,
 }: EditorProps) {
   const [rows, setRows] = useState<DeclarableFacetRow[] | null>(null)
-  const [summary, setSummary] = useState<FacetSummaryRow | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busyKey, setBusyKey] = useState<string | null>(null)
@@ -70,14 +66,9 @@ export default function ProductAttributesEditor({
     setLoading(true)
     setError(null)
     const supabase = createClient()
-    const [facets, summaries] = await Promise.all([
-      fetchDeclarableFacets(supabase, productId),
-      fetchProductFacetSummaries(supabase, [productId]),
-    ])
+    const facets = await fetchDeclarableFacets(supabase, productId)
     if (facets.error) setError(facets.error)
-    else if (summaries.error) setError(summaries.error)
     setRows(facets.rows)
-    setSummary(summaries.rows[0] ?? null)
     setLoading(false)
   }, [productId])
 
@@ -100,20 +91,13 @@ export default function ProductAttributesEditor({
     return { known: knownRows, claims: claimRows, empty: emptyRows }
   }, [rows])
 
-  const shopperLine = useMemo(() => {
-    if (!rows) return ''
-    return composeShopperFacetLine(rows, (facetType, value) => {
-      const row = rows.find((r) => r.facet_type === facetType)
-      return row ? labelFor(row, value) : formatProofCode(value)
-    })
-  }, [rows])
+  const shopperItems = useMemo(() => (rows ? listShopperFacets(rows) : []), [rows])
 
   const refreshAfterWrite = async () => {
     await load()
     onChanged?.()
   }
 
-  const opportunity = summary ? formatFacetFooterLine(summary) : null
   const hasAny = known.length + claims.length + empty.length > 0
 
   return (
@@ -121,26 +105,41 @@ export default function ProductAttributesEditor({
       <header className="pf-hero">
         <p className="pf-hero__kicker">Shopper discovery</p>
         <h2 className="pf-hero__title">Facets</h2>
-        {opportunity ? (
-          <p className="pf-hero__opportunity">
-            {opportunity}
-            {summary && summary.pending_count > 0 ? (
-              <span className="pf-footer__pending">{summary.pending_count} pending</span>
-            ) : null}
-          </p>
-        ) : null}
-        {shopperLine ? (
-          <div className="pf-preview" aria-live="polite">
-            <p className="pf-preview__kicker">Shoppers can find this as</p>
-            <p className="pf-preview__line">{shopperLine}</p>
+
+        <div
+          className={`pf-discovery${shopperItems.length === 0 ? ' pf-discovery--empty' : ''}`}
+          role="region"
+          aria-label="Shoppers can find this as"
+          aria-live="polite"
+        >
+          <span className="pf-discovery__search" aria-hidden>
+            <FacetSearchGlyph size={18} />
+          </span>
+          <div className="pf-discovery__body">
+            <p className="pf-discovery__kicker">Shoppers can find this as</p>
+            {shopperItems.length > 0 ? (
+              <ul className="pf-discovery__chips">
+                {shopperItems.map((item) => (
+                  <li key={`${item.facetType}:${item.value}`}>
+                    <span className="pf-discovery__chip">{item.label}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="pf-discovery__empty">
+                Nothing shoppers can filter on yet — Dough will fill what it can; you add the rest.
+              </p>
+            )}
           </div>
-        ) : (
-          <p className="pf-hero__empty-preview">
-            Nothing shoppers can filter on yet — Dough will fill what it can; you add the rest.
-          </p>
-        )}
+        </div>
+
         <details className="pf-hero__details">
-          <summary>How this works</summary>
+          <summary>
+            <span className="pf-hero__info" aria-hidden>
+              <FacetInfoGlyph size={14} />
+            </span>
+            How this works
+          </summary>
           <p>{FACETS_LEDE}</p>
         </details>
       </header>
@@ -154,12 +153,7 @@ export default function ProductAttributesEditor({
       ) : null}
 
       {known.length > 0 ? (
-        <section className="pf-room">
-          <header className="pf-room__head">
-            <p className="pf-room__kicker">Dough knows</p>
-            <h3 className="pf-room__title">Already on the product</h3>
-            <p className="pf-room__lede">Derived from labels and placement — trust chips, not edits.</p>
-          </header>
+        <section className="pf-room pf-room--known">
           <div className="pf-known-grid">
             {known.map((row) => (
               <KnownTile key={row.facet_type} row={row} />
@@ -170,11 +164,6 @@ export default function ProductAttributesEditor({
 
       {claims.length > 0 ? (
         <section className="pf-room">
-          <header className="pf-room__head">
-            <p className="pf-room__kicker">Your claims</p>
-            <h3 className="pf-room__title">Started attributes</h3>
-            <p className="pf-room__lede">Add or withdraw values you stand behind.</p>
-          </header>
           <div className="pf-claim-stack">
             {claims.map((row) => (
               <ClaimCard
@@ -195,7 +184,6 @@ export default function ProductAttributesEditor({
       {empty.length > 0 ? (
         <section className="pf-room">
           <header className="pf-room__head">
-            <p className="pf-room__kicker">You can add</p>
             <h3 className="pf-room__title">Open attributes</h3>
             <p className="pf-room__lede">Only what applies — one at a time.</p>
           </header>
@@ -213,11 +201,23 @@ export default function ProductAttributesEditor({
                     aria-expanded={open}
                     onClick={() => setOpenAdd(open ? null : row.facet_type)}
                   >
-                    <span className="pf-add-row__name">{row.display_name}</span>
+                    <span className="pf-add-row__lead">
+                      <span className="pf-add-row__icon" aria-hidden>
+                        <FacetGlyph type={row.facet_type} size={18} />
+                      </span>
+                      <span className="pf-add-row__name">{row.display_name}</span>
+                    </span>
                     <span className="pf-add-row__meta">
-                      {row.requires_evidence ? 'Needs evidence' : 'Optional'}
-                      <span className="pf-add-row__chev" aria-hidden>
-                        {open ? '▾' : '›'}
+                      {row.requires_evidence ? (
+                        <span className="pf-add-row__evidence">Needs evidence</span>
+                      ) : (
+                        <span className="pf-add-row__optional">Optional</span>
+                      )}
+                      <span
+                        className={`pf-add-row__chev${open ? ' pf-add-row__chev--open' : ''}`}
+                        aria-hidden
+                      >
+                        <FacetChevronGlyph size={16} />
                       </span>
                     </span>
                   </button>
@@ -249,11 +249,16 @@ function KnownTile({ row }: { row: DeclarableFacetRow }) {
   const derived = filterDerivedValues(row.facet_type, row.derived_values)
   return (
     <article className="pf-known">
-      <p className="pf-known__attr">{row.display_name}</p>
+      <div className="pf-known__head">
+        <span className="pf-known__icon" aria-hidden>
+          <FacetGlyph type={row.facet_type} size={16} />
+        </span>
+        <p className="pf-known__attr">{row.display_name}</p>
+      </div>
       <ul className="pf-known__values">
         {derived.map((d: FacetDerivedValue) => (
           <li key={d.value}>
-            <span className="pf-known__value">{labelFor(row, d.value)}</span>
+            <span className="pf-known__value">{facetValueLabel(row, d.value, d.label)}</span>
             <span className="pf-known__whisper">{provenanceLabelFromSource(d.source)}</span>
           </li>
         ))}
@@ -423,18 +428,18 @@ function ClaimCard({
               className="pf-chip pf-chip--derived"
               title={provenanceLabelFromSource(d.source)}
             >
-              {labelFor(row, d.value)}
+              {facetValueLabel(row, d.value, d.label)}
               <span className="pf-chip__meta">{provenanceLabelFromSource(d.source)}</span>
             </span>
           ))}
           {live.map((d) => (
             <span key={`c-${d.declaration_id}`} className="pf-chip pf-chip--declared">
-              {labelFor(row, d.value)}
+              {facetValueLabel(row, d.value, d.label)}
               {showPicker ? (
                 <button
                   type="button"
                   className="pf-chip__x"
-                  aria-label={`Remove ${labelFor(row, d.value)}`}
+                  aria-label={`Remove ${facetValueLabel(row, d.value, d.label)}`}
                   disabled={busyKey != null}
                   onClick={() => void onWithdraw(d.declaration_id)}
                 >
@@ -445,13 +450,13 @@ function ClaimCard({
           ))}
           {pending.map((d) => (
             <span key={`p-${d.declaration_id}`} className="pf-chip pf-chip--pending">
-              {labelFor(row, d.value)}
+              {facetValueLabel(row, d.value, d.label)}
               <span className="pf-chip__meta">Pending review</span>
               {showPicker ? (
                 <button
                   type="button"
                   className="pf-chip__x"
-                  aria-label={`Withdraw pending ${labelFor(row, d.value)}`}
+                  aria-label={`Withdraw pending ${facetValueLabel(row, d.value, d.label)}`}
                   disabled={busyKey != null}
                   onClick={() => void onWithdraw(d.declaration_id)}
                 >
@@ -550,7 +555,12 @@ function ClaimCard({
   return (
     <article className="pf-claim">
       <div className="pf-claim__head">
-        <h4 className="pf-claim__title">{row.display_name}</h4>
+        <div className="pf-claim__title-row">
+          <span className="pf-claim__icon" aria-hidden>
+            <FacetGlyph type={row.facet_type} size={16} />
+          </span>
+          <h4 className="pf-claim__title">{row.display_name}</h4>
+        </div>
         {requiresEvidence ? (
           <span className="pf-claim__badge">Evidence</span>
         ) : null}
