@@ -637,14 +637,16 @@
 
 @media (max-width: 720px) {
   .bh-page {
-    width: calc(100% - 40px);
-    padding-top: 24px;
+    width: calc(100% - 32px);
+    padding-top: 20px;
+    padding-bottom: 40px;
   }
   .bh-new-study {
     width: 100%;
   }
   .bh-more {
-    width: calc(100% - 40px);
+    width: calc(100% - 32px);
+    margin-bottom: 40px;
   }
   .bh-product-lead {
     grid-template-columns: 1fr;

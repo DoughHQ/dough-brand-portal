@@ -130,6 +130,14 @@ a {
     display: none !important;
   }
 
+  .portal-topbar {
+    display: none !important;
+  }
+
+  .portal-nav-scrim {
+    display: none !important;
+  }
+
   .portal-main {
     margin-left: 0 !important;
     width: 100% !important;

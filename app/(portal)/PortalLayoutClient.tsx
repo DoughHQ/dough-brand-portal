@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
@@ -22,6 +22,8 @@ interface PortalLayoutClientProps {
 type NavItem = { label: string; href: string }
 type NavSection = { group: string; items: NavItem[] }
 
+const COMPACT_MQ = '(max-width: 880px)'
+
 function isNavActive(pathname: string, href: string): boolean {
   if (href === '/dashboard') return pathname === '/dashboard'
   if (href === '/admin/categories') {
@@ -34,6 +36,16 @@ function isNavActive(pathname: string, href: string): boolean {
     return pathname === '/categories' || pathname.startsWith('/categories/')
   }
   return pathname === href || pathname.startsWith(href + '/')
+}
+
+function currentSectionLabel(pathname: string, sections: NavSection[]): string {
+  for (const section of sections) {
+    for (const item of section.items) {
+      if (isNavActive(pathname, item.href)) return item.label
+    }
+  }
+  if (pathname.startsWith('/admin/')) return 'Admin'
+  return 'Dough'
 }
 
 export default function PortalLayoutClient({
@@ -51,6 +63,9 @@ export default function PortalLayoutClient({
   const supabase = createClient()
   const [dark, setDark] = useState(false)
   const [exiting, setExiting] = useState(false)
+  const [navOpen, setNavOpen] = useState(false)
+  const [isCompact, setIsCompact] = useState(false)
+  const asideRef = useRef<HTMLElement>(null)
 
   /** Platform ops shell vs brand intelligence shell. */
   const shell: 'platform' | 'brand' = isAdmin && !isImpersonating ? 'platform' : 'brand'
@@ -109,6 +124,56 @@ export default function PortalLayoutClient({
   ]
 
   const navSections = isPlatform ? platformNav : brandNav
+  const sectionLabel = currentSectionLabel(pathname, navSections)
+  const showImpersonationStrip = isAdmin && isImpersonating && !!impersonatedBrandName
+  /** Drawer is off-canvas only in compact mode; keep it focusable on desktop. */
+  const drawerInert = isCompact && !navOpen
+
+  // Keep closed compact drawer out of the tab order (inert).
+  useEffect(() => {
+    const el = asideRef.current
+    if (!el) return
+    if (drawerInert) el.setAttribute('inert', '')
+    else el.removeAttribute('inert')
+  }, [drawerInert])
+
+  const closeNav = useCallback(() => setNavOpen(false), [])
+
+  // Close drawer on route change
+  useEffect(() => {
+    setNavOpen(false)
+  }, [pathname])
+
+  // Track compact viewport; close drawer when leaving it. Escape while open.
+  useEffect(() => {
+    const mq = window.matchMedia(COMPACT_MQ)
+    setIsCompact(mq.matches)
+    function onMqChange(e: MediaQueryListEvent) {
+      setIsCompact(e.matches)
+      if (!e.matches) setNavOpen(false)
+    }
+    mq.addEventListener('change', onMqChange)
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setNavOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      mq.removeEventListener('change', onMqChange)
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [])
+
+  // Body scroll lock while drawer is open
+  useEffect(() => {
+    if (!navOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [navOpen])
 
   async function handleSignOut() {
     if (isImpersonating) {
@@ -136,8 +201,68 @@ export default function PortalLayoutClient({
   }
 
   return (
-    <div className={`portal-shell${dark ? ' dark' : ''}`}>
-      <aside className="portal-aside">
+    <div className={`portal-shell${dark ? ' dark' : ''}${navOpen ? ' is-nav-open' : ''}`}>
+      <header className="portal-topbar">
+        <div className="portal-topbar-row">
+          <button
+            type="button"
+            className="portal-menu-btn"
+            aria-expanded={navOpen}
+            aria-controls="portal-nav-drawer"
+            aria-label={navOpen ? 'Close menu' : 'Open menu'}
+            onClick={() => setNavOpen((o) => !o)}
+          >
+            <span className="portal-menu-stroke" aria-hidden />
+            <span className="portal-menu-stroke" aria-hidden />
+            <span className="portal-menu-stroke" aria-hidden />
+          </button>
+          <div className="portal-topbar-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className="portal-topbar-mark"
+              src="/dough-mark.png"
+              alt=""
+              width={28}
+              height={28}
+            />
+            <span className="portal-topbar-section">{sectionLabel}</span>
+          </div>
+          <div className="portal-topbar-chip" aria-hidden>
+            {sidebarBrandInitial}
+          </div>
+        </div>
+        {showImpersonationStrip ? (
+          <div className="portal-topbar-impersonation">
+            <span className="portal-topbar-impersonation-label">
+              Viewing as <strong>{impersonatedBrandName}</strong>
+            </span>
+            <button
+              type="button"
+              className="portal-topbar-impersonation-exit"
+              onClick={() => void exitImpersonation()}
+              disabled={exiting}
+            >
+              {exiting ? '…' : 'Exit'}
+            </button>
+          </div>
+        ) : null}
+      </header>
+
+      <button
+        type="button"
+        className="portal-nav-scrim"
+        aria-label="Close menu"
+        tabIndex={navOpen ? 0 : -1}
+        onClick={closeNav}
+      />
+
+      <aside
+        ref={asideRef}
+        id="portal-nav-drawer"
+        className="portal-aside"
+        aria-label="Portal navigation"
+        aria-hidden={drawerInert ? true : undefined}
+      >
         <div className="portal-mark">
           <div className="portal-mark-lockup">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -169,7 +294,7 @@ export default function PortalLayoutClient({
           </div>
         </div>
 
-        {isAdmin && isImpersonating && impersonatedBrandName ? (
+        {showImpersonationStrip ? (
           <div className="portal-impersonation">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
               <div style={{ minWidth: 0 }}>
@@ -182,7 +307,7 @@ export default function PortalLayoutClient({
                 </Link>
                 <button
                   type="button"
-                  onClick={exitImpersonation}
+                  onClick={() => void exitImpersonation()}
                   disabled={exiting}
                   className="portal-impersonation-btn"
                 >

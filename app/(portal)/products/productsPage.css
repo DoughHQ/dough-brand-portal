@@ -159,3 +159,14 @@
     display: none;
   }
 }
+
+@media (max-width: 880px) {
+  .prod-toolbar {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .prod-view-toggle {
+    margin-left: 0;
+  }
+}

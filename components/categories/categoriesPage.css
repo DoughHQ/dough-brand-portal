@@ -20,6 +20,20 @@
   }
 }
 
+@media (max-width: 880px) {
+  .cat-page {
+    padding: 22px 18px 56px;
+  }
+  .cat-title {
+    font-size: 30px;
+  }
+  .cat-header {
+    gap: 16px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+}
+
 .cat-header {
   display: flex;
   align-items: flex-start;
@@ -544,7 +558,10 @@ a.cat-tile:hover .cat-tile-btn-outline {
     height: 140px;
   }
   .cat-title {
-    font-size: 34px;
+    font-size: 28px;
+  }
+  .cat-page {
+    padding: 20px 16px 48px;
   }
 }
 

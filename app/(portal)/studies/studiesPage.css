@@ -20,6 +20,20 @@
   }
 }
 
+@media (max-width: 880px) {
+  .studies-canvas {
+    padding: 22px 18px 48px;
+  }
+  .studies-title {
+    font-size: 30px;
+  }
+  .studies-header {
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+}
+
 .studies-header {
   display: flex;
   align-items: center;
@@ -477,6 +491,14 @@
 
   .studies-study-actions {
     justify-content: flex-end;
+  }
+
+  .studies-canvas {
+    padding: 20px 16px 44px;
+  }
+
+  .studies-title {
+    font-size: 28px;
   }
 }
 

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { DM_Serif_Display, DM_Sans, DM_Mono } from 'next/font/google'
 import './globals.css'
 
@@ -26,6 +26,11 @@ const dmMono = DM_Mono({
 export const metadata: Metadata = {
   title: 'Dough — Brand Intelligence',
   description: 'Real consumer preference data for your brand.',
+}
+
+export const viewport: Viewport = {
+  viewportFit: 'cover',
+  themeColor: '#243d2c',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
