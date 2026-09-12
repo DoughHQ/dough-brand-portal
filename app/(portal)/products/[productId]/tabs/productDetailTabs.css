@@ -8,6 +8,15 @@
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Soft edge so tab overflow reads as scrollable on phone */
+@media (max-width: 880px) {
+  .pm-tabs {
+    mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 28px), transparent 100%);
+    padding-right: 8px;
+  }
 }
 
 .pm-tab {
@@ -1437,3 +1446,38 @@
 .pm-facets-tab {
   width: 100%;
 }
+
+/* —— Compact product detail —— */
+@media (max-width: 880px) {
+  .pm-page {
+    padding: 16px 16px 72px !important;
+  }
+
+  .pm-hero {
+    grid-template-columns: 88px minmax(0, 1fr) !important;
+    gap: 14px !important;
+    padding: 16px !important;
+    margin-bottom: 16px !important;
+    align-items: start !important;
+  }
+
+  .pm-hero > div:first-child {
+    max-width: 88px !important;
+    border-radius: 10px !important;
+  }
+
+  .pm-product-title {
+    font-size: 26px !important;
+    line-height: 1.15 !important;
+  }
+
+  .pm-tabs {
+    margin-bottom: 18px;
+  }
+
+  .pm-tab {
+    min-height: 44px;
+    padding: 0 14px;
+  }
+}
+

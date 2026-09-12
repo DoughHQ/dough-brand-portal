@@ -8,7 +8,6 @@ import { ProductArt } from '@/components/products/ProductArt'
 import { fetchProductFacetSummaries } from '@/lib/facets/api'
 import {
   facetFooterParts,
-  formatFacetFooterLine,
   type FacetSummaryRow,
 } from '@/lib/facets/productFacets'
 import '@/components/categories/categoriesPage.css'
@@ -109,6 +108,56 @@ function FacetFooterLink({
         </span>
       </Link>
     </div>
+  )
+}
+
+function ProductThumb({
+  name,
+  imageUrl,
+  className = 'prod-list-thumb',
+}: {
+  name: string
+  imageUrl: string | null
+  className?: string
+}) {
+  return (
+    <div className={className} aria-hidden>
+      {imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={imageUrl} alt="" />
+      ) : (
+        <span style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--ink-30)' }}>
+          {(name[0] || '?').toUpperCase()}
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** Compact-only row — one real link, no display:contents, phone-sized hit target. */
+function PhoneProductRow({ product }: { product: PortfolioProduct }) {
+  const href = `/products/${product.product_id}`
+  const category = product.l3_name ?? product.l2_name
+  const meta = [
+    category,
+    product.has_battle_data
+      ? `${product.total_battles.toLocaleString()} battles`
+      : 'No signal yet',
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
+  return (
+    <Link href={href} className="prod-phone-row">
+      <ProductThumb name={product.product_name_clean} imageUrl={product.image_url} className="prod-phone-thumb" />
+      <span className="prod-phone-copy">
+        <span className="prod-phone-name">{product.product_name_clean}</span>
+        {meta ? <span className="prod-phone-meta">{meta}</span> : null}
+      </span>
+      <span className="prod-phone-chev" aria-hidden>
+        ›
+      </span>
+    </Link>
   )
 }
 
@@ -343,7 +392,7 @@ export default function ProductsClient({
         >
           With battle data
         </button>
-        <div className="prod-view-toggle" role="group" aria-label="View mode">
+        <div className="prod-view-toggle prod-view-toggle--desktop" role="group" aria-label="View mode">
           <button
             type="button"
             className={`prod-view-btn${viewMode === 'grid' ? ' prod-view-btn-on' : ''}`}
@@ -369,152 +418,117 @@ export default function ProductsClient({
         <div style={{ padding: '60px 0', fontSize: 14, color: 'var(--ink-30)' }}>Loading your products…</div>
       ) : null}
 
-      {!loadingPortfolio && viewMode === 'grid' ? (
-        filtered.length === 0 ? (
-          <div className="cat-browse-empty">
-            <div className="cat-browse-empty-title">
-              {search ? 'No products found' : 'No products in this portfolio yet.'}
-            </div>
-            {search ? (
-              <p className="cat-browse-empty-sub">Try another product name.</p>
-            ) : null}
+      {!loadingPortfolio && filtered.length === 0 ? (
+        <div className="cat-browse-empty">
+          <div className="cat-browse-empty-title">
+            {search ? 'No products found' : 'No products in this portfolio yet.'}
           </div>
-        ) : (
-          <div className="cat-tile-grid">
-            {filtered.map((product) => (
-              <ProductCard
-                key={product.product_id}
-                product={product}
-                summary={facetById[product.product_id]}
-              />
-            ))}
-          </div>
-        )
+          {search ? (
+            <p className="cat-browse-empty-sub">Try another product name.</p>
+          ) : null}
+        </div>
       ) : null}
 
-      {!loadingPortfolio && viewMode === 'list' ? (
-        filtered.length === 0 ? (
-          <div className="cat-browse-empty">
-            <div className="cat-browse-empty-title">
-              {search ? 'No products found' : 'No products in this portfolio yet.'}
-            </div>
+      {!loadingPortfolio && filtered.length > 0 ? (
+        <div className="prod-phone-list" aria-label="Products">
+          {filtered.map((product) => (
+            <PhoneProductRow key={product.product_id} product={product} />
+          ))}
+        </div>
+      ) : null}
+
+      {!loadingPortfolio && filtered.length > 0 && viewMode === 'grid' ? (
+        <div className="prod-desktop-views cat-tile-grid">
+          {filtered.map((product) => (
+            <ProductCard
+              key={product.product_id}
+              product={product}
+              summary={facetById[product.product_id]}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {!loadingPortfolio && filtered.length > 0 && viewMode === 'list' ? (
+        <div className="prod-desktop-views prod-list">
+          <div className="prod-list-head">
+            <span />
+            <span>Product</span>
+            <span className="prod-list-hide-narrow">Barcode</span>
+            <span className="prod-list-hide-narrow">Attributes</span>
+            <span style={{ textAlign: 'right' }}>Battles</span>
+            <span style={{ textAlign: 'right' }}> </span>
           </div>
-        ) : (
-          <div className="prod-list">
-            <div className="prod-list-head">
-              <span />
-              <span>Product</span>
-              <span className="prod-list-hide-narrow">Barcode</span>
-              <span className="prod-list-hide-narrow">Attributes</span>
-              <span style={{ textAlign: 'right' }}>Battles</span>
-              <span style={{ textAlign: 'right' }}> </span>
-            </div>
-            {filtered.map((product) => {
-              const isClaimed = claimedIdSet.has(product.product_id)
-              const summary = facetById[product.product_id]
-              const line = summary ? formatFacetFooterLine(summary) : null
-              const href = `/products/${product.product_id}`
-              return (
-                <div key={product.product_id} className="prod-list-row prod-list-row--split">
-                  <Link href={href} className="prod-list-row__main">
-                    <div className="prod-list-thumb">
-                      {product.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={product.image_url} alt="" />
-                      ) : (
-                        <span style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--ink-30)' }}>
-                          {(product.product_name_clean[0] || '?').toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 500,
-                          color: 'var(--ink)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {product.product_name_clean}
+          {filtered.map((product) => {
+            const isClaimed = claimedIdSet.has(product.product_id)
+            const summary = facetById[product.product_id]
+            const href = `/products/${product.product_id}`
+            return (
+              <div key={product.product_id} className="prod-list-row prod-list-row--split">
+                <Link href={href} className="prod-list-row__main">
+                  <ProductThumb name={product.product_name_clean} imageUrl={product.image_url} />
+                  <div className="prod-list-row__identity">
+                    <div className="prod-list-row__name">{product.product_name_clean}</div>
+                    {product.package_size_value ? (
+                      <div className="prod-list-row__sub">
+                        {product.package_size_value} {product.package_size_uom}
                       </div>
-                      {product.package_size_value ? (
-                        <div style={{ fontSize: 11, color: 'var(--ink-30)', marginTop: 1 }}>
-                          {product.package_size_value} {product.package_size_uom}
-                        </div>
-                      ) : null}
-                    </div>
-                    <div
-                      className="prod-list-hide-narrow"
-                      style={{
-                        fontSize: 11,
-                        color: 'var(--ink-30)',
-                        fontFamily: 'var(--font-mono, monospace)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
+                    ) : null}
+                  </div>
+                  <div className="prod-list-hide-narrow prod-list-row__barcode">
+                    {product.primary_barcode ?? '—'}
+                  </div>
+                </Link>
+                <div className="prod-list-hide-narrow" style={{ minWidth: 0 }}>
+                  {summary ? (
+                    <Link
+                      href={`/products/${product.product_id}?tab=facets`}
+                      className="pf-list-facet"
                     >
-                      {product.primary_barcode ?? '—'}
-                    </div>
-                  </Link>
-                  <div className="prod-list-hide-narrow" style={{ minWidth: 0 }}>
-                    {line && summary ? (
-                      <Link
-                        href={`/products/${product.product_id}?tab=facets`}
-                        className="pf-list-facet"
-                      >
-                        <span>
-                          {summary.derived_count} from Dough
-                          {summary.declared_count > 0 ? (
-                            <>
-                              {' · '}
-                              <span className="pf-list-facet__added">
-                                {summary.declared_count} added
-                              </span>
-                            </>
-                          ) : null}
-                          {' · '}
-                          {Math.max(0, summary.declarable_total - summary.declarable_filled)} to
-                          add
-                        </span>
-                        {summary.pending_count > 0 ? (
-                          <span className="pf-list-facet__pending">
-                            {summary.pending_count} pending
-                          </span>
+                      <span>
+                        {summary.derived_count} from Dough
+                        {summary.declared_count > 0 ? (
+                          <>
+                            {' · '}
+                            <span className="pf-list-facet__added">
+                              {summary.declared_count} added
+                            </span>
+                          </>
                         ) : null}
-                      </Link>
-                    ) : (
-                      <span style={{ fontSize: 12, color: 'var(--ink-30)' }}>—</span>
-                    )}
-                  </div>
-                  <Link
-                    href={href}
-                    style={{
-                      fontSize: 13,
-                      textAlign: 'right',
-                      color: product.total_battles > 0 ? 'var(--sage-dark)' : 'var(--ink-30)',
-                      fontVariantNumeric: 'tabular-nums',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    {product.total_battles > 0 ? n(product.total_battles) : '—'}
-                  </Link>
-                  <div style={{ textAlign: 'right' }}>
-                    <span
-                      className={`cat-chip ${isClaimed ? 'cat-chip-live' : 'cat-chip-empty'}`}
-                      style={{ justifySelf: 'end' }}
-                    >
-                      {isClaimed ? 'Active' : 'Not claimed'}
-                    </span>
-                  </div>
+                        {' · '}
+                        {Math.max(0, summary.declarable_total - summary.declarable_filled)} to add
+                      </span>
+                      {summary.pending_count > 0 ? (
+                        <span className="pf-list-facet__pending">
+                          {summary.pending_count} pending
+                        </span>
+                      ) : null}
+                    </Link>
+                  ) : (
+                    <span style={{ fontSize: 12, color: 'var(--ink-30)' }}>—</span>
+                  )}
                 </div>
-              )
-            })}
-          </div>
-        )
+                <Link
+                  href={href}
+                  className="prod-list-row__battles"
+                  style={{
+                    color: product.total_battles > 0 ? 'var(--sage-dark)' : 'var(--ink-30)',
+                  }}
+                >
+                  {product.total_battles > 0 ? n(product.total_battles) : '—'}
+                </Link>
+                <div style={{ textAlign: 'right' }}>
+                  <span
+                    className={`cat-chip ${isClaimed ? 'cat-chip-live' : 'cat-chip-empty'}`}
+                    style={{ justifySelf: 'end' }}
+                  >
+                    {isClaimed ? 'Active' : 'Not claimed'}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
       ) : null}
     </div>
   )

@@ -760,7 +760,7 @@ export default function ProductMasterClient({
   const compositionSplit = ingredientSkus.length > 0 && showDietaryCard
 
   return (
-    <div style={pageShell}>
+    <div className="pm-page" style={pageShell}>
       <Link
         href="/products"
         style={{
@@ -895,6 +895,7 @@ export default function ProductMasterClient({
 
       {/* Hero */}
       <div
+        className="pm-hero"
         style={{
           ...panel,
           display: 'grid',
@@ -1978,6 +1979,7 @@ function IdentityField({
         type="button"
         onClick={canEdit ? onStart : undefined}
         disabled={!canEdit}
+        className={large ? 'pm-product-title' : undefined}
         style={{
           ...(large ? productNameStyle : fieldValue),
           ...(!value && canEdit ? fieldEmpty : {}),
