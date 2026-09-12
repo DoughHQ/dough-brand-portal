@@ -46019,16 +46019,28 @@ export type Database = {
         Args: { p_item_id: number; p_user_id: number }
         Returns: undefined
       }
-      report_product_availability: {
-        Args: {
-          p_geo_region_id?: number
-          p_product_id: number
-          p_retail_location_id?: number
-          p_retailer_id: number
-          p_sku_variant_id?: number
-        }
-        Returns: number
-      }
+      report_product_availability:
+        | {
+            Args: {
+              p_geo_region_id?: number
+              p_product_id: number
+              p_retail_location_id?: number
+              p_retailer_id: number
+              p_sku_variant_id?: number
+            }
+            Returns: number
+          }
+        | {
+            Args: {
+              p_geo_region_id?: number
+              p_product_id: number
+              p_retail_location_id?: number
+              p_retailer_id: number
+              p_scanned_code?: string
+              p_sku_variant_id?: number
+            }
+            Returns: number
+          }
       resolve_availability_scope: {
         Args: {
           p_geo_region_id: number
@@ -46153,6 +46165,23 @@ export type Database = {
       revert_change_batch: {
         Args: { p_batch_id: string; p_reason: string }
         Returns: Json
+      }
+      review_availability_coordinate: {
+        Args: {
+          p_action: string
+          p_geo_region_id?: number
+          p_note?: string
+          p_product_id: number
+          p_retail_location_id?: number
+          p_retailer_id: number
+          p_scope_level: string
+          p_sku_variant_id?: number
+        }
+        Returns: {
+          declaration_id: number
+          reports_affected: number
+          resulting_state: string
+        }[]
       }
       review_availability_report: {
         Args: { p_action: string; p_note?: string; p_report_id: number }

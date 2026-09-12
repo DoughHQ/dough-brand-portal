@@ -18,7 +18,7 @@ import {
   fetchPendingReports,
   fetchRetailerRegions,
   fetchShoppableRetailers,
-  reviewReport,
+  reviewCoordinate,
   withdrawDeclaration,
   type Capability,
   type RegionOption,
@@ -27,10 +27,13 @@ import {
 import {
   actionsForState,
   claimLabel,
+  claimLabelLong,
   confirmLabel,
   formatCalendarDate,
   formatRelativeTimestamp,
+  shopperDatesLine,
   shopperLine,
+  shortVariantLabel,
 } from '@/lib/distribution/actions'
 import {
   coordFromRow,
@@ -39,10 +42,17 @@ import {
   type DistributionCoord,
 } from '@/lib/distribution/coords'
 import {
-  groupDistributionByBanner,
+  claimableSeedRows,
+  filterRowsByBannerQuery,
+  hasSiblingDoughSeed,
+  packConflict,
+  partitionDistribution,
   reportsForCoord,
+  seedPeekNames,
+  shouldShowBannerFilter,
   type AvailabilityReport,
   type DistributionRow,
+  type DistributionSection,
 } from '@/lib/distribution/grouping'
 import './whereItsSold.css'
 
@@ -55,16 +65,24 @@ type SkuOption = {
 
 type Props = {
   productId: number
+  productTitle?: string | null
   canEdit: boolean
   skus: SkuOption[]
 }
 
 type ModalKind =
   | null
-  | { kind: 'add'; prefill?: Partial<DistributionCoord> & { reportId?: number; note?: string } }
+  | {
+      kind: 'add'
+      prefill?: Partial<DistributionCoord> & {
+        afterCorrect?: boolean
+        note?: string
+      }
+    }
   | { kind: 'delist'; declarationId: number; coveredByNational: boolean }
-  | { kind: 'dispute'; reportId: number }
-  | { kind: 'nationwide-confirm'; pending: PendingDeclare }
+  | { kind: 'dispute'; coord: DistributionCoord; retailerName: string; scopeLabel: string }
+  | { kind: 'nationwide-confirm'; pending: PendingDeclare; returnToAdd?: boolean }
+  | { kind: 'claim-all'; seeds: DistributionRow[] }
 
 type PendingDeclare = {
   retailerId: number
@@ -72,7 +90,7 @@ type PendingDeclare = {
   geoRegionId: number | null
   skuVariantId: number | null
   notes?: string | null
-  afterCorrectReportId?: number
+  afterCorrectCoord?: DistributionCoord
   afterCorrectNote?: string
 }
 
@@ -192,7 +210,15 @@ function SearchCombobox<T extends { id: string; label: string }>({
   )
 }
 
-function EvidenceStack({ row }: { row: DistributionRow }) {
+function EvidenceStack({
+  row,
+  reportDates,
+  weakCorroboration,
+}: {
+  row: DistributionRow
+  reportDates: string[]
+  weakCorroboration: boolean
+}) {
   const items: { key: string; className: string; node: ReactNode }[] = []
 
   if (row.brand_status === 'active') {
@@ -236,10 +262,29 @@ function EvidenceStack({ row }: { row: DistributionRow }) {
     })
   }
   if (row.shopper_reports > 0) {
+    const dates = shopperDatesLine(reportDates)
     items.push({
       key: 'shoppers',
-      className: `wis-ev--shoppers${row.shopper_signal_stale ? ' wis-ev--stale' : ''}`,
-      node: shopperLine(row.shopper_reports, row.last_reported_on),
+      className: `wis-ev--shoppers${row.shopper_signal_stale ? ' wis-ev--stale' : ''}${
+        weakCorroboration ? ' wis-ev--weak' : ''
+      }`,
+      node: (
+        <>
+          {shopperLine(row.shopper_reports, row.last_reported_on)}
+          {dates ? (
+            <>
+              <br />
+              <span className="wis-ev-dates">{dates}</span>
+            </>
+          ) : null}
+          {weakCorroboration ? (
+            <>
+              <br />
+              <span className="wis-ev-hint">Dough also found this banner — thin shopper signal</span>
+            </>
+          ) : null}
+        </>
+      ),
     })
   }
 
@@ -255,7 +300,193 @@ function EvidenceStack({ row }: { row: DistributionRow }) {
   )
 }
 
-export default function WhereItsSoldSection({ productId, canEdit, skus }: Props) {
+function CoordCard({
+  row,
+  allRows,
+  reports,
+  productTitle,
+  canEdit,
+  busy,
+  focused,
+  compact,
+  onConfirm,
+  onCorrect,
+  onDispute,
+  onClaim,
+  onRedeclare,
+  onWithdraw,
+  onDelist,
+}: {
+  row: DistributionRow
+  allRows: DistributionRow[]
+  reports: AvailabilityReport[]
+  productTitle?: string | null
+  canEdit: boolean
+  busy: string | null
+  focused: boolean
+  compact?: boolean
+  onConfirm: (row: DistributionRow, pending: AvailabilityReport[]) => void
+  onCorrect: (row: DistributionRow) => void
+  onDispute: (row: DistributionRow) => void
+  onClaim: (row: DistributionRow) => void
+  onRedeclare: (row: DistributionRow) => void
+  onWithdraw: (row: DistributionRow) => void
+  onDelist: (row: DistributionRow) => void
+}) {
+  const coord = coordFromRow(row)
+  const key = serializeCoord(coord)
+  const pending = reportsForCoord(reports, row)
+  const actions = actionsForState(row.brand_status, row.awaiting_review)
+  const conflicts = packConflict(pending)
+  const contradicts = pending.some((r) => r.contradicts_delisting)
+  const weak =
+    row.awaiting_review > 0 &&
+    row.shopper_reports <= 1 &&
+    (row.dough_seeded || hasSiblingDoughSeed(allRows, row))
+  const variantShort = shortVariantLabel(row.variant_label, productTitle)
+  // Seed rows assert "all packs" by default — repeating it 19× is noise.
+  // Only show a pack label when it's a real / missing-data signal.
+  const isDefaultAllPacks =
+    variantShort === 'All pack sizes' && row.sku_variant_id == null
+  const showVariant = !isDefaultAllPacks
+
+  return (
+    <div
+      id={`coord-${key}`}
+      className={`wis-coord${focused ? ' wis-coord--flash' : ''}${compact ? ' wis-coord--compact' : ''}`}
+    >
+      <div className="wis-coord-top">
+        <span className="wis-banner-inline">
+          {row.retailer_name}
+          {row.parent_name ? (
+            <span className="wis-group-parent"> · {row.parent_name}</span>
+          ) : null}
+        </span>
+        <span className="wis-chip wis-chip--scope">{row.scope_label}</span>
+        {showVariant ? (
+          <span className="wis-variant" title={row.variant_label}>
+            {variantShort}
+          </span>
+        ) : null}
+      </div>
+
+      <EvidenceStack
+        row={row}
+        reportDates={pending.map((r) => r.report_date)}
+        weakCorroboration={weak}
+      />
+
+      {row.covered_by_national ? (
+        <p className="wis-warn">
+          Covered by a nationwide claim at this banner
+          {variantShort ? ` for ${variantShort}` : ''}.
+        </p>
+      ) : null}
+
+      {contradicts && row.brand_delisted_on ? (
+        <p className="wis-warn">
+          You marked this delisted on {formatCalendarDate(row.brand_delisted_on)}. Confirming will
+          list it as carried again.
+        </p>
+      ) : contradicts ? (
+        <p className="wis-warn">
+          Confirming will list it as carried again (contradicts your delisting).
+        </p>
+      ) : null}
+
+      {conflicts ? (
+        <p className="wis-warn">
+          Pending sightings name different pack sizes. Correct or Dispute each path — Confirm is
+          blocked until they agree.
+        </p>
+      ) : null}
+
+      {canEdit ? (
+        <div className="wis-actions">
+          {actions.includes('confirm') ? (
+            <button
+              type="button"
+              className="wis-btn wis-btn--primary"
+              disabled={busy != null || conflicts}
+              title={confirmLabel(contradicts, row.brand_delisted_on)}
+              onClick={() => onConfirm(row, pending)}
+            >
+              Confirm
+            </button>
+          ) : null}
+          {actions.includes('correct') ? (
+            <button
+              type="button"
+              className="wis-btn"
+              disabled={busy != null}
+              onClick={() => onCorrect(row)}
+            >
+              Correct
+            </button>
+          ) : null}
+          {actions.includes('dispute') ? (
+            <button
+              type="button"
+              className="wis-btn"
+              disabled={busy != null}
+              onClick={() => onDispute(row)}
+            >
+              Dispute
+            </button>
+          ) : null}
+          {actions.includes('claim') ? (
+            <button
+              type="button"
+              className="wis-btn"
+              disabled={busy != null}
+              title={claimLabelLong()}
+              onClick={() => onClaim(row)}
+            >
+              {claimLabel()}
+            </button>
+          ) : null}
+          {actions.includes('redeclare') ? (
+            <button
+              type="button"
+              className="wis-btn"
+              disabled={busy != null}
+              onClick={() => onRedeclare(row)}
+            >
+              Re-declare
+            </button>
+          ) : null}
+          {actions.includes('withdraw') && row.declaration_id != null ? (
+            <button
+              type="button"
+              className="wis-btn wis-btn--quiet"
+              disabled={busy != null}
+              onClick={() => onWithdraw(row)}
+            >
+              Withdraw
+            </button>
+          ) : null}
+          {actions.includes('delist') && row.declaration_id != null ? (
+            <button
+              type="button"
+              className="wis-btn wis-btn--danger"
+              disabled={busy != null}
+              onClick={() => onDelist(row)}
+            >
+              Mark delisted
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+export default function WhereItsSoldSection({
+  productId,
+  productTitle,
+  canEdit,
+  skus,
+}: Props) {
   const searchParams = useSearchParams()
   const focusCoord = useMemo(() => parseCoord(searchParams.get('coord')), [searchParams])
 
@@ -267,6 +498,8 @@ export default function WhereItsSoldSection({ productId, canEdit, skus }: Props)
   const [busy, setBusy] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [modal, setModal] = useState<ModalKind>(null)
+  const [bannerQuery, setBannerQuery] = useState('')
+  const [seedsOpen, setSeedsOpen] = useState(false)
 
   const multiVariant = skus.length > 1
 
@@ -307,11 +540,33 @@ export default function WhereItsSoldSection({ productId, canEdit, skus }: Props)
 
   useEffect(() => {
     if (!focusCoord || loading) return
-    const el = document.getElementById(`coord-${serializeCoord(focusCoord)}`)
-    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const inSeeds = rows.some(
+      (r) =>
+        serializeCoord(coordFromRow(r)) === serializeCoord(focusCoord) &&
+        !r.needs_attention &&
+        r.brand_status == null,
+    )
+    if (inSeeds) setSeedsOpen(true)
+    const t = window.setTimeout(() => {
+      const el = document.getElementById(`coord-${serializeCoord(focusCoord)}`)
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 80)
+    return () => window.clearTimeout(t)
   }, [focusCoord, loading, rows])
 
-  const groups = useMemo(() => groupDistributionByBanner(rows), [rows])
+  const filteredRows = useMemo(
+    () => filterRowsByBannerQuery(rows, bannerQuery),
+    [rows, bannerQuery],
+  )
+  const sections = useMemo(() => partitionDistribution(filteredRows), [filteredRows])
+  const seedSection = sections.find((s) => s.id === 'dough_seeds')
+  const claimable = useMemo(
+    () => claimableSeedRows(seedSection?.rows ?? []),
+    [seedSection],
+  )
+  const seedPeek = useMemo(() => seedPeekNames(seedSection?.rows ?? []), [seedSection])
+  const showFilter = shouldShowBannerFilter(rows.length)
+  const needsCount = sections.find((s) => s.id === 'needs_review')?.rows.length ?? 0
 
   async function afterWrite(message: string) {
     setToast(message)
@@ -336,16 +591,22 @@ export default function WhereItsSoldSection({ productId, canEdit, skus }: Props)
       setBusy(null)
       return
     }
-    if (pending.afterCorrectReportId != null) {
+    if (pending.afterCorrectCoord) {
       const note = (pending.afterCorrectNote ?? '').trim()
       if (!note) {
         setError('Add a short note explaining the correction.')
         setBusy(null)
         return
       }
-      const rev = await reviewReport(supabase, {
-        reportId: pending.afterCorrectReportId,
+      const c = pending.afterCorrectCoord
+      const rev = await reviewCoordinate(supabase, {
+        productId,
+        retailerId: c.retailer_id,
+        scopeLevel: c.scope_level,
         action: 'correct',
+        geoRegionId: c.geo_region_id,
+        retailLocationId: c.retail_location_id,
+        skuVariantId: c.sku_variant_id,
         note,
       })
       if (rev.error) {
@@ -355,26 +616,38 @@ export default function WhereItsSoldSection({ productId, canEdit, skus }: Props)
       }
     }
     setBusy(null)
-    await afterWrite('You updated distribution just now.')
+    await afterWrite(
+      pending.afterCorrectCoord
+        ? 'Correction saved — original sightings stay on file as contested.'
+        : 'You updated distribution just now.',
+    )
   }
 
-  async function onConfirmReport(report: AvailabilityReport, row: DistributionRow) {
-    setBusy(`confirm-${report.report_id}`)
+  async function onConfirmCoord(row: DistributionRow, pending: AvailabilityReport[]) {
+    if (packConflict(pending)) return
+    setBusy(`confirm-${serializeCoord(coordFromRow(row))}`)
     setError(null)
     const supabase = createClient()
-    const res = await reviewReport(supabase, {
-      reportId: report.report_id,
+    const res = await reviewCoordinate(supabase, {
+      productId,
+      retailerId: row.retailer_id,
+      scopeLevel: row.scope_level,
       action: 'confirm',
+      geoRegionId: row.geo_region_id,
+      retailLocationId: row.retail_location_id,
+      skuVariantId: row.sku_variant_id,
     })
     setBusy(null)
     if (res.error) {
       setError(res.error)
       return
     }
-    const contradicted = report.contradicts_delisting
-      ? ` (was delisted${row.brand_delisted_on ? ` as of ${formatCalendarDate(row.brand_delisted_on)}` : ''})`
-      : ''
-    await afterWrite(`Confirmed shopper report${contradicted}.`)
+    const n = res.result?.reportsAffected ?? pending.length
+    await afterWrite(
+      n === 1
+        ? `Confirmed — added ${row.retailer_name} · ${row.scope_label} to your distribution.`
+        : `Confirmed ${n} shopper reports — added ${row.retailer_name} · ${row.scope_label}.`,
+    )
   }
 
   async function onWithdraw(row: DistributionRow) {
@@ -392,10 +665,23 @@ export default function WhereItsSoldSection({ productId, canEdit, skus }: Props)
   }
 
   async function onClaim(row: DistributionRow) {
+    if (row.scope_level === 'national') {
+      setModal({
+        kind: 'nationwide-confirm',
+        returnToAdd: false,
+        pending: {
+          retailerId: row.retailer_id,
+          scopeLevel: 'national',
+          geoRegionId: null,
+          skuVariantId: row.sku_variant_id,
+        },
+      })
+      return
+    }
     setBusy(`claim-${serializeCoord(coordFromRow(row))}`)
     await runDeclare({
       retailerId: row.retailer_id,
-      scopeLevel: row.scope_level === 'national' ? 'national' : 'region',
+      scopeLevel: 'region',
       geoRegionId: row.geo_region_id,
       skuVariantId: row.sku_variant_id,
     })
@@ -411,8 +697,73 @@ export default function WhereItsSoldSection({ productId, canEdit, skus }: Props)
     })
   }
 
+  async function onClaimAll(seeds: DistributionRow[]) {
+    setBusy('claim-all')
+    setError(null)
+    const supabase = createClient()
+    let ok = 0
+    const failures: string[] = []
+    for (const row of seeds) {
+      const res = await declareAvailability(supabase, {
+        productId,
+        retailerId: row.retailer_id,
+        scopeLevel: row.scope_level === 'national' ? 'national' : 'region',
+        geoRegionId: row.geo_region_id,
+        skuVariantId: row.sku_variant_id,
+      })
+      if (res.error) {
+        failures.push(`${row.retailer_name}: ${res.error}`)
+      } else {
+        ok += 1
+      }
+    }
+    setBusy(null)
+    setModal(null)
+    if (failures.length === 0) {
+      await afterWrite(`Claimed ${ok} place${ok === 1 ? '' : 's'} — added to your distribution.`)
+      return
+    }
+    setToast(`Claimed ${ok} of ${seeds.length}. ${failures.length} failed.`)
+    setError(failures.slice(0, 3).join(' · '))
+    await load()
+  }
+
   const allowed = capability?.allowed === true
   const refused = capability != null && !capability.allowed
+
+  const cardHandlers = {
+    onConfirm: onConfirmCoord,
+    onCorrect: (row: DistributionRow) =>
+      setModal({
+        kind: 'add',
+        prefill: {
+          retailer_id: row.retailer_id,
+          scope_level: row.scope_level,
+          geo_region_id: row.geo_region_id,
+          retail_location_id: row.retail_location_id,
+          sku_variant_id: row.sku_variant_id,
+          afterCorrect: true,
+        },
+      }),
+    onDispute: (row: DistributionRow) =>
+      setModal({
+        kind: 'dispute',
+        coord: coordFromRow(row),
+        retailerName: row.retailer_name,
+        scopeLabel: row.scope_label,
+      }),
+    onClaim,
+    onRedeclare,
+    onWithdraw,
+    onDelist: (row: DistributionRow) => {
+      if (row.declaration_id == null) return
+      setModal({
+        kind: 'delist',
+        declarationId: row.declaration_id,
+        coveredByNational: row.covered_by_national,
+      })
+    },
+  }
 
   return (
     <div className="pm-overview-card pm-overview-compete wis-section" id="where-its-sold">
@@ -420,12 +771,14 @@ export default function WhereItsSoldSection({ productId, canEdit, skus }: Props)
         <div>
           <h2 className="pm-overview-heading" style={{ marginBottom: 4 }}>
             Where it&apos;s sold
+            {!loading && !refused && needsCount > 0 ? (
+              <span className="wis-heading-count"> · {needsCount} need review</span>
+            ) : null}
           </h2>
           {!refused ? (
             <>
               <p className="wis-lede">
-                Distribution you and Dough know about — authorised to be carried, not whether it is
-                on the shelf right now.
+                Authorised to be carried — not whether it is on the shelf right now.
               </p>
               <p className="wis-coming">
                 We use this to show shoppers where to find your product. That surface is coming
@@ -473,171 +826,79 @@ export default function WhereItsSoldSection({ productId, canEdit, skus }: Props)
           ) : null}
         </div>
       ) : (
-        <div className="wis-groups">
-          {groups.map((g) => (
-            <section key={g.retailer_id} className="wis-group">
-              <div className="wis-group-head">
-                <span className="wis-group-name">{g.retailer_name}</span>
-                {g.parent_name ? (
-                  <span className="wis-group-parent">· {g.parent_name}</span>
-                ) : null}
-                {g.needsAttention ? (
-                  <span className="wis-chip wis-chip--attention">Needs your review</span>
-                ) : null}
-              </div>
-              {g.rows.map((row) => {
-                const coord = coordFromRow(row)
-                const key = serializeCoord(coord)
-                const pending = reportsForCoord(reports, row)
-                const actions = actionsForState(row.brand_status, row.awaiting_review)
-                const focused =
-                  focusCoord != null &&
-                  serializeCoord(focusCoord) === key
+        <>
+          {showFilter ? (
+            <div className="wis-filter">
+              <input
+                type="search"
+                placeholder="Filter by banner or region…"
+                value={bannerQuery}
+                onChange={(e) => setBannerQuery(e.target.value)}
+                aria-label="Filter distribution by banner"
+              />
+            </div>
+          ) : null}
 
+          <div className="wis-sections">
+            {sections.map((section) => {
+              if (section.rows.length === 0) return null
+              if (section.id === 'dough_seeds') {
                 return (
-                  <div
-                    key={key}
-                    id={`coord-${key}`}
-                    className={`wis-coord${focused ? ' wis-coord--flash' : ''}`}
-                  >
-                    <div className="wis-coord-top">
-                      <span className="wis-chip wis-chip--scope">{row.scope_label}</span>
-                      <span className="wis-variant">{row.variant_label}</span>
-                      {row.awaiting_review > 0 ? (
-                        <span className="wis-chip wis-chip--attention">Needs your review</span>
-                      ) : null}
-                    </div>
-
-                    <EvidenceStack row={row} />
-
-                    {row.covered_by_national ? (
-                      <p className="wis-warn">
-                        Covered by a nationwide claim at this banner
-                        {row.variant_label ? ` for ${row.variant_label}` : ''}.
-                      </p>
-                    ) : null}
-
-                    {canEdit ? (
-                      <div className="wis-actions">
-                        {actions.includes('claim') ? (
-                          <button
-                            type="button"
-                            className="wis-btn wis-btn--primary"
-                            disabled={busy != null}
-                            onClick={() => void onClaim(row)}
-                          >
-                            {claimLabel()}
-                          </button>
-                        ) : null}
-                        {actions.includes('redeclare') ? (
-                          <button
-                            type="button"
-                            className="wis-btn wis-btn--primary"
-                            disabled={busy != null}
-                            onClick={() => void onRedeclare(row)}
-                          >
-                            Re-declare
-                          </button>
-                        ) : null}
-                        {actions.includes('withdraw') && row.declaration_id != null ? (
-                          <button
-                            type="button"
-                            className="wis-btn"
-                            disabled={busy != null}
-                            onClick={() => void onWithdraw(row)}
-                          >
-                            Withdraw
-                          </button>
-                        ) : null}
-                        {actions.includes('delist') && row.declaration_id != null ? (
-                          <button
-                            type="button"
-                            className="wis-btn wis-btn--danger"
-                            disabled={busy != null}
-                            onClick={() =>
-                              setModal({
-                                kind: 'delist',
-                                declarationId: row.declaration_id!,
-                                coveredByNational: row.covered_by_national,
-                              })
-                            }
-                          >
-                            Mark delisted
-                          </button>
-                        ) : null}
-                      </div>
-                    ) : null}
-
-                    {canEdit && pending.length > 0 ? (
-                      <div className="wis-reports">
-                        {pending.map((report) => (
-                          <div key={report.report_id} className="wis-report">
-                            <div className="wis-report-meta">
-                              Shopper report · {formatCalendarDate(report.report_date)}
-                              {report.contradicts_delisting ? (
-                                <>
-                                  <br />
-                                  <span className="wis-warn" style={{ margin: 0 }}>
-                                    {row.brand_delisted_on
-                                      ? `You marked this delisted on ${formatCalendarDate(row.brand_delisted_on)}. Confirming will list it as carried again.`
-                                      : 'Confirming will list it as carried again (contradicts your delisting).'}
-                                  </span>
-                                </>
-                              ) : null}
-                            </div>
-                            <div className="wis-report-actions">
-                              <button
-                                type="button"
-                                className="wis-btn wis-btn--primary"
-                                disabled={busy != null}
-                                title={confirmLabel(
-                                  report.contradicts_delisting,
-                                  row.brand_delisted_on,
-                                )}
-                                onClick={() => void onConfirmReport(report, row)}
-                              >
-                                Confirm
-                              </button>
-                              <button
-                                type="button"
-                                className="wis-btn"
-                                disabled={busy != null}
-                                onClick={() =>
-                                  setModal({
-                                    kind: 'add',
-                                    prefill: {
-                                      retailer_id: report.retailer_id,
-                                      scope_level: report.scope_level,
-                                      geo_region_id: report.geo_region_id,
-                                      sku_variant_id: report.sku_variant_id,
-                                      reportId: report.report_id,
-                                    },
-                                  })
-                                }
-                              >
-                                Correct
-                              </button>
-                              <button
-                                type="button"
-                                className="wis-btn"
-                                disabled={busy != null}
-                                onClick={() =>
-                                  setModal({ kind: 'dispute', reportId: report.report_id })
-                                }
-                              >
-                                Dispute
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
+                  <SeedSection
+                    key={section.id}
+                    section={section}
+                    peek={seedPeek}
+                    open={seedsOpen}
+                    onToggle={() => setSeedsOpen((v) => !v)}
+                    claimable={claimable}
+                    canEdit={canEdit}
+                    busy={busy}
+                    allRows={rows}
+                    reports={reports}
+                    productTitle={productTitle}
+                    focusCoord={focusCoord}
+                    onClaimAll={() => setModal({ kind: 'claim-all', seeds: claimable })}
+                    {...cardHandlers}
+                  />
                 )
-              })}
-            </section>
-          ))}
-        </div>
+              }
+              return (
+                <section
+                  key={section.id}
+                  className={`wis-bucket wis-bucket--${section.id}`}
+                  aria-labelledby={`wis-${section.id}`}
+                >
+                  <div className="wis-bucket-head">
+                    <h3 id={`wis-${section.id}`} className="wis-bucket-title">
+                      {section.title}
+                      <span className="wis-bucket-count">{section.rows.length}</span>
+                    </h3>
+                  </div>
+                  <div className="wis-bucket-body">
+                    {section.rows.map((row) => {
+                      const key = serializeCoord(coordFromRow(row))
+                      const focused =
+                        focusCoord != null && serializeCoord(focusCoord) === key
+                      return (
+                        <CoordCard
+                          key={key}
+                          row={row}
+                          allRows={rows}
+                          reports={reports}
+                          productTitle={productTitle}
+                          canEdit={canEdit}
+                          busy={busy}
+                          focused={focused}
+                          {...cardHandlers}
+                        />
+                      )
+                    })}
+                  </div>
+                </section>
+              )
+            })}
+          </div>
+        </>
       )}
 
       {modal?.kind === 'add' ? (
@@ -651,7 +912,7 @@ export default function WhereItsSoldSection({ productId, canEdit, skus }: Props)
           onClose={() => setModal(null)}
           onSubmit={(pending) => {
             if (pending.scopeLevel === 'national') {
-              setModal({ kind: 'nationwide-confirm', pending })
+              setModal({ kind: 'nationwide-confirm', pending, returnToAdd: true })
               return
             }
             void runDeclare(pending)
@@ -663,8 +924,19 @@ export default function WhereItsSoldSection({ productId, canEdit, skus }: Props)
         <NationwideConfirmModal
           pending={modal.pending}
           busy={busy != null}
-          onCancel={() => setModal({ kind: 'add', prefill: undefined })}
+          onCancel={() =>
+            setModal(modal.returnToAdd ? { kind: 'add', prefill: undefined } : null)
+          }
           onConfirm={() => void runDeclare(modal.pending)}
+        />
+      ) : null}
+
+      {modal?.kind === 'claim-all' ? (
+        <ClaimAllModal
+          seeds={modal.seeds}
+          busy={busy != null}
+          onClose={() => setModal(null)}
+          onConfirm={() => void onClaimAll(modal.seeds)}
         />
       ) : null}
 
@@ -690,15 +962,22 @@ export default function WhereItsSoldSection({ productId, canEdit, skus }: Props)
 
       {modal?.kind === 'dispute' ? (
         <DisputeModal
+          place={`${modal.retailerName} · ${modal.scopeLabel}`}
           busy={busy != null}
           onClose={() => setModal(null)}
           onSubmit={async (note) => {
-            setBusy(`dispute-${modal.reportId}`)
+            setBusy(`dispute-${serializeCoord(modal.coord)}`)
             setError(null)
             const supabase = createClient()
-            const res = await reviewReport(supabase, {
-              reportId: modal.reportId,
+            const c = modal.coord
+            const res = await reviewCoordinate(supabase, {
+              productId,
+              retailerId: c.retailer_id,
+              scopeLevel: c.scope_level,
               action: 'dispute',
+              geoRegionId: c.geo_region_id,
+              retailLocationId: c.retail_location_id,
+              skuVariantId: c.sku_variant_id,
               note,
             })
             setBusy(null)
@@ -706,11 +985,132 @@ export default function WhereItsSoldSection({ productId, canEdit, skus }: Props)
               setError(res.error)
               return
             }
-            await afterWrite('Disputed — escalated to Dough. The shopper report stays visible.')
+            const n = res.result?.reportsAffected ?? 0
+            await afterWrite(
+              n > 1
+                ? `Disputed ${n} reports — escalated to Dough. Sightings stay visible.`
+                : 'Disputed — escalated to Dough. The shopper report stays visible.',
+            )
           }}
         />
       ) : null}
     </div>
+  )
+}
+
+function SeedSection({
+  section,
+  peek,
+  open,
+  onToggle,
+  claimable,
+  canEdit,
+  busy,
+  allRows,
+  reports,
+  productTitle,
+  focusCoord,
+  onClaimAll,
+  ...handlers
+}: {
+  section: DistributionSection
+  peek: { names: string[]; remaining: number }
+  open: boolean
+  onToggle: () => void
+  claimable: DistributionRow[]
+  canEdit: boolean
+  busy: string | null
+  allRows: DistributionRow[]
+  reports: AvailabilityReport[]
+  productTitle?: string | null
+  focusCoord: DistributionCoord | null
+  onClaimAll: () => void
+  onConfirm: (row: DistributionRow, pending: AvailabilityReport[]) => void
+  onCorrect: (row: DistributionRow) => void
+  onDispute: (row: DistributionRow) => void
+  onClaim: (row: DistributionRow) => void
+  onRedeclare: (row: DistributionRow) => void
+  onWithdraw: (row: DistributionRow) => void
+  onDelist: (row: DistributionRow) => void
+}) {
+  const n = section.rows.length
+  const peekText =
+    peek.names.length === 0
+      ? null
+      : peek.remaining > 0
+        ? `${peek.names.join(', ')} and ${peek.remaining} more`
+        : peek.names.join(', ')
+
+  return (
+    <section
+      className={`wis-bucket wis-bucket--dough_seeds${open ? ' is-open' : ''}`}
+      aria-labelledby="wis-dough_seeds"
+    >
+      <div className="wis-seed-header">
+        <button
+          type="button"
+          className="wis-seed-expand"
+          id="wis-dough_seeds"
+          aria-expanded={open}
+          onClick={onToggle}
+        >
+          <span className="wis-seed-chevron" aria-hidden>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path
+                d={open ? 'M4.5 7.5L9 12L13.5 7.5' : 'M7.5 4.5L12 9L7.5 13.5'}
+                stroke="currentColor"
+                strokeWidth="2.25"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <span className="wis-seed-expand__copy">
+            <span className="wis-bucket-title">
+              Dough found this at {n} more retailer{n === 1 ? '' : 's'}
+            </span>
+            {!open && peekText ? (
+              <span className="wis-seed-peek">{peekText}</span>
+            ) : null}
+            <span className="wis-seed-expand__hint">
+              {open ? 'Hide list' : 'Review each retailer'}
+            </span>
+          </span>
+        </button>
+        {canEdit && claimable.length > 0 ? (
+          <button
+            type="button"
+            className="wis-btn wis-btn--quiet wis-claim-all"
+            disabled={busy != null}
+            onClick={onClaimAll}
+          >
+            Claim all ({claimable.length})
+          </button>
+        ) : null}
+      </div>
+      {open ? (
+        <div className="wis-bucket-body">
+          {section.rows.map((row) => {
+            const key = serializeCoord(coordFromRow(row))
+            const focused = focusCoord != null && serializeCoord(focusCoord) === key
+            return (
+              <CoordCard
+                key={key}
+                row={row}
+                allRows={allRows}
+                reports={reports}
+                productTitle={productTitle}
+                canEdit={canEdit}
+                busy={busy}
+                focused={focused}
+                compact
+                {...handlers}
+              />
+            )
+          })}
+        </div>
+      ) : null}
+    </section>
   )
 }
 
@@ -726,7 +1126,7 @@ function AddPlaceModal({
   productId: number
   multiVariant: boolean
   skus: SkuOption[]
-  prefill?: Partial<DistributionCoord> & { reportId?: number; note?: string }
+  prefill?: Partial<DistributionCoord> & { afterCorrect?: boolean; note?: string }
   rows: DistributionRow[]
   busy: boolean
   onClose: () => void
@@ -748,7 +1148,7 @@ function AddPlaceModal({
         : 'all',
   )
   const [correctNote, setCorrectNote] = useState('')
-  const isCorrect = prefill?.reportId != null
+  const isCorrect = Boolean(prefill?.afterCorrect)
 
   useEffect(() => {
     void (async () => {
@@ -787,9 +1187,7 @@ function AddPlaceModal({
   const coveredWarning = useMemo(() => {
     if (retailerId == null || scope !== 'region' || geoRegionId == null) return null
     const skuId =
-      variantChoice === 'all' || variantChoice === ''
-        ? null
-        : Number(variantChoice)
+      variantChoice === 'all' || variantChoice === '' ? null : Number(variantChoice)
     const hit = rows.find(
       (r) =>
         r.retailer_id === retailerId &&
@@ -837,7 +1235,15 @@ function AddPlaceModal({
       scopeLevel: scope,
       geoRegionId: scope === 'region' ? geoRegionId : null,
       skuVariantId,
-      afterCorrectReportId: prefill?.reportId,
+      afterCorrectCoord: isCorrect
+        ? {
+            retailer_id: prefill!.retailer_id!,
+            scope_level: prefill!.scope_level!,
+            geo_region_id: prefill!.geo_region_id ?? null,
+            retail_location_id: prefill!.retail_location_id ?? null,
+            sku_variant_id: prefill!.sku_variant_id ?? null,
+          }
+        : undefined,
       afterCorrectNote: isCorrect ? correctNote.trim() : undefined,
     })
   }
@@ -848,7 +1254,7 @@ function AddPlaceModal({
         <h3>{isCorrect ? 'Correct this place' : 'Add a place'}</h3>
         <p className="wis-modal-sub">
           {isCorrect
-            ? 'Declare the right distribution first. We only mark the shopper report as corrected after that succeeds.'
+            ? 'Declare the right distribution first. We only mark the shopper reports as corrected after that succeeds.'
             : 'Tell us where this product is authorised to be carried.'}
         </p>
         {loadError ? <div className="wis-error">{loadError}</div> : null}
@@ -995,6 +1401,48 @@ function NationwideConfirmModal({
   )
 }
 
+function ClaimAllModal({
+  seeds,
+  busy,
+  onClose,
+  onConfirm,
+}: {
+  seeds: DistributionRow[]
+  busy: boolean
+  onClose: () => void
+  onConfirm: () => void
+}) {
+  const national = seeds.filter((s) => s.scope_level === 'national').length
+  const peek = seedPeekNames(seeds, 5)
+  return (
+    <div className="wis-modal-backdrop" role="dialog" aria-modal="true">
+      <div className="wis-modal">
+        <h3>Claim all {seeds.length} places?</h3>
+        <p className="wis-modal-sub">
+          {peek.names.join(', ')}
+          {peek.remaining > 0 ? ` and ${peek.remaining} more` : ''}.
+          {national > 0
+            ? ` ${national} of these are nationwide — shoppers anywhere will see those banners.`
+            : ''}
+        </p>
+        <div className="wis-modal-actions">
+          <button type="button" className="wis-btn wis-btn--quiet" onClick={onClose} disabled={busy}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="wis-btn wis-btn--primary"
+            onClick={onConfirm}
+            disabled={busy}
+          >
+            Claim all
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function DelistModal({
   coveredByNational,
   busy,
@@ -1050,10 +1498,12 @@ function DelistModal({
 }
 
 function DisputeModal({
+  place,
   busy,
   onClose,
   onSubmit,
 }: {
+  place: string
   busy: boolean
   onClose: () => void
   onSubmit: (note: string) => void
@@ -1062,9 +1512,10 @@ function DisputeModal({
   return (
     <div className="wis-modal-backdrop" role="dialog" aria-modal="true">
       <div className="wis-modal">
-        <h3>Dispute this report</h3>
+        <h3>Dispute {place}</h3>
         <p className="wis-modal-sub">
-          The shopper report stays on file and visible. Nothing is deleted — Dough will review.
+          Every pending shopper report at this place stays on file and visible. Nothing is deleted
+          — Dough will review.
         </p>
         <div className="wis-field">
           <label>Why are you disputing?</label>

@@ -57,7 +57,7 @@ function normalizeReport(raw: Record<string, unknown>): AvailabilityReport {
     retail_location_id: nullNum(raw.retail_location_id as number | null),
     scope_label: String(raw.scope_label ?? ''),
     sku_variant_id: nullNum(raw.sku_variant_id as number | null),
-    variant_label: String(raw.variant_label ?? 'All pack sizes'),
+    variant_label: String(raw.variant_label ?? 'Pack size not recorded'),
     report_date: String(raw.report_date ?? ''),
     review_state: String(raw.review_state ?? ''),
     contradicts_delisting: Boolean(raw.contradicts_delisting),
@@ -224,15 +224,53 @@ export async function delistDeclaration(
   return { ok: true, error: null }
 }
 
-export async function reviewReport(
+export type CoordinateReviewResult = {
+  reportsAffected: number
+  resultingState: string | null
+  declarationId: number | null
+}
+
+/** Brand-facing review — one decision for every pending report at a coordinate. */
+export async function reviewCoordinate(
   supabase: Client,
-  args: { reportId: number; action: 'confirm' | 'correct' | 'dispute'; note?: string | null },
-): Promise<{ state: string | null; error: string | null }> {
-  const { data, error } = await supabase.rpc('review_availability_report', {
-    p_report_id: args.reportId,
+  args: {
+    productId: number
+    retailerId: number
+    scopeLevel: string
+    action: 'confirm' | 'correct' | 'dispute'
+    geoRegionId?: number | null
+    retailLocationId?: number | null
+    skuVariantId?: number | null
+    note?: string | null
+  },
+): Promise<{ result: CoordinateReviewResult | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('review_availability_coordinate', {
+    p_product_id: args.productId,
+    p_retailer_id: args.retailerId,
+    p_scope_level: args.scopeLevel,
     p_action: args.action,
+    p_geo_region_id: args.geoRegionId ?? undefined,
+    p_retail_location_id: args.retailLocationId ?? undefined,
+    p_sku_variant_id: args.skuVariantId ?? undefined,
     p_note: args.note ?? undefined,
   })
-  if (error) return { state: null, error: messageFromDistributionError(error) }
-  return { state: data == null ? null : String(data), error: null }
+  if (error) return { result: null, error: messageFromDistributionError(error) }
+  const row = (Array.isArray(data) ? data[0] : data) as
+    | {
+        reports_affected?: number
+        resulting_state?: string | null
+        declaration_id?: number | null
+      }
+    | undefined
+  return {
+    result: {
+      reportsAffected: Number(row?.reports_affected ?? 0) || 0,
+      resultingState: row?.resulting_state == null ? null : String(row.resulting_state),
+      declarationId:
+        row?.declaration_id == null || !Number.isFinite(Number(row.declaration_id))
+          ? null
+          : Number(row.declaration_id),
+    },
+    error: null,
+  }
 }

@@ -1225,6 +1225,7 @@ export default function ProductMasterClient({
 
           <WhereItsSoldSection
             productId={product.product_id}
+            productTitle={product.product_name_display}
             canEdit={canEdit}
             skus={master.skus.map((s) => ({
               sku_variant_id: s.sku_variant_id,

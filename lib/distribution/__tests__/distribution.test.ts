@@ -7,14 +7,28 @@ import { parseCoord, serializeCoord, coordsEqual } from '@/lib/distribution/coor
 import {
   actionsForState,
   claimLabel,
+  claimLabelLong,
   confirmLabel,
   shopperLine,
+  shopperDatesLine,
+  shortVariantLabel,
   formatCalendarDate,
 } from '@/lib/distribution/actions'
-import { groupDistributionByBanner, reportsForCoord } from '@/lib/distribution/grouping'
+import {
+  claimableSeedRows,
+  groupDistributionByBanner,
+  hasSiblingDoughSeed,
+  packConflict,
+  partitionDistribution,
+  reportsForCoord,
+  seedPeekNames,
+  shouldShowBannerFilter,
+} from '@/lib/distribution/grouping'
 import type { AvailabilityReport, DistributionRow } from '@/lib/distribution/grouping'
 
-function row(partial: Partial<DistributionRow> & Pick<DistributionRow, 'retailer_id' | 'retailer_name'>): DistributionRow {
+function row(
+  partial: Partial<DistributionRow> & Pick<DistributionRow, 'retailer_id' | 'retailer_name'>,
+): DistributionRow {
   return {
     parent_name: null,
     retailer_type: 'grocery',
@@ -48,6 +62,7 @@ describe('distribution errors', () => {
       messageFromDistributionError({ hint: 'PRODUCT_BRAND_ATTRIBUTION_UNRESOLVED' }),
     ).toMatch(/confirm who owns/i)
     expect(messageFromDistributionError({ hint: 'REVIEW_NEEDS_REASON' })).toMatch(/short note/i)
+    expect(messageFromDistributionError({ hint: 'NO_PENDING_REPORTS' })).toMatch(/waiting/i)
     expect(messageFromCapabilityReason('NOT_A_BRAND_PORTAL_USER')).toMatch(/linked to a brand/i)
   })
 
@@ -64,9 +79,12 @@ describe('distribution errors', () => {
     const blob = Object.values({
       a: messageFromDistributionError({ hint: 'CROSS_TENANT_ACCESS_DENIED' }),
       b: claimLabel(),
-      c: confirmLabel(false, null),
-    }).join(' ')
-    expect(blob.toLowerCase()).not.toContain('verified')
+      c: claimLabelLong(),
+      d: confirmLabel(false, null),
+    })
+      .join(' ')
+      .toLowerCase()
+    expect(blob).not.toContain('verified')
   })
 })
 
@@ -100,7 +118,8 @@ describe('coords', () => {
 describe('actions matrix', () => {
   it('uses claim not confirm for seed-only rows', () => {
     expect(actionsForState(null, 0)).toEqual(['claim'])
-    expect(claimLabel()).toMatch(/Add this to your distribution/)
+    expect(claimLabel()).toMatch(/Claim this/)
+    expect(claimLabelLong()).toMatch(/Add this to your distribution/)
   })
 
   it('composes pending + active', () => {
@@ -133,12 +152,26 @@ describe('copy', () => {
     )
   })
 
-  it('formats calendar dates without timezone shift', () => {
+  it('formats evidence dates without timezone shift', () => {
     expect(formatCalendarDate('2026-03-15')).toBe('15 Mar 2026')
+    expect(shopperDatesLine(['2026-09-11', '2026-09-07', '2026-08-31'])).toBe(
+      'Sighted 11 Sep 2026, 7 Sep 2026, 31 Aug 2026',
+    )
+  })
+
+  it('shortens variant labels by stripping product title', () => {
+    expect(
+      shortVariantLabel(
+        'Gatorade Lemon Lime Thirst Quencher 28 Fluid Ounce Bottle',
+        'Gatorade Lemon Lime Thirst Quencher',
+      ),
+    ).toBe('28 Fluid Ounce Bottle')
+    expect(shortVariantLabel('All pack sizes')).toBe('All pack sizes')
+    expect(shortVariantLabel('Pack size not recorded')).toBe('Pack size not recorded')
   })
 })
 
-describe('grouping', () => {
+describe('grouping & sections', () => {
   it('floats attention banners and merges quiet rows into the same group', () => {
     const rows = [
       row({
@@ -169,13 +202,66 @@ describe('grouping', () => {
     expect(groups[0]!.needsAttention).toBe(true)
   })
 
-  it('joins pending reports by 5-tuple', () => {
+  it('partitions exclusively: attention beats dough seed', () => {
+    const rows = [
+      row({
+        retailer_id: 1,
+        retailer_name: 'Harris Teeter',
+        needs_attention: true,
+        awaiting_review: 3,
+        dough_seeded: false,
+        sku_variant_id: 9,
+        variant_label: '28 fl oz',
+      }),
+      row({
+        retailer_id: 2,
+        retailer_name: 'Wegmans',
+        needs_attention: true,
+        awaiting_review: 1,
+        dough_seeded: false,
+        sku_variant_id: 9,
+      }),
+      row({
+        retailer_id: 2,
+        retailer_name: 'Wegmans',
+        needs_attention: false,
+        dough_seeded: true,
+        geo_region_id: 1,
+      }),
+      row({
+        retailer_id: 3,
+        retailer_name: 'Giant Food',
+        brand_status: 'active',
+        declaration_id: 1,
+      }),
+      row({
+        retailer_id: 4,
+        retailer_name: 'Walmart',
+        dough_seeded: true,
+        scope_level: 'national',
+        geo_region_id: null,
+        scope_label: 'nationwide',
+      }),
+    ]
+    const sections = partitionDistribution(rows)
+    expect(sections.map((s) => [s.id, s.rows.length])).toEqual([
+      ['needs_review', 2],
+      ['yours', 1],
+      ['dough_seeds', 2],
+    ])
+    expect(sections[0]!.rows.every((r) => r.needs_attention)).toBe(true)
+    expect(claimableSeedRows(sections[2]!.rows)).toHaveLength(2)
+    expect(hasSiblingDoughSeed(rows, rows[1]!)).toBe(true)
+  })
+
+  it('joins pending reports by 5-tuple for evidence dates only', () => {
     const dist = row({
       retailer_id: 1,
       retailer_name: 'Harris Teeter',
       geo_region_id: 10,
-      sku_variant_id: null,
+      sku_variant_id: 40167445,
       awaiting_review: 3,
+      variant_label: '28 Fluid Ounce Bottle',
     })
     const reports: AvailabilityReport[] = [
       {
@@ -187,8 +273,8 @@ describe('grouping', () => {
         geo_region_id: 10,
         retail_location_id: null,
         scope_label: 'Maryland',
-        sku_variant_id: null,
-        variant_label: 'All pack sizes',
+        sku_variant_id: 40167445,
+        variant_label: '28 Fluid Ounce Bottle',
         report_date: '2026-07-01',
         review_state: 'published',
         contradicts_delisting: false,
@@ -202,8 +288,8 @@ describe('grouping', () => {
         geo_region_id: 10,
         retail_location_id: null,
         scope_label: 'Maryland',
-        sku_variant_id: null,
-        variant_label: 'All pack sizes',
+        sku_variant_id: 40167445,
+        variant_label: '28 Fluid Ounce Bottle',
         report_date: '2026-07-02',
         review_state: 'published',
         contradicts_delisting: false,
@@ -217,13 +303,67 @@ describe('grouping', () => {
         geo_region_id: 99,
         retail_location_id: null,
         scope_label: 'Virginia',
-        sku_variant_id: null,
-        variant_label: 'All pack sizes',
+        sku_variant_id: 40167445,
+        variant_label: '28 Fluid Ounce Bottle',
         report_date: '2026-07-03',
         review_state: 'published',
         contradicts_delisting: false,
       },
     ]
     expect(reportsForCoord(reports, dist).map((r) => r.report_id)).toEqual([101, 102])
+    expect(packConflict(reportsForCoord(reports, dist))).toBe(false)
+  })
+
+  it('detects pack conflicts across pending reports', () => {
+    expect(
+      packConflict([
+        {
+          report_id: 1,
+          retailer_id: 1,
+          retailer_name: 'X',
+          parent_name: null,
+          scope_level: 'region',
+          geo_region_id: 1,
+          retail_location_id: null,
+          scope_label: 'MD',
+          sku_variant_id: 1,
+          variant_label: '12 oz',
+          report_date: '2026-01-01',
+          review_state: 'published',
+          contradicts_delisting: false,
+        },
+        {
+          report_id: 2,
+          retailer_id: 1,
+          retailer_name: 'X',
+          parent_name: null,
+          scope_level: 'region',
+          geo_region_id: 1,
+          retail_location_id: null,
+          scope_label: 'MD',
+          sku_variant_id: 2,
+          variant_label: '28 oz',
+          report_date: '2026-01-02',
+          review_state: 'published',
+          contradicts_delisting: false,
+        },
+      ]),
+    ).toBe(true)
+  })
+
+  it('shows banner filter above 10 coordinates and peeks seed names', () => {
+    expect(shouldShowBannerFilter(10)).toBe(false)
+    expect(shouldShowBannerFilter(11)).toBe(true)
+    const peek = seedPeekNames(
+      [
+        row({ retailer_id: 1, retailer_name: 'Walmart', dough_seeded: true }),
+        row({ retailer_id: 2, retailer_name: 'Target', dough_seeded: true }),
+        row({ retailer_id: 3, retailer_name: 'Costco', dough_seeded: true }),
+        row({ retailer_id: 4, retailer_name: 'CVS', dough_seeded: true }),
+      ],
+      3,
+    )
+    expect(peek.names).toEqual(['Walmart', 'Target', 'Costco'])
+    expect(peek.remaining).toBe(1)
   })
 })

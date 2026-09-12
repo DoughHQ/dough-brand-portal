@@ -29,11 +29,14 @@ export function actionsForState(
   if (status === 'delisted') {
     return pending ? ['confirm', 'correct', 'dispute', 'redeclare'] : ['redeclare']
   }
-  // null brand — seed or shopper-only
   return pending ? ['confirm', 'correct', 'dispute'] : ['claim']
 }
 
 export function claimLabel(): string {
+  return 'Claim this'
+}
+
+export function claimLabelLong(): string {
   return 'Add this to your distribution'
 }
 
@@ -54,8 +57,17 @@ export function shopperLine(count: number, lastReportedOn: string | null): strin
   return `${who} · most recently ${formatCalendarDate(lastReportedOn)}`
 }
 
+/** Evidence dates under the shopper line — not action rows. */
+export function shopperDatesLine(dates: string[]): string | null {
+  const unique = [...new Set(dates.filter(Boolean))]
+  if (unique.length === 0) return null
+  const formatted = unique.map(formatCalendarDate)
+  if (formatted.length === 1) return `Sighted ${formatted[0]}`
+  if (formatted.length <= 4) return `Sighted ${formatted.join(', ')}`
+  return `Sighted ${formatted.slice(0, 3).join(', ')} +${formatted.length - 3} more`
+}
+
 export function formatCalendarDate(isoDate: string): string {
-  // date columns — avoid relative/timezone shift
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate)
   if (!m) return isoDate
   const y = Number(m[1])
@@ -94,4 +106,22 @@ export function formatRelativeTimestamp(iso: string | null): string {
   }
   const years = Math.floor(days / 365)
   return years === 1 ? '1 year ago' : `${years} years ago`
+}
+
+/** Short pack label for cards; keep full string as tooltip. */
+export function shortVariantLabel(
+  label: string | null | undefined,
+  productTitle?: string | null,
+): string {
+  const raw = (label ?? '').trim()
+  if (!raw) return 'All pack sizes'
+  if (raw === 'All pack sizes' || raw === 'Pack size not recorded' || raw === 'Unnamed pack') {
+    return raw
+  }
+  const title = (productTitle ?? '').trim()
+  if (title && raw.toLowerCase().startsWith(title.toLowerCase())) {
+    const rest = raw.slice(title.length).replace(/^[\s·\-–—:]+/, '').trim()
+    if (rest) return rest
+  }
+  return raw
 }
