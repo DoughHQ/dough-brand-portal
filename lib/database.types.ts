@@ -9816,6 +9816,60 @@ export type Database = {
         }
         Relationships: []
       }
+      dietary_exclusion_terms: {
+        Row: {
+          affects_allergen_flag: string | null
+          affects_allergen_value: boolean | null
+          affects_vegan: string | null
+          affects_vegetarian: string | null
+          created_at: string
+          guard_regex: string | null
+          is_active: boolean
+          match_regex: string
+          match_scope: string
+          name_guard_regex: string | null
+          rationale: string
+          require_regex: string | null
+          strip_regex: string | null
+          term_code: string
+          term_id: number
+        }
+        Insert: {
+          affects_allergen_flag?: string | null
+          affects_allergen_value?: boolean | null
+          affects_vegan?: string | null
+          affects_vegetarian?: string | null
+          created_at?: string
+          guard_regex?: string | null
+          is_active?: boolean
+          match_regex: string
+          match_scope?: string
+          name_guard_regex?: string | null
+          rationale: string
+          require_regex?: string | null
+          strip_regex?: string | null
+          term_code: string
+          term_id?: number
+        }
+        Update: {
+          affects_allergen_flag?: string | null
+          affects_allergen_value?: boolean | null
+          affects_vegan?: string | null
+          affects_vegetarian?: string | null
+          created_at?: string
+          guard_regex?: string | null
+          is_active?: boolean
+          match_regex?: string
+          match_scope?: string
+          name_guard_regex?: string | null
+          rationale?: string
+          require_regex?: string | null
+          strip_regex?: string | null
+          term_code?: string
+          term_id?: number
+        }
+        Relationships: []
+      }
       dietary_flag_definitions: {
         Row: {
           category: string
@@ -10050,6 +10104,36 @@ export type Database = {
         }
         Relationships: []
       }
+      dropped_object_archive: {
+        Row: {
+          archive_id: number
+          archived_at: string
+          definition: string
+          dropped_by: string
+          object_name: string
+          object_type: string
+          reason: string | null
+        }
+        Insert: {
+          archive_id?: number
+          archived_at?: string
+          definition: string
+          dropped_by: string
+          object_name: string
+          object_type: string
+          reason?: string | null
+        }
+        Update: {
+          archive_id?: number
+          archived_at?: string
+          definition?: string
+          dropped_by?: string
+          object_name?: string
+          object_type?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       dropped_table_20260901_backup: {
         Row: {
           columns_ddl: string | null
@@ -10274,29 +10358,146 @@ export type Database = {
           },
         ]
       }
+      facet_evidence_patterns: {
+        Row: {
+          evidence_regex: string
+          facet_type: string
+          facet_value: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          evidence_regex: string
+          facet_type: string
+          facet_value: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          evidence_regex?: string
+          facet_type?: string
+          facet_value?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      facet_quality_snapshots: {
+        Row: {
+          denominator: number | null
+          detail: Json | null
+          elapsed_ms: number | null
+          facet_type: string | null
+          metric_code: string
+          metric_group: string
+          pct: number | null
+          run_at: string
+          sample_rate: number | null
+          snapshot_id: number
+          status: string
+          value: number | null
+        }
+        Insert: {
+          denominator?: number | null
+          detail?: Json | null
+          elapsed_ms?: number | null
+          facet_type?: string | null
+          metric_code: string
+          metric_group: string
+          pct?: number | null
+          run_at?: string
+          sample_rate?: number | null
+          snapshot_id?: number
+          status: string
+          value?: number | null
+        }
+        Update: {
+          denominator?: number | null
+          detail?: Json | null
+          elapsed_ms?: number | null
+          facet_type?: string | null
+          metric_code?: string
+          metric_group?: string
+          pct?: number | null
+          run_at?: string
+          sample_rate?: number | null
+          snapshot_id?: number
+          status?: string
+          value?: number | null
+        }
+        Relationships: []
+      }
+      facet_suppression_rules: {
+        Row: {
+          created_at: string
+          facet_type: string
+          facet_value: string
+          guard_regex: string | null
+          is_active: boolean
+          match_regex: string
+          rationale: string
+          rule_code: string
+        }
+        Insert: {
+          created_at?: string
+          facet_type: string
+          facet_value: string
+          guard_regex?: string | null
+          is_active?: boolean
+          match_regex: string
+          rationale: string
+          rule_code: string
+        }
+        Update: {
+          created_at?: string
+          facet_type?: string
+          facet_value?: string
+          guard_regex?: string | null
+          is_active?: boolean
+          match_regex?: string
+          rationale?: string
+          rule_code?: string
+        }
+        Relationships: []
+      }
       facet_types: {
         Row: {
+          assignability: string
+          cardinality: string
+          chip_suppress_pct: number | null
           created_at: string
           display_name: string | null
           facet_type_code: string
           facet_type_id: number
           is_active: boolean
+          polarity: string
+          scope_root_node_ids: number[] | null
           updated_at: string
         }
         Insert: {
+          assignability?: string
+          cardinality?: string
+          chip_suppress_pct?: number | null
           created_at?: string
           display_name?: string | null
           facet_type_code: string
           facet_type_id?: never
           is_active?: boolean
+          polarity?: string
+          scope_root_node_ids?: number[] | null
           updated_at?: string
         }
         Update: {
+          assignability?: string
+          cardinality?: string
+          chip_suppress_pct?: number | null
           created_at?: string
           display_name?: string | null
           facet_type_code?: string
           facet_type_id?: never
           is_active?: boolean
+          polarity?: string
+          scope_root_node_ids?: number[] | null
           updated_at?: string
         }
         Relationships: []
@@ -10309,7 +10510,10 @@ export type Database = {
           facet_value_code: string
           facet_value_id: number
           is_active: boolean
+          rollup_codes: string[] | null
+          scope_root_node_ids: number[] | null
           updated_at: string
+          value_group: string | null
         }
         Insert: {
           created_at?: string
@@ -10318,7 +10522,10 @@ export type Database = {
           facet_value_code: string
           facet_value_id?: never
           is_active?: boolean
+          rollup_codes?: string[] | null
+          scope_root_node_ids?: number[] | null
           updated_at?: string
+          value_group?: string | null
         }
         Update: {
           created_at?: string
@@ -10327,7 +10534,10 @@ export type Database = {
           facet_value_code?: string
           facet_value_id?: never
           is_active?: boolean
+          rollup_codes?: string[] | null
+          scope_root_node_ids?: number[] | null
           updated_at?: string
+          value_group?: string | null
         }
         Relationships: [
           {
@@ -11328,6 +11538,61 @@ export type Database = {
           },
         ]
       }
+      geo_region_memberships: {
+        Row: {
+          area_land_m2: number | null
+          child_region_id: number
+          created_at: string
+          is_primary: boolean
+          membership_id: number
+          parent_region_id: number
+          relationship_type: string
+          source_id: number | null
+        }
+        Insert: {
+          area_land_m2?: number | null
+          child_region_id: number
+          created_at?: string
+          is_primary?: boolean
+          membership_id?: never
+          parent_region_id: number
+          relationship_type: string
+          source_id?: number | null
+        }
+        Update: {
+          area_land_m2?: number | null
+          child_region_id?: number
+          created_at?: string
+          is_primary?: boolean
+          membership_id?: never
+          parent_region_id?: number
+          relationship_type?: string
+          source_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geo_region_memberships_child_region_id_fkey"
+            columns: ["child_region_id"]
+            isOneToOne: false
+            referencedRelation: "geo_regions"
+            referencedColumns: ["geo_region_id"]
+          },
+          {
+            foreignKeyName: "geo_region_memberships_parent_region_id_fkey"
+            columns: ["parent_region_id"]
+            isOneToOne: false
+            referencedRelation: "geo_regions"
+            referencedColumns: ["geo_region_id"]
+          },
+          {
+            foreignKeyName: "geo_region_memberships_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "reference_data_sources"
+            referencedColumns: ["source_id"]
+          },
+        ]
+      }
       geo_regions: {
         Row: {
           created_at: string
@@ -11338,7 +11603,9 @@ export type Database = {
           population_est: number | null
           region_code: string | null
           region_name: string
+          region_subtype: string | null
           region_type: string
+          source_id: number | null
         }
         Insert: {
           created_at?: string
@@ -11349,7 +11616,9 @@ export type Database = {
           population_est?: number | null
           region_code?: string | null
           region_name: string
+          region_subtype?: string | null
           region_type: string
+          source_id?: number | null
         }
         Update: {
           created_at?: string
@@ -11360,7 +11629,9 @@ export type Database = {
           population_est?: number | null
           region_code?: string | null
           region_name?: string
+          region_subtype?: string | null
           region_type?: string
+          source_id?: number | null
         }
         Relationships: [
           {
@@ -11369,6 +11640,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "geo_regions"
             referencedColumns: ["geo_region_id"]
+          },
+          {
+            foreignKeyName: "geo_regions_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "reference_data_sources"
+            referencedColumns: ["source_id"]
           },
         ]
       }
@@ -18305,6 +18583,797 @@ export type Database = {
           },
         ]
       }
+      product_availability: {
+        Row: {
+          availability_id: number
+          availability_source: string
+          confidence: number
+          created_at: string
+          expires_at: string | null
+          geo_region_id: number | null
+          geo_region_type: string | null
+          product_id: number
+          retail_location_id: number | null
+          retailer_id: number
+          retailer_is_shoppable: boolean
+          scope_level: string
+          sku_scope: string
+          sku_variant_id: number | null
+          source_row_id: number
+          verified_at: string
+        }
+        Insert: {
+          availability_id?: never
+          availability_source: string
+          confidence: number
+          created_at?: string
+          expires_at?: string | null
+          geo_region_id?: number | null
+          geo_region_type?: string | null
+          product_id: number
+          retail_location_id?: number | null
+          retailer_id: number
+          retailer_is_shoppable?: boolean
+          scope_level: string
+          sku_scope: string
+          sku_variant_id?: number | null
+          source_row_id: number
+          verified_at: string
+        }
+        Update: {
+          availability_id?: never
+          availability_source?: string
+          confidence?: number
+          created_at?: string
+          expires_at?: string | null
+          geo_region_id?: number | null
+          geo_region_type?: string | null
+          product_id?: number
+          retail_location_id?: number | null
+          retailer_id?: number
+          retailer_is_shoppable?: boolean
+          scope_level?: string
+          sku_scope?: string
+          sku_variant_id?: number | null
+          source_row_id?: number
+          verified_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pa_region_fk"
+            columns: ["geo_region_id", "geo_region_type"]
+            isOneToOne: false
+            referencedRelation: "geo_regions"
+            referencedColumns: ["geo_region_id", "region_type"]
+          },
+          {
+            foreignKeyName: "pa_retailer_fk"
+            columns: ["retailer_id", "retailer_is_shoppable"]
+            isOneToOne: false
+            referencedRelation: "retailers"
+            referencedColumns: ["id", "is_shoppable"]
+          },
+          {
+            foreignKeyName: "pa_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_skus_view"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+          {
+            foreignKeyName: "pa_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "sku_detail_view"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+          {
+            foreignKeyName: "pa_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "sku_variants"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+          {
+            foreignKeyName: "product_availability_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_retail_location_id_fkey"
+            columns: ["retail_location_id"]
+            isOneToOne: false
+            referencedRelation: "retail_locations"
+            referencedColumns: ["retail_location_id"]
+          },
+        ]
+      }
+      product_availability_brand_declarations: {
+        Row: {
+          brand_id: number
+          created_at: string
+          declaration_id: number
+          delisted_on: string | null
+          geo_region_id: number | null
+          geo_region_type: string | null
+          notes: string | null
+          product_id: number
+          retail_location_id: number | null
+          retailer_id: number
+          retailer_is_shoppable: boolean
+          scope_level: string
+          sku_scope: string
+          sku_variant_id: number | null
+          status: string
+          updated_at: string
+          verified_at: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          brand_id: number
+          created_at?: string
+          declaration_id?: never
+          delisted_on?: string | null
+          geo_region_id?: number | null
+          geo_region_type?: string | null
+          notes?: string | null
+          product_id: number
+          retail_location_id?: number | null
+          retailer_id: number
+          retailer_is_shoppable?: boolean
+          scope_level: string
+          sku_scope: string
+          sku_variant_id?: number | null
+          status?: string
+          updated_at?: string
+          verified_at?: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          brand_id?: number
+          created_at?: string
+          declaration_id?: never
+          delisted_on?: string | null
+          geo_region_id?: number | null
+          geo_region_type?: string | null
+          notes?: string | null
+          product_id?: number
+          retail_location_id?: number | null
+          retailer_id?: number
+          retailer_is_shoppable?: boolean
+          scope_level?: string
+          sku_scope?: string
+          sku_variant_id?: number | null
+          status?: string
+          updated_at?: string
+          verified_at?: string
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bd_region_fk"
+            columns: ["geo_region_id", "geo_region_type"]
+            isOneToOne: false
+            referencedRelation: "geo_regions"
+            referencedColumns: ["geo_region_id", "region_type"]
+          },
+          {
+            foreignKeyName: "bd_retailer_fk"
+            columns: ["retailer_id", "retailer_is_shoppable"]
+            isOneToOne: false
+            referencedRelation: "retailers"
+            referencedColumns: ["id", "is_shoppable"]
+          },
+          {
+            foreignKeyName: "bd_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_skus_view"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+          {
+            foreignKeyName: "bd_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "sku_detail_view"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+          {
+            foreignKeyName: "bd_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "sku_variants"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_brand_declarations_retail_location_id_fkey"
+            columns: ["retail_location_id"]
+            isOneToOne: false
+            referencedRelation: "retail_locations"
+            referencedColumns: ["retail_location_id"]
+          },
+        ]
+      }
+      product_availability_reports: {
+        Row: {
+          created_at: string
+          geo_region_id: number | null
+          geo_region_type: string | null
+          product_id: number
+          report_date: string
+          report_id: number
+          retail_location_id: number | null
+          retailer_id: number
+          retailer_is_shoppable: boolean
+          review_note: string | null
+          review_state: string
+          reviewed_at: string | null
+          scope_level: string
+          sku_scope: string
+          sku_variant_id: number | null
+          status: string
+          user_id: number
+        }
+        Insert: {
+          created_at?: string
+          geo_region_id?: number | null
+          geo_region_type?: string | null
+          product_id: number
+          report_date?: string
+          report_id?: never
+          retail_location_id?: number | null
+          retailer_id: number
+          retailer_is_shoppable?: boolean
+          review_note?: string | null
+          review_state?: string
+          reviewed_at?: string | null
+          scope_level: string
+          sku_scope: string
+          sku_variant_id?: number | null
+          status?: string
+          user_id: number
+        }
+        Update: {
+          created_at?: string
+          geo_region_id?: number | null
+          geo_region_type?: string | null
+          product_id?: number
+          report_date?: string
+          report_id?: never
+          retail_location_id?: number | null
+          retailer_id?: number
+          retailer_is_shoppable?: boolean
+          review_note?: string | null
+          review_state?: string
+          reviewed_at?: string | null
+          scope_level?: string
+          sku_scope?: string
+          sku_variant_id?: number | null
+          status?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_availability_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_retail_location_id_fkey"
+            columns: ["retail_location_id"]
+            isOneToOne: false
+            referencedRelation: "retail_locations"
+            referencedColumns: ["retail_location_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "product_availability_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "rp_region_fk"
+            columns: ["geo_region_id", "geo_region_type"]
+            isOneToOne: false
+            referencedRelation: "geo_regions"
+            referencedColumns: ["geo_region_id", "region_type"]
+          },
+          {
+            foreignKeyName: "rp_retailer_fk"
+            columns: ["retailer_id", "retailer_is_shoppable"]
+            isOneToOne: false
+            referencedRelation: "retailers"
+            referencedColumns: ["id", "is_shoppable"]
+          },
+          {
+            foreignKeyName: "rp_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_skus_view"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+          {
+            foreignKeyName: "rp_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "sku_detail_view"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+          {
+            foreignKeyName: "rp_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "sku_variants"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+        ]
+      }
+      product_availability_seeded: {
+        Row: {
+          created_at: string
+          evidence_url: string | null
+          geo_region_id: number | null
+          geo_region_type: string | null
+          product_id: number
+          retail_location_id: number | null
+          retailer_id: number
+          retailer_is_shoppable: boolean
+          scope_level: string
+          seeded_id: number
+          sku_scope: string
+          sku_variant_id: number | null
+          source_id: number | null
+          status: string
+          verified_at: string
+        }
+        Insert: {
+          created_at?: string
+          evidence_url?: string | null
+          geo_region_id?: number | null
+          geo_region_type?: string | null
+          product_id: number
+          retail_location_id?: number | null
+          retailer_id: number
+          retailer_is_shoppable?: boolean
+          scope_level: string
+          seeded_id?: never
+          sku_scope: string
+          sku_variant_id?: number | null
+          source_id?: number | null
+          status?: string
+          verified_at?: string
+        }
+        Update: {
+          created_at?: string
+          evidence_url?: string | null
+          geo_region_id?: number | null
+          geo_region_type?: string | null
+          product_id?: number
+          retail_location_id?: number | null
+          retailer_id?: number
+          retailer_is_shoppable?: boolean
+          scope_level?: string
+          seeded_id?: never
+          sku_scope?: string
+          sku_variant_id?: number | null
+          source_id?: number | null
+          status?: string
+          verified_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_availability_seeded_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_seeded_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_seeded_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_seeded_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_seeded_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_seeded_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_seeded_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_seeded_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_seeded_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_seeded_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_seeded_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_seeded_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_availability_seeded_retail_location_id_fkey"
+            columns: ["retail_location_id"]
+            isOneToOne: false
+            referencedRelation: "retail_locations"
+            referencedColumns: ["retail_location_id"]
+          },
+          {
+            foreignKeyName: "product_availability_seeded_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "reference_data_sources"
+            referencedColumns: ["source_id"]
+          },
+          {
+            foreignKeyName: "sd_region_fk"
+            columns: ["geo_region_id", "geo_region_type"]
+            isOneToOne: false
+            referencedRelation: "geo_regions"
+            referencedColumns: ["geo_region_id", "region_type"]
+          },
+          {
+            foreignKeyName: "sd_retailer_fk"
+            columns: ["retailer_id", "retailer_is_shoppable"]
+            isOneToOne: false
+            referencedRelation: "retailers"
+            referencedColumns: ["id", "is_shoppable"]
+          },
+          {
+            foreignKeyName: "sd_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_skus_view"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+          {
+            foreignKeyName: "sd_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "sku_detail_view"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+          {
+            foreignKeyName: "sd_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "sku_variants"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+        ]
+      }
       product_certifications: {
         Row: {
           certification_id: number
@@ -19335,6 +20404,36 @@ export type Database = {
           },
         ]
       }
+      product_dietary_corrections: {
+        Row: {
+          applied_at: string
+          correction_id: number
+          flag: string
+          new_value: boolean | null
+          old_value: boolean | null
+          product_id: number
+          term_code: string
+        }
+        Insert: {
+          applied_at?: string
+          correction_id?: number
+          flag: string
+          new_value?: boolean | null
+          old_value?: boolean | null
+          product_id: number
+          term_code: string
+        }
+        Update: {
+          applied_at?: string
+          correction_id?: number
+          flag?: string
+          new_value?: boolean | null
+          old_value?: boolean | null
+          product_id?: number
+          term_code?: string
+        }
+        Relationships: []
+      }
       product_disclosures: {
         Row: {
           asof_date: string | null
@@ -20285,6 +21384,233 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      product_facet_brand_declarations: {
+        Row: {
+          brand_id: number
+          declaration_id: number
+          declared_at: string
+          declared_by: string | null
+          evidence_note: string | null
+          evidence_url: string | null
+          facet_type: string
+          facet_value: string
+          product_id: number
+          projected: boolean
+          review_state: string
+          status: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          brand_id: number
+          declaration_id?: never
+          declared_at?: string
+          declared_by?: string | null
+          evidence_note?: string | null
+          evidence_url?: string | null
+          facet_type: string
+          facet_value: string
+          product_id: number
+          projected?: boolean
+          review_state?: string
+          status?: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          brand_id?: number
+          declaration_id?: never
+          declared_at?: string
+          declared_by?: string | null
+          evidence_note?: string | null
+          evidence_url?: string | null
+          facet_type?: string
+          facet_value?: string
+          product_id?: number
+          projected?: boolean
+          review_state?: string
+          status?: string
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_facet_brand_declarations_facet_type_fkey"
+            columns: ["facet_type"]
+            isOneToOne: false
+            referencedRelation: "facet_types"
+            referencedColumns: ["facet_type_code"]
+          },
+          {
+            foreignKeyName: "product_facet_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_facet_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_facet_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_facet_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_facet_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_facet_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_facet_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_facet_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_facet_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_facet_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_facet_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_facet_brand_declarations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+        ]
+      }
+      product_facet_scope_violations: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          facet_rank: number | null
+          facet_source: string | null
+          facet_type: string
+          facet_type_id: number | null
+          facet_value: string
+          facet_value_id: number | null
+          facet_value_num: number | null
+          product_id: number
+          quarantined_at: string
+          reason: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          facet_rank?: number | null
+          facet_source?: string | null
+          facet_type: string
+          facet_type_id?: number | null
+          facet_value: string
+          facet_value_id?: number | null
+          facet_value_num?: number | null
+          product_id: number
+          quarantined_at?: string
+          reason?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          facet_rank?: number | null
+          facet_source?: string | null
+          facet_type?: string
+          facet_type_id?: number | null
+          facet_value?: string
+          facet_value_id?: number | null
+          facet_value_num?: number | null
+          product_id?: number
+          quarantined_at?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
+      product_facet_suppressions: {
+        Row: {
+          confidence: number | null
+          facet_rank: number | null
+          facet_source: string | null
+          facet_type: string
+          facet_type_id: number | null
+          facet_value: string
+          facet_value_id: number | null
+          product_id: number
+          rule_code: string
+          suppressed_at: string
+          suppression_id: number
+        }
+        Insert: {
+          confidence?: number | null
+          facet_rank?: number | null
+          facet_source?: string | null
+          facet_type: string
+          facet_type_id?: number | null
+          facet_value: string
+          facet_value_id?: number | null
+          product_id: number
+          rule_code: string
+          suppressed_at?: string
+          suppression_id?: number
+        }
+        Update: {
+          confidence?: number | null
+          facet_rank?: number | null
+          facet_source?: string | null
+          facet_type?: string
+          facet_type_id?: number | null
+          facet_value?: string
+          facet_value_id?: number | null
+          product_id?: number
+          rule_code?: string
+          suppressed_at?: string
+          suppression_id?: number
+        }
+        Relationships: []
       }
       product_facets: {
         Row: {
@@ -21977,6 +23303,161 @@ export type Database = {
           },
           {
             foreignKeyName: "product_proof_sub_metric_scores_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+        ]
+      }
+      product_purchase_links: {
+        Row: {
+          created_at: string
+          is_primary: boolean
+          link_id: number
+          link_type: string
+          product_id: number
+          retailer_id: number | null
+          retailer_is_shoppable: boolean | null
+          sku_variant_id: number | null
+          status: string
+          url: string
+          verified_at: string
+        }
+        Insert: {
+          created_at?: string
+          is_primary?: boolean
+          link_id?: never
+          link_type: string
+          product_id: number
+          retailer_id?: number | null
+          retailer_is_shoppable?: boolean | null
+          sku_variant_id?: number | null
+          status?: string
+          url: string
+          verified_at?: string
+        }
+        Update: {
+          created_at?: string
+          is_primary?: boolean
+          link_id?: never
+          link_type?: string
+          product_id?: number
+          retailer_id?: number | null
+          retailer_is_shoppable?: boolean | null
+          sku_variant_id?: number | null
+          status?: string
+          url?: string
+          verified_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pl_retailer_fk"
+            columns: ["retailer_id", "retailer_is_shoppable"]
+            isOneToOne: false
+            referencedRelation: "retailers"
+            referencedColumns: ["id", "is_shoppable"]
+          },
+          {
+            foreignKeyName: "pl_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_skus_view"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+          {
+            foreignKeyName: "pl_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "sku_detail_view"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+          {
+            foreignKeyName: "pl_variant_fk"
+            columns: ["product_id", "sku_variant_id"]
+            isOneToOne: false
+            referencedRelation: "sku_variants"
+            referencedColumns: ["product_id", "sku_variant_id"]
+          },
+          {
+            foreignKeyName: "product_purchase_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_purchase_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_purchase_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_purchase_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_purchase_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_purchase_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_purchase_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_purchase_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_purchase_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_purchase_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_purchase_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_purchase_links_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "v_allergen_filter"
@@ -25409,6 +26890,54 @@ export type Database = {
           },
         ]
       }
+      reference_data_sources: {
+        Row: {
+          created_at: string
+          dataset_name: string
+          file_name: string
+          file_sha256: string
+          ingest_method: string
+          notes: string | null
+          publisher: string
+          retrieved_at: string
+          rows_ingested: number | null
+          source_id: number
+          source_key: string
+          source_url: string
+          vintage: string
+        }
+        Insert: {
+          created_at?: string
+          dataset_name: string
+          file_name: string
+          file_sha256: string
+          ingest_method?: string
+          notes?: string | null
+          publisher: string
+          retrieved_at?: string
+          rows_ingested?: number | null
+          source_id?: never
+          source_key: string
+          source_url: string
+          vintage: string
+        }
+        Update: {
+          created_at?: string
+          dataset_name?: string
+          file_name?: string
+          file_sha256?: string
+          ingest_method?: string
+          notes?: string | null
+          publisher?: string
+          retrieved_at?: string
+          rows_ingested?: number | null
+          source_id?: never
+          source_key?: string
+          source_url?: string
+          vintage?: string
+        }
+        Relationships: []
+      }
       report_access_log: {
         Row: {
           accessed_at: string
@@ -25660,13 +27189,171 @@ export type Database = {
           },
         ]
       }
+      retail_locations: {
+        Row: {
+          address_line1: string
+          address_line2: string | null
+          city: string
+          created_at: string
+          is_active: boolean
+          latitude: number | null
+          location_name: string | null
+          longitude: number | null
+          postal_code: string
+          retail_location_id: number
+          retailer_id: number
+          retailer_is_shoppable: boolean
+          source_id: number | null
+          state_region_id: number | null
+          state_region_type: string
+          store_number: string | null
+          updated_at: string
+          zcta_region_id: number | null
+          zcta_region_type: string
+        }
+        Insert: {
+          address_line1: string
+          address_line2?: string | null
+          city: string
+          created_at?: string
+          is_active?: boolean
+          latitude?: number | null
+          location_name?: string | null
+          longitude?: number | null
+          postal_code: string
+          retail_location_id?: never
+          retailer_id: number
+          retailer_is_shoppable?: boolean
+          source_id?: number | null
+          state_region_id?: number | null
+          state_region_type?: string
+          store_number?: string | null
+          updated_at?: string
+          zcta_region_id?: number | null
+          zcta_region_type?: string
+        }
+        Update: {
+          address_line1?: string
+          address_line2?: string | null
+          city?: string
+          created_at?: string
+          is_active?: boolean
+          latitude?: number | null
+          location_name?: string | null
+          longitude?: number | null
+          postal_code?: string
+          retail_location_id?: never
+          retailer_id?: number
+          retailer_is_shoppable?: boolean
+          source_id?: number | null
+          state_region_id?: number | null
+          state_region_type?: string
+          store_number?: string | null
+          updated_at?: string
+          zcta_region_id?: number | null
+          zcta_region_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retail_locations_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "reference_data_sources"
+            referencedColumns: ["source_id"]
+          },
+          {
+            foreignKeyName: "rl_retailer_fk"
+            columns: ["retailer_id", "retailer_is_shoppable"]
+            isOneToOne: false
+            referencedRelation: "retailers"
+            referencedColumns: ["id", "is_shoppable"]
+          },
+          {
+            foreignKeyName: "rl_state_fk"
+            columns: ["state_region_id", "state_region_type"]
+            isOneToOne: false
+            referencedRelation: "geo_regions"
+            referencedColumns: ["geo_region_id", "region_type"]
+          },
+          {
+            foreignKeyName: "rl_zcta_fk"
+            columns: ["zcta_region_id", "zcta_region_type"]
+            isOneToOne: false
+            referencedRelation: "geo_regions"
+            referencedColumns: ["geo_region_id", "region_type"]
+          },
+        ]
+      }
+      retailer_geo_presence: {
+        Row: {
+          created_at: string
+          geo_region_id: number
+          presence_id: number
+          presence_source: string
+          region_type: string
+          retailer_id: number
+          retailer_is_shoppable: boolean
+          source_id: number | null
+          store_count_est: number | null
+          verified_at: string
+        }
+        Insert: {
+          created_at?: string
+          geo_region_id: number
+          presence_id?: never
+          presence_source?: string
+          region_type: string
+          retailer_id: number
+          retailer_is_shoppable?: boolean
+          source_id?: number | null
+          store_count_est?: number | null
+          verified_at?: string
+        }
+        Update: {
+          created_at?: string
+          geo_region_id?: number
+          presence_id?: never
+          presence_source?: string
+          region_type?: string
+          retailer_id?: number
+          retailer_is_shoppable?: boolean
+          source_id?: number | null
+          store_count_est?: number | null
+          verified_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retailer_geo_presence_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "reference_data_sources"
+            referencedColumns: ["source_id"]
+          },
+          {
+            foreignKeyName: "rgp_region_fk"
+            columns: ["geo_region_id", "region_type"]
+            isOneToOne: false
+            referencedRelation: "geo_regions"
+            referencedColumns: ["geo_region_id", "region_type"]
+          },
+          {
+            foreignKeyName: "rgp_retailer_fk"
+            columns: ["retailer_id", "retailer_is_shoppable"]
+            isOneToOne: false
+            referencedRelation: "retailers"
+            referencedColumns: ["id", "is_shoppable"]
+          },
+        ]
+      }
       retailers: {
         Row: {
           created_at: string
           id: number
           is_active: boolean
+          is_shoppable: boolean
           name: string
           name_variants: string[]
+          parent_retailer_id: number | null
           retailer_type: string
           updated_at: string
         }
@@ -25674,8 +27361,10 @@ export type Database = {
           created_at?: string
           id?: never
           is_active?: boolean
+          is_shoppable?: boolean
           name: string
           name_variants?: string[]
+          parent_retailer_id?: number | null
           retailer_type: string
           updated_at?: string
         }
@@ -25683,12 +27372,22 @@ export type Database = {
           created_at?: string
           id?: never
           is_active?: boolean
+          is_shoppable?: boolean
           name?: string
           name_variants?: string[]
+          parent_retailer_id?: number | null
           retailer_type?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "retailers_parent_retailer_id_fkey"
+            columns: ["parent_retailer_id"]
+            isOneToOne: false
+            referencedRelation: "retailers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_capabilities: {
         Row: {
@@ -29393,6 +31092,7 @@ export type Database = {
           path_names_csv: string | null
           replenishment_frequency: string | null
           root_taxonomy_node_id: number | null
+          scope_exempt: boolean
           sort_order: number | null
           status: string
           store_flow_order: number | null
@@ -29432,6 +31132,7 @@ export type Database = {
           path_names_csv?: string | null
           replenishment_frequency?: string | null
           root_taxonomy_node_id?: number | null
+          scope_exempt?: boolean
           sort_order?: number | null
           status?: string
           store_flow_order?: number | null
@@ -29471,6 +31172,7 @@ export type Database = {
           path_names_csv?: string | null
           replenishment_frequency?: string | null
           root_taxonomy_node_id?: number | null
+          scope_exempt?: boolean
           sort_order?: number | null
           status?: string
           store_flow_order?: number | null
@@ -41481,6 +43183,20 @@ export type Database = {
       }
       assess_stimulus_consistency: { Args: { p_concepts: Json }; Returns: Json }
       attach_updated_at_trigger: { Args: { tbl: string }; Returns: undefined }
+      audit_facet_scope_specificity: {
+        Args: never
+        Returns: {
+          display_name: string
+          facet_type: string
+          l2_categories_in_scope: number
+          l2_names: string
+          name_affinity: boolean
+          nodes_in_scope: number
+          products_carrying: number
+          severity: string
+          suggestion: string
+        }[]
+      }
       audit_position_bias: {
         Args: { p_compare_group_id?: number }
         Returns: {
@@ -41531,7 +43247,6 @@ export type Database = {
         Returns: number
       }
       backfill_ingredient_counts: { Args: never; Returns: string }
-      backfill_search_attributes_from_facets: { Args: never; Returns: string }
       barcode_belongs_to_product: {
         Args: { p_barcode: string; p_product_id: number }
         Returns: boolean
@@ -41611,6 +43326,13 @@ export type Database = {
       can_brand_read_mission_report: {
         Args: { p_mission_id: string }
         Returns: boolean
+      }
+      can_declare_availability: {
+        Args: { p_product_id: number }
+        Returns: {
+          allowed: boolean
+          reason: string
+        }[]
       }
       can_read_concept_stimulus: {
         Args: { p_object_name: string }
@@ -42273,8 +43995,44 @@ export type Database = {
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       daitch_mokotoff: { Args: { "": string }; Returns: string[] }
+      declare_facet_for_brand_node: {
+        Args: {
+          p_evidence_note?: string
+          p_evidence_url?: string
+          p_facet_type: string
+          p_facet_value: string
+          p_taxonomy_node_id: number
+        }
+        Returns: number
+      }
+      declare_product_availability: {
+        Args: {
+          p_geo_region_id?: number
+          p_notes?: string
+          p_product_id: number
+          p_retail_location_id?: number
+          p_retailer_id: number
+          p_scope_level: string
+          p_sku_variant_id?: number
+        }
+        Returns: number
+      }
+      declare_product_facet: {
+        Args: {
+          p_evidence_note?: string
+          p_evidence_url?: string
+          p_facet_type: string
+          p_facet_value: string
+          p_product_id: number
+        }
+        Returns: number
+      }
       delete_simulated_studies: { Args: never; Returns: Json }
       delete_study_draft: { Args: { p_draft_id: string }; Returns: boolean }
+      delist_product_availability: {
+        Args: { p_declaration_id: number; p_delisted_on?: string }
+        Returns: boolean
+      }
       deny_follow_request: {
         Args: { p_requester_id: number; p_target_auth_id: string }
         Returns: Json
@@ -42325,6 +44083,12 @@ export type Database = {
         Returns: Database["public"]["Enums"]["consumption_evidence_grade"]
       }
       exit_brand_impersonation: { Args: never; Returns: Json }
+      expand_facet_value: {
+        Args: { p_facet_type: string; p_value_code: string }
+        Returns: {
+          facet_value_code: string
+        }[]
+      }
       expand_food_query: { Args: { p_query: string }; Returns: string }
       expand_upce_to_upca: { Args: { p_upce: string }; Returns: string }
       experience_tier: {
@@ -42344,6 +44108,35 @@ export type Database = {
         }[]
       }
       expire_stale_scores: { Args: { p_batch_size?: number }; Returns: number }
+      facet_quality_node_names: {
+        Args: { p_run_at: string }
+        Returns: undefined
+      }
+      facet_quality_report: {
+        Args: { p_sample_divisor?: number }
+        Returns: {
+          denominator: number
+          detail: Json
+          facet_type: string
+          metric_code: string
+          metric_group: string
+          pct: number
+          status: string
+          value: number
+        }[]
+      }
+      facet_quality_search_term_safety: {
+        Args: { p_run_at: string }
+        Returns: undefined
+      }
+      facet_quality_search_terms: {
+        Args: { p_run_at: string }
+        Returns: undefined
+      }
+      facet_scope_ok: {
+        Args: { p_facet_type: string; p_product_id: number }
+        Returns: boolean
+      }
       facets_for_node: {
         Args: { p_facet_type: string; p_node_id: number }
         Returns: {
@@ -42546,6 +44339,35 @@ export type Database = {
         Args: { p_brand_id?: number; p_min_battles?: number }
         Returns: Json
       }
+      get_brand_product_distribution: {
+        Args: { p_product_id: number }
+        Returns: {
+          awaiting_review: number
+          brand_declared_at: string
+          brand_delisted_on: string
+          brand_status: string
+          covered_by_national: boolean
+          declaration_id: number
+          dough_seeded: boolean
+          geo_region_id: number
+          last_reported_on: string
+          national_declaration_id: number
+          needs_attention: boolean
+          parent_name: string
+          retail_location_id: number
+          retailer_id: number
+          retailer_name: string
+          retailer_type: string
+          scope_label: string
+          scope_level: string
+          seed_evidence_url: string
+          seed_found_at: string
+          shopper_reports: number
+          shopper_signal_stale: boolean
+          sku_variant_id: number
+          variant_label: string
+        }[]
+      }
       get_brand_products_for_application: {
         Args: { p_brand_id: number; p_limit?: number }
         Returns: Json
@@ -42568,47 +44390,6 @@ export type Database = {
           total_battles: number
           win_rate_pct: number
         }[]
-      }
-      get_product_facet_summary: {
-        Args: { p_product_ids: number[] }
-        Returns: {
-          product_id: number
-          derived_count: number
-          declared_count: number
-          pending_count: number
-          declarable_total: number
-          declarable_filled: number
-          completeness_pct: number
-        }[]
-      }
-      get_declarable_facets_for_product: {
-        Args: { p_product_id: number }
-        Returns: {
-          facet_type: string
-          display_name: string
-          cardinality: string
-          polarity: string
-          assignability: string
-          editable: boolean
-          requires_evidence: boolean
-          available_values: Json
-          derived_values: Json
-          declared_values: Json
-        }[]
-      }
-      declare_product_facet: {
-        Args: {
-          p_product_id: number
-          p_facet_type: string
-          p_facet_value: string
-          p_evidence_url?: string
-          p_evidence_note?: string
-        }
-        Returns: number
-      }
-      withdraw_product_facet_declaration: {
-        Args: { p_declaration_id: number; p_supersede?: boolean }
-        Returns: boolean
       }
       get_brand_products_with_taxonomy: {
         Args: { p_brand_id: number }
@@ -42635,6 +44416,16 @@ export type Database = {
           user_percentile: number
         }[]
       }
+      get_brand_review_queue: {
+        Args: { p_limit?: number }
+        Returns: {
+          awaiting_review: number
+          distinct_reporters: number
+          last_reported_on: string
+          product_id: number
+          product_name: string
+        }[]
+      }
       get_brand_total_battles: { Args: { p_brand_id?: number }; Returns: Json }
       get_bridge_candidates: {
         Args: {
@@ -42651,6 +44442,25 @@ export type Database = {
           opponent_product_id: number
           primary_component: number
           primary_product_id: number
+        }[]
+      }
+      get_category_attribute_demand: {
+        Args: {
+          p_from?: string
+          p_min_browses?: number
+          p_node_id?: number
+          p_to?: string
+        }
+        Returns: {
+          distinct_users: number
+          facet_type: string
+          filtered_browses: number
+          node_name: string
+          share: number
+          share_suppressed: boolean
+          taxonomy_node_id: number
+          top_values: Json
+          total_browses: number
         }[]
       }
       get_category_intelligence: {
@@ -42725,6 +44535,21 @@ export type Database = {
           maturity_tier: string
           product_id: number
           winning_product: string
+        }[]
+      }
+      get_declarable_facets_for_product: {
+        Args: { p_product_id: number }
+        Returns: {
+          assignability: string
+          available_values: Json
+          cardinality: string
+          declared_values: Json
+          derived_values: Json
+          display_name: string
+          editable: boolean
+          facet_type: string
+          polarity: string
+          requires_evidence: boolean
         }[]
       }
       get_effective_brand_id: { Args: never; Returns: number }
@@ -42946,6 +44771,47 @@ export type Database = {
         Args: { p_mission_claim_id: string; p_protocol_question_id: string }
         Returns: Json
       }
+      get_product_availability: {
+        Args: { p_postal_code?: string; p_product_id: number }
+        Returns: {
+          availability_source: string
+          brand_delisted_on: string
+          confidence: number
+          geo_region_id: number
+          is_stale: boolean
+          last_reported_on: string
+          location_name: string
+          parent_name: string
+          retail_location_id: number
+          retailer_id: number
+          retailer_name: string
+          retailer_type: string
+          scope_label: string
+          scope_level: string
+          shopper_reports: number
+          sku_variant_id: number
+          sourced_at: string
+          variant_label: string
+        }[]
+      }
+      get_product_availability_reports: {
+        Args: { p_only_pending?: boolean; p_product_id: number }
+        Returns: {
+          contradicts_delisting: boolean
+          geo_region_id: number
+          parent_name: string
+          report_date: string
+          report_id: number
+          retail_location_id: number
+          retailer_id: number
+          retailer_name: string
+          review_state: string
+          scope_label: string
+          scope_level: string
+          sku_variant_id: number
+          variant_label: string
+        }[]
+      }
       get_product_battle_history: {
         Args: { p_product_id: number }
         Returns: {
@@ -43018,6 +44884,18 @@ export type Database = {
       get_product_dough_score: {
         Args: { p_product_id: number; p_user_id: number }
         Returns: number
+      }
+      get_product_facet_summary: {
+        Args: { p_product_ids: number[] }
+        Returns: {
+          completeness_pct: number
+          declarable_filled: number
+          declarable_total: number
+          declared_count: number
+          derived_count: number
+          pending_count: number
+          product_id: number
+        }[]
       }
       get_product_loop_state: {
         Args: { p_product_id: number; p_user_id: number }
@@ -43402,6 +45280,7 @@ export type Database = {
       is_age_eligible: { Args: { p_user_id: number }; Returns: boolean }
       is_brand_admin: { Args: never; Returns: boolean }
       is_dough_admin: { Args: never; Returns: boolean }
+      is_dough_operator: { Args: never; Returns: boolean }
       is_restricted_product: {
         Args: { p_product_id: number }
         Returns: boolean
@@ -43515,6 +45394,15 @@ export type Database = {
           test_type: string
           title: string
           total_claims: number
+        }[]
+      }
+      list_retailer_distribution_regions: {
+        Args: { p_retailer_id: number }
+        Returns: {
+          geo_region_id: number
+          region_code: string
+          region_name: string
+          region_type: string
         }[]
       }
       list_study_drafts: {
@@ -43675,6 +45563,10 @@ export type Database = {
       }
       mission_elo_is_trustworthy: {
         Args: { p_product_id: number; p_user_id: number }
+        Returns: boolean
+      }
+      node_is_within: {
+        Args: { p_node_id: number; p_roots: number[] }
         Returns: boolean
       }
       normalize_brand_website: { Args: { p_raw: string }; Returns: string }
@@ -43849,6 +45741,18 @@ export type Database = {
           score: number
         }[]
       }
+      rank_stores_for_saved_products: {
+        Args: { p_limit?: number; p_postal_code: string }
+        Returns: {
+          best_confidence: number
+          matched_products: number
+          parent_name: string
+          retailer_id: number
+          retailer_name: string
+          saved_total: number
+          sources: string[]
+        }[]
+      }
       reactivate_category_entitlement: {
         Args: {
           p_brand_id: number
@@ -43875,8 +45779,20 @@ export type Database = {
           rounds_skipped_membership: number
         }[]
       }
+      reconcile_allergen_facets: {
+        Args: { p_dry_run?: boolean; p_limit?: number }
+        Returns: Json
+      }
+      reconcile_facet_suppressions: {
+        Args: { p_dry_run?: boolean; p_limit?: number }
+        Returns: Json
+      }
       reconcile_promoted_scan_barcodes: {
         Args: { p_dry_run?: boolean }
+        Returns: Json
+      }
+      reconcile_search_index_dirty: {
+        Args: { p_dry_run?: boolean; p_limit?: number; p_product_id?: number }
         Returns: Json
       }
       record_attribute_driver_response: {
@@ -44091,6 +46007,10 @@ export type Database = {
         }
         Returns: Json
       }
+      reject_availability_report: {
+        Args: { p_reason: string; p_report_id: number }
+        Returns: boolean
+      }
       remove_from_list: {
         Args: { p_product_id: number; p_tag: string }
         Returns: Json
@@ -44098,6 +46018,25 @@ export type Database = {
       remove_grocery_item: {
         Args: { p_item_id: number; p_user_id: number }
         Returns: undefined
+      }
+      report_product_availability: {
+        Args: {
+          p_geo_region_id?: number
+          p_product_id: number
+          p_retail_location_id?: number
+          p_retailer_id: number
+          p_sku_variant_id?: number
+        }
+        Returns: number
+      }
+      resolve_availability_scope: {
+        Args: {
+          p_geo_region_id: number
+          p_retail_location_id: number
+          p_retailer_id: number
+          p_scope_level: string
+        }
+        Returns: string
       }
       resolve_brand_by_name: {
         Args: { p_name: string }
@@ -44214,6 +46153,10 @@ export type Database = {
       revert_change_batch: {
         Args: { p_batch_id: string; p_reason: string }
         Returns: Json
+      }
+      review_availability_report: {
+        Args: { p_action: string; p_note?: string; p_report_id: number }
+        Returns: string
       }
       review_brand_ownership_correction: {
         Args: {
@@ -44495,6 +46438,18 @@ export type Database = {
       seed_l3_colors_hsl: { Args: never; Returns: undefined }
       seed_l3_colors_v2: { Args: never; Returns: undefined }
       seed_pantry_plu_for_user: { Args: { p_user_id: number }; Returns: number }
+      seed_product_availability: {
+        Args: {
+          p_evidence_url?: string
+          p_geo_region_id?: number
+          p_product_id: number
+          p_retail_location_id?: number
+          p_retailer_id: number
+          p_scope_level: string
+          p_sku_variant_id?: number
+        }
+        Returns: number
+      }
       select_mission_panel: {
         Args: {
           p_focal_product_id: number
@@ -44690,15 +46645,23 @@ export type Database = {
         Args: { p_product_id: number }
         Returns: undefined
       }
-      sync_product_search_index:
-        | { Args: { p_force?: boolean; p_limit?: number }; Returns: string }
-        | {
-            Args: { p_after_id?: number; p_force?: boolean; p_limit?: number }
-            Returns: string
-          }
+      sync_product_search_index: {
+        Args: { p_after_id?: number; p_force?: boolean; p_limit?: number }
+        Returns: string
+      }
       sync_tried_caches: {
         Args: { p_product_id: number; p_user_id: number }
         Returns: undefined
+      }
+      telemetry_coverage: {
+        Args: never
+        Returns: {
+          browse_calls: number
+          coverage_pct: number
+          logged_events: number
+          verdict: string
+          window_start: string
+        }[]
       }
       text_soundex: { Args: { "": string }; Returns: string }
       transition_discovery_status: {
@@ -44917,6 +46880,14 @@ export type Database = {
       }
       validate_change_batch: { Args: { p_batch_id: string }; Returns: Json }
       withdraw_mission: { Args: { p_mission_id: string }; Returns: Json }
+      withdraw_product_availability_declaration: {
+        Args: { p_declaration_id: number }
+        Returns: boolean
+      }
+      withdraw_product_facet_declaration: {
+        Args: { p_declaration_id: number; p_supersede?: boolean }
+        Returns: boolean
+      }
     }
     Enums: {
       assignment_status:

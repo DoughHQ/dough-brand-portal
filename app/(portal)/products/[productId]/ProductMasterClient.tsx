@@ -77,6 +77,7 @@ import {
   raterFloorCopy,
 } from './tabs/intelligencePresentation'
 import type { ProductStudyCard } from '@/lib/productMaster/productHeroStudies'
+import WhereItsSoldSection from '@/components/distribution/WhereItsSoldSection'
 
 type Props = {
   portalUser: PortalUser
@@ -1220,6 +1221,15 @@ export default function ProductMasterClient({
               </div>
             )}
           </div>
+
+          <WhereItsSoldSection
+            productId={product.product_id}
+            canEdit={canEdit}
+            skus={master.skus.map((s) => ({
+              sku_variant_id: s.sku_variant_id,
+              label: skuLabel(s),
+            }))}
+          />
         </ProductOverviewTab>
       )}
 
