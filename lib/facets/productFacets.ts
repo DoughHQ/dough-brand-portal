@@ -207,9 +207,15 @@ export function facetFooterParts(
   return parts
 }
 
+export type ShopperFacetItem = {
+  facetType: string
+  value: string
+  label: string
+}
+
 /** Values shoppers can filter/find — derived + live declared, denylist applied. */
-export function composeShopperFacetLine(rows: DeclarableFacetRow[]): string {
-  const parts: string[] = []
+export function listShopperFacets(rows: DeclarableFacetRow[]): ShopperFacetItem[] {
+  const out: ShopperFacetItem[] = []
   const seen = new Set<string>()
   for (const row of rows) {
     const derived = filterDerivedValues(row.facet_type, row.derived_values)
@@ -217,7 +223,11 @@ export function composeShopperFacetLine(rows: DeclarableFacetRow[]): string {
       const key = `${row.facet_type}:${d.value}`
       if (seen.has(key)) continue
       seen.add(key)
-      parts.push(facetValueLabel(row, d.value, d.label))
+      out.push({
+        facetType: row.facet_type,
+        value: d.value,
+        label: facetValueLabel(row, d.value, d.label),
+      })
     }
     for (const dec of row.declared_values ?? []) {
       const s = (dec.review_state || '').toLowerCase()
@@ -225,10 +235,20 @@ export function composeShopperFacetLine(rows: DeclarableFacetRow[]): string {
       const key = `${row.facet_type}:${dec.value}`
       if (seen.has(key)) continue
       seen.add(key)
-      parts.push(facetValueLabel(row, dec.value, dec.label))
+      out.push({
+        facetType: row.facet_type,
+        value: dec.value,
+        label: facetValueLabel(row, dec.value, dec.label),
+      })
     }
   }
-  return parts.join(' · ')
+  return out
+}
+
+export function composeShopperFacetLine(rows: DeclarableFacetRow[]): string {
+  return listShopperFacets(rows)
+    .map((item) => item.label)
+    .join(' · ')
 }
 
 /** Prefer combobox over radio walls once vocabulary is this long. */

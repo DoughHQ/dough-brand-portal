@@ -5,6 +5,7 @@ import {
   facetValueLabel,
   filterDerivedValues,
   formatFacetFooterLine,
+  listShopperFacets,
   messageFromFacetError,
   normalizeDeclaredValues,
   normalizeDerivedValues,
@@ -96,6 +97,11 @@ describe('productFacets helpers', () => {
       }),
     ]
     expect(composeShopperFacetLine(rows)).toBe('Pineapple · Organic · Fair Trade')
+    expect(listShopperFacets(rows)).toEqual([
+      { facetType: 'flavor', value: 'pineapple', label: 'Pineapple' },
+      { facetType: 'certification', value: 'organic', label: 'Organic' },
+      { facetType: 'certification', value: 'fair_trade', label: 'Fair Trade' },
+    ])
     expect(
       composeShopperFacetLine([
         row({
