@@ -64,6 +64,7 @@ export default function BrandHome({
   const categoriesPulse = pulseItem(model, 'categories')
   const battledPulse = pulseItem(model, 'battled')
   const studiesPulse = pulseItem(model, 'studies')
+  const phoneCategories = model.categories.slice(0, 3)
 
   const strip: {
     key: string
@@ -106,12 +107,12 @@ export default function BrandHome({
 
   return (
     <div className="bh-page">
-      <div className="bh-top">
+      <header className="bh-top">
         <div className="bh-top-main">{profileSlot}</div>
         <Link href="/studies/new" className="bh-new-study">
           <span aria-hidden>+</span> New study
         </Link>
-      </div>
+      </header>
 
       <section className="bh-strip" aria-label="Portfolio snapshot">
         {strip.map((cell) => (
@@ -129,8 +130,8 @@ export default function BrandHome({
       </section>
 
       <div className="bh-grid">
-        <div className="bh-col">
-          <section>
+        <div className="bh-col bh-col-main">
+          <section className="bh-region bh-region-products">
             <div className="bh-section-head">
               <h2 className="bh-h">Your products</h2>
               <Link href="/products" className="bh-link">
@@ -152,7 +153,7 @@ export default function BrandHome({
                 cta="See all products →"
               />
             ) : lead ? (
-              <div className="bh-panel">
+              <div className="bh-panel bh-panel-products">
                 <ProductSignalCard card={lead} variant="lead" />
                 {rest.length > 0 ? (
                   <div className="bh-product-list">
@@ -165,7 +166,7 @@ export default function BrandHome({
             ) : null}
           </section>
 
-          <section>
+          <section className="bh-region bh-region-categories">
             <div className="bh-section-head">
               <h2 className="bh-h">Your categories</h2>
               <Link href="/categories" className="bh-link">
@@ -180,43 +181,83 @@ export default function BrandHome({
                 cta="Go to products →"
               />
             ) : (
-              <div className="bh-cats">
-                {model.categories.map((c) => {
-                  const status = c.unlocked ? (c.status === 'building' ? 'building' : 'active') : 'locked'
-                  return (
-                    <Link
-                      key={c.l2NodeId}
-                      href={c.href}
-                      className={`bh-cat${c.unlocked ? '' : ' is-locked'}`}
-                    >
-                      <CatArt name={c.name} src={c.bannerImageUrl} />
-                      <div className="bh-cat-body">
-                        <div className="bh-cat-top">
-                          <div className="bh-cat-name">{c.name}</div>
-                          <span className={`bh-cat-status is-${status}`}>
-                            {c.unlocked ? (c.status === 'building' ? 'Building' : 'Active') : 'Locked'}
-                          </span>
+              <>
+                {/* Desktop / tablet category cards */}
+                <div className="bh-cats bh-cats-desktop">
+                  {model.categories.map((c) => {
+                    const status = c.unlocked ? (c.status === 'building' ? 'building' : 'active') : 'locked'
+                    return (
+                      <Link
+                        key={c.l2NodeId}
+                        href={c.href}
+                        className={`bh-cat${c.unlocked ? '' : ' is-locked'}`}
+                      >
+                        <CatArt name={c.name} src={c.bannerImageUrl} />
+                        <div className="bh-cat-body">
+                          <div className="bh-cat-top">
+                            <div className="bh-cat-name">{c.name}</div>
+                            <span className={`bh-cat-status is-${status}`}>
+                              {c.unlocked ? (c.status === 'building' ? 'Building' : 'Active') : 'Locked'}
+                            </span>
+                          </div>
+                          <div className="bh-cat-detail">{c.detail}</div>
+                          {!c.unlocked ? (
+                            <div className="bh-cat-detail">Subscribe to open the full category Overview.</div>
+                          ) : null}
+                          <div className="bh-cat-cta">{c.ctaLabel}</div>
                         </div>
-                        <div className="bh-cat-detail">{c.detail}</div>
-                        {!c.unlocked ? (
-                          <div className="bh-cat-detail">Subscribe to open the full category Overview.</div>
-                        ) : null}
-                        <div className="bh-cat-cta">{c.ctaLabel}</div>
-                      </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+
+                {/* Phone: compact tappable rows */}
+                <div className="bh-cat-phone-list" aria-label="Categories">
+                  {phoneCategories.map((c) => {
+                    const status = c.unlocked
+                      ? c.status === 'building'
+                        ? 'Building'
+                        : 'Active'
+                      : 'Locked'
+                    return (
+                      <Link
+                        key={c.l2NodeId}
+                        href={c.href}
+                        className={`bh-cat-phone-row${c.unlocked ? '' : ' is-locked'}`}
+                      >
+                        <CatArt name={c.name} src={c.bannerImageUrl} />
+                        <span className="bh-cat-phone-copy">
+                          <span className="bh-cat-phone-name">{c.name}</span>
+                          <span className="bh-cat-phone-meta">
+                            {status}
+                            {c.detail ? ` · ${c.detail}` : ''}
+                          </span>
+                        </span>
+                        <span className="bh-cat-phone-chev" aria-hidden>
+                          ›
+                        </span>
+                      </Link>
+                    )
+                  })}
+                  {model.categories.length > phoneCategories.length ? (
+                    <Link href="/categories" className="bh-cat-phone-more">
+                      View all {model.categories.length} categories →
                     </Link>
-                  )
-                })}
-              </div>
+                  ) : null}
+                </div>
+              </>
             )}
           </section>
         </div>
 
-        <div className="bh-col">
+        <aside className="bh-col bh-col-aside">
           {catalogHealth ? (
-            <CatalogHealthCard health={catalogHealth} domainVerified={domainVerified} />
+            <div className="bh-region bh-region-health">
+              <CatalogHealthCard health={catalogHealth} domainVerified={domainVerified} />
+            </div>
           ) : null}
 
-          <section className="bh-panel" aria-labelledby="bh-hero-heading">
+          <section className="bh-panel bh-region bh-region-hero" aria-labelledby="bh-hero-heading">
             <div className="bh-hero">
               <div className="bh-eyebrow">{model.hero.eyebrow}</div>
               <h2 id="bh-hero-heading" className="bh-hero-title">
@@ -237,10 +278,10 @@ export default function BrandHome({
               ))}
             </div>
           </section>
-        </div>
+        </aside>
       </div>
 
-      <section>
+      <section className="bh-region bh-region-research">
         <div className="bh-section-head">
           <h2 className="bh-h">Your research</h2>
           <Link href="/studies/new" className="bh-link">
