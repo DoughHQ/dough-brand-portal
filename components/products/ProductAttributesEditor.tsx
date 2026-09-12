@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase'
-import { formatProofCode } from '@/lib/transparency/displayMap'
 import {
   declareProductFacet,
   fetchDeclarableFacets,
@@ -11,6 +10,7 @@ import {
 } from '@/lib/facets/api'
 import {
   composeShopperFacetLine,
+  facetValueLabel,
   filterDerivedValues,
   formatFacetFooterLine,
   provenanceLabelFromSource,
@@ -25,12 +25,6 @@ import './productFacets.css'
 
 export const FACETS_LEDE =
   "We derive what we can from labels and ingredients. Add what only you know — it helps shoppers find your product. Allergens and ingredients are derived by Dough and can't be edited here."
-
-function labelFor(row: DeclarableFacetRow, value: string): string {
-  const hit = (row.available_values ?? []).find((v) => v.value === value)
-  if (hit?.label) return hit.label
-  return formatProofCode(value) || value
-}
 
 function isLiveDeclared(d: FacetDeclaredValue): boolean {
   const s = (d.review_state || '').toLowerCase()
@@ -100,13 +94,7 @@ export default function ProductAttributesEditor({
     return { known: knownRows, claims: claimRows, empty: emptyRows }
   }, [rows])
 
-  const shopperLine = useMemo(() => {
-    if (!rows) return ''
-    return composeShopperFacetLine(rows, (facetType, value) => {
-      const row = rows.find((r) => r.facet_type === facetType)
-      return row ? labelFor(row, value) : formatProofCode(value)
-    })
-  }, [rows])
+  const shopperLine = useMemo(() => (rows ? composeShopperFacetLine(rows) : ''), [rows])
 
   const refreshAfterWrite = async () => {
     await load()
@@ -253,7 +241,7 @@ function KnownTile({ row }: { row: DeclarableFacetRow }) {
       <ul className="pf-known__values">
         {derived.map((d: FacetDerivedValue) => (
           <li key={d.value}>
-            <span className="pf-known__value">{labelFor(row, d.value)}</span>
+            <span className="pf-known__value">{facetValueLabel(row, d.value, d.label)}</span>
             <span className="pf-known__whisper">{provenanceLabelFromSource(d.source)}</span>
           </li>
         ))}
@@ -423,18 +411,18 @@ function ClaimCard({
               className="pf-chip pf-chip--derived"
               title={provenanceLabelFromSource(d.source)}
             >
-              {labelFor(row, d.value)}
+              {facetValueLabel(row, d.value, d.label)}
               <span className="pf-chip__meta">{provenanceLabelFromSource(d.source)}</span>
             </span>
           ))}
           {live.map((d) => (
             <span key={`c-${d.declaration_id}`} className="pf-chip pf-chip--declared">
-              {labelFor(row, d.value)}
+              {facetValueLabel(row, d.value, d.label)}
               {showPicker ? (
                 <button
                   type="button"
                   className="pf-chip__x"
-                  aria-label={`Remove ${labelFor(row, d.value)}`}
+                  aria-label={`Remove ${facetValueLabel(row, d.value, d.label)}`}
                   disabled={busyKey != null}
                   onClick={() => void onWithdraw(d.declaration_id)}
                 >
@@ -445,13 +433,13 @@ function ClaimCard({
           ))}
           {pending.map((d) => (
             <span key={`p-${d.declaration_id}`} className="pf-chip pf-chip--pending">
-              {labelFor(row, d.value)}
+              {facetValueLabel(row, d.value, d.label)}
               <span className="pf-chip__meta">Pending review</span>
               {showPicker ? (
                 <button
                   type="button"
                   className="pf-chip__x"
-                  aria-label={`Withdraw pending ${labelFor(row, d.value)}`}
+                  aria-label={`Withdraw pending ${facetValueLabel(row, d.value, d.label)}`}
                   disabled={busyKey != null}
                   onClick={() => void onWithdraw(d.declaration_id)}
                 >
