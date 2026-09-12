@@ -23,6 +23,8 @@ export type FacetDeclaredValue = {
   review_state: string
   /** facet_values.display_name from the RPC — omit when blank. */
   label?: string
+  /** Brand's own words (e.g. tasting note). Omit when null/blank. */
+  brand_note?: string
 }
 
 export type FacetDerivedValue = {
@@ -95,6 +97,13 @@ export function normalizeDerivedValues(
   return out
 }
 
+function pickBrandNote(item: object): string | undefined {
+  const raw = (item as { brand_note?: unknown }).brand_note
+  if (raw == null) return undefined
+  const s = String(raw).trim()
+  return s || undefined
+}
+
 export function normalizeDeclaredValues(raw: unknown): FacetDeclaredValue[] {
   if (!Array.isArray(raw)) return []
   const out: FacetDeclaredValue[] = []
@@ -111,9 +120,37 @@ export function normalizeDeclaredValues(raw: unknown): FacetDeclaredValue[] {
     }
     const label = pickLabel(item)
     if (label) next.label = label
+    const brandNote = pickBrandNote(item)
+    if (brandNote) next.brand_note = brandNote
     out.push(next)
   }
   return out
+}
+
+/** Server uses pending_review; tolerate legacy `pending`. */
+export function isPendingReviewState(reviewState: string | null | undefined): boolean {
+  const s = (reviewState || '').toLowerCase()
+  return s === 'pending_review' || s === 'pending'
+}
+
+export function isLiveDeclaredState(reviewState: string | null | undefined): boolean {
+  const s = (reviewState || '').toLowerCase()
+  if (!s) return true
+  return s !== 'pending_review' && s !== 'pending' && s !== 'rejected' && s !== 'withdrawn'
+}
+
+/** Only flavour notes collect brand free-text today. */
+export function facetSupportsBrandNote(facetType: string): boolean {
+  return facetType.trim().toLowerCase() === 'flavor_note'
+}
+
+export function reviewStateLabel(reviewState: string | null | undefined): string | null {
+  const s = (reviewState || '').toLowerCase()
+  if (s === 'pending_review' || s === 'pending') return 'Pending review'
+  if (s === 'auto_accepted') return null
+  if (s === 'rejected') return 'Rejected'
+  if (s === 'withdrawn') return 'Withdrawn'
+  return null
 }
 
 export function filterDerivedValues(
@@ -230,8 +267,7 @@ export function listShopperFacets(rows: DeclarableFacetRow[]): ShopperFacetItem[
       })
     }
     for (const dec of row.declared_values ?? []) {
-      const s = (dec.review_state || '').toLowerCase()
-      if (s === 'pending' || s === 'rejected' || s === 'withdrawn') continue
+      if (!isLiveDeclaredState(dec.review_state)) continue
       const key = `${row.facet_type}:${dec.value}`
       if (seen.has(key)) continue
       seen.add(key)
@@ -258,6 +294,7 @@ const HINT_MESSAGES: Record<string, string> = {
   FACET_TYPE_DERIVED_ONLY: "Dough derives this from the ingredient list. It can't be edited here.",
   FACET_VALUE_NOT_IN_VOCABULARY: 'Choose a value from the list.',
   FACET_OUT_OF_SCOPE: "This attribute doesn't apply to this category.",
+  FACET_VALUE_OUT_OF_SCOPE: "That value isn't offered for this product's category.",
   EVIDENCE_REQUIRED: 'Add a link to your certification.',
   CROSS_TENANT_ACCESS_DENIED: "You don't have access to this product.",
   PRODUCT_NOT_EDITABLE: "This product can't be edited.",
