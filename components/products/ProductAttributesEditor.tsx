@@ -8,16 +8,21 @@ import {
   withdrawProductFacetDeclaration,
 } from '@/lib/facets/api'
 import {
+  facetSupportsBrandNote,
   facetValueLabel,
   filterDerivedValues,
+  isLiveDeclaredState,
+  isPendingReviewState,
   listShopperFacets,
   provenanceLabelFromSource,
+  reviewStateLabel,
   rowIsPickerEditable,
   type DeclarableFacetRow,
   type FacetDeclaredValue,
   type FacetDerivedValue,
 } from '@/lib/facets/productFacets'
 import { FacetChipAdd, FacetSearchSelect } from '@/components/products/FacetValuePicker'
+import { FlavorNotesPanel } from '@/components/products/FlavorNotesPanel'
 import {
   FacetChevronGlyph,
   FacetGlyph,
@@ -29,19 +34,20 @@ import './productFacets.css'
 export const FACETS_LEDE =
   "We derive what we can from labels and ingredients. Add what only you know — it helps shoppers find your product. Allergens and ingredients are derived by Dough and can't be edited here."
 
-function isLiveDeclared(d: FacetDeclaredValue): boolean {
-  const s = (d.review_state || '').toLowerCase()
-  return s !== 'pending' && s !== 'rejected' && s !== 'withdrawn'
-}
-
-function isPendingDeclared(d: FacetDeclaredValue): boolean {
-  return (d.review_state || '').toLowerCase() === 'pending'
-}
-
 function sectionHasContent(row: DeclarableFacetRow): boolean {
   const derived = filterDerivedValues(row.facet_type, row.derived_values)
   const declared = row.declared_values ?? []
   return derived.length > 0 || declared.length > 0
+}
+
+/** Flavour Notes first; evidence-heavy types later. */
+function sortOpenAttributes(a: DeclarableFacetRow, b: DeclarableFacetRow): number {
+  if (a.facet_type === 'flavor_note') return -1
+  if (b.facet_type === 'flavor_note') return 1
+  if (a.requires_evidence !== b.requires_evidence) {
+    return a.requires_evidence ? 1 : -1
+  }
+  return a.display_name.localeCompare(b.display_name)
 }
 
 type EditorProps = {
@@ -88,6 +94,13 @@ export default function ProductAttributesEditor({
       else if (has && picker) claimRows.push(r)
       else if (picker) emptyRows.push(r)
     }
+    emptyRows.sort(sortOpenAttributes)
+    // Keep Flavour Notes near the top of active claims too.
+    claimRows.sort((a, b) => {
+      if (a.facet_type === 'flavor_note') return -1
+      if (b.facet_type === 'flavor_note') return 1
+      return 0
+    })
     return { known: knownRows, claims: claimRows, empty: emptyRows }
   }, [rows])
 
@@ -99,6 +112,23 @@ export default function ProductAttributesEditor({
   }
 
   const hasAny = known.length + claims.length + empty.length > 0
+
+  const renderClaim = (row: DeclarableFacetRow, bare = false) => {
+    const shared = {
+      row,
+      productId,
+      canEdit,
+      busyKey,
+      setBusyKey,
+      setError,
+      onWrote: refreshAfterWrite,
+      bare,
+    }
+    if (facetSupportsBrandNote(row.facet_type)) {
+      return <FlavorNotesPanel key={row.facet_type} {...shared} />
+    }
+    return <ClaimCard key={row.facet_type} {...shared} />
+  }
 
   return (
     <div className="pf-dossier">
@@ -164,36 +194,26 @@ export default function ProductAttributesEditor({
 
       {claims.length > 0 ? (
         <section className="pf-room">
-          <div className="pf-claim-stack">
-            {claims.map((row) => (
-              <ClaimCard
-                key={row.facet_type}
-                row={row}
-                productId={productId}
-                canEdit={canEdit}
-                busyKey={busyKey}
-                setBusyKey={setBusyKey}
-                setError={setError}
-                onWrote={refreshAfterWrite}
-              />
-            ))}
-          </div>
+          <div className="pf-claim-stack">{claims.map((row) => renderClaim(row))}</div>
         </section>
       ) : null}
 
       {empty.length > 0 ? (
         <section className="pf-room">
           <header className="pf-room__head">
-            <h3 className="pf-room__title">Open attributes</h3>
-            <p className="pf-room__lede">Only what applies — one at a time.</p>
+            <h3 className="pf-room__title">You can add</h3>
+            <p className="pf-room__lede">
+              Only what applies — start with Flavour Notes, then the rest.
+            </p>
           </header>
           <div className="pf-add-list">
             {empty.map((row) => {
               const open = openAdd === row.facet_type
+              const isFlavor = row.facet_type === 'flavor_note'
               return (
                 <div
                   key={row.facet_type}
-                  className={`pf-add-row${open ? ' pf-add-row--open' : ''}`}
+                  className={`pf-add-row${open ? ' pf-add-row--open' : ''}${isFlavor ? ' pf-add-row--featured' : ''}`}
                 >
                   <button
                     type="button"
@@ -206,10 +226,17 @@ export default function ProductAttributesEditor({
                         <FacetGlyph type={row.facet_type} size={18} />
                       </span>
                       <span className="pf-add-row__name">{row.display_name}</span>
+                      {isFlavor ? (
+                        <span className="pf-add-row__feature">Tasting</span>
+                      ) : null}
                     </span>
                     <span className="pf-add-row__meta">
                       {row.requires_evidence ? (
                         <span className="pf-add-row__evidence">Needs evidence</span>
+                      ) : isFlavor ? (
+                        <span className="pf-add-row__optional">
+                          {(row.available_values ?? []).length} options
+                        </span>
                       ) : (
                         <span className="pf-add-row__optional">Optional</span>
                       )}
@@ -222,18 +249,7 @@ export default function ProductAttributesEditor({
                     </span>
                   </button>
                   {open ? (
-                    <div className="pf-add-row__body">
-                      <ClaimCard
-                        row={row}
-                        productId={productId}
-                        canEdit={canEdit}
-                        busyKey={busyKey}
-                        setBusyKey={setBusyKey}
-                        setError={setError}
-                        onWrote={refreshAfterWrite}
-                        bare
-                      />
-                    </div>
+                    <div className="pf-add-row__body">{renderClaim(row, true)}</div>
                   ) : null}
                 </div>
               )
@@ -288,8 +304,8 @@ function ClaimCard({
 }) {
   const derived = filterDerivedValues(row.facet_type, row.derived_values)
   const declared = row.declared_values ?? []
-  const live = declared.filter(isLiveDeclared)
-  const pending = declared.filter(isPendingDeclared)
+  const live = declared.filter((d) => isLiveDeclaredState(d.review_state))
+  const pending = declared.filter((d) => isPendingReviewState(d.review_state))
   const available = row.available_values ?? []
   const multi = row.cardinality === 'multi'
   const requiresEvidence = Boolean(row.requires_evidence)
@@ -299,9 +315,7 @@ function ClaimCard({
   const derivedSet = new Set(derived.map((d) => d.value))
   const taken = new Set([...liveValues, ...derivedSet])
 
-  const [draftSingle, setDraftSingle] = useState<string | null>(
-    live[0]?.value ?? null,
-  )
+  const [draftSingle, setDraftSingle] = useState<string | null>(live[0]?.value ?? null)
   const [pendingAdd, setPendingAdd] = useState<string | null>(null)
   const [evidenceUrl, setEvidenceUrl] = useState('')
   const [evidenceNote, setEvidenceNote] = useState('')
@@ -360,7 +374,6 @@ function ClaimCard({
       setEvidenceUrl('')
       setEvidenceNote('')
     }
-    // Reconcile even after partial success so chips match the DB.
     if (mutated) await onWrote()
   }
 
@@ -418,6 +431,31 @@ function ClaimCard({
     (draftSingle ?? null) !== (live[0]?.value ?? null) &&
     !(draftSingle && derivedSet.has(draftSingle) && !live[0])
 
+  const renderDeclaredChip = (d: FacetDeclaredValue, pendingChip: boolean) => {
+    const label = facetValueLabel(row, d.value, d.label)
+    const state = reviewStateLabel(d.review_state)
+    return (
+      <span
+        key={`${pendingChip ? 'p' : 'c'}-${d.declaration_id}`}
+        className={`pf-chip${pendingChip ? ' pf-chip--pending' : ' pf-chip--declared'}`}
+      >
+        {label}
+        {state ? <span className="pf-chip__meta">{state}</span> : null}
+        {showPicker ? (
+          <button
+            type="button"
+            className="pf-chip__x"
+            aria-label={`${pendingChip ? 'Withdraw pending' : 'Remove'} ${label}`}
+            disabled={busyKey != null}
+            onClick={() => void onWithdraw(d.declaration_id)}
+          >
+            ×
+          </button>
+        ) : null}
+      </span>
+    )
+  }
+
   const body = (
     <>
       {(derived.length > 0 || live.length > 0 || pending.length > 0) && (
@@ -432,39 +470,8 @@ function ClaimCard({
               <span className="pf-chip__meta">{provenanceLabelFromSource(d.source)}</span>
             </span>
           ))}
-          {live.map((d) => (
-            <span key={`c-${d.declaration_id}`} className="pf-chip pf-chip--declared">
-              {facetValueLabel(row, d.value, d.label)}
-              {showPicker ? (
-                <button
-                  type="button"
-                  className="pf-chip__x"
-                  aria-label={`Remove ${facetValueLabel(row, d.value, d.label)}`}
-                  disabled={busyKey != null}
-                  onClick={() => void onWithdraw(d.declaration_id)}
-                >
-                  ×
-                </button>
-              ) : null}
-            </span>
-          ))}
-          {pending.map((d) => (
-            <span key={`p-${d.declaration_id}`} className="pf-chip pf-chip--pending">
-              {facetValueLabel(row, d.value, d.label)}
-              <span className="pf-chip__meta">Pending review</span>
-              {showPicker ? (
-                <button
-                  type="button"
-                  className="pf-chip__x"
-                  aria-label={`Withdraw pending ${facetValueLabel(row, d.value, d.label)}`}
-                  disabled={busyKey != null}
-                  onClick={() => void onWithdraw(d.declaration_id)}
-                >
-                  ×
-                </button>
-              ) : null}
-            </span>
-          ))}
+          {live.map((d) => renderDeclaredChip(d, false))}
+          {pending.map((d) => renderDeclaredChip(d, true))}
         </div>
       )}
 
@@ -561,9 +568,7 @@ function ClaimCard({
           </span>
           <h4 className="pf-claim__title">{row.display_name}</h4>
         </div>
-        {requiresEvidence ? (
-          <span className="pf-claim__badge">Evidence</span>
-        ) : null}
+        {requiresEvidence ? <span className="pf-claim__badge">Evidence</span> : null}
       </div>
       {body}
     </article>

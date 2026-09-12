@@ -86,6 +86,7 @@ export async function declareProductFacet(
     facetValue: string
     evidenceUrl?: string | null
     evidenceNote?: string | null
+    brandNote?: string | null
   },
 ): Promise<{ declarationId: number | null; error: string | null }> {
   const { data, error } = await supabase.rpc('declare_product_facet', {
@@ -94,6 +95,7 @@ export async function declareProductFacet(
     p_facet_value: args.facetValue,
     p_evidence_url: args.evidenceUrl ?? undefined,
     p_evidence_note: args.evidenceNote ?? undefined,
+    p_brand_note: args.brandNote?.trim() || undefined,
   })
   if (error) return { declarationId: null, error: messageFromFacetError(error) }
   const id = typeof data === 'number' ? data : Number(data)

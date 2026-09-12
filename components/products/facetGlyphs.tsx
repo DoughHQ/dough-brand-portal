@@ -92,6 +92,7 @@ const TYPE_PATHS: Record<string, readonly string[]> = {
   free_from: PATHS.freeFrom,
   dietary: PATHS.dietary,
   flavor: PATHS.flavor,
+  flavor_note: PATHS.flavor,
   preparation: PATHS.preparation,
 }
 

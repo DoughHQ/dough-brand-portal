@@ -2,14 +2,18 @@ import { describe, expect, it } from 'vitest'
 import {
   composeShopperFacetLine,
   facetFooterParts,
+  facetSupportsBrandNote,
   facetValueLabel,
   filterDerivedValues,
   formatFacetFooterLine,
+  isLiveDeclaredState,
+  isPendingReviewState,
   listShopperFacets,
   messageFromFacetError,
   normalizeDeclaredValues,
   normalizeDerivedValues,
   provenanceLabelFromSource,
+  reviewStateLabel,
   rowIsPickerEditable,
   FACET_LIST_SEARCH_THRESHOLD,
   type DeclarableFacetRow,
@@ -242,9 +246,17 @@ describe('productFacets helpers', () => {
           declaration_id: 9,
           review_state: 'auto_accepted',
           label: 'Fair Trade',
+          brand_note: '  Farm partnership since 2019.  ',
           extra: 'nope',
         },
-        { value: 'organic', declaration_id: 10, review_state: 'pending', label: null },
+        { value: 'organic', declaration_id: 10, review_state: 'pending_review', label: null },
+        {
+          value: 'cooling',
+          declaration_id: 11,
+          review_state: 'auto_accepted',
+          label: 'Cooling',
+          brand_note: '',
+        },
       ]),
     ).toEqual([
       {
@@ -252,9 +264,72 @@ describe('productFacets helpers', () => {
         declaration_id: 9,
         review_state: 'auto_accepted',
         label: 'Fair Trade',
+        brand_note: 'Farm partnership since 2019.',
       },
-      { value: 'organic', declaration_id: 10, review_state: 'pending' },
+      { value: 'organic', declaration_id: 10, review_state: 'pending_review' },
+      {
+        value: 'cooling',
+        declaration_id: 11,
+        review_state: 'auto_accepted',
+        label: 'Cooling',
+      },
     ])
+  })
+
+  it('treats pending_review as pending and excludes it from the shopper line', () => {
+    expect(isPendingReviewState('pending_review')).toBe(true)
+    expect(isPendingReviewState('pending')).toBe(true)
+    expect(isLiveDeclaredState('auto_accepted')).toBe(true)
+    expect(isLiveDeclaredState('pending_review')).toBe(false)
+    expect(reviewStateLabel('pending_review')).toBe('Pending review')
+    expect(reviewStateLabel('auto_accepted')).toBeNull()
+    expect(
+      composeShopperFacetLine([
+        row({
+          facet_type: 'certification',
+          editable: true,
+          declared_values: [
+            { value: 'organic', declaration_id: 1, review_state: 'pending_review', label: 'Organic' },
+            { value: 'fair_trade', declaration_id: 2, review_state: 'auto_accepted', label: 'Fair Trade' },
+          ],
+        }),
+      ]),
+    ).toBe('Fair Trade')
+  })
+
+  it('marks flavor_note as the brand-note surface', () => {
+    expect(facetSupportsBrandNote('flavor_note')).toBe(true)
+    expect(facetSupportsBrandNote('texture')).toBe(false)
+  })
+
+  it('shapes Gatorade flavour notes for declare + note round-trip', () => {
+    // Live check target: product 30331662 — flavor_note editable with 31 vocab values.
+    const gatoradeFlavor = row({
+      facet_type: 'flavor_note',
+      display_name: 'Flavour Notes',
+      assignability: 'brand_declarable',
+      editable: true,
+      cardinality: 'multi',
+      available_values: Array.from({ length: 31 }, (_, i) => ({
+        value: i === 18 ? 'cooling' : `v${i}`,
+        label: i === 18 ? 'Cooling' : `V${i}`,
+      })),
+      declared_values: [
+        {
+          value: 'cooling',
+          declaration_id: 42,
+          review_state: 'auto_accepted',
+          label: 'Cooling',
+          brand_note: 'Finishes cold and clean.',
+        },
+      ],
+    })
+    expect(rowIsPickerEditable(gatoradeFlavor)).toBe(true)
+    expect(gatoradeFlavor.available_values).toHaveLength(31)
+    expect(listShopperFacets([gatoradeFlavor])).toEqual([
+      { facetType: 'flavor_note', value: 'cooling', label: 'Cooling' },
+    ])
+    expect(gatoradeFlavor.declared_values?.[0]?.brand_note).toBe('Finishes cold and clean.')
   })
 
   it('normalizes derived values and keeps intense_sweetener visible', () => {
@@ -300,6 +375,12 @@ describe('productFacets helpers', () => {
   it('maps facet HINT codes', () => {
     expect(messageFromFacetError({ hint: 'EVIDENCE_REQUIRED', message: 'x' })).toBe(
       'Add a link to your certification.',
+    )
+    expect(messageFromFacetError({ hint: 'FACET_VALUE_OUT_OF_SCOPE', message: 'x' })).toBe(
+      "That value isn't offered for this product's category.",
+    )
+    expect(messageFromFacetError({ hint: 'FACET_VALUE_NOT_IN_VOCABULARY', message: 'x' })).toBe(
+      'Choose a value from the list.',
     )
   })
 })
