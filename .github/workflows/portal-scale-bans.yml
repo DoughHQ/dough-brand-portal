@@ -23,6 +23,8 @@ jobs:
           node-version: '20'
           cache: npm
       - run: npm ci
+      # Ban scripts use ripgrep; Ubuntu runners do not ship it by default.
+      - run: sudo apt-get update && sudo apt-get install -y ripgrep
       - run: npm run check:home-ban
       - run: npm run check:reports-ban
       - run: npm run check:products-ban
