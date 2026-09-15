@@ -308,21 +308,21 @@
   width: calc(100% - var(--portal-sidebar-w));
   max-width: calc(100% - var(--portal-sidebar-w));
   box-sizing: border-box;
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
+  /* Block, not flex column: flex + any size containment on descendants
+     has collapsed catalog pages to one-word width in WebKit. */
+  display: block;
   min-height: 100vh;
   min-height: 100dvh;
   min-width: 0;
 }
 
-/* Detail / list canvases fill the main column — no floating max-width island.
- * Page roots must stretch; never put container-type on this flex child. */
+/* Detail / list canvases fill the main column — no floating max-width island. */
 .portal-main > * {
+  display: block;
   width: 100%;
+  max-width: none;
   min-width: 0;
-  flex: 1 1 auto;
-  align-self: stretch;
+  box-sizing: border-box;
 }
 
 .pm-page {

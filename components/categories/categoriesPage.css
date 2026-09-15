@@ -1,9 +1,9 @@
 /* Categories / Products catalog canvas — visual layout only.
  *
- * `.cat-page` is the `.portal-main` flex child (fill the column).
- * `.cat-page-cq` owns size containment for `@container cat-page`.
- * Never put container-type on `.cat-page` — WebKit collapses the flex
- * item to min-content and falsely trips the ≤559px container query.
+ * `.cat-page` fills `.portal-main`. Never use `container-type` / `@container`
+ * on this canvas — WebKit flex + size containment collapses the page to
+ * min-content (~one word wide) and falsely trips “phone” compact styles.
+ * Responsive rules use viewport `@media` (sidebar is 220px desktop).
  */
 
 .cat-page {
@@ -14,15 +14,12 @@
   box-sizing: border-box;
   padding: 28px 40px 88px;
   min-width: 0;
-  flex: 1 1 auto;
-  align-self: stretch;
 }
 
 .cat-page-cq {
   width: 100%;
   min-width: 0;
-  container-type: inline-size;
-  container-name: cat-page;
+  display: flow-root;
 }
 
 @media (max-width: 900px) {
@@ -547,7 +544,8 @@ a.cat-tile:hover .cat-tile-btn-outline {
   line-height: 1.5;
 }
 
-@container cat-page (max-width: 559px) {
+/* Canvas ≤~559px: viewport ≤780 with 220px rail, or ≤559 when rail is 0. */
+@media (max-width: 780px) {
   .cat-summary {
     gap: 8px;
     margin-bottom: 18px;
@@ -588,7 +586,8 @@ a.cat-tile:hover .cat-tile-btn-outline {
   }
 }
 
-@container cat-page (min-width: 1080px) {
+/* Canvas ≥~1080px: viewport ≥1300 with 220px rail. */
+@media (min-width: 1300px) {
   .cat-summary {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -800,7 +799,8 @@ a.cat-locked-product:hover .cat-locked-product-chev {
   max-width: 520px;
 }
 
-@container cat-page (min-width: 640px) {
+/* Canvas ≥~640px: viewport ≥860 with 220px rail. */
+@media (min-width: 860px) {
   .cat-locked-summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

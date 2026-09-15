@@ -1,16 +1,17 @@
 # Portal shell — page canvas contract
 #
-# Desktop shell: fixed sidebar + `.portal-main` clears it with margin-left.
+# Desktop shell: fixed sidebar (220px) + `.portal-main` clears it with margin-left.
 # `.portal-main` is a column flex container. Every page root is a flex child.
 #
 # RULES
 # 1. Page roots fill the main column: width 100%, min-width 0, stretch.
-# 2. NEVER put `container-type` / size containment on a page root
-#    (`.cat-page`, `.bh-page`, `.pm-page`, `.reports-page`, …).
-#    WebKit collapses that flex item to min-content (~one word wide), then
-#    `@container (max-width: 559px)` falsely fires on desktop.
-# 3. If you need container queries, put them on an INNER wrapper
-#    (e.g. `.cat-page-cq` via `<CatPage>`).
+# 2. NEVER use `container-type` / `@container` on portal page canvases
+#    (`.cat-page`, `.cat-page-cq`, `.bh-page`, `.pm-page`, `.reports-page`, …).
+#    WebKit flex + size containment collapses the canvas to min-content
+#    (~one word wide). Inner wrappers do NOT make this safe.
+# 3. Responsive layout uses viewport `@media`. When approximating former
+#    canvas-width queries, add the desktop rail (220px). Compact shell
+#    (≤880px) sets `--portal-sidebar-w: 0`.
 # 4. Do not center a capped max-width island inside main; pad the canvas.
 #
 # Catalog canvas: always use `<CatPage>` from `components/categories/CatPage.tsx`
