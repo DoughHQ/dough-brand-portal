@@ -21,7 +21,7 @@ export const PRODUCT_DETAIL_TAB_LABELS: Record<ProductDetailTab, string> = {
   intelligence: 'Intelligence',
   studies: 'Studies',
   facets: 'Facets',
-  proof: 'Transparency',
+  proof: 'P.R.O.O.F.',
   images: 'Images',
   activity: 'Activity',
 }

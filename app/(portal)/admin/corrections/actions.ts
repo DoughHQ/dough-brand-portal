@@ -2,9 +2,12 @@
 
 import {
   extractCorrectionLabel,
+  getPendingCorrectionReviewsPage,
   reviewCorrectionSubmission,
   searchBrands,
   searchTaxonomyNodes,
+  type CorrectionReviewsPage,
+  type CorrectionReviewsPageCursor,
 } from '@/lib/corrections'
 import type { TaxonomySearchHit } from '@/lib/corrections.shared'
 
@@ -34,4 +37,15 @@ export async function searchBrandsAction(
   query: string
 ): Promise<Array<{ brand_id: number; brand_name: string }>> {
   return searchBrands(query)
+}
+
+export async function loadMoreCorrectionsAction(opts: {
+  cursor: CorrectionReviewsPageCursor
+  productId?: number | null
+}): Promise<CorrectionReviewsPage> {
+  return getPendingCorrectionReviewsPage({
+    limit: 25,
+    cursor: opts.cursor,
+    productId: opts.productId ?? null,
+  })
 }

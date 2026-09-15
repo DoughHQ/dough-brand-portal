@@ -8,26 +8,18 @@ import {
   safeLinkedInHref,
   sortApplicationsForQueue,
   type BrandApplication,
+  type BrandApplicationsPageCursor,
   type ApplicationStatus,
 } from '@/lib/brandApplications'
 import {
   listBrandWaitlistApplicationsAction,
   setBrandApplicationStatusAction,
 } from './actions'
+import { formatUtcStamp } from '@/lib/portal-ui/format'
 
 function formatWhen(iso: string | null): string {
   if (!iso) return '—'
-  try {
-    return new Date(iso).toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    })
-  } catch {
-    return iso
-  }
+  return formatUtcStamp(iso)
 }
 
 const STATUS_LABEL: Record<ApplicationStatus, string> = {
@@ -114,12 +106,19 @@ function MetaLine({ label, children }: { label: string; children: ReactNode }) {
 
 export default function BrandApplicationsClient({
   initialRows,
+  initialHasMore = false,
+  initialCursor = null,
   initialError,
 }: {
   initialRows: BrandApplication[]
+  initialHasMore?: boolean
+  initialCursor?: BrandApplicationsPageCursor | null
   initialError?: string | null
 }) {
   const [rows, setRows] = useState(initialRows)
+  const [hasMore, setHasMore] = useState(initialHasMore)
+  const [cursor, setCursor] = useState<BrandApplicationsPageCursor | null>(initialCursor)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(initialError ?? null)
   const [flash, setFlash] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
@@ -146,8 +145,29 @@ export default function BrandApplicationsClient({
       return
     }
     setRows(res.rows ?? [])
+    setHasMore(Boolean(res.hasMore))
+    setCursor(res.nextCursor ?? null)
     setError(null)
   }, [])
+
+  const loadMore = useCallback(async () => {
+    if (!cursor || loadingMore) return
+    setLoadingMore(true)
+    const res = await listBrandWaitlistApplicationsAction({ cursor })
+    setLoadingMore(false)
+    if (!res.ok) {
+      setError(res.error ?? 'Couldn’t load more.')
+      return
+    }
+    setRows((prev) =>
+      sortApplicationsForQueue([
+        ...prev,
+        ...(res.rows ?? []).filter((r) => !prev.some((p) => p.waitlist_id === r.waitlist_id)),
+      ])
+    )
+    setHasMore(Boolean(res.hasMore))
+    setCursor(res.nextCursor ?? null)
+  }, [cursor, loadingMore])
 
   const patchRow = useCallback(
     (
@@ -638,6 +658,14 @@ export default function BrandApplicationsClient({
           })}
         </div>
       )}
+
+      {hasMore ? (
+        <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
+          <button type="button" className="btn btn-secondary" onClick={() => void loadMore()} disabled={loadingMore}>
+            {loadingMore ? 'Loading…' : 'Load more'}
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }

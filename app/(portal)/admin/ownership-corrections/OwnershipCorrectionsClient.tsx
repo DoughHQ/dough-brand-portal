@@ -7,36 +7,35 @@ import {
   fetchConglomerateNames,
   liveParentLabel,
   safeEvidenceHref,
+  type OwnershipCorrectionsPageCursor,
   type PendingOwnershipCorrection,
 } from '@/lib/ownershipCorrections'
 import {
   listPendingOwnershipCorrectionsAction,
   reviewOwnershipCorrectionAction,
 } from './actions'
+import { formatUtcStamp } from '@/lib/portal-ui/format'
 
 function formatWhen(iso: string | null): string {
   if (!iso) return '—'
-  try {
-    return new Date(iso).toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    })
-  } catch {
-    return iso
-  }
+  return formatUtcStamp(iso)
 }
 
 export default function OwnershipCorrectionsClient({
   initialRows,
+  initialHasMore = false,
+  initialCursor = null,
   initialError,
 }: {
   initialRows: PendingOwnershipCorrection[]
+  initialHasMore?: boolean
+  initialCursor?: OwnershipCorrectionsPageCursor | null
   initialError?: string | null
 }) {
   const [rows, setRows] = useState(initialRows)
+  const [hasMore, setHasMore] = useState(initialHasMore)
+  const [cursor, setCursor] = useState<OwnershipCorrectionsPageCursor | null>(initialCursor)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(initialError ?? null)
   const [flash, setFlash] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -70,8 +69,31 @@ export default function OwnershipCorrectionsClient({
       return
     }
     setRows(res.rows ?? [])
+    setHasMore(Boolean(res.hasMore))
+    setCursor(res.nextCursor ?? null)
     setError(null)
   }, [])
+
+  const loadMore = useCallback(async () => {
+    if (!cursor || loadingMore) return
+    setLoadingMore(true)
+    const res = await listPendingOwnershipCorrectionsAction({ cursor })
+    setLoadingMore(false)
+    if (!res.ok) {
+      setError(res.error ?? 'Couldn’t load more.')
+      return
+    }
+    setRows((prev) => {
+      const seen = new Set(prev.map((r) => r.correction_id))
+      const merged = [...prev]
+      for (const row of res.rows ?? []) {
+        if (!seen.has(row.correction_id)) merged.push(row)
+      }
+      return merged
+    })
+    setHasMore(Boolean(res.hasMore))
+    setCursor(res.nextCursor ?? null)
+  }, [cursor, loadingMore])
 
   const removeRow = useCallback((correctionId: string) => {
     setRows((prev) => prev.filter((r) => r.correction_id !== correctionId))
@@ -495,6 +517,28 @@ export default function OwnershipCorrectionsClient({
               </article>
             )
           })}
+          {hasMore ? (
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8 }}>
+              <button
+                type="button"
+                disabled={loadingMore || !cursor}
+                onClick={() => void loadMore()}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: 8,
+                  border: '1px solid var(--ink-10)',
+                  background: 'var(--white)',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: loadingMore ? 'wait' : 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                  opacity: loadingMore ? 0.7 : 1,
+                }}
+              >
+                {loadingMore ? 'Loading…' : 'Load more'}
+              </button>
+            </div>
+          ) : null}
         </div>
       )}
     </div>

@@ -37,6 +37,17 @@ export type CorrectionReviewRow = {
   variants: Array<{ sku_variant_id: number; label: string }>
 }
 
+export type CorrectionReviewsPageCursor = {
+  createdAt: string
+  id: string
+}
+
+export type CorrectionReviewsPage = {
+  rows: CorrectionReviewRow[]
+  hasMore: boolean
+  nextCursor: CorrectionReviewsPageCursor | null
+}
+
 export type TaxonomySearchHit = {
   taxonomy_node_id: number
   node_name_display: string | null

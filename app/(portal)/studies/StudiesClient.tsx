@@ -15,12 +15,14 @@ import type {
   OperatorStudyRow,
   WithdrawnStudyRow,
 } from '@/lib/studies/types'
+import type { StudiesPageCursor } from '@/lib/studies/fetchOperatorStudies'
 import {
   hardDeleteMissionAction,
   restoreMissionAction,
   withdrawMissionAction,
 } from './missionTrashActions'
 import { closeStudyAction } from './closeStudyAction'
+import { listOperatorStudiesPageAction } from './listStudiesPageAction'
 import ConfirmDialog from './ConfirmDialog'
 import StudiesMetricStrip from './components/StudiesMetricStrip'
 import StudyDraftsPanel from './components/StudyDraftsPanel'
@@ -146,38 +148,76 @@ type ToastState =
     }
 
 interface Props {
-  studies: OperatorStudyRow[]
+  initialActive: OperatorStudyRow[]
+  initialActiveHasMore: boolean
+  initialActiveCursor: StudiesPageCursor | null
+  initialComplete: OperatorStudyRow[]
+  initialCompleteHasMore: boolean
+  initialCompleteCursor: StudiesPageCursor | null
   withdrawn: WithdrawnStudyRow[]
   drafts: StudyDraftListItem[]
   effectiveBrandId: number
   canOperate: boolean
   brandName?: string | null
+  loadError?: string | null
 }
 
-
 export default function StudiesClient({
-  studies,
+  initialActive,
+  initialActiveHasMore,
+  initialActiveCursor,
+  initialComplete,
+  initialCompleteHasMore,
+  initialCompleteCursor,
   withdrawn,
   drafts: initialDrafts,
   effectiveBrandId,
   canOperate,
+  loadError = null,
 }: Props) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [busyId, setBusyId] = useState<string | null>(null)
   const [toast, setToast] = useState<ToastState | null>(null)
-  const [errorBanner, setErrorBanner] = useState<string | null>(null)
+  const [errorBanner, setErrorBanner] = useState<string | null>(loadError)
   const [confirm, setConfirm] = useState<ConfirmState>(null)
   const [isArchiveOpen, setIsArchiveOpen] = useState(false)
 
-  const [studyRows, setStudyRows] = useState(studies)
+  const [activeRowsState, setActiveRowsState] = useState(initialActive)
+  const [activeHasMore, setActiveHasMore] = useState(initialActiveHasMore)
+  const [activeCursor, setActiveCursor] = useState(initialActiveCursor)
+  const [loadingActiveMore, setLoadingActiveMore] = useState(false)
+
+  const [completeRowsState, setCompleteRowsState] = useState(initialComplete)
+  const [completeHasMore, setCompleteHasMore] = useState(initialCompleteHasMore)
+  const [completeCursor, setCompleteCursor] = useState(initialCompleteCursor)
+  const [loadingCompleteMore, setLoadingCompleteMore] = useState(false)
+
   const [withdrawnRows, setWithdrawnRows] = useState(withdrawn)
   const [draftRows, setDraftRows] = useState(initialDrafts)
 
+  const studyRows = useMemo(
+    () => [...activeRowsState, ...completeRowsState],
+    [activeRowsState, completeRowsState]
+  )
+
   useEffect(() => {
-    setStudyRows(studies)
+    setActiveRowsState(initialActive)
+    setActiveHasMore(initialActiveHasMore)
+    setActiveCursor(initialActiveCursor)
+    setCompleteRowsState(initialComplete)
+    setCompleteHasMore(initialCompleteHasMore)
+    setCompleteCursor(initialCompleteCursor)
     setWithdrawnRows(withdrawn)
-  }, [studies, withdrawn])
+  }, [
+    initialActive,
+    initialActiveHasMore,
+    initialActiveCursor,
+    initialComplete,
+    initialCompleteHasMore,
+    initialCompleteCursor,
+    withdrawn,
+  ])
 
   useEffect(() => {
     setDraftRows(initialDrafts)
@@ -196,16 +236,46 @@ export default function StudiesClient({
   )
 
   const activeRows = useMemo(() => {
-    return studyRows
-      .filter((row) => bucketForRow(row) === 'active')
-      .sort(sortByCreatedDesc)
-  }, [studyRows])
+    return activeRowsState.slice().sort(sortByCreatedDesc)
+  }, [activeRowsState])
 
   const completeRows = useMemo(() => {
-    return studyRows
-      .filter((row) => bucketForRow(row) === 'complete')
-      .sort(sortComplete)
-  }, [studyRows])
+    return completeRowsState.slice().sort(sortComplete)
+  }, [completeRowsState])
+
+  const loadMoreActive = useCallback(async () => {
+    if (!activeCursor || loadingActiveMore) return
+    setLoadingActiveMore(true)
+    const res = await listOperatorStudiesPageAction({ tab: 'active', cursor: activeCursor })
+    setLoadingActiveMore(false)
+    if (!res.ok) {
+      setErrorBanner(res.error)
+      return
+    }
+    setActiveRowsState((prev) => {
+      const seen = new Set(prev.map((r) => r.mission_id))
+      return [...prev, ...res.rows.filter((r) => !seen.has(r.mission_id))]
+    })
+    setActiveHasMore(res.hasMore)
+    setActiveCursor(res.nextCursor)
+  }, [activeCursor, loadingActiveMore])
+
+  const loadMoreComplete = useCallback(async () => {
+    if (!completeCursor || loadingCompleteMore) return
+    setLoadingCompleteMore(true)
+    const res = await listOperatorStudiesPageAction({ tab: 'complete', cursor: completeCursor })
+    setLoadingCompleteMore(false)
+    if (!res.ok) {
+      setErrorBanner(res.error)
+      return
+    }
+    setCompleteRowsState((prev) => {
+      const seen = new Set(prev.map((r) => r.mission_id))
+      return [...prev, ...res.rows.filter((r) => !seen.has(r.mission_id))]
+    })
+    setCompleteHasMore(res.hasMore)
+    setCompleteCursor(res.nextCursor)
+  }, [completeCursor, loadingCompleteMore])
 
   const refresh = useCallback(() => {
     startTransition(() => {
@@ -224,7 +294,8 @@ export default function StudiesClient({
         setErrorBanner(result.error)
         return
       }
-      setStudyRows((rows) => rows.filter((r) => r.mission_id !== row.mission_id))
+      setActiveRowsState((rows) => rows.filter((r) => r.mission_id !== row.mission_id))
+      setCompleteRowsState((rows) => rows.filter((r) => r.mission_id !== row.mission_id))
       setWithdrawnRows((rows) => [
         withdrawnFromStudy(row),
         ...rows.filter((r) => r.mission_id !== row.mission_id),
@@ -252,7 +323,12 @@ export default function StudiesClient({
       return
     }
     setWithdrawnRows((rows) => rows.filter((r) => r.mission_id !== pendingUndo.missionId))
-    setStudyRows((rows) => [pendingUndo.studySnapshot, ...rows])
+    const snap = pendingUndo.studySnapshot
+    if (bucketForRow(snap) === 'complete') {
+      setCompleteRowsState((rows) => [snap, ...rows])
+    } else {
+      setActiveRowsState((rows) => [snap, ...rows])
+    }
     setToast({ kind: 'plain', message: 'Restored' })
     refresh()
   }, [toast, refresh])
@@ -303,18 +379,17 @@ export default function StudiesClient({
         setErrorBanner(result.error)
         return
       }
-      setStudyRows((rows) =>
-        rows.map((r) =>
-          r.mission_id === row.mission_id
-            ? {
-                ...r,
-                is_finished: true,
-                status: 'completed',
-                lifecycle_state: 'completed',
-              }
-            : r
-        )
-      )
+      const closed: OperatorStudyRow = {
+        ...row,
+        is_finished: true,
+        status: 'completed',
+        lifecycle_state: 'completed',
+      }
+      setActiveRowsState((rows) => rows.filter((r) => r.mission_id !== row.mission_id))
+      setCompleteRowsState((rows) => [
+        closed,
+        ...rows.filter((r) => r.mission_id !== row.mission_id),
+      ])
       setToast({ kind: 'plain', message: 'Moved to Complete' })
       refresh()
     },
@@ -473,6 +548,18 @@ export default function StudiesClient({
               onWithdraw={(row) => void executeWithdraw(row)}
             />
           )}
+          {activeHasMore ? (
+            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => void loadMoreActive()}
+                disabled={loadingActiveMore}
+              >
+                {loadingActiveMore ? 'Loading…' : 'Load more'}
+              </button>
+            </div>
+          ) : null}
         </section>
 
         <section className="studies-lifecycle">
@@ -501,6 +588,18 @@ export default function StudiesClient({
               onWithdraw={(row) => void executeWithdraw(row)}
             />
           )}
+          {completeHasMore ? (
+            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => void loadMoreComplete()}
+                disabled={loadingCompleteMore}
+              >
+                {loadingCompleteMore ? 'Loading…' : 'Load more'}
+              </button>
+            </div>
+          ) : null}
         </section>
 
         {canOperate && withdrawnRows.length > 0 ? (

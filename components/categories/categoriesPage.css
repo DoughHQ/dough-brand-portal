@@ -2,14 +2,13 @@
 
 .cat-page {
   font-family: var(--font-sans);
-  /* Portal `main` is a column flex. Auto side margins cancel stretch, and
-     inline-size containment then sizes this box as if empty — it collapses
-     to a few characters wide. Pin width so the canvas fills, then cap it. */
+  /* Portal `main` is a column flex. Fill the main column; pad instead of
+     centering a capped canvas (wide monitors looked off-center). */
   width: 100%;
-  max-width: 1240px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   box-sizing: border-box;
-  padding: 40px 48px 88px;
+  padding: 28px 40px 88px;
   container-type: inline-size;
   container-name: cat-page;
 }
@@ -633,6 +632,24 @@ a.cat-tile:hover .cat-tile-btn-outline {
   border: 1px solid var(--mist);
   border-radius: 13px;
   min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+a.cat-locked-product:hover {
+  border-color: rgba(36, 61, 44, 0.18);
+  background: var(--surface-1);
+}
+
+a.cat-locked-product:hover .cat-locked-product-name {
+  color: var(--sage);
+}
+
+a.cat-locked-product:focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: 2px;
 }
 
 .cat-locked-thumb {
@@ -681,6 +698,18 @@ a.cat-tile:hover .cat-tile-btn-outline {
   color: var(--ink-50);
   text-align: right;
   max-width: 42%;
+}
+
+.cat-locked-product-chev {
+  flex-shrink: 0;
+  color: var(--ink-30);
+  font-size: 20px;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+a.cat-locked-product:hover .cat-locked-product-chev {
+  color: var(--sage-dark);
 }
 
 .cat-locked-elo {
@@ -769,5 +798,10 @@ a.cat-tile:hover .cat-tile-btn-outline {
   .cat-locked-cta {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .cat-locked-product-stat {
+    max-width: 34%;
+    font-size: 12px;
   }
 }

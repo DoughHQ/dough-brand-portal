@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
-import { getBrand, getSubscription } from '@/lib/queries'
+import { getBrand } from '@/lib/queries'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
+import { getBrandReportScope } from '@/lib/brandHome/fetchBrandReportScope.server'
 import ReportsClient from './ReportsClient'
 
 export default async function ReportsPage() {
@@ -9,9 +10,9 @@ export default async function ReportsPage() {
 
   const { portalUser, effectiveBrandId, isImpersonating } = scope
 
-  const [brand, subscription] = await Promise.all([
+  const [brand, reportScope] = await Promise.all([
     getBrand(effectiveBrandId),
-    getSubscription(effectiveBrandId),
+    getBrandReportScope(),
   ])
   if (!brand) redirect('/login')
 
@@ -19,12 +20,11 @@ export default async function ReportsPage() {
 
   return (
     <ReportsClient
-      portalUser={portalUser}
       brand={brand}
-      subscription={subscription}
       isAdmin={isAdmin}
       isImpersonating={isImpersonating}
       brandId={effectiveBrandId}
+      brandCategoryIds={reportScope?.l2NodeIds ?? []}
     />
   )
 }

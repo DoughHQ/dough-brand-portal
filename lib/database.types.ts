@@ -44754,6 +44754,9 @@ export type Database = {
           total_products: number
         }[]
       }
+      get_admin_home_snapshot: { Args: never; Returns: Json }
+      get_brand_home_snapshot: { Args: never; Returns: Json }
+      get_brand_portal_chrome: { Args: never; Returns: Json }
       get_platform_stats: {
         Args: never
         Returns: {

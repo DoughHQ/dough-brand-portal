@@ -2,19 +2,22 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useMemo, useState, useTransition } from 'react'
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 import {
   boxStatusLabel,
-  tabForBoxStatus,
   BOX_STATUS_TONE,
   type BoxStatus,
   type BoxTab,
   type OperatorBoxRow,
+  type OperatorBoxesPageCursor,
 } from '@/lib/box/operator'
 import { listOperatorBoxesAction } from './actions'
 
 type Props = {
   initialRows: OperatorBoxRow[]
+  initialHasMore: boolean
+  initialCursor: OperatorBoxesPageCursor | null
+  initialTab: BoxTab
   loadError: string | null
 }
 
@@ -39,7 +42,7 @@ function relativeTime(iso: string): string {
 
 function parseTab(raw: string | null): BoxTab {
   if (raw === 'draft' || raw === 'live' || raw === 'closed') return raw
-  return 'draft'
+  return 'live'
 }
 
 function StatusBadge({ status }: { status: BoxStatus }) {
@@ -63,27 +66,33 @@ function StatusBadge({ status }: { status: BoxStatus }) {
   )
 }
 
-export default function AdminBoxesClient({ initialRows, loadError }: Props) {
+export default function AdminBoxesClient({
+  initialRows,
+  initialHasMore,
+  initialCursor,
+  initialTab,
+  loadError,
+}: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [rows, setRows] = useState<OperatorBoxRow[]>(initialRows)
+  const [hasMore, setHasMore] = useState(initialHasMore)
+  const [cursor, setCursor] = useState<OperatorBoxesPageCursor | null>(initialCursor)
   const [includeArchived, setIncludeArchived] = useState(false)
   const [error, setError] = useState<string | null>(loadError)
   const [pending, startTransition] = useTransition()
+  const [loadingMore, setLoadingMore] = useState(false)
+  const loadedKeyRef = useRef(`${initialTab}|false`)
 
-  const activeTab = parseTab(searchParams.get('tab'))
+  const activeTab = parseTab(searchParams.get('tab') ?? initialTab)
 
-  function setTab(tab: BoxTab) {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('tab', tab)
-    router.replace(`/admin/boxes?${params.toString()}`)
-  }
-
-  const reload = useCallback((archived: boolean) => {
+  const loadTab = useCallback((tab: BoxTab, archived: boolean) => {
     startTransition(async () => {
-      const result = await listOperatorBoxesAction({ includeArchived: archived })
+      const result = await listOperatorBoxesAction({ tab, includeArchived: archived })
       if (result.ok) {
         setRows(result.rows)
+        setHasMore(result.hasMore)
+        setCursor(result.nextCursor)
         setError(null)
       } else {
         setError(result.error)
@@ -91,22 +100,43 @@ export default function AdminBoxesClient({ initialRows, loadError }: Props) {
     })
   }, [])
 
-  function toggleArchived() {
-    const next = !includeArchived
-    setIncludeArchived(next)
-    reload(next)
+  useEffect(() => {
+    const key = `${activeTab}|${includeArchived}`
+    if (key === loadedKeyRef.current) return
+    loadedKeyRef.current = key
+    loadTab(activeTab, includeArchived)
+  }, [activeTab, includeArchived, loadTab])
+
+  function setTab(tab: BoxTab) {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('tab', tab)
+    router.replace(`/admin/boxes?${params.toString()}`)
   }
 
-  const counts = useMemo(() => {
-    const c: Record<BoxTab, number> = { draft: 0, live: 0, closed: 0 }
-    for (const r of rows) c[tabForBoxStatus(r.status)] += 1
-    return c
-  }, [rows])
+  function toggleArchived() {
+    setIncludeArchived((v) => !v)
+  }
 
-  const visible = useMemo(
-    () => rows.filter((r) => tabForBoxStatus(r.status) === activeTab),
-    [rows, activeTab]
-  )
+  const loadMore = useCallback(async () => {
+    if (!cursor || loadingMore || pending) return
+    setLoadingMore(true)
+    const result = await listOperatorBoxesAction({
+      tab: activeTab,
+      includeArchived,
+      cursor,
+    })
+    setLoadingMore(false)
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+    setRows((prev) => {
+      const seen = new Set(prev.map((r) => r.box_id))
+      return [...prev, ...result.rows.filter((r) => !seen.has(r.box_id))]
+    })
+    setHasMore(result.hasMore)
+    setCursor(result.nextCursor)
+  }, [activeTab, cursor, includeArchived, loadingMore, pending])
 
   return (
     <div
@@ -207,7 +237,6 @@ export default function AdminBoxesClient({ initialRows, loadError }: Props) {
                 }}
               >
                 {TAB_LABELS[tab]}
-                <span style={{ marginLeft: 6, opacity: 0.6 }}>{counts[tab]}</span>
               </button>
             )
           })}
@@ -227,7 +256,7 @@ export default function AdminBoxesClient({ initialRows, loadError }: Props) {
         </label>
       </div>
 
-      {visible.length === 0 ? (
+      {rows.length === 0 ? (
         <div
           style={{
             textAlign: 'center',
@@ -270,7 +299,7 @@ export default function AdminBoxesClient({ initialRows, loadError }: Props) {
             <div>Field</div>
             <div>Created</div>
           </div>
-          {visible.map((r) => (
+          {rows.map((r) => (
             <Link
               key={r.box_id}
               href={`/admin/boxes/${r.box_id}`}
@@ -326,6 +355,19 @@ export default function AdminBoxesClient({ initialRows, loadError }: Props) {
           ))}
         </div>
       )}
+
+      {hasMore ? (
+        <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => void loadMore()}
+            disabled={loadingMore || pending}
+          >
+            {loadingMore ? 'Loading…' : 'Load more'}
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }

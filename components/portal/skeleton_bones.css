@@ -1,0 +1,52 @@
+/* Shared portal skeleton primitives — sage shimmer, reduced-motion safe. */
+
+.skel-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skel-root {
+  position: relative;
+  --skel-base: rgba(36, 61, 44, 0.06);
+  --skel-shine: rgba(36, 61, 44, 0.12);
+  --skel-soft: rgba(36, 61, 44, 0.04);
+}
+
+.skel-bone {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(
+    105deg,
+    var(--skel-base) 0%,
+    var(--skel-base) 38%,
+    var(--skel-shine) 50%,
+    var(--skel-base) 62%,
+    var(--skel-base) 100%
+  );
+  background-size: 220% 100%;
+  animation: skel-shimmer 1.35s var(--motion-ease, cubic-bezier(0.4, 0, 0.2, 1)) infinite;
+  animation-delay: calc(var(--skel-i, 0) * 70ms);
+}
+
+@keyframes skel-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skel-bone {
+    animation: none;
+    background: var(--skel-base);
+  }
+}

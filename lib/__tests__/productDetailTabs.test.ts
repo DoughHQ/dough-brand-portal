@@ -24,7 +24,12 @@ describe('parseProductDetailTab', () => {
     expect(parseProductDetailTab('packages')).toBe('packages')
   })
 
-  it('places Facets beside Transparency in the tab order', () => {
+  it('labels the proof tab as P.R.O.O.F. without renaming the URL key', () => {
+    expect(PRODUCT_DETAIL_TAB_LABELS.proof).toBe('P.R.O.O.F.')
+    expect(parseProductDetailTab('proof')).toBe('proof')
+  })
+
+  it('places Facets beside P.R.O.O.F. in the tab order', () => {
     expect(PRODUCT_DETAIL_TAB_LABELS.facets).toBe('Facets')
     expect(PRODUCT_DETAIL_TABS.indexOf('facets')).toBe(
       PRODUCT_DETAIL_TABS.indexOf('proof') - 1,

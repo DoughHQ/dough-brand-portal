@@ -10,9 +10,12 @@ import {
 } from '@/lib/corrections.shared'
 import {
   extractCorrectionAction,
+  loadMoreCorrectionsAction,
   reviewCorrectionAction,
 } from './actions'
 import OverrideEditors from './OverrideEditors'
+import type { CorrectionReviewsPageCursor } from '@/lib/corrections.shared'
+import { formatUtcStamp } from '@/lib/portal-ui/format'
 
 const FIELD_LABELS: Record<string, string> = {
   name: 'Product Name',
@@ -41,6 +44,11 @@ function formatConfidence(raw: number | string | null): string | null {
   if (!Number.isFinite(n) || n <= 0) return null
   if (n <= 1) return `${Math.round(n * 100)}%`
   return `${Math.round(n)}%`
+}
+
+/** Deterministic UTC stamp — never toLocaleString (Node ICU vs browser causes hydration mismatch). */
+function formatCorrectionSubmittedAt(iso: string): string {
+  return formatUtcStamp(iso)
 }
 
 function displayUserNotes(notes: string | null): { text: string; isFossil: boolean } | null {
@@ -354,10 +362,23 @@ function approveButtonLabel(ct: string, proposedLabel: string): string {
 
 interface Props {
   initialRows: CorrectionReviewRow[]
+  initialHasMore?: boolean
+  initialCursor?: CorrectionReviewsPageCursor | null
+  focusId?: string | null
+  productId?: number | null
 }
 
-export default function CorrectionsReviewClient({ initialRows }: Props) {
+export default function CorrectionsReviewClient({
+  initialRows,
+  initialHasMore = false,
+  initialCursor = null,
+  focusId = null,
+  productId = null,
+}: Props) {
   const [rows, setRows] = useState(initialRows)
+  const [hasMore, setHasMore] = useState(initialHasMore)
+  const [cursor, setCursor] = useState<CorrectionReviewsPageCursor | null>(initialCursor)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [focusIdx, setFocusIdx] = useState(0)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -370,14 +391,11 @@ export default function CorrectionsReviewClient({ initialRows }: Props) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const params = new URLSearchParams(window.location.search)
-    const focusId = params.get('focus')
-    const productId = params.get('product')
     let idx = -1
     if (focusId) {
       idx = initialRows.findIndex((r) => r.id === focusId)
-    } else if (productId) {
-      idx = initialRows.findIndex((r) => String(r.product_id) === productId)
+    } else if (productId != null) {
+      idx = initialRows.findIndex((r) => r.product_id === productId)
     }
     if (idx < 0) return
     setFocusIdx(idx)
@@ -388,7 +406,7 @@ export default function CorrectionsReviewClient({ initialRows }: Props) {
         .querySelector(`[data-correction-id="${id}"]`)
         ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
-  }, [initialRows])
+  }, [initialRows, focusId, productId])
 
   useEffect(() => {
     if (focusIdx >= rows.length) setFocusIdx(Math.max(0, rows.length - 1))
@@ -583,7 +601,7 @@ export default function CorrectionsReviewClient({ initialRows }: Props) {
         color: 'var(--amber)',
         fontWeight: 500,
       }}>
-        {rows.length} pending
+        {rows.length} loaded{hasMore ? ' · more available' : ' pending'}
       </div>
 
       {error && (
@@ -771,13 +789,7 @@ export default function CorrectionsReviewClient({ initialRows }: Props) {
                       </div>
                     )}
                     <div style={{ fontSize: 11, color: 'var(--ink-30)' }}>
-                      {new Date(row.created_at).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {formatCorrectionSubmittedAt(row.created_at)}
                     </div>
                   </div>
                 </div>
@@ -1095,6 +1107,53 @@ export default function CorrectionsReviewClient({ initialRows }: Props) {
               </div>
             )
           })}
+          {hasMore ? (
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8 }}>
+              <button
+                type="button"
+                disabled={loadingMore || !cursor}
+                onClick={async () => {
+                  if (!cursor || loadingMore) return
+                  setLoadingMore(true)
+                  setError(null)
+                  try {
+                    const page = await loadMoreCorrectionsAction({
+                      cursor,
+                      productId,
+                    })
+                    setRows((prev) => {
+                      const seen = new Set(prev.map((r) => r.id))
+                      const merged = [...prev]
+                      for (const row of page.rows) {
+                        if (!seen.has(row.id)) merged.push(row)
+                      }
+                      return merged
+                    })
+                    setHasMore(page.hasMore)
+                    setCursor(page.nextCursor)
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : String(err))
+                  } finally {
+                    setLoadingMore(false)
+                  }
+                }}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: 'var(--r-sm)',
+                  border: '1px solid var(--ink-10)',
+                  background: 'var(--white)',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'var(--ink)',
+                  cursor: loadingMore ? 'wait' : 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                  opacity: loadingMore ? 0.7 : 1,
+                }}
+              >
+                {loadingMore ? 'Loading…' : 'Load more corrections'}
+              </button>
+            </div>
+          ) : null}
         </div>
       )}
 

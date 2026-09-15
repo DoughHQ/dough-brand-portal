@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { BrandSnapshot, ProductIntelligence, CompetitiveSnapshot, PortalUser, Brand, BrandSubscription } from '@/lib/queries'
 import { createClient } from '@/lib/supabase'
@@ -60,6 +60,10 @@ type Props = {
   signalCards?: ProductSignalCardModel[]
   domainVerified?: boolean
   catalogHealth?: CatalogHealth
+  /** Prefer over subscription.claimed_product_ids.length — chrome denorm. */
+  claimedSkuCount?: number
+  /** False when Home pulse used live fallback (cold still warming). */
+  catalogReady?: boolean
 }
 
 function fmt(n: number | null | undefined): string {
@@ -76,7 +80,7 @@ function delta(n: number | null | undefined): string {
   return r > 0 ? `+${r}` : `${r}`
 }
 
-export default function DashboardClient({ portalUser, brand, subscription, snapshot, history: _history, productIntelligence, competitive: _competitive, allProducts, narrative: _narrative, isImpersonating, totalProductCount, totalBattles = 0, homeModel, categoriesCount, signalCards = [], domainVerified = false, catalogHealth }: Props) {
+export default function DashboardClient({ portalUser, brand, subscription, snapshot, history: _history, productIntelligence, competitive: _competitive, allProducts, narrative: _narrative, isImpersonating, totalProductCount, totalBattles = 0, homeModel, categoriesCount, signalCards = [], domainVerified = false, catalogHealth, claimedSkuCount, catalogReady = true }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const [period, setPeriod] = useState<Period>('30d')
@@ -86,11 +90,13 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
   const [catProducts, setCatProducts] = useState<Record<number, CategoryProduct[]>>({})
   const [loadingCatProducts, setLoadingCatProducts] = useState<Set<number>>(new Set())
 
-  useEffect(() => {
-    supabase
-      .rpc('get_brand_category_stats', { p_brand_id: brand.brand_id })
-      .then(({ data }) => setCategoryStats((data ?? []) as CategoryStat[]))
-  }, [brand.brand_id])
+  async function ensureCategoryStats() {
+    if (categoryStats.length > 0) return
+    const { data } = await supabase.rpc('get_brand_category_stats', {
+      p_brand_id: brand.brand_id,
+    })
+    setCategoryStats((data ?? []) as CategoryStat[])
+  }
 
   function toggleCat(nodeId: number) {
     setExpandedCats(prev => {
@@ -114,8 +120,8 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
     })
   }
 
-  const claimedCount = subscription?.claimed_product_ids?.length ?? 0
-  const skuLimit = subscription?.total_sku_limit ?? 1
+  const claimedCount = claimedSkuCount ?? 0
+  const skuLimit = subscription?.total_sku_limit ?? Math.max(claimedCount, 1)
   const lockedCount = Math.max(0, (totalProductCount ?? allProducts.length) - claimedCount)
 
   return (
@@ -162,6 +168,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
           signalCards={signalCards}
           catalogHealth={catalogHealth}
           domainVerified={domainVerified}
+          catalogReady={catalogReady}
           profileSlot={
             <BrandProfileCard
               brand={brand}
@@ -174,7 +181,12 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
           }
         />
 
-        <details className="bh-more">
+        <details
+          className="bh-more"
+          onToggle={(e) => {
+            if ((e.target as HTMLDetailsElement).open) void ensureCategoryStats()
+          }}
+        >
           <summary
             style={{
               cursor: 'pointer',

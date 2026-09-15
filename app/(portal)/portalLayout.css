@@ -1,23 +1,41 @@
-/* Brand portal sidebar — presentation only. */
+/* Brand portal sidebar — presentation only.
+ *
+ * Desktop: fixed viewport-flush rail + main clears it with margin-left.
+ * Compact (≤880px): column shell, topbar, off-canvas drawer (iPhone).
+ */
 
 .portal-shell {
   display: flex;
   flex-direction: column;
+  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--surface);
   font-family: var(--font-sans);
 }
 
+.portal-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+}
+
 .portal-aside {
   width: var(--portal-sidebar-w);
   min-width: var(--portal-sidebar-w);
+  max-width: var(--portal-sidebar-w);
   background: var(--sage-dark);
   border-right: 1px solid rgba(250, 248, 243, 0.08);
   display: flex;
   flex-direction: column;
+  /* Viewport-pinned — never inherit shell offsets / phone DOM siblings */
   position: fixed;
   inset: 0 auto 0 0;
+  height: 100vh;
+  height: 100dvh;
   z-index: 200;
 }
 
@@ -178,6 +196,21 @@
   gap: 2px;
 }
 
+.portal-nav-glyph {
+  flex-shrink: 0;
+  opacity: 0.78;
+}
+
+.portal-nav-link.is-active .portal-nav-glyph,
+.portal-nav-link:hover .portal-nav-glyph {
+  opacity: 1;
+}
+
+.portal-nav-label {
+  min-width: 0;
+  flex: 1;
+}
+
 .portal-nav-link {
   display: flex;
   align-items: center;
@@ -225,6 +258,11 @@
   border-radius: 999px;
 }
 
+.portal-nav-count.is-queue {
+  background: rgba(250, 248, 243, 0.18);
+  font-variant-numeric: tabular-nums;
+}
+
 .portal-foot {
   padding: 14px 12px 16px;
   border-top: 1px solid rgba(250, 248, 243, 0.08);
@@ -236,6 +274,7 @@
 .portal-foot-btn {
   display: flex;
   align-items: center;
+  gap: 10px;
   min-height: 36px;
   padding: 8px 12px;
   border-radius: 8px;
@@ -251,19 +290,43 @@
   transition: background 160ms var(--motion-ease), color 160ms var(--motion-ease);
 }
 
+.portal-foot-btn .portal-nav-glyph {
+  opacity: 0.7;
+}
+
 .portal-foot-btn:hover {
   color: rgba(250, 248, 243, 0.78);
   background: rgba(250, 248, 243, 0.06);
 }
 
+.portal-foot-btn:hover .portal-nav-glyph {
+  opacity: 1;
+}
+
 .portal-main {
   margin-left: var(--portal-sidebar-w);
-  flex: 1;
+  width: calc(100% - var(--portal-sidebar-w));
+  max-width: calc(100% - var(--portal-sidebar-w));
+  box-sizing: border-box;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
   min-width: 0;
+}
+
+/* Detail / list canvases fill the main column — no floating max-width island. */
+.portal-main > * {
+  width: 100%;
+  min-width: 0;
+}
+
+.pm-page {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  box-sizing: border-box;
 }
 
 /* Compact top bar — hidden on desktop */
@@ -284,6 +347,11 @@
 
   .portal-shell.is-nav-open {
     overflow: hidden;
+  }
+
+  .portal-body {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
   .portal-topbar {
@@ -422,10 +490,16 @@
     background: rgba(250, 248, 243, 0.18);
   }
 
-  /* Off-canvas drawer */
+  /* Off-canvas drawer — fixed so it leaves the column flow */
   .portal-aside {
+    position: fixed;
+    inset: 0 auto 0 0;
     width: min(280px, 86vw);
     min-width: min(280px, 86vw);
+    max-width: min(280px, 86vw);
+    height: 100vh;
+    height: 100dvh;
+    align-self: stretch;
     transform: translateX(-105%);
     transition: transform 240ms var(--motion-ease);
     padding-top: env(safe-area-inset-top, 0px);
@@ -459,6 +533,8 @@
     margin-left: 0;
     min-height: 0;
     flex: 1;
+    width: 100%;
+    max-width: none;
   }
 
   /* Avoid Safari zoom on focus for compact fields */

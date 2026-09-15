@@ -49,6 +49,7 @@ export default function BrandHome({
   signalCards = [],
   catalogHealth,
   domainVerified = false,
+  catalogReady = true,
 }: {
   model: BrandHomeModel
   profileSlot?: ReactNode
@@ -57,6 +58,7 @@ export default function BrandHome({
   signalCards?: ProductSignalCardModel[]
   catalogHealth?: CatalogHealth
   domainVerified?: boolean
+  catalogReady?: boolean
 }) {
   const hasCatalogProducts = totalProductCount > 0
   const hasProductSignal = signalCards.length > 0
@@ -107,6 +109,12 @@ export default function BrandHome({
 
   return (
     <div className="bh-page">
+      {!catalogReady ? (
+        <p className="bh-catalog-warming" role="status">
+          Catalog rollup is catching up — counts below are live. Cards refresh when the cold clock
+          finishes.
+        </p>
+      ) : null}
       <header className="bh-top">
         <div className="bh-top-main">{profileSlot}</div>
         <Link href="/studies/new" className="bh-new-study">

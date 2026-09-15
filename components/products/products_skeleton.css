@@ -1,0 +1,134 @@
+/* Products list skeleton layout. */
+
+.prod-skel-eyebrow {
+  width: 96px;
+  height: 10px;
+  margin-bottom: 12px;
+}
+
+.prod-skel-title {
+  width: min(320px, 70%);
+  height: 40px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+.prod-skel-lede {
+  width: min(520px, 92%);
+  height: 14px;
+}
+
+.prod-skel-cta {
+  width: 132px;
+  height: 44px;
+  border-radius: 9px;
+  flex-shrink: 0;
+}
+
+.prod-skel-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.prod-skel-summary-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.prod-skel-summary-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.prod-skel-summary-value {
+  width: 48px;
+  height: 24px;
+  border-radius: 6px;
+}
+
+.prod-skel-line {
+  height: 11px;
+}
+
+.prod-skel-line-xs {
+  width: 64px;
+  height: 9px;
+}
+
+.prod-skel-line-sm {
+  width: 42%;
+  max-width: 140px;
+}
+
+.prod-skel-line-lg {
+  width: 78%;
+  height: 16px;
+  margin-top: 4px;
+}
+
+.prod-skel-search {
+  flex: 1 1 220px;
+  min-width: 180px;
+  height: 46px;
+  border-radius: 9px;
+}
+
+.prod-skel-filter {
+  width: 128px;
+  height: 46px;
+  border-radius: 9px;
+  flex-shrink: 0;
+}
+
+.prod-skel-toggle {
+  width: 88px;
+  height: 46px;
+  border-radius: 9px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.prod-skel-tile-art {
+  width: 100%;
+  height: 152px;
+  border-radius: 0;
+  background-color: var(--skel-soft);
+}
+
+.prod-skel-tile-body {
+  gap: 10px;
+}
+
+.prod-skel-chip {
+  width: 110px;
+  height: 22px;
+  border-radius: 999px;
+  margin-top: 4px;
+}
+
+.prod-skel-tile-btn {
+  width: 100%;
+  height: 36px;
+  border-radius: 8px;
+  margin-top: auto;
+}
+
+@media (max-width: 880px) {
+  .prod-skel-cta {
+    width: 100%;
+  }
+
+  .prod-skel-toggle {
+    display: none;
+  }
+
+  .prod-skel-title {
+    height: 32px;
+  }
+}

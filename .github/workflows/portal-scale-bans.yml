@@ -1,0 +1,34 @@
+name: Portal scale bans
+
+on:
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'lib/**'
+      - 'scripts/**'
+      - 'package.json'
+  push:
+    branches: [main, master]
+
+jobs:
+  import-bans:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm run check:home-ban
+      - run: npm run check:reports-ban
+      - run: npm run check:products-ban
+      - run: npm run check:corrections-ban
+      - run: npm run check:admin-ops-ban
+      - run: npm run check:studies-ban
+      - run: npm run check:claim-array-ban
+      - run: npm run check:landmine-callers-ban
+      - run: npx vitest run lib/brandHome/__tests__

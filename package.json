@@ -8,7 +8,16 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check:home-ban": "bash scripts/check-home-import-ban.sh",
+    "check:reports-ban": "bash scripts/check-reports-no-product-scan.sh",
+    "check:products-ban": "bash scripts/check-products-import-ban.sh",
+    "check:corrections-ban": "bash scripts/check-corrections-pagination-ban.sh",
+    "check:admin-ops-ban": "bash scripts/check-admin-ops-queue-ban.sh",
+    "check:studies-ban": "bash scripts/check-studies-pagination-ban.sh",
+    "check:claim-array-ban": "bash scripts/check-claim-array-ban.sh",
+    "check:landmine-callers-ban": "bash scripts/check-landmine-callers-ban.sh",
+    "pretest": "npm run check:home-ban && npm run check:reports-ban && npm run check:products-ban && npm run check:corrections-ban && npm run check:admin-ops-ban && npm run check:studies-ban && npm run check:claim-array-ban && npm run check:landmine-callers-ban"
   },
   "keywords": [],
   "author": "",

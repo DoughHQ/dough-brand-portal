@@ -4,9 +4,10 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalUser } from '@/lib/queries'
 import {
   BrandApplicationsError,
-  listBrandWaitlistApplications,
+  listBrandWaitlistApplicationsPage,
   setBrandApplicationStatus,
   type BrandApplication,
+  type BrandApplicationsPageCursor,
   type SetBrandApplicationStatusResult,
 } from '@/lib/brandApplications'
 
@@ -21,17 +22,29 @@ async function requireDoughAdmin() {
   return portalUser
 }
 
-export async function listBrandWaitlistApplicationsAction(): Promise<{
+export async function listBrandWaitlistApplicationsAction(opts?: {
+  cursor?: BrandApplicationsPageCursor | null
+}): Promise<{
   ok: boolean
   rows?: BrandApplication[]
+  hasMore?: boolean
+  nextCursor?: BrandApplicationsPageCursor | null
   error?: string
   code?: string
 }> {
   try {
     await requireDoughAdmin()
     const supabase = await createServerSupabaseClient()
-    const rows = await listBrandWaitlistApplications(supabase)
-    return { ok: true, rows }
+    const page = await listBrandWaitlistApplicationsPage(supabase, {
+      limit: 25,
+      cursor: opts?.cursor ?? null,
+    })
+    return {
+      ok: true,
+      rows: page.rows,
+      hasMore: page.hasMore,
+      nextCursor: page.nextCursor,
+    }
   } catch (err) {
     if (err instanceof BrandApplicationsError) {
       return { ok: false, error: err.message, code: err.code }

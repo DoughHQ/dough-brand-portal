@@ -140,6 +140,11 @@ export function formatLedgerComparisons(battlesLedger: number): string {
   return `${n.toLocaleString()} comparison${n === 1 ? '' : 's'}`
 }
 
+/** Same destination as the Products grid. Locked category rows use this. */
+export function brandProductMasterHref(productId: number): string {
+  return `/products/${Math.trunc(productId)}`
+}
+
 export function toLockedCategoryProducts(
   rows: BrandCategoryProductRow[],
   opts?: { showPopulationElo?: boolean }

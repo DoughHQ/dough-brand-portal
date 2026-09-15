@@ -2,18 +2,42 @@
 
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
-import { fetchOperatorBoxes, type OperatorBoxRow } from '@/lib/box/operator'
+import {
+  fetchOperatorBoxesPage,
+  type BoxTab,
+  type OperatorBoxRow,
+  type OperatorBoxesPageCursor,
+} from '@/lib/box/operator'
 
-/** List loader. The RPC is admin-gated in Postgres; this re-checks the
- *  strict operator gate (dough_admin and not impersonating) so an
- *  impersonating admin cannot call it as a confused deputy. */
-export async function listOperatorBoxesAction(opts?: {
+export async function listOperatorBoxesAction(opts: {
+  tab: BoxTab
   includeArchived?: boolean
-}): Promise<{ ok: true; rows: OperatorBoxRow[] } | { ok: false; error: string }> {
+  cursor?: OperatorBoxesPageCursor | null
+}): Promise<
+  | {
+      ok: true
+      rows: OperatorBoxRow[]
+      hasMore: boolean
+      nextCursor: OperatorBoxesPageCursor | null
+    }
+  | { ok: false; error: string }
+> {
   const scope = await getPortalBrandScope()
   if (!scope || scope.portalUser.role !== 'dough_admin' || scope.isImpersonating) {
     return { ok: false, error: 'Not authorized.' }
   }
   const supabase = await createServerSupabaseClient()
-  return fetchOperatorBoxes(supabase, opts)
+  const result = await fetchOperatorBoxesPage(supabase, {
+    tab: opts.tab,
+    includeArchived: opts.includeArchived,
+    limit: 25,
+    cursor: opts.cursor ?? null,
+  })
+  if (!result.ok) return result
+  return {
+    ok: true,
+    rows: result.page.rows,
+    hasMore: result.page.hasMore,
+    nextCursor: result.page.nextCursor,
+  }
 }

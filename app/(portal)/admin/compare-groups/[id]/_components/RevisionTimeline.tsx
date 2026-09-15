@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type CSSProperties } from 'react'
 import type { CompareGroupRevision } from '@/lib/compareGroups.shared'
+import { formatUtcStamp } from '@/lib/portal-ui/format'
 import { fmtJsonValue, relativeTime } from './groupHelpers'
 
 const COLLAPSE_AT = 10
@@ -89,13 +90,7 @@ export default function RevisionTimeline({ revisions }: Props) {
       >
         {visible.map((r, i) => {
           const detail = changeDetail(r)
-          const abs = new Date(r.changed_at).toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-          })
+          const abs = formatUtcStamp(r.changed_at)
 
           return (
             <div

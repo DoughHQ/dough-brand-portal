@@ -1,0 +1,146 @@
+/* Studies list skeleton layout. */
+
+.studies-skel-title {
+  width: min(220px, 50%);
+  height: 40px;
+  border-radius: 8px;
+}
+
+.studies-skel-lede {
+  width: min(420px, 80%);
+  height: 13px;
+  margin-top: 10px;
+}
+
+.studies-skel-cta {
+  width: 128px;
+  height: 44px;
+  border-radius: 9px;
+  flex-shrink: 0;
+}
+
+.studies-skel .studies-kpi-wrap {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.studies-skel-kpi {
+  background: var(--white, #fff);
+  border: 1px solid var(--mist, #e7e4db);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 96px;
+}
+
+.studies-skel-kpi-value {
+  width: 42px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.studies-skel-line {
+  height: 11px;
+}
+
+.studies-skel-line-xs {
+  width: 56px;
+  height: 9px;
+}
+
+.studies-skel-line-sm {
+  width: 48%;
+  max-width: 140px;
+}
+
+.studies-skel-line-lg {
+  width: 62%;
+  height: 15px;
+}
+
+.studies-skel-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.studies-skel-section-title {
+  width: 140px;
+  height: 20px;
+}
+
+.studies-skel-tabs {
+  width: 220px;
+  height: 36px;
+  border-radius: 9px;
+}
+
+.studies-skel-list {
+  background: var(--white, #fff);
+  border: 1px solid var(--mist, #e7e4db);
+  border-radius: 13px;
+  overflow: hidden;
+}
+
+.studies-skel-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 88px 108px;
+  gap: 16px;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--mist, #e7e4db);
+}
+
+.studies-skel-row:last-child {
+  border-bottom: none;
+}
+
+.studies-skel-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.studies-skel-badge {
+  width: 72px;
+  height: 24px;
+  border-radius: 999px;
+  justify-self: end;
+}
+
+.studies-skel-row-cta {
+  width: 100%;
+  height: 34px;
+  border-radius: 8px;
+}
+
+@media (max-width: 900px) {
+  .studies-skel .studies-kpi-wrap {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 880px) {
+  .studies-skel-cta {
+    width: 100%;
+  }
+
+  .studies-skel-title {
+    height: 32px;
+  }
+
+  .studies-skel-row {
+    grid-template-columns: minmax(0, 1fr) 72px;
+  }
+
+  .studies-skel-row-cta {
+    display: none;
+  }
+}

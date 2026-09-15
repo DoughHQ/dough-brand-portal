@@ -136,10 +136,29 @@ type OwnershipRpcClient = {
   ) => PromiseLike<{ data: unknown; error: { message: string } | null }>
 }
 
-export async function listPendingOwnershipCorrections(
-  supabase: OwnershipRpcClient
-): Promise<PendingOwnershipCorrection[]> {
-  const { data, error } = await supabase.rpc('list_pending_ownership_corrections')
+export type OwnershipCorrectionsPageCursor = {
+  submittedAt: string
+  id: string
+}
+
+export type OwnershipCorrectionsPage = {
+  rows: PendingOwnershipCorrection[]
+  hasMore: boolean
+  nextCursor: OwnershipCorrectionsPageCursor | null
+}
+
+export async function listPendingOwnershipCorrectionsPage(
+  supabase: OwnershipRpcClient,
+  opts?: {
+    limit?: number
+    cursor?: OwnershipCorrectionsPageCursor | null
+  }
+): Promise<OwnershipCorrectionsPage> {
+  const { data, error } = await supabase.rpc('list_pending_ownership_corrections_page' as never, {
+    p_limit: opts?.limit ?? 25,
+    p_cursor_submitted_at: opts?.cursor?.submittedAt ?? null,
+    p_cursor_id: opts?.cursor?.id ?? null,
+  } as never)
 
   if (error) {
     throw new OwnershipReviewError(
@@ -148,13 +167,30 @@ export async function listPendingOwnershipCorrections(
     )
   }
 
-  const arr = Array.isArray(data)
-    ? data
-    : data && typeof data === 'object' && Array.isArray((data as { corrections?: unknown }).corrections)
-      ? ((data as { corrections: unknown[] }).corrections)
-      : []
+  const root = data && typeof data === 'object' ? (data as Record<string, unknown>) : {}
+  const arr = Array.isArray(root.items) ? root.items : []
+  const rows = arr.map(asRow).filter((r): r is PendingOwnershipCorrection => r != null)
+  const cursorRaw =
+    root.next_cursor && typeof root.next_cursor === 'object'
+      ? (root.next_cursor as Record<string, unknown>)
+      : null
+  const nextCursor =
+    root.has_more === true && cursorRaw?.id != null && cursorRaw.submitted_at != null
+      ? { submittedAt: String(cursorRaw.submitted_at), id: String(cursorRaw.id) }
+      : null
 
-  return arr.map(asRow).filter((r): r is PendingOwnershipCorrection => r != null)
+  return {
+    rows,
+    hasMore: root.has_more === true && nextCursor != null,
+    nextCursor,
+  }
+}
+
+export async function listPendingOwnershipCorrections(
+  supabase: OwnershipRpcClient
+): Promise<PendingOwnershipCorrection[]> {
+  const page = await listPendingOwnershipCorrectionsPage(supabase, { limit: 50 })
+  return page.rows
 }
 
 export async function reviewBrandOwnershipCorrection(

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { supportHref } from '@/lib/productMaster/support'
 import {
+  brandProductMasterHref,
   categoryProductSummary,
   formatLedgerComparisons,
   lockedCategoryCta,
@@ -149,7 +150,12 @@ export default function LockedCategoryPreview({
 
       <div className="cat-locked-list">
         {products.map((product) => (
-          <article key={product.product_id} className="cat-locked-product">
+          <Link
+            key={product.product_id}
+            href={brandProductMasterHref(product.product_id)}
+            prefetch={false}
+            className="cat-locked-product"
+          >
             <ProductThumb product={product} />
             <div className="cat-locked-product-copy">
               {product.l3_name ? <div className="cat-kicker">{product.l3_name}</div> : null}
@@ -159,7 +165,10 @@ export default function LockedCategoryPreview({
             <div className="cat-locked-product-stat">
               {formatLedgerComparisons(product.battles_ledger)}
             </div>
-          </article>
+            <span className="cat-locked-product-chev" aria-hidden>
+              ›
+            </span>
+          </Link>
         ))}
       </div>
 

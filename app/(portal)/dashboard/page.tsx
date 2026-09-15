@@ -1,34 +1,22 @@
 import { redirect } from 'next/navigation'
-import {
-  getBrand,
-  getSubscription,
-  getBrandSnapshot,
-  getBrandSnapshotHistory,
-  getProductIntelligence,
-  getCompetitiveSnapshot,
-  getTopBrandProducts,
-  getBrandProductsByIds,
-  generateNarrative,
-  getPlatformStats,
-} from '@/lib/queries'
+import { getAdminHomeSnapshot } from '@/lib/adminHome/fetchAdminHomeSnapshot.server'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
-import { fetchBrandCategoryLauncherServer } from '@/lib/categoryLauncher.server'
-import {
-  competeCategoriesFromLauncher,
-  entitledL2IdsFromLauncher,
-  launcherRowsToBrandCategoryL2,
-} from '@/lib/categoryLauncher'
-import { getOperatorStudies } from '@/lib/studies/fetchOperatorStudies'
-import { selectHomeModel } from '@/lib/brandHome/selectHomeModel'
-import { fetchProductSignalCards } from '@/lib/brandHome/fetchProductSignalCards.server'
-import { fetchBrandTotalBattles } from '@/lib/brandHome/fetchBrandTotalBattles.server'
-import { fetchDomainVerified } from '@/lib/brandHome/fetchDomainVerified.server'
-import { fetchCatalogHealth } from '@/lib/brandHome/fetchCatalogHealth.server'
+import { getBrandHomeSnapshot } from '@/lib/brandHome/fetchBrandHomeSnapshot.server'
+import { brandHomeSnapshotMode } from '@/lib/flags'
 import { perfLog, perfNow, timed } from '@/lib/perf'
 import DashboardClient from './DashboardClient'
 import AdminDashboardClient from './AdminDashboardClient'
+import BrandHomeUnavailable from './BrandHomeUnavailable'
 
-const HOME_PRODUCT_LIMIT = 24
+function isAuthError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error)
+  return /auth|session|jwt|not authenticated|login/i.test(msg)
+}
+
+function isNoBrandError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error)
+  return /no_effective_brand/i.test(msg)
+}
 
 export default async function DashboardPage() {
   const tPage = perfNow()
@@ -39,126 +27,73 @@ export default async function DashboardPage() {
     const { portalUser, effectiveBrandId, isImpersonating } = scope
 
     if (portalUser.role === 'dough_admin' && !isImpersonating) {
-      const stats = await timed('dashboard.platformStats', () => getPlatformStats())
+      const snapshot = await timed('dashboard.adminHome', () => getAdminHomeSnapshot())
       perfLog('dashboard.page.total', perfNow() - tPage, { shell: 'platform' })
-      return <AdminDashboardClient stats={stats} />
+      return <AdminDashboardClient snapshot={snapshot} />
     }
 
-    const tParallel = perfNow()
-    const [
-      brand,
-      subscription,
-      snapshot,
-      history,
-      competitive,
-      catalogHealth,
-      topProducts,
-      launcher,
-      studies,
-      signalCards,
-      totalBattles,
-      domainVerified,
-    ] = await Promise.all([
-      getBrand(effectiveBrandId),
-      getSubscription(effectiveBrandId),
-      getBrandSnapshot(effectiveBrandId),
-      getBrandSnapshotHistory(effectiveBrandId, 30),
-      getCompetitiveSnapshot(effectiveBrandId),
-      fetchCatalogHealth(effectiveBrandId),
-      getTopBrandProducts(effectiveBrandId, HOME_PRODUCT_LIMIT),
-      fetchBrandCategoryLauncherServer(),
-      getOperatorStudies({
-        includeFinished: true,
-        includeDrafts: true,
-        brandId: effectiveBrandId,
-      }).catch(() => []),
-      fetchProductSignalCards(effectiveBrandId),
-      fetchBrandTotalBattles(),
-      fetchDomainVerified(effectiveBrandId),
-    ])
+    // Kill-switch off → fail closed (no legacy fan-out).
+    if (brandHomeSnapshotMode() === 'off') {
+      return (
+        <BrandHomeUnavailable
+          reason="rpc_failed"
+          detail="DOUGH_BRAND_HOME_SNAPSHOT=off (fail closed — legacy fan-out removed)"
+        />
+      )
+    }
 
-    const competeRows = competeCategoriesFromLauncher(launcher)
-    const categories = launcherRowsToBrandCategoryL2(competeRows)
-    const unlockedL2Ids = entitledL2IdsFromLauncher(launcher)
-    const totalProductCount = catalogHealth.total
-
-    perfLog('dashboard.brandParallel', perfNow() - tParallel, {
-      brandId: effectiveBrandId,
-      productRows: topProducts.length,
-      productCount: totalProductCount,
-      categories: categories.length,
-    })
-
-    if (!brand) redirect('/login')
-
-    const claimedIds = subscription?.claimed_product_ids ?? []
-    const [productIntelligence, claimedNames] = await Promise.all([
-      timed('dashboard.productIntelligence', () =>
-        getProductIntelligence(effectiveBrandId, claimedIds)
-      ),
-      getBrandProductsByIds(effectiveBrandId, claimedIds),
-    ])
-
-    const nameById = new Map<number, { product_id: number; product_name_display: string; total_battles: number }>()
-    for (const p of topProducts) {
-      nameById.set(p.product_id, {
-        product_id: p.product_id,
-        product_name_display: p.product_name_display,
-        total_battles: p.total_battles,
+    const doc = await getBrandHomeSnapshot()
+    if (!doc) {
+      perfLog('dashboard.page.total', perfNow() - tPage, {
+        shell: 'brand',
+        mode: 'on',
+        error: 'rpc_failed',
       })
+      return <BrandHomeUnavailable reason="rpc_failed" />
     }
-    for (const p of claimedNames) nameById.set(p.product_id, p)
-    const productNames = [...nameById.values()]
-
-    const narrative = snapshot
-      ? generateNarrative(snapshot, brand.brand_name, totalBattles)
-      : {
-          headline: `${brand.brand_name} is in the Dough database. Data builds as battles are recorded.`,
-          sub: 'Updated daily',
-        }
-
-    const homeModel = selectHomeModel({
-      brandName: brand.brand_name,
-      narrative,
-      snapshot,
-      categories,
-      studies,
-      productIntelligence,
-      productNames,
-      unlockedL2Ids,
-      totalBattles,
-    })
 
     perfLog('dashboard.page.total', perfNow() - tPage, {
       shell: 'brand',
+      mode: 'on',
       brandId: effectiveBrandId,
-      productRows: topProducts.length,
-      productCount: totalProductCount,
+      productCount: doc.pulse.productCount,
+      singleRpc: true,
     })
 
     return (
       <DashboardClient
         portalUser={portalUser}
-        brand={brand}
-        subscription={subscription}
-        snapshot={snapshot}
-        history={history}
-        productIntelligence={productIntelligence}
-        competitive={competitive}
-        allProducts={topProducts}
-        narrative={narrative}
-        totalProductCount={totalProductCount}
-        totalBattles={totalBattles}
+        brand={doc.brand}
+        subscription={null}
+        snapshot={doc.snapshot}
+        history={[]}
+        productIntelligence={[]}
+        competitive={null}
+        allProducts={[]}
+        narrative={doc.narrative}
+        totalProductCount={doc.pulse.productCount}
+        totalBattles={doc.pulse.totalBattles}
         isImpersonating={isImpersonating}
-        homeModel={homeModel}
-        categoriesCount={categories.length}
-        signalCards={signalCards}
-        domainVerified={domainVerified}
-        catalogHealth={catalogHealth}
+        homeModel={doc.homeModel}
+        categoriesCount={doc.pulse.categoryCount}
+        signalCards={doc.signalCards}
+        domainVerified={doc.pulse.domainVerified}
+        catalogHealth={doc.catalogHealth}
+        claimedSkuCount={doc.chrome.claimedSkuCount}
+        catalogReady={doc.catalogReady}
       />
     )
   } catch (error) {
     console.error('Dashboard error:', error)
-    redirect('/login')
+    if (isAuthError(error)) redirect('/login')
+    if (isNoBrandError(error)) {
+      return <BrandHomeUnavailable reason="no_effective_brand" detail={String(error)} />
+    }
+    return (
+      <BrandHomeUnavailable
+        reason="unknown"
+        detail={error instanceof Error ? error.message : String(error)}
+      />
+    )
   }
 }

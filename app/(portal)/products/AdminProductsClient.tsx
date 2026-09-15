@@ -22,9 +22,11 @@ interface Props {
   portalUser: PortalUser
   categoryStats: CategoryStat[]
   milestoneAlerts: MilestoneAlert[]
+  /** Honest lag copy for MV-backed category stats. */
+  statsLagHint?: string
 }
 
-export default function AdminProductsClient({ portalUser, categoryStats, milestoneAlerts }: Props) {
+export default function AdminProductsClient({ portalUser, categoryStats, milestoneAlerts, statsLagHint }: Props) {
   const router = useRouter()
   const { enterAsBrand, loading: entering } = useEnterImpersonation()
 
@@ -68,6 +70,11 @@ export default function AdminProductsClient({ portalUser, categoryStats, milesto
         <div style={{ fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 400, color: 'var(--ink)' }}>
           Products
         </div>
+        {statsLagHint ? (
+          <p style={{ fontSize: 12, color: 'var(--ink-30)', marginTop: 8, lineHeight: 1.45, maxWidth: 560 }}>
+            {statsLagHint}
+          </p>
+        ) : null}
       </div>
 
       {/* Product search */}

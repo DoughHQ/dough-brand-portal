@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { createServerSupabaseClient as createClient } from '@/lib/supabase-server'
 import { createServerSupabaseClient } from './supabase-server'
+import { generateBrandHomeNarrative } from '@/lib/brandHome/narrative'
 
 export type PortalUser = {
   portal_user_id: string
@@ -43,7 +44,9 @@ export type BrandSubscription = {
   plan: string
   status: string
   total_sku_limit: number
+  /** Always empty from getSubscription — never hydrate the claim array into RSC. */
   claimed_product_ids: number[]
+  claimed_sku_count: number
   mrr_cents: number
   trial_ends_at: string | null
   is_founder_rate: boolean
@@ -216,12 +219,28 @@ export const getBrand = cache(async (brandId: number): Promise<Brand | null> => 
 
 export const getSubscription = cache(async (brandId: number): Promise<BrandSubscription | null> => {
   const supabase = await createServerSupabaseClient()
+  // Never select claimed_product_ids — use claimed_sku_count (chrome/summary) + page-row is_claimed.
+  // claimed_sku_count column exists in DB; generated types may lag — read via untyped select.
   const { data } = await supabase
     .from('brand_portal_subscriptions')
-    .select('*')
+    .select(
+      'subscription_id, brand_id, plan, status, total_sku_limit, mrr_cents, trial_ends_at, is_founder_rate'
+    )
     .eq('brand_id', brandId)
     .single()
-  return data as BrandSubscription | null
+  if (!data) return null
+  return {
+    subscription_id: String(data.subscription_id),
+    brand_id: Number(data.brand_id),
+    plan: String(data.plan ?? ''),
+    status: String(data.status ?? ''),
+    total_sku_limit: Number(data.total_sku_limit) || 0,
+    claimed_product_ids: [],
+    claimed_sku_count: 0,
+    mrr_cents: Number(data.mrr_cents) || 0,
+    trial_ends_at: data.trial_ends_at == null ? null : String(data.trial_ends_at),
+    is_founder_rate: Boolean(data.is_founder_rate),
+  }
 })
 
 export async function getBrandSnapshot(brandId: number): Promise<BrandSnapshot | null> {
@@ -267,45 +286,20 @@ export async function getProductIntelligence(
   return (data ?? []) as unknown as ProductIntelligence[]
 }
 
-export async function getAllBrandProducts(brandId: number) {
-  const supabase = await createServerSupabaseClient()
-  const { data } = await supabase
-    .from('products')
-    .select(`
-      product_id,
-      product_name_display,
-      taxonomy_node_id,
-      total_battles,
-      status,
-      taxonomy_nodes!products_taxonomy_node_id_fkey (
-        node_name_display,
-        parent_taxonomy_node_id
-      )
-    `)
-    .eq('brand_id', brandId)
-    .eq('status', 'active')
-    .eq('is_suppressed', false)
-    .order('total_battles', { ascending: false })
-  if (!data) return []
-  return data.map((row: any) => ({
-    product_id: row.product_id,
-    product_name_display: row.product_name_display,
-    taxonomy_node_id: row.taxonomy_node_id,
-    total_battles: row.total_battles ?? 0,
-    status: row.status,
-    l2_name: row.taxonomy_nodes?.node_name_display ?? null,
-  }))
+export async function getAllBrandProducts(_brandId: number): Promise<never> {
+  throw new Error(
+    'FORBIDDEN: getAllBrandProducts is a catalog landmine. Use list_brand_products_page or get_brand_home_snapshot.'
+  )
 }
 
-export async function getBrandProductCount(brandId: number): Promise<number> {
-  const supabase = await createServerSupabaseClient()
-  const { count } = await supabase
-    .from('products')
-    .select('*', { count: 'exact', head: true })
-    .eq('brand_id', brandId)
-    .eq('status', 'active')
-    .eq('is_suppressed', false)
-  return count ?? 0
+/**
+ * @deprecated FORBIDDEN on Home/layout — landmine.
+ * Live COUNT(*) on products. Use brand_home_catalog_stats / get_brand_home_snapshot pulse.
+ */
+export async function getBrandProductCount(_brandId: number): Promise<never> {
+  throw new Error(
+    'FORBIDDEN: getBrandProductCount is a live COUNT landmine. Use brand_home_catalog_stats / get_brand_home_snapshot.'
+  )
 }
 
 /** Top products by battles for Brand Home — never the full catalog. */
@@ -373,41 +367,14 @@ export async function getBrandProductsByIds(
   }))
 }
 
+/** @deprecated FORBIDDEN — throws. Use list_brand_products_page. */
 export async function getBrandProducts(
-  brandId: number,
-  claimedProductIds: number[]
-): Promise<BrandProduct[]> {
-  const supabase = await createServerSupabaseClient()
-
-  const { data } = await supabase.rpc('get_brand_products_with_taxonomy', {
-    p_brand_id: brandId,
-  }).range(0, 9999)
-
-  if (!data) return []
-
-  return (data as any[]).map((row) => ({
-    product_id: row.product_id,
-    product_name_clean: row.product_name_clean ?? row.product_name_display,
-    product_name_display: row.product_name_display,
-    product_flavor_variant: row.product_flavor_variant,
-    product_variety: row.product_variety,
-    image_url: row.image_url,
-    total_battles: row.total_battles ?? 0,
-    total_scans: row.total_scans ?? 0,
-    price_tier_label: row.price_tier_label,
-    is_verified: row.is_verified ?? false,
-    l3_name: row.l3_name,
-    l2_name: row.l2_name,
-    l1_name: row.l1_name,
-    elo_score: row.elo_score ? Number(row.elo_score) : null,
-    battles_total: row.battles_total ?? 0,
-    battles_won: row.battles_won ?? 0,
-    battles_lost: row.battles_lost ?? 0,
-    user_percentile: row.user_percentile ? Number(row.user_percentile) : null,
-    is_favorite: row.is_favorite ?? false,
-    last_battle_at: row.last_battle_at ?? null,
-    is_claimed: claimedProductIds.includes(row.product_id),
-  }))
+  _brandId: number,
+  _claimedProductIds: number[]
+): Promise<never> {
+  throw new Error(
+    'FORBIDDEN: getBrandProducts is a catalog landmine. Use list_brand_products_page.'
+  )
 }
 
 export async function getCompetitiveSnapshot(
@@ -431,44 +398,7 @@ export function generateNarrative(
   /** Ledger total from get_brand_total_battles — not snapshot.total_battles_all_time. */
   totalBattles: number
 ): { headline: string; sub: string } {
-  const delta30 = snapshot.elo_velocity_30d ?? 0
-  const winRate = snapshot.win_rate_30d ?? 0
-  const momentum = snapshot.momentum_label
-  const ledgerBattles = Number.isFinite(totalBattles) ? Math.max(0, Math.trunc(totalBattles)) : 0
-  if (delta30 > 20 && momentum === 'rising') {
-    return {
-      headline: `${brandName} is having its best 30 days since joining Dough — up ${Math.round(delta30)} points and winning ${Math.round(winRate * 100)}% of battles.`,
-      sub: `Strongest momentum in its category this month · Updated daily`
-    }
-  }
-  if (delta30 > 5 && momentum === 'rising') {
-    return {
-      headline: `${brandName} is gaining ground — up ${Math.round(delta30)} ELO points over the last 30 days.`,
-      sub: `Win rate ${Math.round(winRate * 100)}% · ${snapshot.total_battles_30d} battles this month · Updated daily`
-    }
-  }
-  if (delta30 < -10 && momentum === 'declining') {
-    return {
-      headline: `${brandName}'s preference score has dipped ${Math.abs(Math.round(delta30))} points this month.`,
-      sub: `Win rate down to ${Math.round(winRate * 100)}% · See the full breakdown below · Updated daily`
-    }
-  }
-  if (winRate > 0.65 && momentum === 'stable') {
-    return {
-      headline: `${brandName} is holding strong — winning ${Math.round(winRate * 100)}% of head-to-head battles.`,
-      sub: `${snapshot.total_battles_30d} battles this month · Category rank #${snapshot.compare_group_rank ?? '—'} · Updated daily`
-    }
-  }
-  if (snapshot.total_battles_all_time < 50) {
-    return {
-      headline: `${brandName} is getting started on Dough. Early data is coming in.`,
-      sub: `${ledgerBattles.toLocaleString()} battles counted so far · Data updates daily`
-    }
-  }
-  return {
-    headline: `${brandName} has completed ${ledgerBattles.toLocaleString()} battles on Dough.`,
-    sub: `${snapshot.total_battles_30d} battles in the last 30 days · Updated daily`
-  }
+  return generateBrandHomeNarrative(snapshot, brandName, totalBattles)
 }
 
 export type PlatformStats = {
@@ -492,27 +422,10 @@ export type BrandSearchResult = {
   top_elo: number | null
 }
 
-export async function getPlatformStats(): Promise<PlatformStats> {
-  const supabase = await createServerSupabaseClient()
-  const { data } = await supabase.rpc('get_platform_stats')
-  if (!data || !data.length) return {
-    active_brands: 0, active_products: 0, total_battles: 0,
-    battles_7d: 0, total_scans: 0, scans_7d: 0, total_users: 0,
-    active_users_7d: 0, products_with_elo: 0, avg_decision_ms: 0,
-  }
-  const r = data[0] as any
-  return {
-    active_brands: Number(r.active_brands),
-    active_products: Number(r.active_products),
-    total_battles: Number(r.total_battles),
-    battles_7d: Number(r.battles_7d),
-    total_scans: Number(r.total_scans),
-    scans_7d: Number(r.scans_7d),
-    total_users: Number(r.total_users),
-    active_users_7d: Number(r.active_users_7d),
-    products_with_elo: Number(r.products_with_elo),
-    avg_decision_ms: Number(r.avg_decision_ms),
-  }
+export async function getPlatformStats(): Promise<never> {
+  throw new Error(
+    'FORBIDDEN: getPlatformStats is an Admin Home landmine. Use get_admin_home_snapshot.'
+  )
 }
 
 export type AdminProductSearchResult = {

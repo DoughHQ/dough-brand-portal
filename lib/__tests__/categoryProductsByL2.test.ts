@@ -8,6 +8,7 @@ import {
   parseBrandCategoryProductsByL2,
   toCategoryProductsResult,
   toLockedCategoryProducts,
+  brandProductMasterHref,
   type BrandCategoryProductRow,
 } from '../categoryProductsByL2'
 
@@ -193,6 +194,13 @@ describe('lockedCategoryCta', () => {
       subject: 'Activate this category: Bars & Bites',
     })
     expect(JSON.stringify(cta)).not.toMatch(/purchase/i)
+  })
+})
+
+describe('brandProductMasterHref', () => {
+  it('is the product master route, not a category or preview URL', () => {
+    expect(brandProductMasterHref(405)).toBe('/products/405')
+    expect(brandProductMasterHref(1817)).toBe('/products/1817')
   })
 })
 

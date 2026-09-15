@@ -11,3 +11,37 @@ export function parseWithheldProgress(reason: string | undefined): string | null
   if (ofMatch) return `${ofMatch[1]} of ${ofMatch[2]} needed`
   return reason.trim()
 }
+
+const MONTHS_SHORT = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const
+
+/**
+ * Deterministic UTC stamp for SSR Client Components.
+ * Never use toLocaleString / dateStyle / timeStyle across the hydration boundary —
+ * Node ICU vs browser produces different strings (e.g. comma vs "at").
+ */
+export function formatUtcStamp(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (!Number.isFinite(d.getTime())) return '—'
+  const month = MONTHS_SHORT[d.getUTCMonth()]
+  const day = d.getUTCDate()
+  const year = d.getUTCFullYear()
+  let hour = d.getUTCHours()
+  const minute = String(d.getUTCMinutes()).padStart(2, '0')
+  const ampm = hour >= 12 ? 'PM' : 'AM'
+  hour = hour % 12 || 12
+  return `${month} ${day}, ${year} · ${hour}:${minute} ${ampm} UTC`
+}

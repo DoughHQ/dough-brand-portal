@@ -2,10 +2,10 @@
 
 .studies-canvas {
   width: 100%;
-  max-width: 1240px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   box-sizing: border-box;
-  padding: 36px 48px 72px;
+  padding: 28px 40px 72px;
 }
 
 .studies-canvas *,

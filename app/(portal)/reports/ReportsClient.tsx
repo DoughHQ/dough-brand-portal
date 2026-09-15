@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import type { PortalUser, Brand, BrandSubscription } from '@/lib/queries'
+import type { Brand } from '@/lib/queries'
 import { brandCategoryOverviewHref } from '@/lib/categoryReport/href'
+import ReportsSkeleton from '@/components/reports/reports_skeleton'
+import '@/components/reports/reports_skeleton.css'
 
 type Report = {
   report_catalog_id: number
@@ -24,12 +26,12 @@ type Purchase = {
 }
 
 interface Props {
-  portalUser: PortalUser
   brand: Brand
-  subscription: BrandSubscription | null
   isAdmin: boolean
   isImpersonating: boolean
   brandId: number
+  /** Cold L2 ids from brand_home_catalog_stats — not a products census. */
+  brandCategoryIds?: number[]
 }
 
 const REPORT_TYPE_LABELS: Record<string, string> = {
@@ -39,11 +41,11 @@ const REPORT_TYPE_LABELS: Record<string, string> = {
   competitive_set: 'Competitive Set',
 }
 
-export default function ReportsClient({ portalUser, brand, subscription, isAdmin, isImpersonating, brandId }: Props) {
+export default function ReportsClient({ brand, isAdmin, isImpersonating, brandId, brandCategoryIds: brandCategoryIdsProp = [] }: Props) {
   const supabase = createClient()
   const [reports, setReports] = useState<Report[]>([])
   const [purchases, setPurchases] = useState<Purchase[]>([])
-  const [brandCategoryIds, setBrandCategoryIds] = useState<Set<number>>(new Set())
+  const [brandCategoryIds] = useState<Set<number>>(() => new Set(brandCategoryIdsProp))
   const [search, setSearch] = useState('')
   const [filterType, setFilterType] = useState<string>('all')
   const [loading, setLoading] = useState(true)
@@ -64,26 +66,8 @@ export default function ReportsClient({ portalUser, brand, subscription, isAdmin
         .select('report_catalog_id')
         .eq('brand_id', brandId)
         .then(({ data }) => setPurchases((data ?? []) as Purchase[])),
-      supabase
-        .from('products')
-        .select('taxonomy_node_id, taxonomy_nodes!products_taxonomy_node_id_fkey(parent_taxonomy_node_id)')
-        .eq('brand_id', brandId)
-        .eq('status', 'active')
-        .eq('is_suppressed', false)
-        .then(({ data }) => {
-          const parentIds = new Set<number>()
-          ;(data ?? []).forEach((row) => {
-            const nodes = row.taxonomy_nodes as
-              | { parent_taxonomy_node_id?: number | null }
-              | { parent_taxonomy_node_id?: number | null }[]
-              | null
-            const parentId = Array.isArray(nodes) ? nodes[0]?.parent_taxonomy_node_id : nodes?.parent_taxonomy_node_id
-            if (parentId) parentIds.add(Number(parentId))
-          })
-          setBrandCategoryIds(parentIds)
-        }),
     ]).then(() => setLoading(false))
-  }, [brandId])
+  }, [brandId, supabase])
 
   const purchasedIds = new Set(purchases.map(p => p.report_catalog_id))
 
@@ -103,7 +87,7 @@ export default function ReportsClient({ portalUser, brand, subscription, isAdmin
   }
 
   return (
-    <div style={{ fontFamily: 'var(--font-sans)', maxWidth: 1200, margin: '0 auto', padding: '36px 32px' }}>
+    <div className="reports-page">
 
       {isImpersonating && (
         <div style={{
@@ -176,11 +160,7 @@ export default function ReportsClient({ portalUser, brand, subscription, isAdmin
         </div>
       </div>
 
-      {loading && (
-        <div style={{ fontSize: 13, color: 'var(--ink-30)', padding: '40px 0', textAlign: 'center' }}>
-          Loading reports...
-        </div>
-      )}
+      {loading && <ReportsSkeleton embedded />}
 
       {!loading && filterType === 'all' && (() => {
         const typeOrder = ['category_ranking', 'health_benchmark', 'competitive_set', 'brand_scorecard']

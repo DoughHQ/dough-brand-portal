@@ -1,3 +1,5 @@
+import { logHandledRpcFailure } from '@/lib/portal/logHandledRpcFailure'
+
 /** Dedupe per-user Elo rows into one ranked row per product. */
 export type CategoryProductRow = {
   product_id: number
@@ -77,9 +79,9 @@ export function logRpcError(
   label: string,
   error: { message: string; code?: string; details?: string; hint?: string }
 ) {
-  console.error(label, {
-    message: error.message,
+  logHandledRpcFailure(label, {
     code: error.code ?? null,
+    message: error.message,
     details: error.details ?? null,
     hint: error.hint ?? null,
   })

@@ -12,6 +12,7 @@ import {
 } from '@/lib/categoryLauncher'
 import { brandCategoryOverviewHref } from '@/lib/categoryReport/href'
 import BannerArt from '@/components/categories/BannerArt'
+import CategoriesSkeleton from '@/components/categories/categories_skeleton'
 import type { AdjacentCategory } from '@/lib/adjacentCategories'
 import '@/components/categories/categoriesPage.css'
 
@@ -292,11 +293,7 @@ export default function CategoryLauncher({
   }, [debouncedSearch])
 
   if (!ready) {
-    return (
-      <div style={{ padding: '24px 0', fontSize: 14, color: 'var(--ink-30)' }}>
-        Loading categories…
-      </div>
-    )
+    return <CategoriesSkeleton embedded />
   }
 
   if (error) {

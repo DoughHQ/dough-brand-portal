@@ -1,44 +1,34 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import type { PortalUser, Brand, BrandSubscription, BrandProduct } from '@/lib/queries'
+import type { Brand } from '@/lib/queries'
 import { ProductArt } from '@/components/products/ProductArt'
 import { fetchProductFacetSummaries } from '@/lib/facets/api'
 import {
   facetFooterParts,
   type FacetSummaryRow,
 } from '@/lib/facets/productFacets'
+import { formatUtcStamp } from '@/lib/portal-ui/format'
+import type {
+  BrandCatalogSummary,
+  BrandProductPageCursor,
+  BrandProductPageItem,
+} from '@/lib/brandHome/parseBrandProductPage'
+import { parseBrandProductPage } from '@/lib/brandHome/parseBrandProductPage'
 import '@/components/categories/categoriesPage.css'
 import '@/components/products/productTile.css'
 import '@/components/products/productFacets.css'
 import './productsPage.css'
 
-type PortfolioProduct = {
-  product_id: number
-  product_name_clean: string
-  product_name_display: string
-  image_url: string | null
-  primary_barcode: string | null
-  l2_name: string | null
-  l3_name: string | null
-  price_tier_label: string | null
-  total_battles: number
-  elo_score: number | null
-  win_rate_pct: number | null
-  has_battle_data: boolean
-  package_size_value: number | null
-  package_size_uom: string | null
-}
-
 interface ProductsClientProps {
-  portalUser: PortalUser
   brand: Brand
-  subscription: BrandSubscription | null
-  products: BrandProduct[]
-  claimedIds: number[]
   isImpersonating?: boolean
+  summary: BrandCatalogSummary | null
+  initialItems: BrandProductPageItem[]
+  initialHasMore: boolean
+  initialCursor: BrandProductPageCursor | null
 }
 
 function n(value: number): string {
@@ -134,24 +124,21 @@ function ProductThumb({
   )
 }
 
-/** Compact-only row — one real link, no display:contents, phone-sized hit target. */
-function PhoneProductRow({ product }: { product: PortfolioProduct }) {
-  const href = `/products/${product.product_id}`
-  const category = product.l3_name ?? product.l2_name
+function PhoneProductRow({ product }: { product: BrandProductPageItem }) {
+  const href = `/products/${product.productId}`
+  const category = product.l3Name ?? product.l2Name ?? product.category
   const meta = [
     category,
-    product.has_battle_data
-      ? `${product.total_battles.toLocaleString()} battles`
-      : 'No signal yet',
+    product.hasBattleData ? `${product.totalBattles.toLocaleString()} battles` : 'No signal yet',
   ]
     .filter(Boolean)
     .join(' · ')
 
   return (
     <Link href={href} className="prod-phone-row">
-      <ProductThumb name={product.product_name_clean} imageUrl={product.image_url} className="prod-phone-thumb" />
+      <ProductThumb name={product.name} imageUrl={product.imageUrl} className="prod-phone-thumb" />
       <span className="prod-phone-copy">
-        <span className="prod-phone-name">{product.product_name_clean}</span>
+        <span className="prod-phone-name">{product.name}</span>
         {meta ? <span className="prod-phone-meta">{meta}</span> : null}
       </span>
       <span className="prod-phone-chev" aria-hidden>
@@ -165,25 +152,20 @@ function ProductCard({
   product,
   summary,
 }: {
-  product: PortfolioProduct
+  product: BrandProductPageItem
   summary: FacetSummaryRow | undefined
 }) {
-  const href = `/products/${product.product_id}`
-  const category = product.l3_name ?? product.l2_name
+  const href = `/products/${product.productId}`
+  const category = product.l3Name ?? product.l2Name ?? product.category
   return (
     <article className="cat-tile">
       <Link href={href} className="prod-tile-link">
-        <ProductArt
-          product={{ name: product.product_name_clean, image_url: product.image_url }}
-        />
+        <ProductArt product={{ name: product.name, image_url: product.imageUrl }} />
         <div className="cat-tile-body">
           {category ? <div className="cat-kicker">{category}</div> : null}
-          <div className="prod-tile-name">{product.product_name_clean}</div>
-          {product.primary_barcode ? (
-            <div className="prod-tile-meta">{product.primary_barcode}</div>
-          ) : null}
+          <div className="prod-tile-name">{product.name}</div>
           <div className="cat-tile-chip-row">
-            {product.has_battle_data ? (
+            {product.hasBattleData ? (
               <span className="cat-chip cat-chip-live">
                 <span className="cat-chip-dot" aria-hidden />
                 With battle data
@@ -200,29 +182,59 @@ function ProductCard({
           <span className="cat-tile-btn cat-tile-btn-solid">Manage product</span>
         </div>
       </Link>
-      <FacetFooterLink productId={product.product_id} summary={summary} />
+      <FacetFooterLink productId={product.productId} summary={summary} />
     </article>
   )
 }
 
+async function fetchPage(opts: {
+  cursor: BrandProductPageCursor | null
+  battledOnly: boolean
+  search: string
+}) {
+  const supabase = createClient()
+  const { data, error } = await supabase.rpc('list_brand_products_page' as never, {
+    p_limit: 50,
+    p_cursor_battles: opts.cursor?.totalBattles ?? null,
+    p_cursor_product_id: opts.cursor?.productId ?? null,
+    p_battled_only: opts.battledOnly,
+    p_search: opts.search.trim() || null,
+  } as never)
+  if (error) throw new Error(error.message)
+  const page = parseBrandProductPage(data)
+  if (!page) throw new Error('Could not parse products page')
+  return page
+}
+
 export default function ProductsClient({
   brand,
-  products: serverProducts,
-  claimedIds,
   isImpersonating,
+  summary,
+  initialItems,
+  initialHasMore,
+  initialCursor,
 }: ProductsClientProps) {
-  const [portfolioProducts, setPortfolioProducts] = useState<PortfolioProduct[]>([])
-  const [portfolioError, setPortfolioError] = useState<string | null>(null)
-  const [usingFallback, setUsingFallback] = useState(false)
-  const [loadingPortfolio, setLoadingPortfolio] = useState(true)
+  const [items, setItems] = useState<BrandProductPageItem[]>(initialItems)
+  const [hasMore, setHasMore] = useState(initialHasMore)
+  const [cursor, setCursor] = useState<BrandProductPageCursor | null>(initialCursor)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [showBattledOnly, setShowBattledOnly] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [facetById, setFacetById] = useState<Record<number, FacetSummaryRow>>({})
   const [facetError, setFacetError] = useState<string | null>(null)
+  const [listError, setListError] = useState<string | null>(null)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const skipInitialFilterFetch = useRef(true)
 
-  const loadFacetSummaries = useCallback(async (products: PortfolioProduct[]) => {
-    const ids = products.map((p) => p.product_id)
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedSearch(search.trim()), 250)
+    return () => window.clearTimeout(t)
+  }, [search])
+
+  const loadFacetSummaries = useCallback(async (products: BrandProductPageItem[]) => {
+    const ids = products.map((p) => p.productId)
     if (ids.length === 0) {
       setFacetById({})
       return
@@ -231,72 +243,83 @@ export default function ProductsClient({
     const { rows, error } = await fetchProductFacetSummaries(supabase, ids)
     if (error) setFacetError(error)
     else setFacetError(null)
-    const map: Record<number, FacetSummaryRow> = {}
-    for (const row of rows) map[row.product_id] = row
-    setFacetById(map)
+    setFacetById((prev) => {
+      const next = { ...prev }
+      for (const row of rows) next[row.product_id] = row
+      return next
+    })
   }, [])
 
   useEffect(() => {
+    void loadFacetSummaries(initialItems)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (skipInitialFilterFetch.current) {
+      skipInitialFilterFetch.current = false
+      if (!debouncedSearch && !showBattledOnly) return
+    }
     let cancelled = false
-    const client = createClient()
-    client
-      .rpc('get_brand_products_portfolio', { p_brand_id: brand.brand_id })
-      .then(({ data, error }) => {
-        if (cancelled) return
-        if (error) {
-          console.error('portfolio error:', error)
-          setPortfolioError(error.message)
+    startTransition(() => {
+      void (async () => {
+        try {
+          const page = await fetchPage({
+            cursor: null,
+            battledOnly: showBattledOnly,
+            search: debouncedSearch,
+          })
+          if (cancelled) return
+          setItems(page.items)
+          setHasMore(page.hasMore)
+          setCursor(page.nextCursor)
+          setListError(null)
+          setFacetById({})
+          void loadFacetSummaries(page.items)
+        } catch (err) {
+          if (cancelled) return
+          setListError(err instanceof Error ? err.message : String(err))
         }
-        const rows = (data ?? []) as PortfolioProduct[]
-        let next: PortfolioProduct[]
-        if (rows.length > 0) {
-          next = rows
-          setPortfolioProducts(rows)
-          setUsingFallback(false)
-        } else {
-          next = serverProducts.map((p) => ({
-            product_id: p.product_id,
-            product_name_clean: p.product_name_clean,
-            product_name_display: p.product_name_display,
-            image_url: p.image_url,
-            primary_barcode: null,
-            l2_name: p.l2_name,
-            l3_name: p.l3_name,
-            price_tier_label: p.price_tier_label,
-            total_battles: p.total_battles ?? p.battles_total ?? 0,
-            elo_score: p.elo_score,
-            win_rate_pct:
-              p.battles_total > 0
-                ? Math.round((p.battles_won / p.battles_total) * 1000) / 10
-                : null,
-            has_battle_data: (p.battles_total ?? 0) > 0,
-            package_size_value: null,
-            package_size_uom: null,
-          }))
-          setPortfolioProducts(next)
-          setUsingFallback(true)
-        }
-        setLoadingPortfolio(false)
-        void loadFacetSummaries(next)
-      })
+      })()
+    })
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [brand.brand_id])
+  }, [debouncedSearch, showBattledOnly, loadFacetSummaries])
 
-  const claimedIdSet = new Set(claimedIds)
-  const filtered = portfolioProducts.filter((p) => {
-    const matchSearch =
-      !search || p.product_name_clean.toLowerCase().includes(search.toLowerCase())
-    const matchBattled = !showBattledOnly || p.has_battle_data
-    return matchSearch && matchBattled
-  })
-  const battledCount = portfolioProducts.filter((p) => p.has_battle_data).length
-  const categoryCount = new Set(
-    portfolioProducts.map((p) => p.l2_name).filter((name): name is string => Boolean(name))
-  ).size
-  const awaitingClaim = portfolioProducts.filter((p) => !claimedIdSet.has(p.product_id)).length
+  async function loadMore() {
+    if (!hasMore || !cursor || loadingMore) return
+    setLoadingMore(true)
+    try {
+      const page = await fetchPage({
+        cursor,
+        battledOnly: showBattledOnly,
+        search: debouncedSearch,
+      })
+      setItems((prev) => {
+        const seen = new Set(prev.map((p) => p.productId))
+        const merged = [...prev]
+        for (const item of page.items) {
+          if (!seen.has(item.productId)) merged.push(item)
+        }
+        return merged
+      })
+      setHasMore(page.hasMore)
+      setCursor(page.nextCursor)
+      void loadFacetSummaries(page.items)
+      setListError(null)
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  const productCount = summary?.productCount ?? items.length
+  const battledCount = summary?.battledCount ?? items.filter((p) => p.hasBattleData).length
+  const categoryCount = summary?.categoryCount ?? 0
+  const claimedCount = summary?.claimedSkuCount ?? 0
+  const unclaimedCount = Math.max(0, productCount - claimedCount)
 
   return (
     <div className="cat-page">
@@ -323,13 +346,16 @@ export default function ProductsClient({
           <p className="cat-lede">
             Manage the products your brand has on Dough and see where signal is beginning to build.
           </p>
-          {(portfolioError || usingFallback) && (
-            <p style={{ fontSize: 12, color: 'var(--amber)', marginTop: 8, lineHeight: 1.45 }}>
-              {portfolioError
-                ? `Portfolio RPC failed (${portfolioError}). Showing server catalog.`
-                : 'Portfolio returned no rows — showing server catalog so you can still open products.'}
+          {summary?.catalogRefreshedAt ? (
+            <p style={{ fontSize: 12, color: 'var(--ink-30)', marginTop: 8, lineHeight: 1.45 }}>
+              Catalog summary · updated {formatUtcStamp(summary.catalogRefreshedAt)}
             </p>
-          )}
+          ) : null}
+          {listError ? (
+            <p style={{ fontSize: 12, color: 'var(--amber)', marginTop: 8, lineHeight: 1.45 }}>
+              Products page failed ({listError}).
+            </p>
+          ) : null}
           {facetError ? (
             <p style={{ fontSize: 12, color: 'var(--amber)', marginTop: 8, lineHeight: 1.45 }}>
               Attributes summary unavailable ({facetError}).
@@ -346,8 +372,8 @@ export default function ProductsClient({
       <div className="cat-summary">
         <SummaryCard
           label="Products"
-          value={portfolioProducts.length}
-          hint="In your portfolio"
+          value={productCount}
+          hint="In your catalog"
           icon="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
         />
         <SummaryCard
@@ -359,13 +385,19 @@ export default function ProductsClient({
         <SummaryCard
           label="Categories represented"
           value={categoryCount}
-          hint="Across your portfolio"
+          hint="Across your catalog"
           icon="M4 6h16M4 12h16M4 18h10"
         />
         <SummaryCard
-          label="Awaiting claim"
-          value={awaitingClaim}
-          hint="Unclaimed products"
+          label="Claimed on plan"
+          value={claimedCount}
+          hint={
+            unclaimedCount > 0
+              ? `${n(unclaimedCount)} in catalog still unclaimed`
+              : productCount > 0
+                ? 'All catalog products claimed'
+                : 'No catalog products yet'
+          }
           icon="M12 8v5l3 2M12 21a9 9 0 1 0-9-9"
         />
       </div>
@@ -414,93 +446,88 @@ export default function ProductsClient({
         </div>
       </div>
 
-      {loadingPortfolio ? (
-        <div style={{ padding: '60px 0', fontSize: 14, color: 'var(--ink-30)' }}>Loading your products…</div>
+      {isPending ? (
+        <div style={{ padding: '24px 0', fontSize: 14, color: 'var(--ink-30)' }}>Updating…</div>
       ) : null}
 
-      {!loadingPortfolio && filtered.length === 0 ? (
+      {!isPending && items.length === 0 ? (
         <div className="cat-browse-empty">
           <div className="cat-browse-empty-title">
-            {search ? 'No products found' : 'No products in this portfolio yet.'}
+            {debouncedSearch ? 'No products found' : 'No products in this catalog yet.'}
           </div>
-          {search ? (
+          {debouncedSearch ? (
             <p className="cat-browse-empty-sub">Try another product name.</p>
           ) : null}
         </div>
       ) : null}
 
-      {!loadingPortfolio && filtered.length > 0 ? (
+      {items.length > 0 ? (
         <div className="prod-phone-list" aria-label="Products">
-          {filtered.map((product) => (
-            <PhoneProductRow key={product.product_id} product={product} />
+          {items.map((product) => (
+            <PhoneProductRow key={product.productId} product={product} />
           ))}
         </div>
       ) : null}
 
-      {!loadingPortfolio && filtered.length > 0 && viewMode === 'grid' ? (
+      {items.length > 0 && viewMode === 'grid' ? (
         <div className="prod-desktop-views cat-tile-grid">
-          {filtered.map((product) => (
+          {items.map((product) => (
             <ProductCard
-              key={product.product_id}
+              key={product.productId}
               product={product}
-              summary={facetById[product.product_id]}
+              summary={facetById[product.productId]}
             />
           ))}
         </div>
       ) : null}
 
-      {!loadingPortfolio && filtered.length > 0 && viewMode === 'list' ? (
+      {items.length > 0 && viewMode === 'list' ? (
         <div className="prod-desktop-views prod-list">
           <div className="prod-list-head">
             <span />
             <span>Product</span>
-            <span className="prod-list-hide-narrow">Barcode</span>
+            <span className="prod-list-hide-narrow">Category</span>
             <span className="prod-list-hide-narrow">Attributes</span>
             <span style={{ textAlign: 'right' }}>Battles</span>
             <span style={{ textAlign: 'right' }}> </span>
           </div>
-          {filtered.map((product) => {
-            const isClaimed = claimedIdSet.has(product.product_id)
-            const summary = facetById[product.product_id]
-            const href = `/products/${product.product_id}`
+          {items.map((product) => {
+            const isClaimed = product.isClaimed
+            const summaryRow = facetById[product.productId]
+            const href = `/products/${product.productId}`
             return (
-              <div key={product.product_id} className="prod-list-row prod-list-row--split">
+              <div key={product.productId} className="prod-list-row prod-list-row--split">
                 <Link href={href} className="prod-list-row__main">
-                  <ProductThumb name={product.product_name_clean} imageUrl={product.image_url} />
+                  <ProductThumb name={product.name} imageUrl={product.imageUrl} />
                   <div className="prod-list-row__identity">
-                    <div className="prod-list-row__name">{product.product_name_clean}</div>
-                    {product.package_size_value ? (
-                      <div className="prod-list-row__sub">
-                        {product.package_size_value} {product.package_size_uom}
-                      </div>
-                    ) : null}
+                    <div className="prod-list-row__name">{product.name}</div>
                   </div>
                   <div className="prod-list-hide-narrow prod-list-row__barcode">
-                    {product.primary_barcode ?? '—'}
+                    {product.l3Name ?? product.l2Name ?? product.category ?? '—'}
                   </div>
                 </Link>
                 <div className="prod-list-hide-narrow" style={{ minWidth: 0 }}>
-                  {summary ? (
+                  {summaryRow ? (
                     <Link
-                      href={`/products/${product.product_id}?tab=facets`}
+                      href={`/products/${product.productId}?tab=facets`}
                       className="pf-list-facet"
                     >
                       <span>
-                        {summary.derived_count} from Dough
-                        {summary.declared_count > 0 ? (
+                        {summaryRow.derived_count} from Dough
+                        {summaryRow.declared_count > 0 ? (
                           <>
                             {' · '}
                             <span className="pf-list-facet__added">
-                              {summary.declared_count} added
+                              {summaryRow.declared_count} added
                             </span>
                           </>
                         ) : null}
                         {' · '}
-                        {Math.max(0, summary.declarable_total - summary.declarable_filled)} to add
+                        {Math.max(0, summaryRow.declarable_total - summaryRow.declarable_filled)} to add
                       </span>
-                      {summary.pending_count > 0 ? (
+                      {summaryRow.pending_count > 0 ? (
                         <span className="pf-list-facet__pending">
-                          {summary.pending_count} pending
+                          {summaryRow.pending_count} pending
                         </span>
                       ) : null}
                     </Link>
@@ -512,10 +539,10 @@ export default function ProductsClient({
                   href={href}
                   className="prod-list-row__battles"
                   style={{
-                    color: product.total_battles > 0 ? 'var(--sage-dark)' : 'var(--ink-30)',
+                    color: product.totalBattles > 0 ? 'var(--sage-dark)' : 'var(--ink-30)',
                   }}
                 >
-                  {product.total_battles > 0 ? n(product.total_battles) : '—'}
+                  {product.totalBattles > 0 ? n(product.totalBattles) : '—'}
                 </Link>
                 <div style={{ textAlign: 'right' }}>
                   <span
@@ -528,6 +555,20 @@ export default function ProductsClient({
               </div>
             )
           })}
+        </div>
+      ) : null}
+
+      {hasMore ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '28px 0 8px' }}>
+          <button
+            type="button"
+            className="cat-primary-cta"
+            onClick={() => void loadMore()}
+            disabled={loadingMore}
+            style={{ opacity: loadingMore ? 0.6 : 1 }}
+          >
+            {loadingMore ? 'Loading…' : 'Load more'}
+          </button>
         </div>
       ) : null}
     </div>

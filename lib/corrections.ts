@@ -6,11 +6,18 @@ import {
   canApproveAsIs,
   isBlankLeaf,
   type CorrectionReviewRow,
+  type CorrectionReviewsPage,
+  type CorrectionReviewsPageCursor,
   type TaxonomySearchHit,
 } from '@/lib/corrections.shared'
 import { searchTaxonomyNodes as searchTaxonomyNodesShared } from '@/lib/taxonomy'
 
-export type { CorrectionReviewRow, TaxonomySearchHit } from '@/lib/corrections.shared'
+export type {
+  CorrectionReviewRow,
+  CorrectionReviewsPage,
+  CorrectionReviewsPageCursor,
+  TaxonomySearchHit,
+} from '@/lib/corrections.shared'
 export {
   PHOTO_ONLY_TYPES,
   approveBlockedReason,
@@ -19,34 +26,12 @@ export {
   isBlankLeaf,
 } from '@/lib/corrections.shared'
 
-const QUEUE_SELECT =
-  'id, product_id, created_at, correction_type, product_name_display, brand_name, current_category, current_value, proposed_value, extracted_value, extracted_at, extraction_error, human_corrected_value, user_notes, evidence_image_url, proposed_taxonomy_node_id, other_category_description, proposed_price_amount, proposed_price_store, proposed_price_unit, claude_decision, claude_confidence, claude_reasoning, claude_corrected_value, status'
+const PAGE_DEFAULT_LIMIT = 25
 
-export async function getPendingCorrectionReviews(): Promise<CorrectionReviewRow[]> {
-  const supabase = await createServerSupabaseClient()
-  const { data, error } = await supabase
-    .from('correction_review_queue')
-    .select(QUEUE_SELECT)
-    .eq('status', 'pending_human_review')
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    console.error('[corrections] querying project:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-    console.error('[corrections] getPendingCorrectionReviews error:', {
-      code: error.code,
-      details: error.details,
-      hint: error.hint,
-      message: error.message,
-    })
-    throw error
-  }
-
-  const baseRows = (data ?? []) as CorrectionReviewRow[]
-
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('[corrections] rows returned:', baseRows.length)
-  }
-
+async function hydrateCorrectionRows(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  baseRows: CorrectionReviewRow[]
+): Promise<CorrectionReviewRow[]> {
   if (baseRows.length === 0) return []
 
   const productIds = [...new Set(baseRows.map((r) => r.product_id))]
@@ -155,6 +140,105 @@ export async function getPendingCorrectionReviews(): Promise<CorrectionReviewRow
       variants: variantList,
     }
   })
+}
+
+function asRecord(v: unknown): Record<string, unknown> | null {
+  if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>
+  return null
+}
+
+function mapQueueItem(raw: unknown): CorrectionReviewRow | null {
+  const r = asRecord(raw)
+  if (!r || r.id == null) return null
+  return {
+    id: String(r.id),
+    product_id: Number(r.product_id) || 0,
+    created_at: String(r.created_at ?? ''),
+    correction_type: r.correction_type == null ? null : String(r.correction_type),
+    product_name_display: r.product_name_display == null ? null : String(r.product_name_display),
+    brand_name: r.brand_name == null ? null : String(r.brand_name),
+    current_category: r.current_category == null ? null : String(r.current_category),
+    current_category_path: null,
+    current_value: (asRecord(r.current_value) as Record<string, unknown> | null) ?? null,
+    proposed_value: (asRecord(r.proposed_value) as Record<string, unknown> | null) ?? null,
+    extracted_value: (asRecord(r.extracted_value) as Record<string, unknown> | null) ?? null,
+    extracted_at: r.extracted_at == null ? null : String(r.extracted_at),
+    extraction_error: r.extraction_error == null ? null : String(r.extraction_error),
+    human_corrected_value: (asRecord(r.human_corrected_value) as Record<string, unknown> | null) ?? null,
+    user_notes: r.user_notes == null ? null : String(r.user_notes),
+    evidence_image_url: r.evidence_image_url == null ? null : String(r.evidence_image_url),
+    product_image_url: null,
+    proposed_taxonomy_node_id:
+      r.proposed_taxonomy_node_id == null ? null : Number(r.proposed_taxonomy_node_id),
+    proposed_category_label: null,
+    proposed_category_path: null,
+    other_category_description:
+      r.other_category_description == null ? null : String(r.other_category_description),
+    proposed_price_amount:
+      r.proposed_price_amount == null ? null : (r.proposed_price_amount as number | string),
+    proposed_price_store: r.proposed_price_store == null ? null : String(r.proposed_price_store),
+    proposed_price_unit: r.proposed_price_unit == null ? null : String(r.proposed_price_unit),
+    claude_decision: r.claude_decision == null ? null : String(r.claude_decision),
+    claude_confidence:
+      r.claude_confidence == null ? null : (r.claude_confidence as number | string),
+    claude_reasoning: r.claude_reasoning == null ? null : String(r.claude_reasoning),
+    claude_corrected_value: (asRecord(r.claude_corrected_value) as Record<string, unknown> | null) ?? null,
+    status: r.status == null ? null : String(r.status),
+    variant_count: 0,
+    variants: [],
+  }
+}
+
+/** Keyset page — hydrate only the returned rows (≤50). */
+export async function getPendingCorrectionReviewsPage(opts?: {
+  limit?: number
+  cursor?: CorrectionReviewsPageCursor | null
+  focusId?: string | null
+  productId?: number | null
+}): Promise<CorrectionReviewsPage> {
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase.rpc('list_pending_correction_reviews' as never, {
+    p_limit: opts?.limit ?? PAGE_DEFAULT_LIMIT,
+    p_cursor_created_at: opts?.cursor?.createdAt ?? null,
+    p_cursor_id: opts?.cursor?.id ?? null,
+    p_focus_id: opts?.focusId ?? null,
+    p_product_id: opts?.productId ?? null,
+  } as never)
+
+  if (error) {
+    console.error('[corrections] list_pending_correction_reviews', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    })
+    throw error
+  }
+
+  const root = asRecord(data) ?? {}
+  const itemsRaw = Array.isArray(root.items) ? root.items : []
+  const baseRows = itemsRaw
+    .map(mapQueueItem)
+    .filter((r): r is CorrectionReviewRow => r != null && r.product_id > 0)
+
+  const rows = await hydrateCorrectionRows(supabase, baseRows)
+  const cursorRaw = asRecord(root.next_cursor)
+  const nextCursor =
+    root.has_more === true && cursorRaw?.id != null && cursorRaw.created_at != null
+      ? { createdAt: String(cursorRaw.created_at), id: String(cursorRaw.id) }
+      : null
+
+  return {
+    rows,
+    hasMore: root.has_more === true && nextCursor != null,
+    nextCursor,
+  }
+}
+
+/** @deprecated Prefer getPendingCorrectionReviewsPage — kept as first-page alias. */
+export async function getPendingCorrectionReviews(): Promise<CorrectionReviewRow[]> {
+  const page = await getPendingCorrectionReviewsPage({ limit: 25 })
+  return page.rows
 }
 
 export async function reviewCorrectionSubmission(

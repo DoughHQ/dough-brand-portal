@@ -4,8 +4,10 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalUser } from '@/lib/queries'
 import {
   OwnershipReviewError,
-  listPendingOwnershipCorrections,
+  listPendingOwnershipCorrectionsPage,
   reviewBrandOwnershipCorrection,
+  type OwnershipCorrectionsPage,
+  type OwnershipCorrectionsPageCursor,
   type PendingOwnershipCorrection,
   type ReviewOwnershipResult,
 } from '@/lib/ownershipCorrections'
@@ -18,17 +20,29 @@ async function requireDoughAdmin() {
   return portalUser
 }
 
-export async function listPendingOwnershipCorrectionsAction(): Promise<{
+export async function listPendingOwnershipCorrectionsAction(opts?: {
+  cursor?: OwnershipCorrectionsPageCursor | null
+}): Promise<{
   ok: boolean
   rows?: PendingOwnershipCorrection[]
+  hasMore?: boolean
+  nextCursor?: OwnershipCorrectionsPageCursor | null
   error?: string
   code?: string
 }> {
   try {
     await requireDoughAdmin()
     const supabase = await createServerSupabaseClient()
-    const rows = await listPendingOwnershipCorrections(supabase)
-    return { ok: true, rows }
+    const page: OwnershipCorrectionsPage = await listPendingOwnershipCorrectionsPage(supabase, {
+      limit: 25,
+      cursor: opts?.cursor ?? null,
+    })
+    return {
+      ok: true,
+      rows: page.rows,
+      hasMore: page.hasMore,
+      nextCursor: page.nextCursor,
+    }
   } catch (err) {
     if (err instanceof OwnershipReviewError) {
       return { ok: false, error: err.message, code: err.code }
