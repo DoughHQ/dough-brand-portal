@@ -3,6 +3,7 @@ import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import { getBrand } from '@/lib/queries'
 import { fetchBrandAdjacentCategories } from '@/lib/adjacentCategories.server'
 import CategoryLauncher from '@/components/categories/CategoryLauncher'
+import CatPage from '@/components/categories/CatPage'
 import '@/components/categories/categoriesPage.css'
 
 export default async function BrandCategoriesPage() {
@@ -22,8 +23,8 @@ export default async function BrandCategoriesPage() {
   if (!brand) redirect('/login')
 
   return (
-    <div className="cat-page">
+    <CatPage>
       <CategoryLauncher brandName={brand.brand_name} adjacentCategories={adjacentCategories} />
-    </div>
+    </CatPage>
   )
 }

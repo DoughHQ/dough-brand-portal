@@ -1,14 +1,26 @@
-/* Categories page — visual layout only. No data/routing behavior. */
+/* Categories / Products catalog canvas — visual layout only.
+ *
+ * `.cat-page` is the `.portal-main` flex child (fill the column).
+ * `.cat-page-cq` owns size containment for `@container cat-page`.
+ * Never put container-type on `.cat-page` — WebKit collapses the flex
+ * item to min-content and falsely trips the ≤559px container query.
+ */
 
 .cat-page {
   font-family: var(--font-sans);
-  /* Portal `main` is a column flex. Fill the main column; pad instead of
-     centering a capped canvas (wide monitors looked off-center). */
   width: 100%;
   max-width: none;
   margin: 0;
   box-sizing: border-box;
   padding: 28px 40px 88px;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-self: stretch;
+}
+
+.cat-page-cq {
+  width: 100%;
+  min-width: 0;
   container-type: inline-size;
   container-name: cat-page;
 }

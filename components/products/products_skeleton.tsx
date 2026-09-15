@@ -1,3 +1,4 @@
+import CatPage from '@/components/categories/CatPage'
 import SkeletonBone from '@/components/portal/SkeletonBone'
 import '@/components/categories/categoriesPage.css'
 import '../../app/(portal)/products/productsPage.css'
@@ -8,7 +9,7 @@ import './products_skeleton.css'
  */
 export default function ProductsSkeleton() {
   return (
-    <div className="cat-page skel-root prod-skel" aria-busy="true" aria-live="polite">
+    <CatPage className="skel-root prod-skel" aria-busy="true" aria-live="polite">
       <span className="skel-sr">Loading products</span>
 
       <header className="cat-header">
@@ -52,6 +53,6 @@ export default function ProductsSkeleton() {
           </div>
         ))}
       </div>
-    </div>
+    </CatPage>
   )
 }

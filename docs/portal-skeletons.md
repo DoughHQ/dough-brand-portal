@@ -18,3 +18,5 @@ Shared shimmer: `components/portal/SkeletonBone.tsx` + `skeleton_bones.css`.
 
 Client-side waits (Categories launcher RPC, Reports catalog fetch) reuse the same
 component with `embedded` so the chrome/header does not flash twice.
+
+Shell / page-root rules (containment, fill main): see `docs/portal-shell.md`.

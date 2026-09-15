@@ -17,6 +17,7 @@ import type {
   BrandProductPageItem,
 } from '@/lib/brandHome/parseBrandProductPage'
 import { parseBrandProductPage } from '@/lib/brandHome/parseBrandProductPage'
+import CatPage from '@/components/categories/CatPage'
 import '@/components/categories/categoriesPage.css'
 import '@/components/products/productTile.css'
 import '@/components/products/productFacets.css'
@@ -322,7 +323,7 @@ export default function ProductsClient({
   const unclaimedCount = Math.max(0, productCount - claimedCount)
 
   return (
-    <div className="cat-page">
+    <CatPage>
       {isImpersonating ? (
         <div
           style={{
@@ -571,6 +572,6 @@ export default function ProductsClient({
           </button>
         </div>
       ) : null}
-    </div>
+    </CatPage>
   )
 }

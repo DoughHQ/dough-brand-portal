@@ -4,9 +4,11 @@ on:
   pull_request:
     paths:
       - 'app/**'
+      - 'components/**'
       - 'lib/**'
       - 'scripts/**'
       - 'package.json'
+      - 'docs/portal-shell.md'
   push:
     branches: [main, master]
 
@@ -33,4 +35,5 @@ jobs:
       - run: npm run check:studies-ban
       - run: npm run check:claim-array-ban
       - run: npm run check:landmine-callers-ban
+      - run: npm run check:page-root-containment-ban
       - run: npx vitest run lib/brandHome/__tests__

@@ -1,18 +1,15 @@
+import CatPage from '@/components/categories/CatPage'
 import SkeletonBone from '@/components/portal/SkeletonBone'
 import '@/components/categories/categoriesPage.css'
 import './categories_skeleton.css'
 
 /**
  * Categories launcher skeleton — twin of CategoryLauncher.
- * Route loading uses the framed canvas; client wait uses `embedded` inside `.cat-page`.
+ * Route loading uses the framed canvas; client wait uses `embedded` inside `.cat-page-cq`.
  */
 export default function CategoriesSkeleton({ embedded = false }: { embedded?: boolean }) {
-  return (
-    <div
-      className={`${embedded ? '' : 'cat-page '}skel-root cat-skel`.trim()}
-      aria-busy="true"
-      aria-live="polite"
-    >
+  const body = (
+    <>
       <span className="skel-sr">Loading categories</span>
 
       <header className="cat-header">
@@ -90,6 +87,20 @@ export default function CategoriesSkeleton({ embedded = false }: { embedded?: bo
           ))}
         </div>
       </section>
-    </div>
+    </>
+  )
+
+  if (embedded) {
+    return (
+      <div className="skel-root cat-skel" aria-busy="true" aria-live="polite">
+        {body}
+      </div>
+    )
+  }
+
+  return (
+    <CatPage className="skel-root cat-skel" aria-busy="true" aria-live="polite">
+      {body}
+    </CatPage>
   )
 }

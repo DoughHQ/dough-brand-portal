@@ -9,6 +9,7 @@ import {
   noProductsCategoryCopy,
   type LockedCategoryProduct,
 } from '@/lib/categoryProductsByL2'
+import CatPage from '@/components/categories/CatPage'
 import '@/components/categories/categoriesPage.css'
 
 function n(value: number): string {
@@ -70,7 +71,7 @@ function LockedShell({
   children: ReactNode
 }) {
   return (
-    <div className="cat-page">
+    <CatPage>
       <Link href="/categories" className="cat-locked-back">
         ← Categories
       </Link>
@@ -81,7 +82,7 @@ function LockedShell({
         </div>
       </header>
       {children}
-    </div>
+    </CatPage>
   )
 }
 

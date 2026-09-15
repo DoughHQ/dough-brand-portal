@@ -316,10 +316,13 @@
   min-width: 0;
 }
 
-/* Detail / list canvases fill the main column — no floating max-width island. */
+/* Detail / list canvases fill the main column — no floating max-width island.
+ * Page roots must stretch; never put container-type on this flex child. */
 .portal-main > * {
   width: 100%;
   min-width: 0;
+  flex: 1 1 auto;
+  align-self: stretch;
 }
 
 .pm-page {
