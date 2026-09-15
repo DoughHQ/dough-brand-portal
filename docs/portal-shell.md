@@ -14,8 +14,12 @@
 # 4. Do not center a capped max-width island inside main; pad the canvas.
 # 5. Sidebar inset: padding lives on `.portal-aside` itself (globals reset * padding).
 #
-# Catalog canvas: always use `<CatPage>` (client) — it self-heals if WebKit
-# shrinks the canvas below ~35% of main after paint.
+# Catalog canvas: always use `<CatPage>` from `components/categories/CatPage.tsx`
+# — never `<div className="cat-page">`.
+#
+# If Products/Categories collapse to one-word width while source looks fixed,
+# Next may be serving a stale CSS chunk (`container: cat-page/inline-size`).
+# Stop the dev server, `rm -rf .next`, restart `npm run dev`, hard-refresh.
 #
 # CI: `npm run check:page-root-containment-ban`
 # Skeletons: see `docs/portal-skeletons.md`
