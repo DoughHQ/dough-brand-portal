@@ -20,11 +20,11 @@ if rg -n --glob '*.css' -U --multiline \
   FAIL=1
 fi
 
-# Catalog CSS must not use @container or container-type at all.
+# Catalog CSS must not use @container or container-type at all (ignore comments).
 if [[ -f "$CATALOG_CSS" ]]; then
-  if rg -n "container-type|@container" "$CATALOG_CSS" >/dev/null 2>&1; then
+  if rg -n "^\s*container-type\s*:|^\s*@container\b" "$CATALOG_CSS" >/dev/null 2>&1; then
     echo "BAN FAIL: categoriesPage.css must not use container-type / @container"
-    rg -n "container-type|@container" "$CATALOG_CSS" || true
+    rg -n "^\s*container-type\s*:|^\s*@container\b" "$CATALOG_CSS" || true
     FAIL=1
   fi
 fi
