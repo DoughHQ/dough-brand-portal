@@ -44420,6 +44420,18 @@ export type Database = {
           user_percentile: number
         }[]
       }
+      get_brand_proof_ask_counts: {
+        Args: { p_product_id: number }
+        Returns: {
+          brand_ask_count: number
+          first_asked_at: string | null
+          label: string
+          last_asked_at: string | null
+          pillar: string
+          product_ask_count: number
+          sub_metric_code: string
+        }[]
+      }
       get_brand_review_queue: {
         Args: { p_limit?: number }
         Returns: {

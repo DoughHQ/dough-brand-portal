@@ -50,6 +50,10 @@ import {
   displayAllCapsPhrase,
   splitIngredientStatement,
 } from '@/app/(portal)/products/[productId]/tabs/compositionPresentation'
+import {
+  proofTabAskBadge,
+  type BrandProofAskCount,
+} from '@/lib/transparency/proofAskCounts'
 import './transparencyStudio.css'
 
 type Props = {
@@ -58,6 +62,7 @@ type Props = {
   canEdit: boolean
   /** Current SKU ingredient statement — seeds Formula chapter */
   ingredientStatement?: string | null
+  pcfAsk?: BrandProofAskCount | null
 }
 
 const STATUS_OPTIONS: { value: DisclosureStatus; label: string }[] = [
@@ -542,6 +547,7 @@ export default function ProductTransparencyStudio({
   brandId,
   canEdit,
   ingredientStatement = null,
+  pcfAsk = null,
 }: Props) {
   const supabase = useMemo(() => createClient(), [])
   const [fields, setFields] = useState<ProofSubMetricRow[]>([])
@@ -1373,7 +1379,12 @@ export default function ProductTransparencyStudio({
         pcfOn ? 'PCF' : null,
         packN > 0 ? `${packN} pack` : null,
       ].filter(Boolean)
-      return bits.length ? bits.join(' · ') : 'Not started'
+      if (bits.length) return bits.join(' · ')
+      const asked = proofTabAskBadge(pcfAsk)
+      if (asked > 0) {
+        return asked === 1 ? '1 shopper asked' : `${asked.toLocaleString()} asked`
+      }
+      return 'Not started'
     }
     if (chId === 'formula') {
       return p.started > 0 ? `${p.started} ingredients` : 'Not started'
@@ -1531,7 +1542,12 @@ export default function ProductTransparencyStudio({
                   {ch.letter}
                 </span>
                 <span className="tx-rail__meta">
-                  <span className="tx-rail__name">{ch.name}</span>
+                  <span className="tx-rail__name">
+                    {ch.name}
+                    {ch.id === 'planet' && proofTabAskBadge(pcfAsk) > 0 ? (
+                      <span className="tx-rail__ask">{proofTabAskBadge(pcfAsk)}</span>
+                    ) : null}
+                  </span>
                   <span className="tx-rail__progress">{depthSummary(ch.id)}</span>
                   <span className="tx-rail__bar" aria-hidden>
                     <span style={{ width: `${pct}%` }} />
@@ -1642,6 +1658,7 @@ export default function ProductTransparencyStudio({
                   if (!material) return
                   for (const name of names) ensureSubjectRow(material, name)
                 }}
+                pcfAsk={pcfAsk}
               />
               {planetRestGroups.length > 0 ? (
                 <div className="tx-origin__journey">

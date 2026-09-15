@@ -35,6 +35,8 @@ import {
   productName as productNameStyle,
   sectionHeading,
 } from '@/lib/productMaster/styles'
+import { usePcfBrandAskCount } from '@/components/transparency/usePcfBrandAskCount'
+import { proofTabAskBadge } from '@/lib/transparency/proofAskCounts'
 import ProductDetailTabBar from './tabs/ProductDetailTabBar'
 import ProductSkuSwitcher from './tabs/ProductSkuSwitcher'
 import {
@@ -307,6 +309,8 @@ export default function ProductMasterClient({
   const isAdmin = portalUser.role === 'dough_admin'
   const product = master.product
   const editable = new Set(master.editable_fields ?? [])
+  const pcfAsk = usePcfBrandAskCount(product.product_id)
+  const proofAskCount = proofTabAskBadge(pcfAsk ?? null)
 
   const skuIds = useMemo(() => master.skus.map((s) => s.sku_variant_id), [master.skus])
 
@@ -1005,6 +1009,7 @@ export default function ProductMasterClient({
         active={tab}
         packageCount={master.sku_count}
         studyCount={studies.length}
+        proofAskCount={proofAskCount}
         onSelect={selectTab}
       />
 
@@ -1714,6 +1719,7 @@ export default function ProductMasterClient({
           ingredientStatement={
             selectedSku?.ingredients?.ingredients_text_raw ?? null
           }
+          pcfAsk={pcfAsk ?? null}
         />
       )}
 

@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import type { ProductStudyCard } from '@/lib/productMaster/productHeroStudies'
+import type { BrandProofAskCount } from '@/lib/transparency/proofAskCounts'
 import ProductTransparencyStudio from '@/components/transparency/ProductTransparencyStudio'
 import ProductAttributesEditor from '@/components/products/ProductAttributesEditor'
 import './productDetailTabs.css'
@@ -139,11 +140,13 @@ export function ProductProofTab({
   brandId,
   canEdit,
   ingredientStatement = null,
+  pcfAsk = null,
 }: {
   productId: number
   brandId: number
   canEdit: boolean
   ingredientStatement?: string | null
+  pcfAsk?: BrandProofAskCount | null
 }) {
   return (
     <ProductTransparencyStudio
@@ -151,6 +154,7 @@ export function ProductProofTab({
       brandId={brandId}
       canEdit={canEdit}
       ingredientStatement={ingredientStatement}
+      pcfAsk={pcfAsk}
     />
   )
 }

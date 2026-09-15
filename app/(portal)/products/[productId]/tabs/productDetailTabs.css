@@ -62,6 +62,12 @@
   font-weight: 500;
 }
 
+.pm-tab-count--ask {
+  background: var(--sage-dark);
+  color: var(--cream, #faf8f3);
+  font-weight: 600;
+}
+
 .pm-tab-stack {
   display: flex;
   flex-direction: column;

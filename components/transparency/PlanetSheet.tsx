@@ -15,6 +15,11 @@ import {
   provenanceWhisperFromTier,
 } from '@/lib/transparency/storyLines'
 import ShopperPreview from '@/components/transparency/ShopperPreview'
+import PlanetDemand from '@/components/transparency/PlanetDemand'
+import {
+  planetDemandCopy,
+  type BrandProofAskCount,
+} from '@/lib/transparency/proofAskCounts'
 
 export const PLANET_PCF_CODES = [
   'product_carbon_footprint',
@@ -49,6 +54,7 @@ type Props = {
   onSaveBundle: (codes: readonly string[], bundleKey: string) => void
   onClearStoryError?: () => void
   onSeedPackComponents: (names: string[]) => void
+  pcfAsk?: BrandProofAskCount | null
 }
 
 const SOURCE_TIERS: { value: SourceTier; label: string; hint: string }[] = [
@@ -121,6 +127,7 @@ export default function PlanetSheet({
   onSaveBundle,
   onClearStoryError,
   onSeedPackComponents,
+  pcfAsk = null,
 }: Props) {
   const pcfField = fieldsByCode['product_carbon_footprint']
   const assuranceField = fieldsByCode['pcf_assurance_level']
@@ -131,6 +138,12 @@ export default function PlanetSheet({
 
   const pcfRow = wholeRow(rowsByCode['product_carbon_footprint'])
   const assuranceRow = wholeRow(rowsByCode['pcf_assurance_level'])
+  const demand = planetDemandCopy({
+    productAskCount: pcfAsk?.productAskCount ?? 0,
+    brandAskCount: pcfAsk?.brandAskCount ?? 0,
+    lastAskedAt: pcfAsk?.lastAskedAt ?? null,
+    published: rowPresence(pcfRow?.draft) === 'published',
+  })
 
   const packSubjects = useMemo(() => {
     const seen = new Set<string>()
@@ -164,6 +177,7 @@ export default function PlanetSheet({
             Number, boundary, method, and data quality as one claim — never green theatre.
           </p>
         </header>
+        {demand ? <PlanetDemand copy={demand} /> : null}
         {pcfField && pcfRow ? (
           <FootprintEditor
             pcfField={pcfField}
