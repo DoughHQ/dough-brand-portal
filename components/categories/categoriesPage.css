@@ -18,8 +18,9 @@
 
 .cat-page-cq {
   width: 100%;
+  max-width: none;
   min-width: 0;
-  display: flow-root;
+  display: block;
 }
 
 @media (max-width: 900px) {
