@@ -36,7 +36,7 @@ import {
   loadMoreCorrectionsAction,
   reviewCorrectionAction,
 } from './actions'
-import OverrideEditors from './OverrideEditors'
+import CaseEditor from './CaseEditor'
 import { formatUtcStamp } from '@/lib/portal-ui/format'
 import './correctionsCase.css'
 
@@ -132,7 +132,7 @@ export default function CorrectionsReviewClient({
   const [error, setError] = useState<string | null>(null)
   const [expandedImg, setExpandedImg] = useState<string | null>(null)
   const [rejectChipById, setRejectChipById] = useState<Record<string, string>>({})
-  const [overrideOpenId, setOverrideOpenId] = useState<string | null>(null)
+  const [editorOpenId, setEditorOpenId] = useState<string | null>(null)
   const [flash, setFlash] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(() => missingFocusNotice(initialRows, focusId))
   const [fetchedRelated, setFetchedRelated] = useState<CorrectionReviewRow[]>([])
@@ -170,7 +170,7 @@ export default function CorrectionsReviewClient({
     const mode = correctionCaseMode(focused)
     if (mode === 'assign' && !autoOpened.current.has(focused.id)) {
       autoOpened.current.add(focused.id)
-      setOverrideOpenId(focused.id)
+      setEditorOpenId(focused.id)
     }
   }, [focused])
 
@@ -247,7 +247,7 @@ export default function CorrectionsReviewClient({
       delete copy[submissionId]
       return copy
     })
-    setOverrideOpenId((id) => (id === submissionId ? null : id))
+    setEditorOpenId((id) => (id === submissionId ? null : id))
     if (next.rows.length === 0 && hasMoreRef.current) {
       void appendPage()
     }
@@ -268,7 +268,7 @@ export default function CorrectionsReviewClient({
 
       if (decision === 'approved' && !canApproveAsIs(row)) {
         setError('Pick a category first — nothing is ready to apply.')
-        setOverrideOpenId(row.id)
+        setEditorOpenId(row.id)
         return
       }
       if (decision === 'rejected' && (!opts?.notes || opts.notes.trim() === '')) {
@@ -321,7 +321,7 @@ export default function CorrectionsReviewClient({
         extraction_error: null,
       },
     })
-    setOverrideOpenId(submissionId)
+    setEditorOpenId(submissionId)
     setFlash('Draft ready — check it against the photo, then apply.')
   }, [])
 
@@ -350,12 +350,12 @@ export default function CorrectionsReviewClient({
       if (e.key === 'a' || e.key === 'A' || e.key === 'Enter') {
         e.preventDefault()
         if (canApproveAsIs(current)) void handleDecision(current.id, 'approved')
-        else setOverrideOpenId(current.id)
+        else setEditorOpenId(current.id)
         return
       }
       if (e.key === 'o' || e.key === 'O') {
         e.preventDefault()
-        setOverrideOpenId(current.id)
+        setEditorOpenId(current.id)
         return
       }
       if (e.key === 'e' || e.key === 'E') {
@@ -368,7 +368,7 @@ export default function CorrectionsReviewClient({
       }
       if (e.key === 'Escape') {
         setExpandedImg(null)
-        setOverrideOpenId(null)
+        setEditorOpenId(null)
         setError(null)
       }
     }
@@ -491,20 +491,20 @@ export default function CorrectionsReviewClient({
               nowMs={nowMs}
               workspaceBrandId={workspaceBrandId}
               workspaceBrandName={workspaceBrandName}
-              overrideOpen={overrideOpenId === focused.id}
+              editorOpen={editorOpenId === focused.id}
               rejectChip={rejectChipById[focused.id] ?? null}
               related={related}
               onOpenRelated={openRelated}
               onExtract={() => void handleExtract(focused.id)}
-              onOpenOverride={() => setOverrideOpenId(focused.id)}
-              onCloseOverride={() => setOverrideOpenId(null)}
+              onOpenEditor={() => setEditorOpenId(focused.id)}
+              onCloseEditor={() => setEditorOpenId(null)}
               onExpandEvidence={() => setExpandedImg(focused.evidence_image_url)}
               onPickReject={(chip) => {
                 setRejectChipById((prev) => ({ ...prev, [focused.id]: chip }))
                 setError(null)
               }}
               onApply={() => void handleDecision(focused.id, 'approved')}
-              onOverride={(value, skuVariantId) => {
+              onApplyValue={(value, skuVariantId) => {
                 void handleDecision(focused.id, 'overridden', {
                   correctedValue: value,
                   skuVariantId,
@@ -543,17 +543,17 @@ function CaseStage({
   nowMs,
   workspaceBrandId,
   workspaceBrandName,
-  overrideOpen,
+  editorOpen,
   rejectChip,
   related,
   onOpenRelated,
   onExtract,
-  onOpenOverride,
-  onCloseOverride,
+  onOpenEditor,
+  onCloseEditor,
   onExpandEvidence,
   onPickReject,
   onApply,
-  onOverride,
+  onApplyValue,
   onReject,
 }: {
   row: CorrectionReviewRow
@@ -561,17 +561,17 @@ function CaseStage({
   nowMs: number
   workspaceBrandId: number | null
   workspaceBrandName: string | null
-  overrideOpen: boolean
+  editorOpen: boolean
   rejectChip: string | null
   related: CorrectionReviewRow[]
   onOpenRelated: (row: CorrectionReviewRow) => void
   onExtract: () => void
-  onOpenOverride: () => void
-  onCloseOverride: () => void
+  onOpenEditor: () => void
+  onCloseEditor: () => void
   onExpandEvidence: () => void
   onPickReject: (chip: string) => void
   onApply: () => void
-  onOverride: (value: Record<string, unknown>, skuVariantId: number | null) => void
+  onApplyValue: (value: Record<string, unknown>, skuVariantId: number | null) => void
   onReject: () => void
 }) {
   const title = productTitle(row)
@@ -680,7 +680,7 @@ function CaseStage({
             </button>
           ) : null}
 
-          {mode === 'extract' && hasEvidence && !overrideOpen ? (
+          {mode === 'extract' && hasEvidence && !editorOpen ? (
             <div className="corr-extract-row">
               <button
                 type="button"
@@ -696,16 +696,16 @@ function CaseStage({
             </div>
           ) : null}
 
-          {overrideOpen && (
-            <OverrideEditors
+          {editorOpen && (
+            <CaseEditor
               row={row}
               busy={busy}
-              onCancel={onCloseOverride}
-              onSubmit={(value, skuVariantId) => onOverride(value, skuVariantId)}
+              onCancel={onCloseEditor}
+              onSubmit={(value, skuVariantId) => onApplyValue(value, skuVariantId)}
             />
           )}
 
-          {!overrideOpen && mode !== 'extract' && (
+          {!editorOpen && mode !== 'extract' && (
             <div className="corr-actions">
               {mode === 'confirm' ? (
                 <>
@@ -721,7 +721,7 @@ function CaseStage({
                     type="button"
                     className="corr-btn corr-btn-ghost"
                     disabled={busy}
-                    onClick={onOpenOverride}
+                    onClick={onOpenEditor}
                   >
                     {ct === 'category' ? 'Pick a different category' : 'Enter a different value'}
                   </button>
@@ -731,7 +731,7 @@ function CaseStage({
                   type="button"
                   className="corr-btn corr-btn-primary"
                   disabled={busy}
-                  onClick={onOpenOverride}
+                  onClick={onOpenEditor}
                 >
                   {applyLabel}
                 </button>

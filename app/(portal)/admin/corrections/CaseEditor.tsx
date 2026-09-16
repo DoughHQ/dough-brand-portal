@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useState } from 'react'
 import type { CorrectionReviewRow, TaxonomySearchHit } from '@/lib/corrections.shared'
 import { assignSearchSeed, preferredTaxonomyHit } from '@/lib/correctionsCase'
 import { searchBrandsAction, searchTaxonomyAction } from './actions'
@@ -98,7 +98,7 @@ interface Props {
 
 const MIN_TAX_QUERY = 2
 
-export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props) {
+export default function CaseEditor({ row, busy, onCancel, onSubmit }: Props) {
   const ct = (row.correction_type ?? 'other').toLowerCase()
   const [draft, setDraft] = useState<Record<string, unknown>>(() => seedValue(row))
   const [skuVariantId, setSkuVariantId] = useState<number | null>(
@@ -210,19 +210,8 @@ export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props
   }
 
   return (
-    <div style={{
-      padding: '16px 20px 20px',
-      borderTop: '1px solid var(--ink-10)',
-      background: 'rgba(45,106,79,0.03)',
-    }}>
-      <div style={{
-        fontSize: 11,
-        fontWeight: 500,
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase',
-        color: 'var(--ink-30)',
-        marginBottom: 12,
-      }}>
+    <div className="corr-editor">
+      <div className="corr-editor-kicker">
         {ct === 'category'
           ? 'Pick the Dough category'
           : ct === 'nutrition_facts' || ct === 'ingredients'
@@ -231,16 +220,18 @@ export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props
       </div>
 
       {noVariants && (
-        <div style={warnStyle}>This product has no SKU variants — nutrition/ingredients cannot be applied.</div>
+        <div className="corr-editor-warn">
+          This product has no SKU variants — nutrition/ingredients cannot be applied.
+        </div>
       )}
 
       {needVariant && (
-        <label style={labelStyle}>
+        <label className="corr-editor-label">
           Variant
           <select
+            className="corr-editor-input"
             value={skuVariantId ?? ''}
             onChange={(e) => setSkuVariantId(e.target.value ? Number(e.target.value) : null)}
-            style={inputStyle}
           >
             <option value="">Select variant…</option>
             {row.variants.map((v) => (
@@ -252,24 +243,19 @@ export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props
 
       {ct === 'nutrition_facts' && (
         <>
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 12, color: 'var(--ink-50)', marginBottom: 8 }}>
-              Basis <span style={{ color: '#B91C1C' }}>*</span> — required. Confirm against the photo.
+          <div className="corr-editor-basis">
+            <div className="corr-editor-basis-label">
+              Basis <span className="corr-editor-req">*</span> — required. Confirm against the photo.
             </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div className="corr-editor-chips">
               {(['per_serving', 'per_100g', 'per_100ml'] as const).map((b) => {
                 const selected = draft.basis_type === b
                 return (
                   <button
                     key={b}
                     type="button"
+                    className={selected ? 'corr-editor-chip is-on' : 'corr-editor-chip'}
                     onClick={() => setField('basis_type', b)}
-                    style={{
-                      ...chipStyle,
-                      border: selected ? '1px solid var(--sage)' : '1px solid var(--ink-10)',
-                      background: selected ? 'rgba(45,106,79,0.12)' : 'white',
-                      color: selected ? 'var(--sage)' : 'var(--ink-50)',
-                    }}
                   >
                     {b === 'per_serving' ? 'Per serving' : b === 'per_100g' ? 'Per 100g' : 'Per 100ml'}
                   </button>
@@ -277,19 +263,15 @@ export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props
               })}
             </div>
           </div>
-          {hint && <div style={warnStyle}>{hint}</div>}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-            gap: 10,
-          }}>
+          {hint && <div className="corr-editor-warn">{hint}</div>}
+          <div className="corr-editor-nutrition">
             {NUTRITION_FIELDS.map((f) => (
-              <label key={f.key} style={labelStyle}>
+              <label key={f.key} className="corr-editor-label">
                 {f.label}
                 <input
+                  className="corr-editor-input"
                   value={draft[f.key] == null ? '' : String(draft[f.key])}
                   onChange={(e) => setField(f.key, e.target.value)}
-                  style={inputStyle}
                 />
               </label>
             ))}
@@ -299,71 +281,71 @@ export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props
 
       {ct === 'ingredients' && (
         <>
-          <label style={labelStyle}>
+          <label className="corr-editor-label">
             Ingredients (verbatim)
             <textarea
+              className="corr-editor-input corr-editor-textarea"
               value={String(draft.ingredients_text_raw ?? draft.ingredients_raw ?? '')}
               onChange={(e) => setField('ingredients_text_raw', e.target.value)}
               rows={5}
-              style={{ ...inputStyle, resize: 'vertical' }}
             />
           </label>
-          <label style={labelStyle}>
+          <label className="corr-editor-label">
             Contains
             <input
+              className="corr-editor-input"
               value={String(draft.allergens_contains_text_raw ?? '')}
               onChange={(e) => setField('allergens_contains_text_raw', e.target.value)}
-              style={inputStyle}
             />
           </label>
-          <label style={labelStyle}>
+          <label className="corr-editor-label">
             May contain
             <input
+              className="corr-editor-input"
               value={String(draft.allergens_may_contain_text_raw ?? '')}
               onChange={(e) => setField('allergens_may_contain_text_raw', e.target.value)}
-              style={inputStyle}
             />
           </label>
         </>
       )}
 
       {ct === 'name' && (
-        <label style={labelStyle}>
+        <label className="corr-editor-label">
           Product name
           <input
+            className="corr-editor-input"
             value={String(draft.name ?? '')}
             onChange={(e) => setField('name', e.target.value)}
-            style={inputStyle}
           />
         </label>
       )}
 
       {ct === 'brand' && (
         <>
-          <label style={labelStyle}>
+          <label className="corr-editor-label">
             Search existing brands
             <input
+              className="corr-editor-input"
               value={brandQuery}
               onChange={(e) => setBrandQuery(e.target.value)}
               placeholder="Type to search — brands are never auto-created"
-              style={inputStyle}
             />
           </label>
           {draft.brand_id != null && (
-            <div style={{ fontSize: 13, color: 'var(--sage)', marginBottom: 8 }}>
+            <div className="corr-editor-selected">
               Selected: {String(draft.brand_name)} (#{String(draft.brand_id)})
             </div>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
+          <div className="corr-editor-hits">
             {brandHits.map((b) => (
               <button
                 key={b.brand_id}
                 type="button"
+                className="corr-editor-hit"
                 onClick={() => {
                   setDraft((d) => ({ ...d, brand_id: b.brand_id, brand_name: b.brand_name }))
                   setBrandQuery(b.brand_name)
                 }}
-                style={hitStyle}
               >
                 {b.brand_name}
               </button>
@@ -374,45 +356,39 @@ export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props
 
       {ct === 'category' && (
         <>
-          <label style={labelStyle}>
+          <label className="corr-editor-label">
             Search categories
             <input
+              className="corr-editor-input"
               value={taxQuery}
               onChange={(e) => setTaxQuery(e.target.value)}
               placeholder="Search by name or path…"
-              style={inputStyle}
               autoFocus
             />
           </label>
           {draft.taxonomy_node_id != null && (
-            <div style={{ fontSize: 13, color: 'var(--sage)', marginBottom: 8, fontWeight: 600 }}>
+            <div className="corr-editor-selected corr-editor-selected-strong">
               Filing in {String(draft._label || draft.taxonomy_node_id)}
               {draft._path ? (
-                <div style={{ fontSize: 12, color: 'var(--ink-30)', marginTop: 2, fontWeight: 400 }}>
+                <div className="corr-editor-hit-path">
                   {String(draft._path).replace(/>/g, ' · ')}
                 </div>
               ) : null}
             </div>
           )}
-          {ct === 'category' && draft.taxonomy_node_id == null ? (
-            <div style={{ fontSize: 12, color: 'var(--ink-30)', marginBottom: 8 }}>
+          {draft.taxonomy_node_id == null ? (
+            <div className="corr-editor-hint">
               Pick a result. Nothing is filed until you do.
             </div>
           ) : null}
           {taxQuery.trim().length > 0 && taxQuery.trim().length < MIN_TAX_QUERY ? (
-            <div style={{ fontSize: 12, color: 'var(--ink-30)', marginBottom: 8 }}>
-              Type at least 2 characters.
-            </div>
+            <div className="corr-editor-hint">Type at least 2 characters.</div>
           ) : null}
-          {taxLoading ? (
-            <div style={{ fontSize: 12, color: 'var(--ink-30)', marginBottom: 8 }}>Searching…</div>
-          ) : null}
+          {taxLoading ? <div className="corr-editor-hint">Searching…</div> : null}
           {!taxLoading && taxQuery.trim().length >= MIN_TAX_QUERY && taxHits.length === 0 ? (
-            <div style={{ fontSize: 12, color: 'var(--ink-30)', marginBottom: 8 }}>
-              No matching categories.
-            </div>
+            <div className="corr-editor-hint">No matching categories.</div>
           ) : null}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8, maxHeight: 220, overflow: 'auto' }}>
+          <div className="corr-editor-hits corr-editor-hits-scroll">
             {taxHits.map((n) => {
               const selected = Number(draft.taxonomy_node_id) === n.taxonomy_node_id
               const suggested = suggestedHit?.taxonomy_node_id === n.taxonomy_node_id
@@ -420,6 +396,7 @@ export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props
                 <button
                   key={n.taxonomy_node_id}
                   type="button"
+                  className={selected ? 'corr-editor-hit is-on' : 'corr-editor-hit'}
                   onClick={() => {
                     setDraft({
                       taxonomy_node_id: n.taxonomy_node_id,
@@ -427,28 +404,14 @@ export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props
                       _path: n.path_names_csv,
                     })
                   }}
-                  style={{
-                    ...hitStyle,
-                    border: selected ? '1px solid var(--sage)' : '1px solid var(--ink-10)',
-                    background: selected ? 'rgba(45,106,79,0.08)' : 'white',
-                  }}
                 >
                   <div>
                     {n.node_name_display}
                     {suggested && !selected ? (
-                      <span style={{
-                        marginLeft: 8,
-                        fontSize: 10,
-                        fontWeight: 500,
-                        letterSpacing: '0.06em',
-                        textTransform: 'uppercase',
-                        color: 'var(--ink-30)',
-                      }}>
-                        Suggested
-                      </span>
+                      <span className="corr-editor-suggest">Suggested</span>
                     ) : null}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--ink-30)' }}>
+                  <div className="corr-editor-hit-path">
                     {(n.path_names_csv ?? '').replace(/>/g, ' · ')}
                   </div>
                 </button>
@@ -459,133 +422,75 @@ export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props
       )}
 
       {ct === 'price' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-          <label style={labelStyle}>
+        <div className="corr-editor-price">
+          <label className="corr-editor-label">
             Amount
-            <input value={String(draft.price_amount ?? '')} onChange={(e) => setField('price_amount', e.target.value)} style={inputStyle} />
+            <input
+              className="corr-editor-input"
+              value={String(draft.price_amount ?? '')}
+              onChange={(e) => setField('price_amount', e.target.value)}
+            />
           </label>
-          <label style={labelStyle}>
+          <label className="corr-editor-label">
             Store
-            <input value={String(draft.price_store ?? '')} onChange={(e) => setField('price_store', e.target.value)} style={inputStyle} />
+            <input
+              className="corr-editor-input"
+              value={String(draft.price_store ?? '')}
+              onChange={(e) => setField('price_store', e.target.value)}
+            />
           </label>
-          <label style={labelStyle}>
+          <label className="corr-editor-label">
             Unit
-            <input value={String(draft.price_unit ?? '')} onChange={(e) => setField('price_unit', e.target.value)} style={inputStyle} />
+            <input
+              className="corr-editor-input"
+              value={String(draft.price_unit ?? '')}
+              onChange={(e) => setField('price_unit', e.target.value)}
+            />
           </label>
         </div>
       )}
 
       {ct === 'product_image' && (
-        <label style={labelStyle}>
+        <label className="corr-editor-label">
           Image URL
           <input
+            className="corr-editor-input"
             value={String(draft.image_url ?? '')}
             onChange={(e) => setField('image_url', e.target.value)}
-            style={inputStyle}
           />
         </label>
       )}
 
       {(ct === 'other' || ct === 'allergens') && (
-        <label style={labelStyle}>
+        <label className="corr-editor-label">
           Correction text
           <textarea
+            className="corr-editor-input corr-editor-textarea"
             value={String(draft.note ?? draft.value ?? '')}
             onChange={(e) => setField('note', e.target.value)}
             rows={3}
-            style={{ ...inputStyle, resize: 'vertical' }}
           />
         </label>
       )}
 
-      <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+      <div className="corr-editor-actions">
         <button
           type="button"
+          className="corr-btn corr-btn-primary"
           disabled={applyDisabled}
           onClick={() => onSubmit(cleanPayload(), skuVariantId)}
-          style={{
-            flex: 1,
-            padding: '11px 16px',
-            borderRadius: 'var(--r-sm)',
-            border: 'none',
-            background: applyDisabled ? 'var(--ink-10)' : 'var(--sage)',
-            color: applyDisabled ? 'var(--ink-30)' : 'white',
-            fontSize: 13,
-            fontWeight: 500,
-            cursor: applyDisabled ? 'not-allowed' : 'pointer',
-            fontFamily: 'var(--font-sans)',
-          }}
         >
           {applyLabel}
         </button>
         <button
           type="button"
+          className="corr-btn corr-btn-ghost"
           disabled={busy}
           onClick={onCancel}
-          style={{
-            padding: '11px 16px',
-            borderRadius: 'var(--r-sm)',
-            border: '1px solid var(--ink-10)',
-            background: 'transparent',
-            color: 'var(--ink-50)',
-            fontSize: 13,
-            cursor: 'pointer',
-            fontFamily: 'var(--font-sans)',
-          }}
         >
           Cancel
         </button>
       </div>
     </div>
   )
-}
-
-const labelStyle: CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
-  fontSize: 12,
-  color: 'var(--ink-50)',
-  marginBottom: 10,
-}
-
-const inputStyle: CSSProperties = {
-  padding: '8px 10px',
-  borderRadius: 8,
-  border: '1px solid var(--ink-10)',
-  fontSize: 13,
-  fontFamily: 'var(--font-sans)',
-  color: 'var(--ink)',
-  background: 'white',
-}
-
-const chipStyle: CSSProperties = {
-  fontSize: 12,
-  padding: '6px 12px',
-  borderRadius: 999,
-  cursor: 'pointer',
-  fontFamily: 'var(--font-sans)',
-}
-
-const hitStyle: CSSProperties = {
-  textAlign: 'left',
-  padding: '8px 10px',
-  borderRadius: 8,
-  border: '1px solid var(--ink-10)',
-  background: 'white',
-  cursor: 'pointer',
-  fontSize: 13,
-  color: 'var(--ink)',
-  fontFamily: 'var(--font-sans)',
-}
-
-const warnStyle: CSSProperties = {
-  padding: '10px 12px',
-  marginBottom: 12,
-  borderRadius: 8,
-  background: 'rgba(192,120,24,0.1)',
-  border: '1px solid rgba(192,120,24,0.25)',
-  fontSize: 13,
-  color: 'var(--amber)',
-  lineHeight: 1.45,
 }

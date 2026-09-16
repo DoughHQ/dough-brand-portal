@@ -21,7 +21,6 @@ export type {
 } from '@/lib/corrections.shared'
 export {
   PHOTO_ONLY_TYPES,
-  approveBlockedReason,
   canApproveAsIs,
   isEmptyApplicableProposal,
   isBlankLeaf,
@@ -237,12 +236,6 @@ export async function getPendingCorrectionReviewsPage(opts?: {
     hasMore: root.has_more === true && nextCursor != null,
     nextCursor,
   }
-}
-
-/** @deprecated Prefer getPendingCorrectionReviewsPage — kept as first-page alias. */
-export async function getPendingCorrectionReviews(): Promise<CorrectionReviewRow[]> {
-  const page = await getPendingCorrectionReviewsPage({ limit: 25 })
-  return page.rows
 }
 
 export async function reviewCorrectionSubmission(
