@@ -3,6 +3,7 @@ import 'server-only'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { Json } from '@/lib/database.types'
 import {
+  blankCorrectionRow,
   canApproveAsIs,
   isBlankLeaf,
   type CorrectionReviewRow,
@@ -46,7 +47,10 @@ async function hydrateCorrectionRows(
   }
 
   const [{ data: products }, { data: nodes }, { data: variants }] = await Promise.all([
-    supabase.from('products').select('product_id, image_url, taxonomy_node_id').in('product_id', productIds),
+    supabase
+      .from('products')
+      .select('product_id, image_url, taxonomy_node_id, product_name_short, brand_id')
+      .in('product_id', productIds),
     nodeIds.size > 0
       ? supabase
           .from('taxonomy_nodes')
@@ -130,6 +134,12 @@ async function hydrateCorrectionRows(
 
     return {
       ...row,
+      product_name_short:
+        (product?.product_name_short as string | null | undefined)?.trim()
+          ? String(product?.product_name_short)
+          : row.product_name_short,
+      brand_id:
+        product?.brand_id == null ? row.brand_id : Number(product.brand_id),
       product_image_url: (product?.image_url as string | null) ?? null,
       proposed_category_label: proposedNode?.node_name_display ?? null,
       proposed_category_path: proposedNode?.path_names_csv ?? null,
@@ -150,7 +160,7 @@ function asRecord(v: unknown): Record<string, unknown> | null {
 function mapQueueItem(raw: unknown): CorrectionReviewRow | null {
   const r = asRecord(raw)
   if (!r || r.id == null) return null
-  return {
+  return blankCorrectionRow({
     id: String(r.id),
     product_id: Number(r.product_id) || 0,
     created_at: String(r.created_at ?? ''),
@@ -158,7 +168,6 @@ function mapQueueItem(raw: unknown): CorrectionReviewRow | null {
     product_name_display: r.product_name_display == null ? null : String(r.product_name_display),
     brand_name: r.brand_name == null ? null : String(r.brand_name),
     current_category: r.current_category == null ? null : String(r.current_category),
-    current_category_path: null,
     current_value: (asRecord(r.current_value) as Record<string, unknown> | null) ?? null,
     proposed_value: (asRecord(r.proposed_value) as Record<string, unknown> | null) ?? null,
     extracted_value: (asRecord(r.extracted_value) as Record<string, unknown> | null) ?? null,
@@ -167,11 +176,8 @@ function mapQueueItem(raw: unknown): CorrectionReviewRow | null {
     human_corrected_value: (asRecord(r.human_corrected_value) as Record<string, unknown> | null) ?? null,
     user_notes: r.user_notes == null ? null : String(r.user_notes),
     evidence_image_url: r.evidence_image_url == null ? null : String(r.evidence_image_url),
-    product_image_url: null,
     proposed_taxonomy_node_id:
       r.proposed_taxonomy_node_id == null ? null : Number(r.proposed_taxonomy_node_id),
-    proposed_category_label: null,
-    proposed_category_path: null,
     other_category_description:
       r.other_category_description == null ? null : String(r.other_category_description),
     proposed_price_amount:
@@ -184,9 +190,7 @@ function mapQueueItem(raw: unknown): CorrectionReviewRow | null {
     claude_reasoning: r.claude_reasoning == null ? null : String(r.claude_reasoning),
     claude_corrected_value: (asRecord(r.claude_corrected_value) as Record<string, unknown> | null) ?? null,
     status: r.status == null ? null : String(r.status),
-    variant_count: 0,
-    variants: [],
-  }
+  })
 }
 
 /** Keyset page — hydrate only the returned rows (≤50). */
@@ -268,51 +272,27 @@ export async function reviewCorrectionSubmission(
       return { ok: false, error: 'Submission is not pending review' }
     }
 
-    const probe: CorrectionReviewRow = {
+    const probe = blankCorrectionRow({
       id: sub.id as string,
-      product_id: 0,
-      created_at: '',
       correction_type: sub.correction_type as string | null,
-      product_name_display: null,
-      brand_name: null,
-      current_category: null,
-      current_category_path: null,
-      current_value: null,
       proposed_value: (sub.proposed_value ?? {}) as Record<string, unknown>,
-      extracted_value: null,
-      extracted_at: null,
-      extraction_error: null,
-      human_corrected_value: null,
-      user_notes: null,
       evidence_image_url: sub.evidence_image_url as string | null,
-      product_image_url: null,
       proposed_taxonomy_node_id: sub.proposed_taxonomy_node_id as number | null,
-      proposed_category_label: null,
-      proposed_category_path: null,
-      other_category_description: null,
       proposed_price_amount: sub.proposed_price_amount as number | string | null,
-      proposed_price_store: null,
-      proposed_price_unit: null,
-      claude_decision: null,
-      claude_confidence: null,
-      claude_reasoning: null,
-      claude_corrected_value: null,
       status: sub.status as string | null,
-      variant_count: 0,
-      variants: [],
-    }
+    })
 
     if (!canApproveAsIs(probe)) {
       return {
         ok: false,
         error:
-          'Cannot apply an empty value. Extract from the photo or enter values, then override — or reject.',
+          'Cannot apply an empty value. Extract from the photo or enter values, then apply — or reject.',
       }
     }
   }
 
   if (decision === 'overridden' && (!opts?.correctedValue || isBlankLeaf(opts.correctedValue))) {
-    return { ok: false, error: 'Override requires a non-empty corrected value.' }
+    return { ok: false, error: 'Enter a value before applying.' }
   }
 
   const { data, error } = await supabase.rpc('review_correction', {

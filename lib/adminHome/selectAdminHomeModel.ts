@@ -1,5 +1,6 @@
 import { relativeTime, countByStatus, intelligenceL2Href, isReadinessStatus } from '@/lib/categoryReadiness.shared'
 import { studyHref } from '@/lib/brandHome/selectHomeModel'
+import { correctionsDeskHref } from '@/lib/correctionsDesk'
 import type { OperatorStudyRow } from '@/lib/studies/types'
 import type { ReadinessRow } from '@/lib/categoryReadiness.shared'
 import type {
@@ -98,8 +99,8 @@ export function buildAttention(queues: AdminHomeQueues, now: Date): AdminAttenti
       key: 'corrections',
       label: 'Corrections',
       href: queues.corrections.next
-        ? `/admin/corrections?product=${queues.corrections.next.productId}&focus=${queues.corrections.next.id}`
-        : '/admin/corrections',
+        ? correctionsDeskHref({ focusId: queues.corrections.next.id })
+        : correctionsDeskHref(),
       count: queues.corrections.count,
       detail: joinDetail([ready, oldest]) || 'Pending human review',
       nextLabel: correctionNextLabel(queues.corrections.next),

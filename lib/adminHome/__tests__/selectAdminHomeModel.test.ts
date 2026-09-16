@@ -133,7 +133,7 @@ describe('buildAttention', () => {
     )
     expect(rows.map((r) => r.key)).toEqual(['corrections', 'applications'])
     expect(rows[0].tone).toBe('stale')
-    expect(rows[0].href).toContain('focus=c1')
+    expect(rows[0].href).toBe('/admin/corrections?focus=c1')
     expect(rows[0].detail).toMatch(/12 ready to approve as-is/)
     expect(rows[1].detail).toMatch(/need a call/)
     expect(rows[1].tone).toBe('work')

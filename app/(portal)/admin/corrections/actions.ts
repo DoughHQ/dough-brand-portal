@@ -49,3 +49,15 @@ export async function loadMoreCorrectionsAction(opts: {
     productId: opts.productId ?? null,
   })
 }
+
+/** Satellite of the open case — other pending claims on the same product. Not the desk. */
+export async function listRelatedCorrectionsAction(
+  productId: number
+): Promise<CorrectionReviewsPage['rows']> {
+  if (!Number.isFinite(productId) || productId <= 0) return []
+  const page = await getPendingCorrectionReviewsPage({
+    limit: 25,
+    productId,
+  })
+  return page.rows
+}

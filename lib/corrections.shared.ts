@@ -9,7 +9,9 @@ export type CorrectionReviewRow = {
   created_at: string
   correction_type: string | null
   product_name_display: string | null
+  product_name_short: string | null
   brand_name: string | null
+  brand_id: number | null
   current_category: string | null
   current_category_path: string | null
   current_value: Record<string, unknown> | null
@@ -54,6 +56,46 @@ export type TaxonomySearchHit = {
   path_names_csv: string | null
   node_level: number | null
   is_leaf: boolean | null
+}
+
+export function blankCorrectionRow(
+  patch: Partial<CorrectionReviewRow> & Pick<CorrectionReviewRow, 'id'>
+): CorrectionReviewRow {
+  return {
+    product_id: 0,
+    created_at: '',
+    correction_type: null,
+    product_name_display: null,
+    product_name_short: null,
+    brand_name: null,
+    brand_id: null,
+    current_category: null,
+    current_category_path: null,
+    current_value: null,
+    proposed_value: null,
+    extracted_value: null,
+    extracted_at: null,
+    extraction_error: null,
+    human_corrected_value: null,
+    user_notes: null,
+    evidence_image_url: null,
+    product_image_url: null,
+    proposed_taxonomy_node_id: null,
+    proposed_category_label: null,
+    proposed_category_path: null,
+    other_category_description: null,
+    proposed_price_amount: null,
+    proposed_price_store: null,
+    proposed_price_unit: null,
+    claude_decision: null,
+    claude_confidence: null,
+    claude_reasoning: null,
+    claude_corrected_value: null,
+    status: null,
+    variant_count: 0,
+    variants: [],
+    ...patch,
+  }
 }
 
 /** Types where the user supplies a photo and structured proposed_value is empty/`{}`. */
@@ -107,19 +149,19 @@ export function approveBlockedReason(row: CorrectionReviewRow): string | null {
   if (canApproveAsIs(row)) return null
   const ct = (row.correction_type ?? '').toLowerCase()
   if (PHOTO_ONLY_TYPES.has(ct)) {
-    return 'Photo-only — extract from the photo, then confirm via Override (or reject).'
+    return 'Extract the values from the photo, then apply them.'
   }
   if (ct === 'category') {
     const reason =
       (row.proposed_value?.review_reason as string | undefined) ??
       (row.claude_corrected_value?.review_reason as string | undefined)
     if (reason === 'no_match_auto_classify') {
-      return 'No proposed category — the classifier could not match this product. Assign one via Override.'
+      return 'The classifier could not match this product. Pick a category.'
     }
     if (reason === 'low_confidence_auto_classify') {
-      return 'Low-confidence classification — confirm or change the category via Override.'
+      return 'Low-confidence classification — confirm or pick a different category.'
     }
-    return 'No proposed category to apply — assign one via Override.'
+    return 'Pick a category — nothing is ready to apply yet.'
   }
-  return 'Nothing to approve as-is — enter a value via Override, or reject.'
+  return 'Enter a value, or reject this report.'
 }

@@ -8,6 +8,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react'
+import { correctionsDeskHref } from '@/lib/correctionsDesk'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { PortalUser } from '@/lib/queries'
@@ -239,13 +240,6 @@ function proposalHeadline(c: OpenCorrection): string {
   if (summary) return summary
   const type = CORRECTION_FIELD[c.correction_type] ?? c.correction_type
   return `A ${type} change is pending review`
-}
-
-function correctionsReviewHref(opts: { productId: number; correctionId?: string }): string {
-  const params = new URLSearchParams()
-  params.set('product', String(opts.productId))
-  if (opts.correctionId) params.set('focus', opts.correctionId)
-  return `/admin/corrections?${params.toString()}`
 }
 
 function pendingPanelStyle(active: boolean): CSSProperties {
@@ -816,7 +810,7 @@ export default function ProductMasterClient({
           </div>
           {isAdmin && (
             <Link
-              href={correctionsReviewHref({ productId: product.product_id, correctionId: c.id })}
+              href={correctionsDeskHref({ focusId: c.id })}
               style={{
                 ...button,
                 display: 'inline-flex',
@@ -854,7 +848,7 @@ export default function ProductMasterClient({
             </div>
             {isAdmin && (
               <Link
-                href={correctionsReviewHref({ productId: product.product_id, correctionId: c.id })}
+                href={correctionsDeskHref({ focusId: c.id })}
                 style={{
                   ...button,
                   display: 'inline-flex',
@@ -1080,9 +1074,8 @@ export default function ProductMasterClient({
             </p>
             {isAdmin && pendingFields.has('category') && (
               <Link
-                href={correctionsReviewHref({
-                  productId: product.product_id,
-                  correctionId: (proposalByField.get('category') ?? systemFlags[0])?.id,
+                href={correctionsDeskHref({
+                  focusId: (proposalByField.get('category') ?? systemFlags[0])?.id,
                 })}
                 style={{
                   ...button,

@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState, type CSSProperties } from 'react'
-import type { CorrectionReviewRow } from '@/lib/corrections.shared'
+import type { CorrectionReviewRow, TaxonomySearchHit } from '@/lib/corrections.shared'
+import { assignSearchSeed, preferredTaxonomyHit } from '@/lib/correctionsCase'
 import { searchBrandsAction, searchTaxonomyAction } from './actions'
 
 const NUTRITION_FIELDS: Array<{ key: string; label: string; step?: string }> = [
@@ -95,32 +96,50 @@ interface Props {
   onSubmit: (value: Record<string, unknown>, skuVariantId: number | null) => void
 }
 
+const MIN_TAX_QUERY = 2
+
 export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props) {
   const ct = (row.correction_type ?? 'other').toLowerCase()
   const [draft, setDraft] = useState<Record<string, unknown>>(() => seedValue(row))
   const [skuVariantId, setSkuVariantId] = useState<number | null>(
     row.variants.length === 1 ? row.variants[0].sku_variant_id : null
   )
-  const [taxQuery, setTaxQuery] = useState('')
-  const [taxHits, setTaxHits] = useState<Array<{
-    taxonomy_node_id: number
-    node_name_display: string | null
-    path_names_csv: string | null
-  }>>([])
+  const [taxQuery, setTaxQuery] = useState(() => assignSearchSeed(row))
+  const [taxHits, setTaxHits] = useState<TaxonomySearchHit[]>([])
+  const [taxLoading, setTaxLoading] = useState(false)
   const [brandQuery, setBrandQuery] = useState('')
   const [brandHits, setBrandHits] = useState<Array<{ brand_id: number; brand_name: string }>>([])
 
   useEffect(() => {
     setDraft(seedValue(row))
     setSkuVariantId(row.variants.length === 1 ? row.variants[0].sku_variant_id : null)
-  }, [row])
+    setTaxQuery(assignSearchSeed(row))
+    setTaxHits([])
+    // Reset when the case changes or an extraction draft arrives.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- row identity is id + extracted_at
+  }, [row.id, row.extracted_at])
 
   useEffect(() => {
     if (ct !== 'category') return
+    const q = taxQuery.trim()
+    if (q.length < MIN_TAX_QUERY) {
+      setTaxHits([])
+      setTaxLoading(false)
+      return
+    }
+    setTaxLoading(true)
+    let cancelled = false
     const t = window.setTimeout(() => {
-      void searchTaxonomyAction(taxQuery).then(setTaxHits)
+      void searchTaxonomyAction(q).then((hits) => {
+        if (cancelled) return
+        setTaxHits(hits)
+        setTaxLoading(false)
+      })
     }, 200)
-    return () => window.clearTimeout(t)
+    return () => {
+      cancelled = true
+      window.clearTimeout(t)
+    }
   }, [taxQuery, ct])
 
   useEffect(() => {
@@ -138,6 +157,18 @@ export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props
   const needVariant = (ct === 'nutrition_facts' || ct === 'ingredients') && row.variant_count > 1
   const noVariants = (ct === 'nutrition_facts' || ct === 'ingredients') && row.variant_count === 0
   const hint = ct === 'nutrition_facts' ? plausibilityHint(draft) : null
+  const categoryMissing = ct === 'category' && draft.taxonomy_node_id == null
+  const applyDisabled =
+    busy || noVariants || (needVariant && skuVariantId == null) || Boolean(hint) || categoryMissing
+  const suggestedHit = ct === 'category' ? preferredTaxonomyHit(taxHits, taxQuery) : null
+  const applyLabel =
+    busy
+      ? 'Applying…'
+      : ct === 'category' && draft._label
+        ? `File in ${String(draft._label)}`
+        : ct === 'category'
+          ? 'File in this category'
+          : 'Apply these values'
 
   const cleanPayload = (): Record<string, unknown> => {
     if (ct === 'category') {
@@ -192,7 +223,11 @@ export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props
         color: 'var(--ink-30)',
         marginBottom: 12,
       }}>
-        Override — you take responsibility for these values
+        {ct === 'category'
+          ? 'Pick the Dough category'
+          : ct === 'nutrition_facts' || ct === 'ingredients'
+            ? 'Review the draft, then apply'
+            : 'Enter the correct value'}
       </div>
 
       {noVariants && (
@@ -340,45 +375,85 @@ export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props
       {ct === 'category' && (
         <>
           <label style={labelStyle}>
-            Search assignable categories
+            Search categories
             <input
               value={taxQuery}
               onChange={(e) => setTaxQuery(e.target.value)}
               placeholder="Search by name or path…"
               style={inputStyle}
+              autoFocus
             />
           </label>
           {draft.taxonomy_node_id != null && (
-            <div style={{ fontSize: 13, color: 'var(--sage)', marginBottom: 8 }}>
-              Selected: {String(draft._label || draft.taxonomy_node_id)}
+            <div style={{ fontSize: 13, color: 'var(--sage)', marginBottom: 8, fontWeight: 600 }}>
+              Filing in {String(draft._label || draft.taxonomy_node_id)}
               {draft._path ? (
-                <div style={{ fontSize: 12, color: 'var(--ink-30)', marginTop: 2 }}>
-                  {String(draft._path).replace(/>/g, ' › ')}
+                <div style={{ fontSize: 12, color: 'var(--ink-30)', marginTop: 2, fontWeight: 400 }}>
+                  {String(draft._path).replace(/>/g, ' · ')}
                 </div>
               ) : null}
             </div>
           )}
+          {ct === 'category' && draft.taxonomy_node_id == null ? (
+            <div style={{ fontSize: 12, color: 'var(--ink-30)', marginBottom: 8 }}>
+              Pick a result. Nothing is filed until you do.
+            </div>
+          ) : null}
+          {taxQuery.trim().length > 0 && taxQuery.trim().length < MIN_TAX_QUERY ? (
+            <div style={{ fontSize: 12, color: 'var(--ink-30)', marginBottom: 8 }}>
+              Type at least 2 characters.
+            </div>
+          ) : null}
+          {taxLoading ? (
+            <div style={{ fontSize: 12, color: 'var(--ink-30)', marginBottom: 8 }}>Searching…</div>
+          ) : null}
+          {!taxLoading && taxQuery.trim().length >= MIN_TAX_QUERY && taxHits.length === 0 ? (
+            <div style={{ fontSize: 12, color: 'var(--ink-30)', marginBottom: 8 }}>
+              No matching categories.
+            </div>
+          ) : null}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8, maxHeight: 220, overflow: 'auto' }}>
-            {taxHits.map((n) => (
-              <button
-                key={n.taxonomy_node_id}
-                type="button"
-                onClick={() => {
-                  setDraft({
-                    taxonomy_node_id: n.taxonomy_node_id,
-                    _label: n.node_name_display,
-                    _path: n.path_names_csv,
-                  })
-                  setTaxQuery(n.node_name_display ?? '')
-                }}
-                style={hitStyle}
-              >
-                <div>{n.node_name_display}</div>
-                <div style={{ fontSize: 11, color: 'var(--ink-30)' }}>
-                  {(n.path_names_csv ?? '').replace(/>/g, ' › ')}
-                </div>
-              </button>
-            ))}
+            {taxHits.map((n) => {
+              const selected = Number(draft.taxonomy_node_id) === n.taxonomy_node_id
+              const suggested = suggestedHit?.taxonomy_node_id === n.taxonomy_node_id
+              return (
+                <button
+                  key={n.taxonomy_node_id}
+                  type="button"
+                  onClick={() => {
+                    setDraft({
+                      taxonomy_node_id: n.taxonomy_node_id,
+                      _label: n.node_name_display,
+                      _path: n.path_names_csv,
+                    })
+                  }}
+                  style={{
+                    ...hitStyle,
+                    border: selected ? '1px solid var(--sage)' : '1px solid var(--ink-10)',
+                    background: selected ? 'rgba(45,106,79,0.08)' : 'white',
+                  }}
+                >
+                  <div>
+                    {n.node_name_display}
+                    {suggested && !selected ? (
+                      <span style={{
+                        marginLeft: 8,
+                        fontSize: 10,
+                        fontWeight: 500,
+                        letterSpacing: '0.06em',
+                        textTransform: 'uppercase',
+                        color: 'var(--ink-30)',
+                      }}>
+                        Suggested
+                      </span>
+                    ) : null}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--ink-30)' }}>
+                    {(n.path_names_csv ?? '').replace(/>/g, ' · ')}
+                  </div>
+                </button>
+              )
+            })}
           </div>
         </>
       )}
@@ -426,22 +501,22 @@ export default function OverrideEditors({ row, busy, onCancel, onSubmit }: Props
       <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
         <button
           type="button"
-          disabled={busy || noVariants || (needVariant && skuVariantId == null) || Boolean(hint)}
+          disabled={applyDisabled}
           onClick={() => onSubmit(cleanPayload(), skuVariantId)}
           style={{
             flex: 1,
             padding: '11px 16px',
             borderRadius: 'var(--r-sm)',
             border: 'none',
-            background: busy || noVariants || Boolean(hint) ? 'var(--ink-10)' : 'var(--sage)',
-            color: busy || noVariants || Boolean(hint) ? 'var(--ink-30)' : 'white',
+            background: applyDisabled ? 'var(--ink-10)' : 'var(--sage)',
+            color: applyDisabled ? 'var(--ink-30)' : 'white',
             fontSize: 13,
             fontWeight: 500,
-            cursor: busy || noVariants || Boolean(hint) ? 'not-allowed' : 'pointer',
+            cursor: applyDisabled ? 'not-allowed' : 'pointer',
             fontFamily: 'var(--font-sans)',
           }}
         >
-          {busy ? 'Applying…' : 'Confirm override'}
+          {applyLabel}
         </button>
         <button
           type="button"
