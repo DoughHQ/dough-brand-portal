@@ -238,6 +238,58 @@ export async function getPendingCorrectionReviewsPage(opts?: {
   }
 }
 
+/** Brand catalog inbox — session brand only. Never calls review_correction. */
+export async function getBrandPendingCorrectionsPage(opts?: {
+  limit?: number
+  cursor?: CorrectionReviewsPageCursor | null
+  focusId?: string | null
+  productId?: number | null
+}): Promise<CorrectionReviewsPage> {
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase.rpc('list_brand_pending_corrections' as never, {
+    p_limit: opts?.limit ?? PAGE_DEFAULT_LIMIT,
+    p_cursor_created_at: opts?.cursor?.createdAt ?? null,
+    p_cursor_id: opts?.cursor?.id ?? null,
+    p_focus_id: opts?.focusId ?? null,
+    p_product_id: opts?.productId ?? null,
+  } as never)
+
+  if (error) {
+    console.error('[corrections] list_brand_pending_corrections', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    })
+    throw error
+  }
+
+  const root = asRecord(data) ?? {}
+  const itemsRaw = Array.isArray(root.items) ? root.items : []
+  const baseRows = itemsRaw
+    .map(mapQueueItem)
+    .filter((r): r is CorrectionReviewRow => r != null && r.product_id > 0)
+
+  const rows = await hydrateCorrectionRows(supabase, baseRows)
+  const cursorRaw = asRecord(root.next_cursor)
+  const nextCursor =
+    root.has_more === true && cursorRaw?.id != null && cursorRaw.created_at != null
+      ? { createdAt: String(cursorRaw.created_at), id: String(cursorRaw.id) }
+      : null
+  const pendingCountRaw = root.pending_count
+  const pendingCount =
+    typeof pendingCountRaw === 'number'
+      ? pendingCountRaw
+      : Number(pendingCountRaw)
+
+  return {
+    rows,
+    hasMore: root.has_more === true && nextCursor != null,
+    nextCursor,
+    pendingCount: Number.isFinite(pendingCount) ? pendingCount : rows.length,
+  }
+}
+
 export async function reviewCorrectionSubmission(
   submissionId: string,
   decision: 'approved' | 'rejected' | 'overridden',

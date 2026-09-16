@@ -48,6 +48,7 @@ export type CorrectionReviewsPage = {
   rows: CorrectionReviewRow[]
   hasMore: boolean
   nextCursor: CorrectionReviewsPageCursor | null
+  pendingCount?: number
 }
 
 export type TaxonomySearchHit = {

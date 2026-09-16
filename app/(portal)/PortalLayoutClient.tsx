@@ -179,6 +179,7 @@ export default function PortalLayoutClient({
         { label: 'Home', href: '/dashboard', icon: 'home' },
         { label: 'Categories', href: '/categories', icon: 'categories', prefetch: false },
         { label: 'Products', href: '/products', icon: 'products', prefetch: false },
+        { label: 'Corrections', href: '/corrections', icon: 'corrections', prefetch: false },
         { label: 'Studies', href: '/studies', icon: 'studies', prefetch: false },
         { label: 'Reports', href: '/reports', icon: 'reports', prefetch: false },
       ],

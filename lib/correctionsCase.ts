@@ -199,6 +199,91 @@ export function claimCopy(row: CorrectionReviewRow): { field: string; headline: 
   }
 }
 
+/**
+ * Same claim, no operator verbs. Brands follow status; they do not File.
+ */
+export function brandClaimCopy(row: CorrectionReviewRow): {
+  field: string
+  headline: string
+  sentence: string
+  status: string
+} {
+  const ops = claimCopy(row)
+  const ct = (row.correction_type ?? 'other').toLowerCase()
+  const reason = reviewReason(row)
+  const current = row.current_category?.trim() || 'the current category'
+
+  if (ct === 'category') {
+    if (reason === 'no_match_auto_classify') {
+      return {
+        field: ops.field,
+        headline: 'Category needs a home',
+        sentence: 'This product still needs a category. Dough is assigning one.',
+        status: 'Dough is assigning a category.',
+      }
+    }
+    if (reason === 'low_confidence_auto_classify') {
+      return {
+        field: ops.field,
+        headline: 'Category needs a check',
+        sentence: `Filed in ${current} — Dough is double-checking it.`,
+        status: 'Dough is double-checking the category.',
+      }
+    }
+    if (row.other_category_description?.trim() || row.proposed_category_label) {
+      return {
+        field: ops.field,
+        headline: ops.headline,
+        sentence: ops.sentence,
+        status: 'Dough is reviewing the category.',
+      }
+    }
+    return {
+      field: ops.field,
+      headline: 'Category looks wrong',
+      sentence: 'The category may be wrong. Dough is reviewing it.',
+      status: 'Dough is reviewing the category.',
+    }
+  }
+
+  if (PHOTO_ONLY_TYPES.has(ct)) {
+    const notes = row.user_notes?.trim()
+    return {
+      field: ops.field,
+      headline: ops.headline,
+      sentence: notes
+        ? `A label photo was sent. ${notes}`
+        : 'A label photo was sent. Dough is reading it.',
+      status: 'Dough is reading the label.',
+    }
+  }
+
+  if (ct === 'product_image') {
+    return {
+      field: ops.field,
+      headline: ops.headline,
+      sentence: ops.sentence,
+      status: 'Dough is reviewing the photo.',
+    }
+  }
+
+  if (ops.sentence === 'A structured change is waiting for review.') {
+    return {
+      field: ops.field,
+      headline: ops.headline,
+      sentence: 'A shopper sent a correction. Dough is reviewing it.',
+      status: 'Dough is reviewing this.',
+    }
+  }
+
+  return {
+    field: ops.field,
+    headline: ops.headline,
+    sentence: ops.sentence,
+    status: 'Dough is reviewing this.',
+  }
+}
+
 export function waitingAge(iso: string, nowMs: number): string {
   const then = new Date(iso).getTime()
   if (!Number.isFinite(then)) return ''

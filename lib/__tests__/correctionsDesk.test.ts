@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+  brandCorrectionsHref,
   correctionsDeskHref,
   initialFocusIndex,
   insertAfterFocus,
   isAlreadyHandledError,
   mergeUniqueById,
   missingFocusNotice,
+  parseBrandCorrectionsSearch,
   parseCorrectionsDeskSearch,
   reduceDeskQueue,
   relatedClaims,
@@ -50,6 +52,25 @@ describe('correctionsDeskHref', () => {
 
   it('encodes an explicit product filter', () => {
     expect(correctionsDeskHref({ productFilterId: 99 })).toBe('/admin/corrections?product=99')
+  })
+})
+
+describe('brandCorrectionsHref', () => {
+  it('deep-links a catalog report without a product filter', () => {
+    expect(brandCorrectionsHref({ focusId: 'c1' })).toBe('/corrections?focus=c1')
+    expect(brandCorrectionsHref()).toBe('/corrections')
+  })
+})
+
+describe('parseBrandCorrectionsSearch', () => {
+  it('reads focus only — product is not a brand inbox filter', () => {
+    expect(
+      parseBrandCorrectionsSearch({
+        product: '30118146',
+        focus: 'a2bf19fd-6a47-4fe6-9a32-9a6df28ea6cb',
+      })
+    ).toEqual({ focusId: 'a2bf19fd-6a47-4fe6-9a32-9a6df28ea6cb' })
+    expect(parseBrandCorrectionsSearch({})).toEqual({ focusId: null })
   })
 })
 
@@ -98,6 +119,15 @@ describe('missingFocusNotice', () => {
       'That case is no longer pending. Showing the next one in the queue.'
     )
     expect(missingFocusNotice([], 'gone')).toBe('That case is no longer pending.')
+  })
+
+  it('speaks as a catalog report when the brand bookmark is dead', () => {
+    expect(
+      missingFocusNotice([{ id: 'a' }], 'gone', {
+        empty: 'That report is no longer waiting.',
+        next: 'That report is no longer waiting. Showing the next one on your catalog.',
+      })
+    ).toBe('That report is no longer waiting. Showing the next one on your catalog.')
   })
 })
 

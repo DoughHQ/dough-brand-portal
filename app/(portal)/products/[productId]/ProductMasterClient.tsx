@@ -8,7 +8,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react'
-import { correctionsDeskHref } from '@/lib/correctionsDesk'
+import { brandCorrectionsHref, correctionsDeskHref } from '@/lib/correctionsDesk'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { PortalUser } from '@/lib/queries'
@@ -81,6 +81,13 @@ import {
 } from './tabs/intelligencePresentation'
 import type { ProductStudyCard } from '@/lib/productMaster/productHeroStudies'
 import WhereItsSoldSection from '@/components/distribution/WhereItsSoldSection'
+
+function catalogCorrectionHref(isAdmin: boolean, focusId: string | undefined | null): string {
+  if (!focusId) return isAdmin ? correctionsDeskHref() : brandCorrectionsHref()
+  return isAdmin
+    ? correctionsDeskHref({ focusId })
+    : brandCorrectionsHref({ focusId })
+}
 
 type Props = {
   portalUser: PortalUser
@@ -805,25 +812,23 @@ export default function ProductMasterClient({
           </div>
           <div style={{ ...caption, marginTop: 8 }}>
             Category is highlighted below.
-            {!isAdmin && ' Nothing for you to do — we\u2019ll update it shortly.'}
+            {!isAdmin && ' Follow it in Corrections — Dough is reviewing it.'}
             {isAdmin && ' Assign or confirm the category in Corrections.'}
           </div>
-          {isAdmin && (
-            <Link
-              href={correctionsDeskHref({ focusId: c.id })}
-              style={{
-                ...button,
-                display: 'inline-flex',
-                marginTop: 12,
-                textDecoration: 'none',
-                background: 'var(--sage)',
-                borderColor: 'var(--sage)',
-                color: '#fff',
-              }}
-            >
-              Review in Corrections →
-            </Link>
-          )}
+          <Link
+            href={catalogCorrectionHref(isAdmin, c.id)}
+            style={{
+              ...button,
+              display: 'inline-flex',
+              marginTop: 12,
+              textDecoration: 'none',
+              background: 'var(--sage)',
+              borderColor: 'var(--sage)',
+              color: '#fff',
+            }}
+          >
+            {isAdmin ? 'Review in Corrections →' : 'Follow in Corrections →'}
+          </Link>
         </div>
       ))}
       {proposals.map((c) => {
@@ -844,24 +849,22 @@ export default function ProductMasterClient({
             </div>
             <div style={{ ...caption }}>
               The {fieldKey === 'other' ? 'related' : fieldKey} field is highlighted on this page.
-              {!isAdmin && ' Dough reviews shared fields before they go live.'}
+              {!isAdmin && ' Dough reviews shared fields before they go live. Follow it in Corrections.'}
             </div>
-            {isAdmin && (
-              <Link
-                href={correctionsDeskHref({ focusId: c.id })}
-                style={{
-                  ...button,
-                  display: 'inline-flex',
-                  marginTop: 12,
-                  textDecoration: 'none',
-                  background: 'var(--sage)',
-                  borderColor: 'var(--sage)',
-                  color: '#fff',
-                }}
-              >
-                Review in Corrections →
-              </Link>
-            )}
+            <Link
+              href={catalogCorrectionHref(isAdmin, c.id)}
+              style={{
+                ...button,
+                display: 'inline-flex',
+                marginTop: 12,
+                textDecoration: 'none',
+                background: 'var(--sage)',
+                borderColor: 'var(--sage)',
+                color: '#fff',
+              }}
+            >
+              {isAdmin ? 'Review in Corrections →' : 'Follow in Corrections →'}
+            </Link>
           </div>
         )
       })}
@@ -1068,15 +1071,18 @@ export default function ProductMasterClient({
             <p className="pm-overview-blurb">
               Category decides which products yours battles. Changes are reviewed because other brands
               are measured in the same set.
-              {isAdmin && pendingFields.has('category')
-                ? ' Approve or assign the category in Corrections — not on this page.'
+              {pendingFields.has('category')
+                ? isAdmin
+                  ? ' Approve or assign the category in Corrections — not on this page.'
+                  : ' Dough is reviewing the category. Follow it in Corrections.'
                 : ''}
             </p>
-            {isAdmin && pendingFields.has('category') && (
+            {pendingFields.has('category') && (
               <Link
-                href={correctionsDeskHref({
-                  focusId: (proposalByField.get('category') ?? systemFlags[0])?.id,
-                })}
+                href={catalogCorrectionHref(
+                  isAdmin,
+                  (proposalByField.get('category') ?? systemFlags[0])?.id
+                )}
                 style={{
                   ...button,
                   display: 'inline-flex',
@@ -1087,7 +1093,7 @@ export default function ProductMasterClient({
                   color: '#fff',
                 }}
               >
-                Review category in Corrections →
+                {isAdmin ? 'Review category in Corrections →' : 'Follow category in Corrections →'}
               </Link>
             )}
             {canEdit && (

@@ -6,6 +6,7 @@ import {
   brandMismatchWork,
   brandsLookDifferent,
   claimCopy,
+  brandClaimCopy,
   collapseDuplicatedDisplayName,
   correctionCaseMode,
   formatCategoryPath,
@@ -75,6 +76,16 @@ describe('Classico golden case', () => {
     )
     expect(copy.sentence).not.toMatch(/flagged for a human/)
     expect(copy.sentence).not.toMatch(/Override/)
+  })
+
+  it('tells the brand Dough is on it — never File or Pick', () => {
+    const copy = brandClaimCopy(row)
+    expect(copy.headline).toBe('Category looks wrong')
+    expect(copy.sentence).toBe(
+      'They say this belongs with “Crackers or toasts, crispy bread,” not Other Olives.'
+    )
+    expect(copy.status).toBe('Dough is reviewing the category.')
+    expect(`${copy.sentence} ${copy.status}`).not.toMatch(/Pick|File|Apply|Override/)
   })
 
   it('seeds taxonomy search with the submitter description', () => {
@@ -164,5 +175,22 @@ describe('extract mode', () => {
     })
     expect(correctionCaseMode(row)).toBe('extract')
     expect(claimCopy(row).headline).toBe('Nutrition from a label photo')
+    expect(brandClaimCopy(row).sentence).toBe('A label photo was sent. Dough is reading it.')
+    expect(brandClaimCopy(row).sentence).not.toMatch(/apply/)
+  })
+})
+
+describe('brand classifier copy', () => {
+  it('does not ask a brand to pick a category', () => {
+    const row = blankCorrectionRow({
+      id: 'c1',
+      correction_type: 'category',
+      current_category: 'Other Olives',
+      proposed_value: { review_reason: 'no_match_auto_classify' },
+    })
+    const copy = brandClaimCopy(row)
+    expect(copy.sentence).toBe('This product still needs a category. Dough is assigning one.')
+    expect(copy.sentence).not.toMatch(/Pick a category/)
+    expect(claimCopy(row).sentence).toMatch(/Pick a category/)
   })
 })

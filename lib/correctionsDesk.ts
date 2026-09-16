@@ -47,6 +47,20 @@ export function correctionsDeskHref(opts?: {
   return q ? `/admin/corrections?${q}` : '/admin/corrections'
 }
 
+/** Brand catalog inbox. Cursor only — never a product filter trap. */
+export function brandCorrectionsHref(opts?: { focusId?: string | null }): string {
+  const params = new URLSearchParams()
+  if (opts?.focusId) params.set('focus', opts.focusId)
+  const q = params.toString()
+  return q ? `/corrections?${q}` : '/corrections'
+}
+
+export function parseBrandCorrectionsSearch(
+  params: Record<string, string | string[] | undefined> | null | undefined
+): { focusId: string | null } {
+  return { focusId: firstParam(params?.focus) }
+}
+
 export function initialFocusIndex<T extends { id: string }>(
   rows: T[],
   focusId: string | null
@@ -56,15 +70,26 @@ export function initialFocusIndex<T extends { id: string }>(
   return idx >= 0 ? idx : 0
 }
 
+const OPS_FOCUS_COPY = {
+  empty: 'That case is no longer pending.',
+  next: 'That case is no longer pending. Showing the next one in the queue.',
+} as const
+
+export const BRAND_FOCUS_COPY = {
+  empty: 'That report is no longer waiting.',
+  next: 'That report is no longer waiting. Showing the next one on your catalog.',
+} as const
+
 /** Stale `?focus=` must not silently open a different product. */
 export function missingFocusNotice<T extends { id: string }>(
   rows: T[],
-  focusId: string | null
+  focusId: string | null,
+  copy: { empty: string; next: string } = OPS_FOCUS_COPY
 ): string | null {
   if (!focusId) return null
   if (rows.some((r) => r.id === focusId)) return null
-  if (rows.length === 0) return 'That case is no longer pending.'
-  return 'That case is no longer pending. Showing the next one in the queue.'
+  if (rows.length === 0) return copy.empty
+  return copy.next
 }
 
 export type DeskQueue<T extends { id: string }> = {
@@ -176,17 +201,26 @@ export function isAlreadyHandledError(message: string | null | undefined): boole
   return /not pending/i.test(message)
 }
 
+function replaceHistoryPath(next: string): void {
+  if (typeof window === 'undefined') return
+  const current = `${window.location.pathname}${window.location.search}`
+  if (current === next) return
+  window.history.replaceState(window.history.state, '', next)
+}
+
 /** Shareable cursor. Does not trigger a Next navigation or RSC refetch. */
 export function replaceDeskCursor(opts: {
   focusId: string | null
   productFilterId: number | null
 }): void {
-  if (typeof window === 'undefined') return
-  const next = correctionsDeskHref({
-    focusId: opts.focusId,
-    productFilterId: opts.productFilterId,
-  })
-  const current = `${window.location.pathname}${window.location.search}`
-  if (current === next) return
-  window.history.replaceState(window.history.state, '', next)
+  replaceHistoryPath(
+    correctionsDeskHref({
+      focusId: opts.focusId,
+      productFilterId: opts.productFilterId,
+    })
+  )
+}
+
+export function replaceBrandCursor(focusId: string | null): void {
+  replaceHistoryPath(brandCorrectionsHref({ focusId }))
 }
