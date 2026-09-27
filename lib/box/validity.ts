@@ -11,6 +11,7 @@ import { hasLoyaltyModule, resolveBoxSelectedModules } from '@/lib/study/modules
 import type { BoxStudyDraft } from './types'
 import { uniquePairs } from '@/lib/concept/publish'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
+import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 
 export type BoxOutstandingItem = {
   message: string
@@ -198,80 +199,75 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
     dupUpcOk
 
   // ---- audience --------------------------------------------------------
-  const e = draft.eligibility
-  const barsSet = eligibilityBarsSet(draft)
+  // V1: audience builder is off — every box is open. Skip client gates.
+  let audienceOk = true
+  let openAudience = true
+  if (STUDY_AUDIENCE_BUILDER_ENABLED) {
+    const e = draft.eligibility
+    const barsSet = eligibilityBarsSet(draft)
 
-  const barsNodeOk = !barsSet || e.qualifyingTaxonomyNodeId != null
-  if (!barsNodeOk) {
-    outstanding.push({
-      message: 'Category requirements need a qualifying category. Pick one, or clear the bars.',
-      anchor: BOX_ANCHORS.audienceCategoryBars,
-    })
-  }
+    const barsNodeOk = !barsSet || e.qualifyingTaxonomyNodeId != null
+    if (!barsNodeOk) {
+      outstanding.push({
+        message: 'Category requirements need a qualifying category. Pick one, or clear the bars.',
+        anchor: BOX_ANCHORS.audienceCategoryBars,
+      })
+    }
 
-  const levelOk =
-    e.minCategoryLevel == null ||
-    (e.minCategoryLevel >= 1 && e.minCategoryLevel <= 20)
-  if (!levelOk) {
-    outstanding.push({
-      message: 'Category level must be between 1 and 20.',
-      anchor: BOX_ANCHORS.audienceCategoryBars,
-    })
-  }
+    const levelOk =
+      e.minCategoryLevel == null ||
+      (e.minCategoryLevel >= 1 && e.minCategoryLevel <= 20)
+    if (!levelOk) {
+      outstanding.push({
+        message: 'Category level must be between 1 and 20.',
+        anchor: BOX_ANCHORS.audienceCategoryBars,
+      })
+    }
 
-  const barsNonNegOk =
-    (e.minCategoryBattles == null || e.minCategoryBattles >= 0) &&
-    (e.minCategoryTries == null || e.minCategoryTries >= 0)
-  if (!barsNonNegOk) {
-    outstanding.push({
-      message: 'Category requirements cannot be negative.',
-      anchor: BOX_ANCHORS.audienceCategoryBars,
-    })
-  }
+    const barsNonNegOk =
+      (e.minCategoryBattles == null || e.minCategoryBattles >= 0) &&
+      (e.minCategoryTries == null || e.minCategoryTries >= 0)
+    if (!barsNonNegOk) {
+      outstanding.push({
+        message: 'Category requirements cannot be negative.',
+        anchor: BOX_ANCHORS.audienceCategoryBars,
+      })
+    }
 
-  const ageOk =
-    e.minAge == null || e.maxAge == null || e.minAge <= e.maxAge
-  if (!ageOk) {
-    outstanding.push({
-      message: 'Minimum age cannot exceed maximum age.',
-      anchor: BOX_ANCHORS.audience,
-    })
-  }
+    const ageOk =
+      e.minAge == null || e.maxAge == null || e.minAge <= e.maxAge
+    if (!ageOk) {
+      outstanding.push({
+        message: 'Minimum age cannot exceed maximum age.',
+        anchor: BOX_ANCHORS.audience,
+      })
+    }
 
-  const statesFormatOk = e.targetStates.every((s) => s.trim().length > 0)
-  if (!statesFormatOk) {
-    outstanding.push({
-      message: 'Remove the empty state entry.',
-      anchor: BOX_ANCHORS.audienceStates,
-    })
-  }
+    const statesFormatOk = e.targetStates.every((s) => s.trim().length > 0)
+    if (!statesFormatOk) {
+      outstanding.push({
+        message: 'Remove the empty state entry.',
+        anchor: BOX_ANCHORS.audienceStates,
+      })
+    }
 
-  const audienceOk = barsNodeOk && levelOk && barsNonNegOk && ageOk && statesFormatOk
+    audienceOk = barsNodeOk && levelOk && barsNonNegOk && ageOk && statesFormatOk
 
-  // A qualifying node with no bars is a no-op at claim time
-  // (check_mission_eligibility only applies mastery when a bar is set).
-  const hasAnyEligibility =
-    e.targetStates.length > 0 ||
-    e.targetCountries.length > 0 ||
-    e.requiredDietaryFlags.length > 0 ||
-    e.allowedGenders.length > 0 ||
-    e.minAge != null ||
-    e.maxAge != null ||
-    e.minAccountAgeDays != null ||
-    barsSet
-
-  const openAudience = isOpenAudience(draft)
-  if (openAudience) {
-    softOutstanding.push({
-      message: 'No audience requirements — any user can claim this box.',
-      anchor: BOX_ANCHORS.audience,
-    })
-  }
-  if (e.qualifyingTaxonomyNodeId != null && !barsSet) {
-    softOutstanding.push({
-      message: 'Category expertise needs a bar (level, tries, or battles) or it won’t restrict claims.',
-      anchor: BOX_ANCHORS.audienceCategoryBars,
-    })
+    // A qualifying node with no bars is a no-op at claim time
+    // (check_mission_eligibility only applies mastery when a bar is set).
+    openAudience = isOpenAudience(draft)
+    if (openAudience) {
+      softOutstanding.push({
+        message: 'No audience requirements — any user can claim this box.',
+        anchor: BOX_ANCHORS.audience,
+      })
+    }
+    if (e.qualifyingTaxonomyNodeId != null && !barsSet) {
+      softOutstanding.push({
+        message: 'Category expertise needs a bar (level, tries, or battles) or it won’t restrict claims.',
+        anchor: BOX_ANCHORS.audienceCategoryBars,
+      })
+    }
   }
 
   // ---- logistics -------------------------------------------------------
@@ -311,6 +307,17 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
   }
 
   const logisticsOk = unitsOk && sessionsOk && expiryOk && targetOk
+
+  const e = draft.eligibility
+  const hasAnyEligibility =
+    e.targetStates.length > 0 ||
+    e.targetCountries.length > 0 ||
+    e.requiredDietaryFlags.length > 0 ||
+    e.allowedGenders.length > 0 ||
+    e.minAge != null ||
+    e.maxAge != null ||
+    e.minAccountAgeDays != null ||
+    eligibilityBarsSet(draft)
 
   return {
     setupOk,

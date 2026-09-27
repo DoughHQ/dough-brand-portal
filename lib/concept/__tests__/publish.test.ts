@@ -155,7 +155,7 @@ describe('conceptEligibilityToWire / p_eligibility', () => {
     expect(conceptEligibilityToWire(draft)).toBeNull()
   })
 
-  it('sends only set keys and never p_eligibility_tier', () => {
+  it('V1: omits eligibility on publish even when the draft has rules', () => {
     const draft = draftWithProduct('028400017688')
     draft.taxonomyNodeId = 10
     draft.title = 'Pack test'
@@ -167,12 +167,24 @@ describe('conceptEligibilityToWire / p_eligibility', () => {
       minCategoryLevel: 3,
     }
     const args = draftToConceptPublishStudyArgs(draft, ctx)
-    expect(args.p_eligibility).toEqual({
+    expect(args).not.toHaveProperty('p_eligibility')
+    expect(args).not.toHaveProperty('p_eligibility_tier')
+  })
+
+  it('wire mapping sends only set keys when forced (audience builder on)', () => {
+    const draft = draftWithProduct('028400017688')
+    draft.eligibility = {
+      ...createEmptyConceptEligibility(),
+      targetStates: ['CA', 'NY'],
+      minAge: 21,
+      qualifyingTaxonomyNodeId: 44,
+      minCategoryLevel: 3,
+    }
+    expect(conceptEligibilityToWire(draft, { force: true })).toEqual({
       target_states: ['CA', 'NY'],
       min_age: 21,
       qualifying_taxonomy_node_id: 44,
       min_category_level: 3,
     })
-    expect(args).not.toHaveProperty('p_eligibility_tier')
   })
 })

@@ -157,3 +157,19 @@ describe('draftToBoxPublishArgs loyalty module / p_open', () => {
     ).toBe(true)
   })
 })
+
+describe('draftToBoxPublishArgs V1 audience', () => {
+  it('forces open eligibility even when the draft has rules', () => {
+    const draft = boxDraft({
+      eligibilityTier: 'tried',
+      eligibility: {
+        ...createEmptyBoxDraft(42).eligibility,
+        targetStates: ['CA'],
+        minAge: 21,
+      },
+    })
+    const args = draftToBoxPublishArgs(draft, ctx)
+    expect(args.p_eligibility_tier).toBe('any')
+    expect(args).not.toHaveProperty('p_eligibility')
+  })
+})
