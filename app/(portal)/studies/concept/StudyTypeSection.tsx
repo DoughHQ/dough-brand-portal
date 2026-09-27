@@ -23,6 +23,7 @@ import {
 } from './actions'
 import CategoryCombobox from './CategoryCombobox'
 import ConfirmDialog, { type ConfirmRequest } from './ConfirmDialog'
+import PackSizeField from './PackSizeField'
 import {
   inputBase,
   labelSm,
@@ -308,29 +309,7 @@ export default function StudyTypeSection({
             </p>
           )}
 
-          {/* 4 — mode-specific setup */}
-          {packagingMode ? (
-            <div id={templateFieldAnchor('pack_size')} style={{ marginTop: 24 }}>
-              <label style={labelSm} htmlFor="pack_size_s0">
-                {!draft.templateConfig.pack_size.trim() ? <RequiredDot /> : null}
-                Pack size
-              </label>
-              <input
-                id="pack_size_s0"
-                className="cb-input"
-                value={draft.templateConfig.pack_size}
-                onChange={(e) =>
-                  onChange({
-                    ...draft,
-                    templateConfig: { ...draft.templateConfig, pack_size: e.target.value },
-                  })
-                }
-                placeholder="e.g. 4-pack, pint, 12 oz"
-                style={{ ...inputBase, maxWidth: 360 }}
-              />
-              <p className="cb-field-note">Used in respondent copy for this packaging study.</p>
-            </div>
-          ) : null}
+          {packagingMode ? <PackSizeField draft={draft} onChange={onChange} /> : null}
         </div>
       ) : null}
       <ConfirmDialog request={confirm} onCancel={() => setConfirm(null)} />
