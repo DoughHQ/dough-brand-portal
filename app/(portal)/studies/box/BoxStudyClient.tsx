@@ -15,6 +15,7 @@ import BattleSection from './BattleSection'
 import AudienceSection from './AudienceSection'
 import LogisticsSection from './LogisticsSection'
 import ResumeDraftBanner from '../components/ResumeDraftBanner'
+import PublishingDock from '../components/PublishingDock'
 import {
   formatResumeWhen,
   useServerStudyDraft,
@@ -65,7 +66,6 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
 
   const rootRef = useRef<HTMLDivElement>(null)
   const stickyRef = useRef<HTMLDivElement>(null)
-  const [needsExpanded, setNeedsExpanded] = useState(false)
 
   const hydrateFromServer = useCallback(
     (draftJson: Record<string, unknown>, _serverId: string) => {
@@ -615,110 +615,20 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
         </div>
       ) : null}
 
-      <div className="cb-sticky" ref={stickyRef}>
-        <div className="cb-sticky-inner">
-          <div className="cb-dock-summary">
-            {ready ? (
-              <>
-                <span className="cb-dock-summary-head">
-                  <span className="cb-field-status-icon" data-tone="ok" aria-hidden>
-                    ✓
-                  </span>
-                  Ready to publish
-                </span>
-                <p className="cb-dock-summary-help">
-                  Publish opens the study so qualified users can claim it. Save draft
-                  syncs across your devices.
-                </p>
-              </>
-            ) : (
-              <>
-                <span className="cb-dock-summary-head">
-                  <span className="cb-field-status-icon" data-tone="warn" aria-hidden>
-                    !
-                  </span>
-                  Still needed
-                </span>
-                <p className="cb-dock-summary-help">Complete these to publish the box.</p>
-              </>
-            )}
-          </div>
-
-          {ready ? (
-            <div />
-          ) : (
-            <div className="cb-dock-tasks" id="cb-dock-tasks">
-              {(needsExpanded ? stickyNeeds : stickyNeeds.slice(0, 3)).map((item) => (
-                <button
-                  key={item.message}
-                  type="button"
-                  className="cb-dock-task"
-                  onClick={() => {
-                    if (item.anchor) scrollTo(item.anchor)
-                  }}
-                >
-                  <span className="cb-dock-task-dot" aria-hidden />
-                  {item.message}
-                </button>
-              ))}
-              {stickyNeeds.length > 3 ? (
-                <p className="cb-dock-overflow">
-                  {!needsExpanded ? <span>+{stickyNeeds.length - 3} more</span> : null}
-                  <button
-                    type="button"
-                    className="cb-quiet-action"
-                    aria-expanded={needsExpanded}
-                    aria-controls="cb-dock-tasks"
-                    onClick={() => setNeedsExpanded((v) => !v)}
-                  >
-                    {needsExpanded ? 'Show less' : 'View all'}
-                  </button>
-                </p>
-              ) : null}
-            </div>
-          )}
-
-          <div className="cb-dock-actions">
-            <span
-              aria-live="polite"
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 12,
-                fontWeight: 500,
-                color:
-                  saveStatus === 'error' ? 'var(--coral, #c45c4a)' : 'var(--ink-30)',
-                minWidth: 72,
-                textAlign: 'right',
-              }}
-            >
-              {saveStatus === 'saving'
-                ? 'Syncing…'
-                : saveStatus === 'saved'
-                  ? 'Saved'
-                  : saveStatus === 'error'
-                    ? 'Sync failed'
-                    : ''}
-            </span>
-            <button
-              type="button"
-              className="cb-btn cb-btn-secondary"
-              onClick={saveDraft}
-              disabled={saving || publishing || pending || !!publishMeta}
-            >
-              {saving ? 'Saving…' : 'Save draft'}
-            </button>
-            <button
-              type="button"
-              className="cb-btn cb-btn-primary"
-              data-muted={!validity.readyToPublish || publishing}
-              onClick={() => requestPublish()}
-              disabled={publishing || pending || !!publishMeta}
-            >
-              {publishing ? 'Publishing…' : 'Publish box'}
-            </button>
-          </div>
-        </div>
-      </div>
+      <PublishingDock
+        stickyRef={stickyRef}
+        ready={ready}
+        needs={stickyNeeds}
+        saveStatus={saveStatus}
+        saving={saving}
+        publishing={publishing}
+        actionsLocked={pending || !!publishMeta}
+        publishMuted={!validity.readyToPublish || publishing}
+        publishLabel="Publish box"
+        onSave={saveDraft}
+        onPublish={() => requestPublish()}
+        onScrollTo={scrollTo}
+      />
     </div>
   )
 }

@@ -184,144 +184,280 @@
 }
 
 /* ==========================================================================
-   Publishing dock
-   Was a full-width opaque band pinned to the viewport bottom, which the final
-   section scrolled behind. Now a transparent fixed shell containing a floating
-   panel aligned to the builder's content frame. Only the panel paints.
+   Publishing dock — slim publisher chrome.
+   Transparent fixed shell; only the thin panel paints. Status + next blocker
+   on the left; Save / Preview / Publish on the right. Full needs list opens
+   upward as a popover so the bar never grows into another card.
    ========================================================================== */
 .concept-builder .cb-sticky {
   position: fixed;
   left: var(--cb-sidebar-w);
   right: 0;
-  bottom: var(--cb-space-lg);
+  bottom: var(--cb-space-md);
   z-index: 40;
   background: transparent;
   padding: 0 var(--cb-page-gutter);
-  /* The shell spans the workspace for positioning only — clicks pass through
-     everywhere except the dock itself. */
   pointer-events: none;
 }
 
 .concept-builder .cb-sticky-inner {
   pointer-events: auto;
-  /* Content frame minus its gutters, so the dock's edges line up with the
-     section cards rather than with the viewport. */
+  position: relative;
   max-width: calc(var(--cb-content-max) - (2 * var(--cb-page-gutter)));
   margin: 0 auto;
-  background: var(--cb-surface);
+  background: color-mix(in srgb, var(--cb-surface) 92%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--cb-border);
-  border-radius: var(--cb-radius-card);
-  box-shadow: var(--cb-shadow-card);
-  padding: var(--cb-space-lg);
-  display: grid;
-  grid-template-columns: minmax(200px, 220px) minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--cb-space-lg);
-}
-
-/* Left — a quiet summary, not a heading for the page. */
-.concept-builder .cb-dock-summary {
-  background: var(--cb-surface-muted);
-  border-radius: var(--cb-radius-card);
-  padding: var(--cb-space-lg);
-  align-self: stretch;
+  border-radius: 999px;
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--cb-heading) 8%, transparent);
+  padding: 6px 8px 6px 10px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: var(--cb-space-xs);
+  align-items: center;
+  gap: var(--cb-space-md);
+  min-height: 52px;
 }
 
-.concept-builder .cb-dock-summary-head {
+.concept-builder .cb-sticky-inner[data-ready='true'] {
+  border-color: color-mix(in srgb, var(--cb-sage) 35%, var(--cb-border));
+}
+
+.concept-builder .cb-dock-status {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--cb-space-sm);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.concept-builder .cb-dock-status-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  margin: 0;
+  padding: 4px 10px 4px 4px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
   font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 600;
   color: var(--cb-heading);
 }
 
-.concept-builder .cb-dock-summary-help {
+.concept-builder .cb-dock-status-btn:disabled {
+  cursor: default;
+}
+
+.concept-builder .cb-dock-status-btn:hover:not(:disabled) {
+  background: var(--cb-surface-muted);
+}
+
+.concept-builder .cb-dock-status-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--cb-focus-ring);
+}
+
+.concept-builder .cb-dock-status-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--cb-radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.concept-builder .cb-dock-status-icon[data-tone='ok'] {
+  background: var(--cb-sage);
+}
+
+.concept-builder .cb-dock-status-icon[data-tone='warn'] {
+  background: var(--cb-amber-warning);
+}
+
+.concept-builder .cb-dock-status-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.concept-builder .cb-dock-status-chevron {
+  font-size: 10px;
+  color: var(--cb-secondary);
+  line-height: 1;
+}
+
+.concept-builder .cb-dock-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: min(420px, 42vw);
   margin: 0;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
   font-family: var(--font-sans);
   font-size: 12px;
-  line-height: 1.45;
+  font-weight: 500;
   color: var(--cb-secondary);
+  text-align: left;
 }
 
-/* Middle — compact task rows, laid out horizontally instead of a tall list. */
-.concept-builder .cb-dock-tasks {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--cb-space-sm);
-  min-width: 0;
+.concept-builder .cb-dock-next:hover {
+  color: var(--cb-heading);
+  background: var(--cb-surface-muted);
 }
 
-.concept-builder .cb-dock-task {
-  display: flex;
-  align-items: center;
-  gap: var(--cb-space-sm);
-  min-height: 44px;
-  padding: var(--cb-space-sm) var(--cb-space-md);
+.concept-builder .cb-dock-next:focus-visible {
+  outline: none;
+  box-shadow: var(--cb-focus-ring);
+}
+
+.concept-builder .cb-dock-next-dot {
+  width: 5px;
+  height: 5px;
+  flex: none;
+  border-radius: var(--cb-radius-pill);
+  background: var(--cb-amber-warning);
+}
+
+.concept-builder .cb-dock-next-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.concept-builder .cb-dock-panel {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 10px);
+  z-index: 50;
+  width: min(360px, calc(100vw - 48px));
+  max-height: min(320px, 50vh);
+  overflow: auto;
+  padding: 6px;
   background: var(--cb-surface);
   border: 1px solid var(--cb-border);
-  border-radius: var(--cb-radius-control);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--cb-heading) 14%, transparent);
+  animation: cb-dock-panel-in 160ms ease-out;
+}
+
+@keyframes cb-dock-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.concept-builder .cb-dock-panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.concept-builder .cb-dock-panel-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
   line-height: 1.35;
   color: var(--cb-text);
   text-align: left;
-  cursor: pointer;
-  min-width: 0;
 }
 
-.concept-builder .cb-dock-task:hover {
+.concept-builder .cb-dock-panel-item:hover {
   background: var(--cb-surface-muted);
-  border-color: var(--cb-border-strong);
 }
 
-.concept-builder .cb-dock-task:focus-visible {
+.concept-builder .cb-dock-panel-item:focus-visible {
   outline: none;
   box-shadow: var(--cb-focus-ring);
-  border-color: var(--cb-sage);
 }
 
-.concept-builder .cb-dock-task-dot {
-  width: 6px;
-  height: 6px;
-  flex: none;
-  border-radius: var(--cb-radius-pill);
-  background: var(--cb-amber-warning);
-}
-
-.concept-builder .cb-dock-overflow {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  gap: var(--cb-space-md);
-  font-family: var(--font-sans);
-  font-size: 12px;
-  color: var(--cb-secondary);
-}
-
-/* Right — unchanged actions, vertically centred. */
 .concept-builder .cb-dock-actions {
   display: flex;
   align-items: center;
-  gap: var(--cb-space-md);
-  flex-shrink: 0;
+  gap: 6px;
+  flex: none;
+  margin-left: auto;
 }
 
-/* Below the width where three zones stop being readable, the actions drop to
-   their own row. DOM order is unchanged, so tab order still reads
-   summary -> tasks -> Save -> Publish. */
-@media (max-width: 1180px) {
+.concept-builder .cb-dock-sync {
+  min-width: 4.5rem;
+  text-align: right;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--cb-secondary);
+  padding-right: 4px;
+}
+
+.concept-builder .cb-dock-sync[data-tone='error'] {
+  color: var(--coral, #c45c4a);
+}
+
+.concept-builder .cb-btn-dock {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+  border-radius: 999px;
+}
+
+.concept-builder .cb-btn-ghost {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--cb-text);
+}
+
+.concept-builder .cb-btn-ghost:hover:not(:disabled) {
+  background: var(--cb-surface-muted);
+  border-color: var(--cb-border);
+}
+
+.concept-builder .cb-btn-ghost:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
   .concept-builder .cb-sticky-inner {
-    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+    border-radius: 18px;
+    flex-wrap: wrap;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  .concept-builder .cb-dock-next {
+    display: none;
   }
   .concept-builder .cb-dock-actions {
-    grid-column: 1 / -1;
+    width: 100%;
     justify-content: flex-end;
   }
 }
