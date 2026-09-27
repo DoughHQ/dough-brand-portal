@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   PACK_SIZE_OTHER,
+  packSizeDisplayLabel,
   packSizePromptPreview,
   packSizeSelectValue,
   shouldClearPackSizeOnCategoryChange,
@@ -39,6 +40,16 @@ describe('shouldClearPackSizeOnCategoryChange', () => {
 
   it('does not clear an empty value', () => {
     expect(shouldClearPackSizeOnCategoryChange('', ['pint'])).toBe(false)
+  })
+})
+
+describe('packSizeDisplayLabel', () => {
+  it('title-cases each word for the dropdown', () => {
+    expect(packSizeDisplayLabel('pint')).toBe('Pint')
+    expect(packSizeDisplayLabel('pint carton')).toBe('Pint Carton')
+    expect(packSizeDisplayLabel('ice cream bar')).toBe('Ice Cream Bar')
+    expect(packSizeDisplayLabel('4-pack')).toBe('4-Pack')
+    expect(packSizeDisplayLabel('share-size bag')).toBe('Share-Size Bag')
   })
 })
 
