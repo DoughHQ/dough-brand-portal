@@ -24,6 +24,7 @@ import {
   formatResumeWhen,
   useServerStudyDraft,
 } from '@/lib/studies/useServerStudyDraft'
+import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 import './conceptBuilder.css'
 
 type Props = {
@@ -62,7 +63,6 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
   const setupDone = !!draft.stimulusMode && draft.taxonomyNodeId != null
   const fieldDone = validity.fieldOk && !!draft.title.trim()
   const questionsDone = validity.templateOk
-  const audienceDone = validity.audienceOk
   const stickyNeeds = useMemo(() => {
     const items = [...validity.outstanding, ...validity.softOutstanding]
     return items
@@ -367,16 +367,24 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
               done: setupDone && fieldDone && questionsDone,
               active: setupDone && fieldDone && !questionsDone,
             },
-            {
-              id: 'concept-audience',
-              label: 'Audience',
-              done: setupDone && fieldDone && questionsDone && audienceDone,
-              active: setupDone && fieldDone && questionsDone && !audienceDone,
-            },
+            ...(STUDY_AUDIENCE_BUILDER_ENABLED
+              ? ([
+                  {
+                    id: 'concept-audience',
+                    label: 'Audience',
+                    done: setupDone && fieldDone && questionsDone && validity.audienceOk,
+                    active:
+                      setupDone &&
+                      fieldDone &&
+                      questionsDone &&
+                      !validity.audienceOk,
+                  },
+                ] as const)
+              : []),
             {
               id: 'concept-modules',
               label: 'Modules',
-              done: setupDone && fieldDone && questionsDone && audienceDone,
+              done: setupDone && fieldDone && questionsDone && validity.audienceOk,
               active: false,
             },
             {
@@ -387,10 +395,10 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
                 setupDone &&
                 fieldDone &&
                 questionsDone &&
-                audienceDone &&
+                validity.audienceOk &&
                 !validity.readyToPublish,
             },
-          ] as const
+          ]
         ).map((step, i) => (
           <button
             key={`${step.label}-${i}`}
@@ -450,13 +458,15 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
         disabledReason={builderLocked ? lockReason : null}
       />
 
-      <AudienceSection
-        draft={draft}
-        onChange={persist}
-        error={sectionErrors.audience ?? null}
-        disabled={builderLocked}
-        disabledReason={builderLocked ? lockReason : null}
-      />
+      {STUDY_AUDIENCE_BUILDER_ENABLED ? (
+        <AudienceSection
+          draft={draft}
+          onChange={persist}
+          error={sectionErrors.audience ?? null}
+          disabled={builderLocked}
+          disabledReason={builderLocked ? lockReason : null}
+        />
+      ) : null}
 
       <ModulesSection
         draft={draft}

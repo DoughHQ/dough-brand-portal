@@ -19,10 +19,13 @@ import {
   hasLoyaltyModule,
   resolveBoxSelectedModules,
 } from '@/lib/study/modules'
+import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 
 export function boxEligibilityToWire(
-  draft: BoxStudyDraft
+  draft: BoxStudyDraft,
+  opts?: { force?: boolean }
 ): Record<string, unknown> | null {
+  if (!STUDY_AUDIENCE_BUILDER_ENABLED && !opts?.force) return null
   const e = draft.eligibility
   const wire: Record<string, unknown> = {}
 
@@ -87,7 +90,9 @@ export function draftToBoxPublishArgs(
     },
     p_modules: modules,
     p_physical_units: draft.physicalUnits,
-    p_eligibility_tier: draft.eligibilityTier,
+    p_eligibility_tier: STUDY_AUDIENCE_BUILDER_ENABLED
+      ? draft.eligibilityTier
+      : 'any',
     p_blind_sponsor: draft.blindSponsor,
     p_abandon_window_days: draft.abandonWindowDays,
     p_expires_at: draft.expiresAt,

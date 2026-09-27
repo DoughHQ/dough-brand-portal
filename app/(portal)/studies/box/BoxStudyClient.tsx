@@ -20,6 +20,7 @@ import {
   formatResumeWhen,
   useServerStudyDraft,
 } from '@/lib/studies/useServerStudyDraft'
+import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 import '../concept/conceptBuilder.css'
 
 type Props = {
@@ -190,7 +191,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
       scrollTo(first?.anchor ?? SECTION_ANCHOR[section])
       return
     }
-    if (validity.openAudience) {
+    if (STUDY_AUDIENCE_BUILDER_ENABLED && validity.openAudience) {
       setOpenAudienceConfirm(true)
       return
     }
@@ -295,12 +296,16 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
               done: validity.setupOk && validity.fieldOk,
               active: validity.setupOk && !validity.fieldOk,
             },
-            {
-              id: BOX_ANCHORS.audience,
-              label: 'Audience',
-              done: validity.setupOk && validity.fieldOk && validity.audienceOk,
-              active: validity.setupOk && validity.fieldOk && !validity.audienceOk,
-            },
+            ...(STUDY_AUDIENCE_BUILDER_ENABLED
+              ? [
+                  {
+                    id: BOX_ANCHORS.audience,
+                    label: 'Audience',
+                    done: validity.setupOk && validity.fieldOk && validity.audienceOk,
+                    active: validity.setupOk && validity.fieldOk && !validity.audienceOk,
+                  },
+                ]
+              : []),
             {
               id: BOX_ANCHORS.logistics,
               label: 'Logistics',
@@ -311,7 +316,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
                 validity.audienceOk &&
                 !validity.readyToPublish,
             },
-          ] as const
+          ]
         ).map((step, i) => (
           <button
             key={`${step.label}-${i}`}
@@ -364,11 +369,13 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
 
       <BattleSection draft={draft} onChange={persist} />
 
-      <AudienceSection
-        draft={draft}
-        onChange={persist}
-        error={publishAttempted ? sectionErrors.audience : undefined}
-      />
+      {STUDY_AUDIENCE_BUILDER_ENABLED ? (
+        <AudienceSection
+          draft={draft}
+          onChange={persist}
+          error={publishAttempted ? sectionErrors.audience : undefined}
+        />
+      ) : null}
 
       <LogisticsSection
         draft={draft}
@@ -386,7 +393,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
         </p>
       ) : null}
 
-      {openAudienceConfirm ? (
+      {STUDY_AUDIENCE_BUILDER_ENABLED && openAudienceConfirm ? (
         <div
           role="dialog"
           aria-modal="true"

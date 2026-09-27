@@ -9,6 +9,7 @@ import { priceToWire } from './price'
 import { templateConfigToWire } from './templateConfig'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
 import { composeConceptPublishModules } from '@/lib/study/modules'
+import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 
 /** Combinatorial pairs for a field of size n. Full round-robin battle count. */
 export function uniquePairs(n: number): number {
@@ -76,10 +77,16 @@ export function draftToPublishPayload(draft: ConceptStudyDraft): {
  * Unset eligibility keys are omitted, not sent as null. The RPC treats a
  * present key as "this rule participates". Concept never sends
  * p_eligibility_tier (backend rejects any non-any tier).
+ *
+ * When the audience builder is off (V1), always omit eligibility so every
+ * study is open. Pass `{ force: true }` in unit tests to exercise the wire
+ * mapping without flipping the product flag.
  */
 export function conceptEligibilityToWire(
-  draft: ConceptStudyDraft
+  draft: ConceptStudyDraft,
+  opts?: { force?: boolean }
 ): Record<string, unknown> | null {
+  if (!STUDY_AUDIENCE_BUILDER_ENABLED && !opts?.force) return null
   const e = draft.eligibility
   if (!e) return null
   const wire: Record<string, unknown> = {}
