@@ -37,6 +37,24 @@ export function shouldClearPackSizeOnCategoryChange(
   return !nextPhrases.includes(trimmed)
 }
 
+/** Dropdown label — Title Case. Wire/phrase stays lowercase for “a {{pack_size}}”. */
+export function packSizeDisplayLabel(phrase: string): string {
+  return phrase
+    .trim()
+    .split(/\s+/)
+    .map((word) =>
+      word
+        .split('-')
+        .map((part) =>
+          part.length === 0
+            ? part
+            : part.charAt(0).toUpperCase() + part.slice(1)
+        )
+        .join('-')
+    )
+    .join(' ')
+}
+
 /** Live preview of the price-expectation prompt with the token filled. */
 export function packSizePromptPreview(packSize: string): string {
   const phrase = packSize.trim() || '…'

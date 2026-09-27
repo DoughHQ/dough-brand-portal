@@ -5,6 +5,7 @@ import type { ConceptStudyDraft } from '@/lib/concept/types'
 import { templateFieldAnchor } from '@/lib/concept/templateConfig'
 import {
   PACK_SIZE_OTHER,
+  packSizeDisplayLabel,
   packSizePromptPreview,
   shouldClearPackSizeOnCategoryChange,
   type PackSizeOption,
@@ -122,7 +123,7 @@ export default function PackSizeField({ draft, onChange }: Props) {
         </option>
         {options.map((o) => (
           <option key={o.phrase} value={o.phrase}>
-            {o.phrase}
+            {packSizeDisplayLabel(o.phrase)}
           </option>
         ))}
         {!disabled ? <option value={PACK_SIZE_OTHER}>Other…</option> : null}
