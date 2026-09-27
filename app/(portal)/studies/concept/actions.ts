@@ -20,6 +20,7 @@ import type {
   LegibilityOption,
   PackagingTemplateConfig,
 } from '@/lib/concept/types'
+import type { PackSizeOption } from '@/lib/concept/packSize'
 import type { Json } from '@/lib/database.types'
 import {
   CONCEPT_DEFAULT_BRAND_ID,
@@ -476,6 +477,47 @@ export async function getTaxonomyNodeAction(
     .maybeSingle()
   if (error || !data) return null
   return toNodeInfo(data as Parameters<typeof toNodeInfo>[0])
+}
+
+export type PackSizeOptionsResult = {
+  options: PackSizeOption[]
+  family_code: string | null
+  family_label: string | null
+}
+
+/** Category-aware pack_size phrases from get_pack_size_options. */
+export async function getPackSizeOptionsAction(
+  taxonomyNodeId: number
+): Promise<PackSizeOptionsResult> {
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase.rpc('get_pack_size_options' as never, {
+    p_taxonomy_node_id: taxonomyNodeId,
+  } as never)
+  if (error) {
+    console.error('[concept] get_pack_size_options', error)
+    return { options: [], family_code: null, family_label: null }
+  }
+  const rows = (data ?? []) as Array<{
+    phrase: string
+    sort_order: number
+    family_code: string
+    family_label: string
+    resolved_l2_node_id: number | null
+    resolved_l2_node_code: string | null
+  }>
+  const options = rows.map((r) => ({
+    phrase: r.phrase,
+    sort_order: r.sort_order,
+    family_code: r.family_code,
+    family_label: r.family_label,
+    resolved_l2_node_id: r.resolved_l2_node_id,
+    resolved_l2_node_code: r.resolved_l2_node_code,
+  }))
+  return {
+    options,
+    family_code: options[0]?.family_code ?? null,
+    family_label: options[0]?.family_label ?? null,
+  }
 }
 
 export async function listTaxonomySiblingsAction(nodeId: number): Promise<{
