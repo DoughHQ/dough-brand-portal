@@ -1,11 +1,9 @@
 /**
- * Typed wrappers for concept publish / template preview RPCs.
+ * Typed wrappers for concept publish / questionnaire walkthrough RPCs.
  */
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database, Json } from '@/lib/database.types'
-import type { PackagingTemplateConfig } from './types'
 import type { StudyModuleCode } from '@/lib/study/modules'
-import { PACKAGING_TEMPLATE_CODE } from './constants'
 
 export type PublishConceptStudyArgs = {
   p_test_type: 'concept'
@@ -41,19 +39,6 @@ export async function rpcPublishConceptStudy(
     p_field: args.p_field as unknown as Json,
     p_module_config: args.p_module_config,
     p_audience_definition: args.p_audience_definition ?? undefined,
-  })
-}
-
-export async function rpcBuildConceptQuestionsFromTemplate(
-  supabase: Client,
-  args: {
-    p_template_code?: string
-    p_config: PackagingTemplateConfig
-  }
-) {
-  return supabase.rpc('build_concept_questions_from_template', {
-    p_template_code: args.p_template_code ?? PACKAGING_TEMPLATE_CODE,
-    p_config: args.p_config as unknown as Json,
   })
 }
 
