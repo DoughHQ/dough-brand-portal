@@ -185,26 +185,81 @@ export function clientValidate(
   return null
 }
 
-/**
- * Value edits insert a new current row and demote the prior one.
- * Publish-only changes update `published` in place (not a value correction).
- */
-export async function saveDisclosure(args: {
-  supabase: Client
-  productId: number
-  brandId: number
-  field: ProofSubMetricRow
-  draft: DisclosureDraft
-  prior: DisclosureDraft | null
-}): Promise<{ ok: true; disclosureId: number } | { ok: false; error: string }> {
-  const { supabase, productId, brandId, field, draft } = args
-  const prior = args.prior
+export type SaveDisclosureCode =
+  | 'STALE_EDIT'
+  | 'NOT_CURRENT'
+  | 'NOT_ALLOWED_TO_PUBLISH'
 
-  const validation = clientValidate(field, draft)
-  if (validation) return { ok: false, error: validation }
+export type SaveDisclosureResult =
+  | { ok: true; disclosureId: number; changed: boolean }
+  | { ok: false; error: string; code?: SaveDisclosureCode }
 
-  const publishOnly =
-    prior?.disclosureId != null &&
+const STALE_RELOAD_MESSAGE = 'Updated elsewhere — reload to see the latest'
+
+type RpcPayload = {
+  error?: string
+  changed?: boolean
+  disclosure_id?: number
+} | null
+
+function mapRpcFailure(
+  payload: RpcPayload,
+  rpcError: { message?: string; hint?: string | null } | null,
+): SaveDisclosureResult {
+  const soft = payload?.error
+  if (soft === 'STALE_EDIT' || soft === 'NOT_CURRENT') {
+    return { ok: false, error: STALE_RELOAD_MESSAGE, code: soft }
+  }
+
+  const hint = rpcError?.hint
+  if (hint === 'NOT_ALLOWED_TO_PUBLISH' || hint === 'CAPABILITY_REQUIRED') {
+    return {
+      ok: false,
+      error: rpcError?.message?.trim() || 'Your role can’t publish disclosures.',
+      code: 'NOT_ALLOWED_TO_PUBLISH',
+    }
+  }
+
+  return {
+    ok: false,
+    error: rpcError?.message?.trim() || 'Save failed',
+  }
+}
+
+function valuesCleared(draft: DisclosureDraft) {
+  const cleared = draft.status !== 'disclosed'
+  return {
+    value_text: cleared ? null : draft.valueText,
+    value_num: cleared ? null : draft.valueNum,
+    value_bool: cleared ? null : draft.valueBool,
+    value_date: cleared ? null : draft.valueDate,
+    value_unit: cleared ? null : draft.valueUnit,
+    method_code: cleared ? null : draft.methodCode,
+    boundary_code: cleared ? null : draft.boundaryCode,
+    data_quality: cleared ? null : draft.dataQuality,
+    other_text: cleared ? null : draft.otherText,
+    source_tier: (cleared ? 'brand_stated' : draft.sourceTier) as SourceTier,
+    source_url: cleared
+      ? null
+      : draft.sourceTier === 'brand_stated'
+        ? null
+        : draft.sourceUrl?.trim() || null,
+    issuer_name: cleared
+      ? null
+      : draft.sourceTier === 'third_party_verified'
+        ? draft.issuerName?.trim() || null
+        : null,
+    credential_id: cleared
+      ? null
+      : draft.sourceTier === 'third_party_verified'
+        ? draft.credentialId?.trim() || null
+        : null,
+  }
+}
+
+function isPublishOnly(prior: DisclosureDraft, draft: DisclosureDraft): boolean {
+  return (
+    prior.disclosureId != null &&
     prior.status === draft.status &&
     prior.subjectKind === draft.subjectKind &&
     (prior.subjectLabel ?? '') === (draft.subjectLabel ?? '') &&
@@ -223,90 +278,76 @@ export async function saveDisclosure(args: {
     prior.credentialId === draft.credentialId &&
     prior.asofDate === draft.asofDate &&
     prior.published !== draft.published
+  )
+}
 
-  if (publishOnly && prior?.disclosureId != null) {
-    const { error } = await supabase
-      .from('product_disclosures')
-      .update({ published: draft.published })
-      .eq('disclosure_id', prior.disclosureId)
-    if (error) return { ok: false, error: error.message }
-    return { ok: true, disclosureId: prior.disclosureId }
+/**
+ * Value edits insert a new current row and demote the prior one (server txn).
+ * Publish-only changes call set_product_disclosure_published.
+ */
+export async function saveDisclosure(args: {
+  supabase: Client
+  productId: number
+  field: ProofSubMetricRow
+  draft: DisclosureDraft
+  prior: DisclosureDraft | null
+}): Promise<SaveDisclosureResult> {
+  const { supabase, productId, field, draft } = args
+  const prior = args.prior
+
+  const validation = clientValidate(field, draft)
+  if (validation) return { ok: false, error: validation }
+
+  if (prior && isPublishOnly(prior, draft) && prior.disclosureId != null) {
+    const { data, error } = await supabase.rpc('set_product_disclosure_published', {
+      p_disclosure_id: prior.disclosureId,
+      p_published: draft.published,
+    })
+    const payload = data as RpcPayload
+    if (error || payload?.error) return mapRpcFailure(payload, error)
+    const id =
+      typeof payload?.disclosure_id === 'number'
+        ? payload.disclosure_id
+        : prior.disclosureId
+    return { ok: true, disclosureId: id, changed: payload?.changed !== false }
   }
 
-  const cleared = draft.status !== 'disclosed'
-  const insertRow = {
-    product_id: productId,
-    brand_id: brandId,
-    sub_metric_code: draft.subMetricCode,
-    // Trigger overwrites from registry version.
-    sub_metric_version: 0,
-    subject_kind: draft.subjectKind,
-    subject_label:
+  const values = valuesCleared(draft)
+  const { data, error } = await supabase.rpc('save_product_disclosure', {
+    p_product_id: productId,
+    p_sub_metric_code: draft.subMetricCode,
+    p_status: draft.status,
+    p_source_tier: values.source_tier,
+    p_subject_kind: draft.subjectKind,
+    p_subject_label:
       draft.subjectKind === 'whole_product'
         ? null
         : draft.subjectLabel?.trim() || null,
-    status: draft.status,
-    value_text: cleared ? null : draft.valueText,
-    value_num: cleared ? null : draft.valueNum,
-    value_bool: cleared ? null : draft.valueBool,
-    value_date: cleared ? null : draft.valueDate,
-    value_unit: cleared ? null : draft.valueUnit,
-    method_code: cleared ? null : draft.methodCode,
-    boundary_code: cleared ? null : draft.boundaryCode,
-    data_quality: cleared ? null : draft.dataQuality,
-    other_text: cleared ? null : draft.otherText,
-    source_tier: cleared ? 'brand_stated' : draft.sourceTier,
-    source_url: cleared
-      ? null
-      : draft.sourceTier === 'brand_stated'
-        ? null
-        : draft.sourceUrl?.trim() || null,
-    issuer_name: cleared
-      ? null
-      : draft.sourceTier === 'third_party_verified'
-        ? draft.issuerName?.trim() || null
-        : null,
-    credential_id: cleared
-      ? null
-      : draft.sourceTier === 'third_party_verified'
-        ? draft.credentialId?.trim() || null
-        : null,
-    asof_date: draft.asofDate,
-    published: draft.published,
-    is_current: true,
+    p_value_text: values.value_text,
+    p_value_num: values.value_num,
+    p_value_bool: values.value_bool,
+    p_value_date: values.value_date,
+    p_value_unit: values.value_unit,
+    p_method_code: values.method_code,
+    p_boundary_code: values.boundary_code,
+    p_data_quality: values.data_quality,
+    p_other_text: values.other_text,
+    p_source_url: values.source_url,
+    p_issuer_name: values.issuer_name,
+    p_credential_id: values.credential_id,
+    p_asof_date: draft.asofDate,
+    p_published: draft.published,
+    p_expected_current_id: prior?.disclosureId ?? null,
+  })
+
+  const payload = data as RpcPayload
+  if (error || payload?.error) return mapRpcFailure(payload, error)
+  if (typeof payload?.disclosure_id !== 'number') {
+    return { ok: false, error: 'Save failed' }
   }
-
-  if (prior?.disclosureId != null) {
-    const { error: demoteError } = await supabase
-      .from('product_disclosures')
-      .update({ is_current: false })
-      .eq('disclosure_id', prior.disclosureId)
-    if (demoteError) return { ok: false, error: demoteError.message }
+  return {
+    ok: true,
+    disclosureId: payload.disclosure_id,
+    changed: payload.changed !== false,
   }
-
-  const { data: inserted, error: insertError } = await supabase
-    .from('product_disclosures')
-    .insert(insertRow)
-    .select('disclosure_id')
-    .single()
-
-  if (insertError || !inserted) {
-    // Best-effort restore if demote succeeded and insert failed.
-    if (prior?.disclosureId != null) {
-      await supabase
-        .from('product_disclosures')
-        .update({ is_current: true })
-        .eq('disclosure_id', prior.disclosureId)
-    }
-    return { ok: false, error: insertError?.message ?? 'Insert failed' }
-  }
-
-  if (prior?.disclosureId != null) {
-    await supabase
-      .from('product_disclosures')
-      .update({ superseded_by: inserted.disclosure_id })
-      .eq('disclosure_id', prior.disclosureId)
-  }
-
-  return { ok: true, disclosureId: inserted.disclosure_id }
 }
