@@ -480,7 +480,7 @@ function JourneyOutlinePanel({
     >
       <div style={{ ...labelSm, marginBottom: 4 }}>Respondent journey</div>
       <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--ink-50)', lineHeight: 1.4 }}>
-        Order and length respondents will see. Open Preview for the full walkthrough.
+        Order and length respondents will see. Preview opens the phone walkthrough.
       </p>
 
       {journey ? (
@@ -789,9 +789,9 @@ function SuccessBarsEditor({
         onDefault={() => onChange({ ...bars, h2h: { kind: 'default' } })}
         onOff={() => onChange({ ...bars, h2h: { kind: 'off' } })}
         onCustom={(v) => onChange({ ...bars, h2h: { kind: 'custom', value: v } })}
-        min={0.5}
-        max={0.9}
-        step={0.05}
+        min={0}
+        max={1}
+        step={0.01}
       />
       <BarRow
         label="Would pay at your price"
@@ -800,9 +800,9 @@ function SuccessBarsEditor({
         onDefault={() => onChange({ ...bars, price: { kind: 'default' } })}
         onOff={() => onChange({ ...bars, price: { kind: 'off' } })}
         onCustom={(v) => onChange({ ...bars, price: { kind: 'custom', value: v } })}
-        min={0.1}
-        max={0.95}
-        step={0.05}
+        min={0}
+        max={1}
+        step={0.01}
       />
       <div>
         <div style={labelSm}>Liking</div>
