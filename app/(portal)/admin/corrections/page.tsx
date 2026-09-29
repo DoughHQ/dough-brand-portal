@@ -10,7 +10,7 @@ import CorrectionsReviewClient from './CorrectionsReviewClient'
 export default async function AdminCorrectionsPage({
   searchParams,
 }: {
-  searchParams?: Promise<Record<string, string | string[] | undefined>> | Record<string, string | string[] | undefined>
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
 }) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -19,9 +19,7 @@ export default async function AdminCorrectionsPage({
   const portalUser = await getPortalUser()
   if (!portalUser || portalUser.role !== 'dough_admin') redirect('/dashboard')
 
-  const params = typeof (searchParams as { then?: unknown })?.then === 'function'
-    ? await (searchParams as Promise<Record<string, string | string[] | undefined>>)
-    : (searchParams as Record<string, string | string[] | undefined> | undefined)
+  const params = searchParams ? await searchParams : undefined
 
   const desk = parseCorrectionsDeskSearch(params)
 

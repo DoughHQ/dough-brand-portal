@@ -7,15 +7,13 @@ import BrandCorrectionsClient from './BrandCorrectionsClient'
 export default async function BrandCorrectionsPage({
   searchParams,
 }: {
-  searchParams?: Promise<Record<string, string | string[] | undefined>> | Record<string, string | string[] | undefined>
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
 }) {
   const scope = await getPortalBrandScope()
   if (!scope) redirect('/login')
 
   const { portalUser, isImpersonating } = scope
-  const params = typeof (searchParams as { then?: unknown })?.then === 'function'
-    ? await (searchParams as Promise<Record<string, string | string[] | undefined>>)
-    : (searchParams as Record<string, string | string[] | undefined> | undefined)
+  const params = searchParams ? await searchParams : undefined
 
   const { focusId } = parseBrandCorrectionsSearch(params)
 
