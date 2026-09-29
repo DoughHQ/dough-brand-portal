@@ -10,7 +10,7 @@ You are implementing the **flagged** single concept test in **dough-brand-portal
    - Flag **on**: everything below.
 2. **Four fixtures, four shapes (do not unify into one TypeScript type):**
    - `publish_args.json`: what `publish_study` must send
-   - `journey.json`: `preview_concept_journey(p_field, p_module_config, p_battle_prompt)` → Section 2 phone preview, length meter, field warnings, review badge
+   - `journey.json`: `preview_concept_journey(p_field, p_module_config, p_battle_prompt)` → Section 2 journey outline, length meter, field warnings, review badge
    - `report_concept_test.json`: `get_concept_mission_report(mission_id).concept_test` → verdict page
    - `plan.json`: **app only**. Out of scope here.
    The preview RPC is `preview_concept_journey`, **not** `preview_concept_questionnaire`.
@@ -45,7 +45,7 @@ You are implementing the **flagged** single concept test in **dough-brand-portal
 - Today `draftToPublishPayload` hardcodes every concept as `hero`. Under the flag, stop that and emit `benchmark_role`.
 
 ### Respondents never see the brand's labels
-The server calls designs **"Design A", "Design B", …** to respondents (letter = position in `p_field.concepts`). The phone preview must show the image and, if text is needed, that letter, **never** "Current pack" or "New design". The brand's labels appear only in portal chrome and the report.
+The server calls designs **"Design A", "Design B", …** to respondents (letter = position in `p_field.concepts`). The journey outline must use that letter, **never** "Current pack" or "New design". The brand's labels appear only in portal chrome and the report.
 
 **CRITICAL (the one place this can go wrong while "following the JSON"):**
 - `journey.json` `subject.display_name` / `arm_label` are **brand-facing only**. The phone-preview mapper turns concept index → "Design A/B/…" (same rule as the server) and **never** renders `display_name`/`arm_label` inside the mock phone. Unit-test the mapper: given `journey.json`, the mock contains "Design A" and "Design B" and never "New design" or "Current pack".
@@ -113,14 +113,14 @@ Every card says "Dough method" or "Yours", one line on what it measures, and whi
 - **Bars:** `H2H_BAR_OUT_OF_RANGE`, `PRICE_BAR_OUT_OF_RANGE`, `LIKING_NEEDS_CURRENT_PACK`, `LIKING_THRESHOLD_REQUIRED`, `LIKING_BAR_OUT_OF_RANGE`, `INVALID_SUCCESS_BARS`
 - **Other:** `CONCEPT_CORE_EXCLUSIVE`, `UNKNOWN_MODULE`, `INVALID_TEMPLATE_VALUE`, `TOO_FEW_ENTITY_OPTIONS`
 
-## Dead code — list in the PR, do not delete
-PriceQuestionnaireEditor, LegacyQuestionsBuilder, previewPackagingQuestionsAction, PRICE_POSTURE_OPTIONS/pricePostureHelp (still used flag-off),
-draft floor/diagnostics/screeners/session2IntervalHours writes. Cleanup is a post-launch PR.
+## Dead code — list in the PR, do not delete (see DEAD_CODE.md)
+PriceQuestionnaireEditor, LegacyQuestionsBuilder, PackagingQuestionnaireEditor, PRICE_POSTURE_OPTIONS/pricePostureHelp (still used flag-off),
+draft floor/diagnostics/screeners/session2IntervalHours writes. Cleanup is a post-launch PR after price mode is retired.
 
 ## Acceptance
 - [ ] Flag off: identical to today.
 - [ ] Flag on: the logged payload for the fixture draft deep-equals `publish_args.json` (plus opt-ins).
-- [ ] The phone preview renders `journey.json` with images and "Design A/B", never the brand's labels. The meter shows 20–23 screens (~3.5 min). Review badge present.
+- [ ] The journey outline renders `journey.json` stages with "Design A/B", never the brand's labels. The meter shows 20–23 screens (~3.5 min). Review badge present.
 - [ ] Every error code surfaces on the right field.
 - [ ] The verdict page renders `report_concept_test.json`, including `too_close_to_call`, the cleared liking bar, the single price number, the scrubbed verbatim, and method footnotes.
 - [ ] Studies list shows `in_review` on Active; viewers see no Publish; only admins see Approve.
@@ -129,4 +129,4 @@ draft floor/diagnostics/screeners/session2IntervalHours writes. Cleanup is a pos
 App ConceptRunner (separate PR; `plan.json` requires it before the flag flips in production). Deleting dead code. Audience builder (`STUDY_AUDIENCE_BUILDER_ENABLED` stays false).
 
 ## Report back
-Files changed, one real logged payload, screenshots of Section 2 (with preview) and the verdict page.
+Files changed, one real logged payload, screenshots of Section 2 (journey outline) and the verdict page.

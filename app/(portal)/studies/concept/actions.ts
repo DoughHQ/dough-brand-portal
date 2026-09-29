@@ -7,7 +7,6 @@ import { draftToConceptPublishStudyArgs } from '@/lib/concept/publish'
 import { resolvePublishError, type ConceptErrorSection } from '@/lib/concept/errors'
 import { templateConfigToWire } from '@/lib/concept/templateConfig'
 import {
-  rpcBuildConceptQuestionsFromTemplate,
   rpcPreviewConceptQuestionnaire,
   rpcPublishConceptStudy,
 } from '@/lib/concept/rpc'
@@ -18,7 +17,6 @@ import type {
   ConceptPublishSuccessMeta,
   ConceptStudyDraft,
   LegibilityOption,
-  PackagingTemplateConfig,
 } from '@/lib/concept/types'
 import type { PackSizeOption } from '@/lib/concept/packSize'
 import type { Json } from '@/lib/database.types'
@@ -252,58 +250,6 @@ export async function previewConceptQuestionnaireAction(
       hint: message.includes('OPTION_ID_UNRESOLVED') ? 'OPTION_ID_UNRESOLVED' : null,
     }
   }
-}
-
-export async function previewPackagingQuestionsAction(
-  config: PackagingTemplateConfig
-): Promise<
-  | { ok: true; questions: unknown[] }
-  | { ok: false; error: string }
-> {
-  const portalUser = await getPortalUser()
-  if (!portalUser) return { ok: false, error: "You don't have access to that brand." }
-
-  const supabase = await createServerSupabaseClient()
-  try {
-    const { data, error } = await rpcBuildConceptQuestionsFromTemplate(supabase, {
-      p_template_code: PACKAGING_TEMPLATE_CODE,
-      p_config: templateConfigToWire(config),
-    })
-    if (error) {
-      const resolved = resolvePublishError({
-        thrown: { message: error.message, hint: extractHint(error) ?? undefined },
-      })
-      return { ok: false, error: resolved.text }
-    }
-    const root = asRecord(data)
-    if (root && typeof root.error === 'string') {
-      const resolved = resolvePublishError({
-        returned: { error: root.error, detail: root.detail },
-      })
-      return { ok: false, error: resolved.text }
-    }
-    const list = Array.isArray(data)
-      ? data
-      : Array.isArray(root?.questions)
-        ? root.questions
-        : null
-    if (!list) {
-      return { ok: false, error: 'Template preview returned no questions.' }
-    }
-    return { ok: true, questions: list }
-  } catch (err) {
-    return {
-      ok: false,
-      error: err instanceof Error ? err.message : 'Could not build question preview.',
-    }
-  }
-}
-
-/** @deprecated Prefer publishConceptStudyAction. */
-export async function publishConceptMissionAction(
-  draft: ConceptStudyDraft
-): Promise<ConceptPublishResult> {
-  return publishConceptStudyAction(draft)
 }
 
 export async function publishConceptStudyAction(

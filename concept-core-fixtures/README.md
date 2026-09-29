@@ -6,7 +6,7 @@ Nothing here exists in the database; every UUID is fixture-only. Regenerate from
 | File | Produced by | Use it for |
 |---|---|---|
 | `publish_args.json` | the input | Portal: the exact `publish_study` arguments for this draft. The portal omits `p_created_by` (the server uses the signed-in user) and must also send `p_predictive_validity_opt_in` and `p_category_intelligence_opt_in`. |
-| `journey.json` | `preview_concept_journey(p_field, p_module_config, null)` | Portal: Section 2 phone preview, length meter, field warnings, review badge |
+| `journey.json` | `preview_concept_journey(p_field, p_module_config, null)` | Portal: Section 2 journey outline, length meter, field warnings, review badge |
 | `plan.json` | `start_concept_session(claim, 1)` → `plan` (a respondent, before answering) | App: the runner, screen by screen |
 | `report_concept_test.json` | `get_concept_mission_report(mission_id)` → `concept_test`, after 12 scripted respondents | Portal: the verdict page and report sections |
 
@@ -21,7 +21,7 @@ The report fixture comes from the same scripted answers; none of its fields depe
 
 ## Journey (portal)
 - Option lists equal what publish stores, byte for byte (proven). Brand options show the catalog display name: the brand typed "HALO TOP", respondents see "Halo Top".
-- `subject.display_name` / `arm_label` are the **brand's** labels, for the brand's orientation. The phone mock must show what respondents see: the image, and if text is needed, "Design A/B…".
+- `subject.display_name` / `arm_label` are the **brand's** labels, for the brand's orientation. The journey outline must show what respondents see: Design A/B… (never brand arm labels).
 - `field_issues` codes: `FIELD_TOO_SMALL`, `FIELD_TOO_LARGE`, `BENCHMARK_REQUIRED`, `TOO_MANY_BENCHMARKS`, `NOTHING_TO_TEST`.
 - `needs_review: true` means a custom battle prompt or brand question is present, so the study is held until Dough approves it.
 - Per-design screens (rating, price) rotate per respondent. Invalid brand text raises the same errors publish does.
