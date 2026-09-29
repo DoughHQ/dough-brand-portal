@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/database.types'
 import { parseConceptMissionReport } from './parse'
 import type { ConceptReportLoadResult } from './types'
 
@@ -22,12 +23,12 @@ function unwrapPayload(data: unknown): Record<string, unknown> | null {
  * Never calls compute — refresh is a separate operator action.
  */
 export async function fetchConceptMissionReport(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   missionId: string
 ): Promise<ConceptReportLoadResult> {
-  const { data, error } = await supabase.rpc('get_concept_mission_report' as never, {
+  const { data, error } = await supabase.rpc('get_concept_mission_report', {
     p_mission_id: missionId,
-  } as never)
+  })
 
   if (error) {
     const msg = error.message ?? 'Could not load report'
