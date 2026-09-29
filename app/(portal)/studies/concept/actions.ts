@@ -6,13 +6,7 @@ import { parseCreateCampaignDraftResult } from '@/lib/studies/parseCampaignDraft
 import { draftToConceptPublishStudyArgs } from '@/lib/concept/publish'
 import { resolvePublishError, type ConceptErrorSection } from '@/lib/concept/errors'
 import { templateConfigToWire } from '@/lib/concept/templateConfig'
-import {
-  rpcPreviewConceptQuestionnaire,
-  rpcPublishConceptStudy,
-} from '@/lib/concept/rpc'
-import { parsePreviewQuestionnaire, previewErrorMessage } from '@/lib/concept/preview/parsePreview'
-import type { ProtocolQuestion } from '@/lib/concept/preview/planTypes'
-import { conceptModulesForStimulusMode } from '@/lib/study/modules'
+import { rpcPublishConceptStudy } from '@/lib/concept/rpc'
 import type {
   ConceptPublishSuccessMeta,
   ConceptStudyDraft,
@@ -23,7 +17,6 @@ import type { Json } from '@/lib/database.types'
 import {
   CONCEPT_DEFAULT_BRAND_ID,
   PACKAGING_TEMPLATE_CODE,
-  PRICE_TEMPLATE_CODE,
 } from '@/lib/concept/constants'
 import {
   preselectSiblingOptions,
@@ -201,57 +194,6 @@ export async function createConceptCampaignAction(args: {
   }
 }
 
-export async function previewConceptQuestionnaireAction(
-  draft: ConceptStudyDraft
-): Promise<
-  | { ok: true; questions: ProtocolQuestion[] }
-  | { ok: false; error: string; hint: string | null }
-> {
-  const portalUser = await getPortalUser()
-  if (!portalUser) {
-    return {
-      ok: false,
-      error: "You don't have access to that brand.",
-      hint: 'NOT_A_BRAND_PORTAL_USER',
-    }
-  }
-  if (draft.stimulusMode !== 'package' && draft.stimulusMode !== 'price') {
-    return {
-      ok: false,
-      error: 'Choose Packaging or Price before walking through this study.',
-      hint: 'NO_TEMPLATE_FOR_MODE',
-    }
-  }
-
-  const supabase = await createServerSupabaseClient()
-  try {
-    const { data, error } = await rpcPreviewConceptQuestionnaire(supabase, {
-      p_module_config: templateConfigToWire(draft.templateConfig) as unknown as Json,
-      p_modules: conceptModulesForStimulusMode(draft.stimulusMode),
-      p_battle_prompt: null,
-    })
-    if (error) {
-      return {
-        ok: false,
-        error: previewErrorMessage(error),
-        hint: extractHint(error),
-      }
-    }
-    const parsed = parsePreviewQuestionnaire(data)
-    if ('error' in parsed) {
-      return { ok: false, error: parsed.error, hint: null }
-    }
-    return { ok: true, questions: parsed }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Could not build the walkthrough.'
-    return {
-      ok: false,
-      error: previewErrorMessage({ message }),
-      hint: message.includes('OPTION_ID_UNRESOLVED') ? 'OPTION_ID_UNRESOLVED' : null,
-    }
-  }
-}
-
 export async function publishConceptStudyAction(
   draft: ConceptStudyDraft
 ): Promise<ConceptPublishResult> {
@@ -293,12 +235,12 @@ export async function publishConceptStudyAction(
     }
   }
 
-  if (draft.stimulusMode !== 'package' && draft.stimulusMode !== 'price') {
+  if (draft.stimulusMode !== 'package') {
     return {
       ok: false,
-      error: 'Question set in progress — packaging and price studies are live now.',
+      error: 'Concept studies use the single concept test (packaging).',
       section: 'mode',
-      hint: 'NO_TEMPLATE_FOR_MODE',
+      hint: 'CONCEPT_REQUIRES_CORE',
     }
   }
 
@@ -384,11 +326,7 @@ export async function publishConceptStudyAction(
         rounds_per_respondent: numOrNull(root?.rounds_per_respondent),
         coverage_note: strOrNull(root?.coverage_note),
         target_completions: numOrNull(root?.target_completions) ?? draft.targetCompletions,
-        template_code:
-          strOrNull(root?.template_code) ??
-          (draft.stimulusMode === 'price'
-            ? PRICE_TEMPLATE_CODE
-            : PACKAGING_TEMPLATE_CODE),
+        template_code: strOrNull(root?.template_code) ?? PACKAGING_TEMPLATE_CODE,
         awaiting_review:
           root?.awaiting_review === true ||
           strOrNull(root?.status)?.toLowerCase() === 'draft' ||

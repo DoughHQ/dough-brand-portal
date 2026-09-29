@@ -40,7 +40,7 @@ type Props = {
   /** Publish-time blocker for the study name, which now lives in this section. */
   titleError?: string | null
   showErrors?: boolean
-  /** CONCEPT_SINGLE_TEST — packaging only, always blind, no coming-soon list. */
+  /** @deprecated Always packaging-only; kept for call-site compatibility. */
   packagingOnly?: boolean
 }
 
@@ -60,7 +60,7 @@ export default function StudyTypeSection({
   error,
   titleError,
   showErrors,
-  packagingOnly = false,
+  packagingOnly = true,
 }: Props) {
   const [node, setNode] = useState<TaxonomyNodeInfo | null>(null)
   const [wordingOpen, setWordingOpen] = useState(false)
@@ -69,7 +69,6 @@ export default function StudyTypeSection({
 
   // Single-test: mode is not a choice — lock packaging + blind without a picker.
   useEffect(() => {
-    if (!packagingOnly) return
     if (draft.stimulusMode === 'package' && draft.pricePosture === 'blind') return
     const plan = planModeTransition(draft, 'package', true)
     const next =
@@ -78,7 +77,7 @@ export default function StudyTypeSection({
         : { ...plan.next, pricePosture: 'blind' as const }
     onChange(next)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [packagingOnly, draft.stimulusMode, draft.pricePosture])
+  }, [draft.stimulusMode, draft.pricePosture])
 
   useEffect(() => {
     if (draft.taxonomyNodeId == null) {

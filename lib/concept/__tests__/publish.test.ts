@@ -10,13 +10,7 @@ import {
   draftToConceptPublishStudyArgs,
   draftToPublishPayload,
 } from '../publish'
-import {
-  MODULE_FIELD_RANKING,
-  MODULE_LOYALTY,
-  MODULE_PACKAGING,
-  MODULE_VALUE,
-  MODULE_WILLINGNESS_TO_PAY,
-} from '@/lib/study/modules'
+import { MODULE_CONCEPT_CORE_V1 } from '../singleTest'
 
 function draftWithProduct(
   upc: string | null,
@@ -24,17 +18,43 @@ function draftWithProduct(
 ) {
   return createEmptyConceptDraft({
     stimulusMode: 'package',
-    conceptArms: [{ ...newConceptArm(0), display_name: 'Arm' }],
+    conceptArms: [
+      {
+        ...newConceptArm(0),
+        display_name: 'Arm',
+        image_url: 'https://example.com/arm.png',
+      },
+      {
+        ...newConceptArm(1),
+        display_name: 'Current',
+        image_url: 'https://example.com/current.png',
+        battle_intent: 'competitor',
+        benchmark_role: 'current_pack',
+      },
+    ],
     products: [
       {
         ...newProductCompetitor(),
         product_id: extra.product_id ?? 30012404,
         frozen_display_name: 'Classic',
         frozen_brand_name: "Lay's",
+        frozen_image_url: 'https://example.com/comp.png',
         upc,
         identityConfirmed: extra.identityConfirmed ?? !!upc,
       },
     ],
+    templateConfig: {
+      ...createEmptyConceptDraft().templateConfig,
+      pack_size: 'pint',
+      expected_price: '4.99',
+      decoy_option: 'Frostline',
+      verification_options: [
+        { id: 'a', label: 'Brand A' },
+        { id: 'b', label: 'Brand B' },
+        { id: 'decoy', label: 'Frostline' },
+        { id: 'none_of_these', label: 'None of these' },
+      ],
+    },
   })
 }
 
@@ -42,6 +62,7 @@ describe('draftToPublishPayload battle_intent + upc', () => {
   it('sends hero on concept arms and competitor + upc on products', () => {
     const payload = draftToPublishPayload(draftWithProduct('028400017688'))
     expect(payload.concepts[0]?.battle_intent).toBe('hero')
+    expect(payload.concepts[0]?.stimulus_type).toBe('package')
     expect(payload.products).toEqual([
       expect.objectContaining({
         product_id: 30012404,
@@ -64,6 +85,7 @@ describe('draftToPublishPayload battle_intent + upc', () => {
       product_id: 30012405,
       frozen_display_name: 'BBQ',
       frozen_brand_name: "Lay's",
+      frozen_image_url: 'https://example.com/bbq.png',
       upc: '028400017688',
       identityConfirmed: true,
     })
@@ -77,6 +99,7 @@ describe('draftToPublishPayload battle_intent + upc', () => {
       product_id: 30012404,
       frozen_display_name: 'Classic again',
       frozen_brand_name: "Lay's",
+      frozen_image_url: 'https://example.com/again.png',
       upc: '028400017695',
       identityConfirmed: true,
     })
@@ -91,50 +114,35 @@ describe('draftToPublishPayload battle_intent + upc', () => {
 })
 
 describe('draftToConceptPublishStudyArgs modules', () => {
-  it('maps packaging mode to MODULE_PACKAGING under publish_study', () => {
+  it('always publishes CONCEPT_CORE_V1', () => {
     const draft = draftWithProduct('028400017688')
     draft.taxonomyNodeId = 10
     draft.title = 'Pack test'
+    draft.targetCompletions = 30
     const args = draftToConceptPublishStudyArgs(draft, {
       campaignId: 'camp-1',
       createdBy: 'user-1',
       expiresAt: new Date(Date.now() + 86400000).toISOString(),
     })
     expect(args.p_test_type).toBe('concept')
-    expect(args.p_modules).toEqual([MODULE_PACKAGING])
-    expect(args.p_field.concepts).toHaveLength(1)
+    expect(args.p_modules).toEqual([MODULE_CONCEPT_CORE_V1])
+    expect(args.p_price_posture).toBe('blind')
+    expect(args.p_field.concepts).toHaveLength(2)
     expect(args.p_field.products).toHaveLength(1)
   })
 
-  it('maps price mode to MODULE_WILLINGNESS_TO_PAY', () => {
+  it('rejects non-package stimulus', () => {
     const draft = draftWithProduct('028400017688')
     draft.stimulusMode = 'price'
     draft.taxonomyNodeId = 10
     draft.title = 'Price test'
-    const args = draftToConceptPublishStudyArgs(draft, {
-      campaignId: 'camp-1',
-      createdBy: 'user-1',
-      expiresAt: new Date(Date.now() + 86400000).toISOString(),
-    })
-    expect(args.p_modules).toEqual([MODULE_WILLINGNESS_TO_PAY])
-  })
-
-  it('appends picked extras after the derived base and drops loyalty', () => {
-    const draft = draftWithProduct('028400017688')
-    draft.taxonomyNodeId = 10
-    draft.title = 'Pack test'
-    draft.selectedModules = [MODULE_VALUE, MODULE_FIELD_RANKING, MODULE_LOYALTY]
-    const args = draftToConceptPublishStudyArgs(draft, {
-      campaignId: 'camp-1',
-      createdBy: 'user-1',
-      expiresAt: new Date(Date.now() + 86400000).toISOString(),
-    })
-    expect(args.p_modules).toEqual([
-      MODULE_PACKAGING,
-      MODULE_VALUE,
-      MODULE_FIELD_RANKING,
-    ])
-    expect(args.p_modules).not.toContain(MODULE_LOYALTY)
+    expect(() =>
+      draftToConceptPublishStudyArgs(draft, {
+        campaignId: 'camp-1',
+        createdBy: 'user-1',
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      })
+    ).toThrow('CORE_REQUIRES_PACKAGE_STIMULUS')
   })
 })
 
@@ -149,6 +157,7 @@ describe('conceptEligibilityToWire / p_eligibility', () => {
     const draft = draftWithProduct('028400017688')
     draft.taxonomyNodeId = 10
     draft.title = 'Pack test'
+    draft.targetCompletions = 30
     const args = draftToConceptPublishStudyArgs(draft, ctx)
     expect(args).not.toHaveProperty('p_eligibility')
     expect(args).not.toHaveProperty('p_eligibility_tier')
@@ -159,6 +168,7 @@ describe('conceptEligibilityToWire / p_eligibility', () => {
     const draft = draftWithProduct('028400017688')
     draft.taxonomyNodeId = 10
     draft.title = 'Pack test'
+    draft.targetCompletions = 30
     draft.eligibility = {
       ...createEmptyConceptEligibility(),
       targetStates: ['CA', 'NY'],
@@ -180,7 +190,8 @@ describe('conceptEligibilityToWire / p_eligibility', () => {
       qualifyingTaxonomyNodeId: 44,
       minCategoryLevel: 3,
     }
-    expect(conceptEligibilityToWire(draft, { force: true })).toEqual({
+    const wire = conceptEligibilityToWire(draft, { force: true })
+    expect(wire).toMatchObject({
       target_states: ['CA', 'NY'],
       min_age: 21,
       qualifying_taxonomy_node_id: 44,

@@ -1,6 +1,6 @@
 /**
  * CONCEPT_CORE_V1 report — pure renderer of report_concept_test.json shape.
- * Flag-gated; legacy ConceptReportDeck stays untouched when flag is off.
+ * CONCEPT_CORE_V1 verdict payload.
  */
 
 export type ConceptTestVerdictResult =

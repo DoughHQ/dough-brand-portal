@@ -4,17 +4,7 @@
  * Audience / "who qualifies" is built and wire-ready, but V1 studies are open to
  * everyone. Keep the model and RPCs; hide the UI and force empty eligibility on
  * publish until this flips.
+ *
+ * Concept studies are CONCEPT_CORE_V1 only (no feature flag).
  */
 export const STUDY_AUDIENCE_BUILDER_ENABLED = false
-
-/**
- * Single concept test (CONCEPT_CORE_V1).
- *
- * Default false: editor, publish, preview, studies list and report stay identical
- * to today. Flip only with the backend pack + app runner in the same release
- * train — see concept-core-fixtures/.
- *
- * When true: packaging-only builder, journey outline, benchmarks, CONCEPT_CORE_V1
- * publish payload, in_review / approve, concept_test report.
- */
-export const CONCEPT_SINGLE_TEST_ENABLED = false
