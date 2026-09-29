@@ -3,16 +3,12 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import { fetchConceptMissionReport } from '@/lib/conceptReport/fetchReport'
-import { mergeCombatantDisplay } from '@/lib/conceptReport/mergeCombatants'
-import { conceptReportFixture, conceptReportThinSampleFixture } from '@/lib/conceptReport/fixture'
 import type { ConceptReportErrorCode } from '@/lib/conceptReport/types'
-import { ConceptReportDeck } from '@/components/conceptReport/ConceptReportDeck'
 import { ConceptTestReportDeck } from '@/components/conceptReport/ConceptTestReportDeck'
 import {
   isConceptTestReportPayload,
   parseConceptTestReport,
 } from '@/lib/conceptReport/conceptTestTypes'
-import { CONCEPT_SINGLE_TEST_ENABLED } from '@/lib/studies/features'
 import conceptTestFixture from '../../../../../../concept-core-fixtures/report_concept_test.json'
 
 type Props = {
@@ -78,7 +74,7 @@ function messageForCode(code: ConceptReportErrorCode): { title: string; body: st
     case 'NOT_AUTHENTICATED':
       return {
         title: 'Sign in required',
-        body: 'Sign in to view this concept study report.',
+        body: 'Sign in to view this report.',
       }
     default:
       return {
@@ -86,6 +82,27 @@ function messageForCode(code: ConceptReportErrorCode): { title: string; body: st
         body: 'Something went wrong loading this report. Try again in a moment.',
       }
   }
+}
+
+async function tryParseConceptTest(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  missionId: string
+) {
+  const { data } = await supabase.rpc('get_concept_mission_report', {
+    p_mission_id: missionId,
+  })
+  if (isConceptTestReportPayload(data)) {
+    return parseConceptTestReport(data)
+  }
+  const envelope =
+    data && typeof data === 'object' && !Array.isArray(data)
+      ? (data as Record<string, unknown>)
+      : null
+  const inner = envelope?.report ?? envelope?.data ?? data
+  if (isConceptTestReportPayload(inner)) {
+    return parseConceptTestReport(inner)
+  }
+  return null
 }
 
 export default async function ConceptStudyReportPage({ params, searchParams }: Props) {
@@ -96,11 +113,7 @@ export default async function ConceptStudyReportPage({ params, searchParams }: P
   const scope = await getPortalBrandScope()
   if (!scope) redirect('/login')
 
-  if (
-    CONCEPT_SINGLE_TEST_ENABLED &&
-    sp.preview === 'core' &&
-    scope.portalUser.role === 'dough_admin'
-  ) {
+  if (sp.preview === 'core' && scope.portalUser.role === 'dough_admin') {
     const parsed = parseConceptTestReport(conceptTestFixture)
     if (parsed) {
       return (
@@ -124,88 +137,27 @@ export default async function ConceptStudyReportPage({ params, searchParams }: P
     }
   }
 
-  if (
-    (sp.preview === '1' || sp.preview === 'thin' || sp.preview === 'sim') &&
-    scope.portalUser.role === 'dough_admin'
-  ) {
-    let fixture =
-      sp.preview === 'thin'
-        ? conceptReportThinSampleFixture(missionId)
-        : conceptReportFixture(missionId)
-    if (sp.preview === 'sim') {
-      fixture = { ...fixture, is_simulated: true }
-    }
-    return (
-      <>
-        <div
-          className="no-print"
-          style={{
-            background: 'var(--amber-soft)',
-            color: 'var(--amber)',
-            fontFamily: 'var(--font-sans)',
-            fontSize: 12,
-            textAlign: 'center',
-            padding: '8px 12px',
-          }}
-        >
-          Preview fixture (
-          {sp.preview === 'thin' ? 'thin sample' : sp.preview === 'sim' ? 'simulated' : 'full'}) —
-          not a live frozen report
-        </div>
-        <ConceptReportDeck report={fixture} backHref={backHref} />
-      </>
-    )
+  const supabase = await createServerSupabaseClient()
+
+  // Prefer concept_test / CORE shape.
+  const core = await tryParseConceptTest(supabase, missionId)
+  if (core) {
+    return <ConceptTestReportDeck report={core} backHref={backHref} />
   }
 
-  const supabase = await createServerSupabaseClient()
   const result = await fetchConceptMissionReport(supabase, missionId)
-
   if (!result.ok) {
-    // When flag on, try raw RPC once more for concept_core_v1 shape the legacy parser rejects.
-    if (CONCEPT_SINGLE_TEST_ENABLED) {
-      const { data } = await supabase.rpc('get_concept_mission_report', {
-        p_mission_id: missionId,
-      })
-      if (isConceptTestReportPayload(data)) {
-        const parsed = parseConceptTestReport(data)
-        if (parsed) {
-          return <ConceptTestReportDeck report={parsed} backHref={backHref} />
-        }
-      }
-      const envelope =
-        data && typeof data === 'object' && !Array.isArray(data)
-          ? (data as Record<string, unknown>)
-          : null
-      const inner = envelope?.report ?? envelope?.data ?? data
-      if (isConceptTestReportPayload(inner)) {
-        const parsed = parseConceptTestReport(inner)
-        if (parsed) {
-          return <ConceptTestReportDeck report={parsed} backHref={backHref} />
-        }
-      }
-    }
     const copy = messageForCode(result.code)
     return <StateCard title={copy.title} body={copy.body} backHref={backHref} />
   }
 
-  // Legacy path may accidentally parse a core report — prefer core when flag on.
-  if (CONCEPT_SINGLE_TEST_ENABLED) {
-    const { data } = await supabase.rpc('get_concept_mission_report', {
-      p_mission_id: missionId,
-    })
-    const envelope =
-      data && typeof data === 'object' && !Array.isArray(data)
-        ? (data as Record<string, unknown>)
-        : null
-    const candidate = envelope?.report ?? envelope?.data ?? data
-    if (isConceptTestReportPayload(candidate)) {
-      const parsed = parseConceptTestReport(candidate)
-      if (parsed) {
-        return <ConceptTestReportDeck report={parsed} backHref={backHref} />
-      }
-    }
-  }
-
-  const report = await mergeCombatantDisplay(supabase, missionId, result.report)
-  return <ConceptReportDeck report={report} backHref={backHref} />
+  // Legacy win_rate reports should not appear for new CORE studies; if one
+  // somehow loads, show the not-ready state rather than the old deck.
+  return (
+    <StateCard
+      title="Report isn't ready yet"
+      body="This study uses the single concept test. The verdict report appears once enough respondents have finished."
+      backHref={backHref}
+    />
+  )
 }

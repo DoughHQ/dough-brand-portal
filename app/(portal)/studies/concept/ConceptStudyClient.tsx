@@ -14,9 +14,7 @@ import {
 } from './actions'
 import AudienceSection from './AudienceSection'
 import BattleSettingsSection from './BattleSettingsSection'
-import ModulesSection from './ModulesSection'
 import FieldSection from './FieldSection'
-import QuestionsSection from './QuestionsSection'
 import SingleTestJourneySection from './SingleTestJourneySection'
 import StudyTypeSection from './StudyTypeSection'
 import ResumeDraftBanner from '../components/ResumeDraftBanner'
@@ -25,7 +23,7 @@ import {
   formatResumeWhen,
   useServerStudyDraft,
 } from '@/lib/studies/useServerStudyDraft'
-import { STUDY_AUDIENCE_BUILDER_ENABLED, CONCEPT_SINGLE_TEST_ENABLED } from '@/lib/studies/features'
+import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 import './conceptBuilder.css'
 
 type Props = {
@@ -64,11 +62,7 @@ export default function ConceptStudyClient({
 
   const validity = useMemo(() => evaluateFieldValidity(draft), [draft])
   const builderLocked = !draft.stimulusMode || draft.taxonomyNodeId == null
-  const lockReason = !draft.stimulusMode
-    ? CONCEPT_SINGLE_TEST_ENABLED
-      ? 'Choose a category above to unlock the field.'
-      : 'Choose a study type and category above to unlock the field.'
-    : 'Choose a category above to unlock the field.'
+  const lockReason = 'Choose a category above to unlock the field.'
   const setupDone = !!draft.stimulusMode && draft.taxonomyNodeId != null
   const fieldDone = validity.fieldOk && !!draft.title.trim()
   const questionsDone = validity.templateOk
@@ -223,10 +217,7 @@ export default function ConceptStudyClient({
       return
     }
 
-    if (
-      (draft.stimulusMode === 'package' || draft.stimulusMode === 'price') &&
-      !validity.hasVerificationScreener
-    ) {
+    if (draft.stimulusMode === 'package' && !validity.hasVerificationScreener) {
       setNoVerificationOpen(true)
       return
     }
@@ -247,13 +238,9 @@ export default function ConceptStudyClient({
       const toPublish: ConceptStudyDraft = {
         ...draft,
         brandCampaignId: campaignId,
-        ...(draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
-          ? {
-              pricePosture: 'blind' as const,
-              conceptArms: draft.conceptArms.map((a) => ({ ...a, frozen_price: null })),
-              products: draft.products.map((p) => ({ ...p, frozen_price: null })),
-            }
-          : {}),
+        pricePosture: 'blind',
+        conceptArms: draft.conceptArms.map((a) => ({ ...a, frozen_price: null })),
+        products: draft.products.map((p) => ({ ...p, frozen_price: null })),
       }
       const result = await publishConceptStudyAction(toPublish)
       if (!result.ok) {
@@ -341,11 +328,9 @@ export default function ConceptStudyClient({
               color: 'var(--ink-50)',
             }}
           >
-            {CONCEPT_SINGLE_TEST_ENABLED || draft.stimulusMode === 'package'
-              ? 'Packaging concept test'
-              : draft.stimulusMode === 'price'
-                ? 'Blind price concept test'
-                : 'Operator console'}
+            {draft.stimulusMode === 'package'
+              ? 'Single concept test'
+              : 'Concept study'}
           </p>
         </div>
       </div>
@@ -372,7 +357,7 @@ export default function ConceptStudyClient({
             },
             {
               id: 'concept-questions',
-              label: CONCEPT_SINGLE_TEST_ENABLED ? 'Journey' : 'Questionnaire',
+              label: 'Journey',
               done: setupDone && fieldDone && questionsDone,
               active: setupDone && fieldDone && !questionsDone,
             },
@@ -387,16 +372,6 @@ export default function ConceptStudyClient({
                       fieldDone &&
                       questionsDone &&
                       !validity.audienceOk,
-                  },
-                ] as const)
-              : []),
-            ...(!CONCEPT_SINGLE_TEST_ENABLED
-              ? ([
-                  {
-                    id: 'concept-modules',
-                    label: 'Modules',
-                    done: setupDone && fieldDone && questionsDone && validity.audienceOk,
-                    active: false,
                   },
                 ] as const)
               : []),
@@ -452,7 +427,7 @@ export default function ConceptStudyClient({
         error={sectionErrors.mode ?? null}
         titleError={sectionErrors.title ?? null}
         showErrors={publishAttempted}
-        packagingOnly={CONCEPT_SINGLE_TEST_ENABLED}
+        packagingOnly
       />
 
       <FieldSection
@@ -462,25 +437,15 @@ export default function ConceptStudyClient({
         publishFailure={publishFailure}
         disabled={builderLocked}
         disabledReason={builderLocked ? lockReason : null}
-        singleTestMode={CONCEPT_SINGLE_TEST_ENABLED}
+        singleTestMode
       />
 
-      {CONCEPT_SINGLE_TEST_ENABLED ? (
-        <SingleTestJourneySection
-          draft={draft}
-          onChange={persist}
-          error={sectionErrors.questions ?? null}
-          disabled={builderLocked}
-        />
-      ) : (
-        <QuestionsSection
-          draft={draft}
-          onChange={persist}
-          error={sectionErrors.questions ?? null}
-          disabled={builderLocked}
-          disabledReason={builderLocked ? lockReason : null}
-        />
-      )}
+      <SingleTestJourneySection
+        draft={draft}
+        onChange={persist}
+        error={sectionErrors.questions ?? null}
+        disabled={builderLocked}
+      />
 
       {STUDY_AUDIENCE_BUILDER_ENABLED ? (
         <AudienceSection
@@ -492,21 +457,13 @@ export default function ConceptStudyClient({
         />
       ) : null}
 
-      {!CONCEPT_SINGLE_TEST_ENABLED ? (
-        <ModulesSection
-          draft={draft}
-          onChange={persist}
-          disabled={builderLocked}
-          disabledReason={builderLocked ? lockReason : null}
-        />
-      ) : null}
 
       <BattleSettingsSection
         draft={draft}
         onChange={persist}
         disabled={builderLocked}
         disabledReason={builderLocked ? lockReason : null}
-        minCompletions={CONCEPT_SINGLE_TEST_ENABLED ? 30 : 1}
+        minCompletions={30}
       />
 
       {sectionErrors.publish &&
@@ -751,7 +708,10 @@ export default function ConceptStudyClient({
         }}
         onPreview={() => {
           flushSaveNow(draft)
-          router.push(`/studies/concept/${draft.draftId}/preview`)
+          document.getElementById('concept-questions')?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          })
         }}
         onScrollTo={scrollTo}
       />

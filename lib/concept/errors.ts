@@ -32,6 +32,7 @@ export const CONCEPT_PUBLISH_HINT_MESSAGES: Record<string, string> = {
   NO_AUTHOR: 'Publish requires an authenticated author.',
   INVALID_TEST_TYPE: 'Internal error: invalid study type.',
   UNKNOWN_MODULE: 'One of the selected modules is not recognized.',
+  CONCEPT_REQUIRES_CORE: 'Concept studies use the single concept test.',
   NOT_A_MODULE: 'That pack is not a selectable module.',
   MODULE_TEST_TYPE_MISMATCH:
     'That module cannot be used on this kind of study.',

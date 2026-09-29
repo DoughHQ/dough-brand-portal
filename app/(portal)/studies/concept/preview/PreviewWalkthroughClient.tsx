@@ -1,160 +1,36 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { previewConceptQuestionnaireAction } from '../actions'
-import { evaluateFieldValidity } from '@/lib/concept/validity'
-import { loadConceptDraftForPreview, snapshotDraft } from '@/lib/concept/preview/loadDraft'
-import { combatantsFromDraft } from '@/lib/concept/preview/combatants'
-import { signCombatantImages } from '@/lib/concept/preview/signImages'
-import { synthesizePlan } from '@/lib/concept/preview/synthesizePlan'
-import type { ConceptPlanScreen } from '@/lib/concept/preview/planTypes'
-import type { PreviewCombatant } from '@/lib/concept/preview/combatants'
-import type { ConceptStudyDraft } from '@/lib/concept/types'
-import PreviewRunner from './PreviewRunner'
-import './previewRunner.css'
+import { useParams } from 'next/navigation'
 
-type Props = {
-  draftId: string
-}
-
-type LoadState =
-  | { kind: 'loading' }
-  | { kind: 'missing' }
-  | { kind: 'gated'; reasons: string[] }
-  | { kind: 'error'; message: string }
-  | {
-      kind: 'ready'
-      screens: ConceptPlanScreen[]
-      stimulusMode: string | null
-      seed: string
-      draft: ConceptStudyDraft
-      combatants: PreviewCombatant[]
-    }
-
-export default function PreviewWalkthroughClient({ draftId }: Props) {
-  const [state, setState] = useState<LoadState>({ kind: 'loading' })
-
-  useEffect(() => {
-    let cancelled = false
-    void (async () => {
-      const loaded = await loadConceptDraftForPreview(draftId)
-      if (cancelled) return
-      if (!loaded) {
-        setState({ kind: 'missing' })
-        return
-      }
-      const snapshot = snapshotDraft(loaded)
-      const validity = evaluateFieldValidity(snapshot)
-      if (!validity.readyToPublish) {
-        setState({
-          kind: 'gated',
-          reasons: validity.outstanding.map((o) => o.message).slice(0, 8),
-        })
-        return
-      }
-      const result = await previewConceptQuestionnaireAction(snapshot)
-      if (cancelled) return
-      if (!result.ok) {
-        setState({ kind: 'error', message: result.error })
-        return
-      }
-      const signed = await signCombatantImages(combatantsFromDraft(snapshot))
-      const screens = synthesizePlan({
-        questions: result.questions,
-        combatants: signed,
-        seed: snapshot.draftId,
-        stimulusMode: snapshot.stimulusMode,
-        pricePosture: snapshot.pricePosture,
-      })
-      setState({
-        kind: 'ready',
-        screens,
-        stimulusMode: snapshot.stimulusMode,
-        seed: snapshot.draftId,
-        draft: snapshot,
-        combatants: signed,
-      })
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [draftId])
-
-  const back = `/studies/concept/${draftId}/edit`
-
-  if (state.kind === 'loading') {
-    return (
-      <div className="cpw">
-        <div className="cpw-gate">
-          <p>Building the walkthrough…</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (state.kind === 'missing') {
-    return (
-      <div className="cpw">
-        <div className="cpw-gate">
-          <h1>Draft not found</h1>
-          <p>This concept draft isn&apos;t in this browser, and no server copy loaded.</p>
-          <Link className="cpw-back" href="/studies/concept/new">
-            New concept study
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  if (state.kind === 'gated') {
-    return (
-      <div className="cpw">
-        <div className="cpw-gate">
-          <h1>Finish the study first</h1>
-          <p>Walkthrough is available once the draft is ready to publish.</p>
-          <ul style={{ textAlign: 'left', margin: '16px auto', maxWidth: 360 }}>
-            {state.reasons.map((r) => (
-              <li key={r}>{r}</li>
-            ))}
-          </ul>
-          <Link className="cpw-back" href={back}>
-            Back to the builder
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  if (state.kind === 'error') {
-    return (
-      <div className="cpw">
-        <div className="cpw-error">
-          <h1>Couldn&apos;t start the walkthrough</h1>
-          <p>{state.message}</p>
-          <Link className="cpw-back" href={back}>
-            Back to the builder
-          </Link>
-        </div>
-      </div>
-    )
-  }
+/**
+ * Legacy questionnaire walkthrough removed — concept is CORE-only.
+ * Preview lives in the builder journey outline (Section 2).
+ */
+export default function PreviewWalkthroughClient({ draftId }: { draftId?: string }) {
+  const params = useParams()
+  const id = draftId ?? (typeof params?.draftId === 'string' ? params.draftId : null)
+  const editHref = id ? `/studies/concept/${id}/edit` : '/studies'
 
   return (
-    <div className="cpw">
-      <div className="cpw-shell" style={{ paddingBottom: 0 }}>
-        <Link className="cpw-back" href={back} style={{ marginBottom: 16 }}>
-          ← Back to the builder
-        </Link>
-      </div>
-      <PreviewRunner
-        screens={state.screens}
-        stimulusMode={state.stimulusMode}
-        seed={state.seed}
-        editHref={back}
-        draft={state.draft}
-        combatants={state.combatants}
-      />
+    <div
+      style={{
+        maxWidth: 480,
+        margin: '64px auto',
+        padding: 24,
+        fontFamily: 'var(--font-sans)',
+      }}
+    >
+      <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 400 }}>
+        Preview is in the builder
+      </h1>
+      <p style={{ color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+        The respondent journey outline is on the Journey step of the study editor.
+        Open the study and use Preview there to jump to it.
+      </p>
+      <Link href={editHref} style={{ color: 'var(--sage-dark)' }}>
+        ← Back to editor
+      </Link>
     </div>
   )
 }

@@ -48,7 +48,7 @@ type Props = {
   publishFailure?: ConceptPublishFailure | null
   disabled?: boolean
   disabledReason?: string | null
-  /** CONCEPT_SINGLE_TEST_ENABLED — benchmark controls, no floor rewrite. */
+  /** Single concept test — benchmark controls, no floor rewrite. */
   singleTestMode?: boolean
 }
 
@@ -59,7 +59,7 @@ export default function FieldSection({
   publishFailure = null,
   disabled,
   disabledReason,
-  singleTestMode = false,
+  singleTestMode = true,
 }: Props) {
   const validity = evaluateFieldValidity(draft)
   const modeLabel = stimulusModeLabel(draft.stimulusMode)

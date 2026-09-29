@@ -41,19 +41,3 @@ export async function rpcPublishConceptStudy(
     p_audience_definition: args.p_audience_definition ?? undefined,
   })
 }
-
-/** Read-only walkthrough questionnaire. */
-export async function rpcPreviewConceptQuestionnaire(
-  supabase: Client,
-  args: {
-    p_module_config: Json
-    p_modules: StudyModuleCode[]
-    p_battle_prompt?: string | null
-  }
-) {
-  return supabase.rpc('preview_concept_questionnaire', {
-    p_module_config: args.p_module_config,
-    p_modules: args.p_modules,
-    p_battle_prompt: args.p_battle_prompt ?? undefined,
-  })
-}

@@ -8,11 +8,7 @@ import { armLabelForIndex } from './defaults'
 import { priceToWire } from './price'
 import { templateConfigToWire, composeVerificationOptions } from './templateConfig'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
-import { composeConceptPublishModules } from '@/lib/study/modules'
-import {
-  CONCEPT_SINGLE_TEST_ENABLED,
-  STUDY_AUDIENCE_BUILDER_ENABLED,
-} from '@/lib/studies/features'
+import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 import {
   MODULE_CONCEPT_CORE_V1,
   brandQuestionsToWire,
@@ -38,12 +34,12 @@ function isHttpsUrl(raw: string | null | undefined): boolean {
  */
 export function draftToPublishPayload(
   draft: ConceptStudyDraft,
-  opts?: { singleTest?: boolean }
+  _opts?: { singleTest?: boolean }
 ): {
   concepts: ConceptPublishConcept[]
   products: ConceptPublishProduct[]
 } {
-  const singleTest = opts?.singleTest === true
+  const singleTest = true
 
   const concepts: ConceptPublishConcept[] = draft.conceptArms.map((arm, i) => {
     const intent =
@@ -212,21 +208,13 @@ export function draftToConceptPublishStudyArgs(
 ): PublishConceptStudyArgs {
   if (draft.taxonomyNodeId == null) throw new Error('NODE_REQUIRED')
 
-  const singleTest = CONCEPT_SINGLE_TEST_ENABLED
-
-  if (singleTest) {
-    if (draft.stimulusMode !== 'package') {
-      throw new Error('CORE_REQUIRES_PACKAGE_STIMULUS')
-    }
-  } else if (draft.stimulusMode !== 'package' && draft.stimulusMode !== 'price') {
-    throw new Error('NO_TEMPLATE_FOR_MODE')
+  if (draft.stimulusMode !== 'package') {
+    throw new Error('CORE_REQUIRES_PACKAGE_STIMULUS')
   }
 
-  const { concepts, products } = draftToPublishPayload(draft, { singleTest })
+  const { concepts, products } = draftToPublishPayload(draft, { singleTest: true })
 
-  const customPrompt = singleTest
-    ? (draft.customBattlePrompt ?? '').trim() || undefined
-    : undefined
+  const customPrompt = (draft.customBattlePrompt ?? '').trim() || undefined
 
   const args: PublishConceptStudyArgs = {
     p_test_type: 'concept',
@@ -238,30 +226,19 @@ export function draftToConceptPublishStudyArgs(
       concepts: concepts as unknown as PublishConceptStudyArgs['p_field']['concepts'],
       products: products as unknown as PublishConceptStudyArgs['p_field']['products'],
     },
-    p_modules: singleTest
-      ? ([MODULE_CONCEPT_CORE_V1] as unknown as PublishConceptStudyArgs['p_modules'])
-      : composeConceptPublishModules(draft.stimulusMode as 'package' | 'price', draft.selectedModules),
-    p_module_config: (singleTest
-      ? singleTestModuleConfig(draft)
-      : templateConfigToWire(draft.templateConfig)) as unknown as PublishConceptStudyArgs['p_module_config'],
+    p_modules: [MODULE_CONCEPT_CORE_V1] as unknown as PublishConceptStudyArgs['p_modules'],
+    p_module_config: singleTestModuleConfig(draft) as unknown as PublishConceptStudyArgs['p_module_config'],
     p_created_by: ctx.createdBy,
-    p_price_posture: singleTest
-      ? 'blind'
-      : draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
-        ? 'blind'
-        : draft.pricePosture,
+    p_price_posture: 'blind',
     p_expires_at: ctx.expiresAt,
     p_target_completions: draft.targetCompletions,
     p_audience_definition: draft.audienceDefinition.trim() || undefined,
+    p_predictive_validity_opt_in: draft.predictiveValidityOptIn !== false,
+    p_category_intelligence_opt_in: draft.categoryIntelligenceOptIn === true,
   }
 
   if (customPrompt) {
     args.p_battle_prompt = customPrompt
-  }
-
-  if (singleTest) {
-    args.p_predictive_validity_opt_in = draft.predictiveValidityOptIn !== false
-    args.p_category_intelligence_opt_in = draft.categoryIntelligenceOptIn === true
   }
 
   const eligibility = conceptEligibilityToWire(draft)
