@@ -48054,6 +48054,7 @@ export type Database = {
           p_issuer_name?: string | null
           p_credential_id?: string | null
           p_asof_date?: string | null
+          p_expires_at?: string | null
           p_published?: boolean
           p_expected_current_id?: number | null
         }
