@@ -72,8 +72,8 @@ export const CONCEPT_PUBLISH_HINT_MESSAGES: Record<string, string> = {
   INVALID_BRAND_QUESTION_PROMPT: 'Brand question prompts must be 8–140 characters.',
   INVALID_BRAND_QUESTION_OPTION: 'Each option must be at most 60 characters.',
   INVALID_BRAND_QUESTION_MAX_SELECT: 'max_select must be between 1 and the option count.',
-  H2H_BAR_OUT_OF_RANGE: 'Head-to-head bar must be between 50% and 90%.',
-  PRICE_BAR_OUT_OF_RANGE: 'Price bar must be between 10% and 95%.',
+  H2H_BAR_OUT_OF_RANGE: 'Head-to-head bar must be between 0% and 100%.',
+  PRICE_BAR_OUT_OF_RANGE: 'Price bar must be between 0% and 100%.',
   LIKING_NEEDS_CURRENT_PACK:
     'Liking vs current pack needs a current-pack benchmark.',
   LIKING_THRESHOLD_REQUIRED: 'Absolute liking needs a threshold.',

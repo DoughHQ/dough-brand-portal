@@ -708,10 +708,7 @@ export default function ConceptStudyClient({
         }}
         onPreview={() => {
           flushSaveNow(draft)
-          document.getElementById('concept-questions')?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-          })
+          router.push(`/studies/concept/${draft.draftId}/preview`)
         }}
         onScrollTo={scrollTo}
       />
