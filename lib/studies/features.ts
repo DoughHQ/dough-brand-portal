@@ -10,8 +10,11 @@ export const STUDY_AUDIENCE_BUILDER_ENABLED = false
 /**
  * Single concept test (CONCEPT_CORE_V1).
  *
- * When true: packaging-only builder, journey preview, benchmark controls,
- * CONCEPT_CORE_V1 publish payload, in_review / approve, concept_test report.
- * Keep aligned with the backend pack + app runner — see concept-core-fixtures/.
+ * Default false: editor, publish, preview, studies list and report stay identical
+ * to today. Flip only with the backend pack + app runner in the same release
+ * train — see concept-core-fixtures/.
+ *
+ * When true: packaging-only builder, journey outline, benchmarks, CONCEPT_CORE_V1
+ * publish payload, in_review / approve, concept_test report.
  */
-export const CONCEPT_SINGLE_TEST_ENABLED = true
+export const CONCEPT_SINGLE_TEST_ENABLED = false
