@@ -41,7 +41,6 @@ export const BATTLE_PROMPT_OPTIONS: {
   },
 ]
 
-export type BenchmarkRole = 'current_pack' | 'competitor_to_beat'
 
 export type BrandQuestionDraft = {
   localId: string

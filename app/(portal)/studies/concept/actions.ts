@@ -7,7 +7,6 @@ import { draftToConceptPublishStudyArgs } from '@/lib/concept/publish'
 import { resolvePublishError, type ConceptErrorSection } from '@/lib/concept/errors'
 import { templateConfigToWire } from '@/lib/concept/templateConfig'
 import {
-  rpcBuildConceptQuestionsFromTemplate,
   rpcPreviewConceptQuestionnaire,
   rpcPublishConceptStudy,
 } from '@/lib/concept/rpc'
@@ -18,7 +17,6 @@ import type {
   ConceptPublishSuccessMeta,
   ConceptStudyDraft,
   LegibilityOption,
-  PackagingTemplateConfig,
 } from '@/lib/concept/types'
 import type { PackSizeOption } from '@/lib/concept/packSize'
 import type { Json } from '@/lib/database.types'
@@ -254,58 +252,6 @@ export async function previewConceptQuestionnaireAction(
   }
 }
 
-export async function previewPackagingQuestionsAction(
-  config: PackagingTemplateConfig
-): Promise<
-  | { ok: true; questions: unknown[] }
-  | { ok: false; error: string }
-> {
-  const portalUser = await getPortalUser()
-  if (!portalUser) return { ok: false, error: "You don't have access to that brand." }
-
-  const supabase = await createServerSupabaseClient()
-  try {
-    const { data, error } = await rpcBuildConceptQuestionsFromTemplate(supabase, {
-      p_template_code: PACKAGING_TEMPLATE_CODE,
-      p_config: templateConfigToWire(config),
-    })
-    if (error) {
-      const resolved = resolvePublishError({
-        thrown: { message: error.message, hint: extractHint(error) ?? undefined },
-      })
-      return { ok: false, error: resolved.text }
-    }
-    const root = asRecord(data)
-    if (root && typeof root.error === 'string') {
-      const resolved = resolvePublishError({
-        returned: { error: root.error, detail: root.detail },
-      })
-      return { ok: false, error: resolved.text }
-    }
-    const list = Array.isArray(data)
-      ? data
-      : Array.isArray(root?.questions)
-        ? root.questions
-        : null
-    if (!list) {
-      return { ok: false, error: 'Template preview returned no questions.' }
-    }
-    return { ok: true, questions: list }
-  } catch (err) {
-    return {
-      ok: false,
-      error: err instanceof Error ? err.message : 'Could not build question preview.',
-    }
-  }
-}
-
-/** @deprecated Prefer publishConceptStudyAction. */
-export async function publishConceptMissionAction(
-  draft: ConceptStudyDraft
-): Promise<ConceptPublishResult> {
-  return publishConceptStudyAction(draft)
-}
-
 export async function publishConceptStudyAction(
   draft: ConceptStudyDraft
 ): Promise<ConceptPublishResult> {
@@ -510,9 +456,9 @@ export async function getPackSizeOptionsAction(
   taxonomyNodeId: number
 ): Promise<PackSizeOptionsResult> {
   const supabase = await createServerSupabaseClient()
-  const { data, error } = await supabase.rpc('get_pack_size_options' as never, {
+  const { data, error } = await supabase.rpc('get_pack_size_options', {
     p_taxonomy_node_id: taxonomyNodeId,
-  } as never)
+  })
   if (error) {
     console.error('[concept] get_pack_size_options', error)
     return { options: [], family_code: null, family_label: null }
@@ -689,9 +635,9 @@ export async function checkConceptDecoyAction(
 
   const supabase = await createServerSupabaseClient()
   try {
-    const { data, error } = await supabase.rpc('check_concept_decoy' as never, {
+    const { data, error } = await supabase.rpc('check_concept_decoy', {
       p_decoy: trimmed,
-    } as never)
+    })
     if (error) {
       // Dark backend — local checks only.
       return { ok: true, decoy: trimmed }
@@ -707,7 +653,7 @@ export async function checkConceptDecoyAction(
 }
 
 /**
- * preview_concept_journey — Section 2 phone preview.
+ * preview_concept_journey — Section 2 respondent journey outline.
  * On UNKNOWN_MODULE / dark pack, returns fixture journey remapped to Design letters.
  */
 export async function previewConceptJourneyAction(
@@ -735,11 +681,13 @@ export async function previewConceptJourneyAction(
       expiresAt: draft.expiresAt || new Date().toISOString(),
     })
 
-    const { data, error } = await supabase.rpc('preview_concept_journey' as never, {
+    const { data, error } = await supabase.rpc('preview_concept_journey', {
       p_field: args.p_field as unknown as Json,
-      p_module_config: args.p_module_config,
-      p_battle_prompt: args.p_battle_prompt ?? null,
-    } as never)
+      p_module_config: args.p_module_config as Json,
+      ...(args.p_battle_prompt
+        ? { p_battle_prompt: args.p_battle_prompt }
+        : {}),
+    })
 
     if (error) {
       const preview = fixturePreview()
@@ -779,9 +727,9 @@ export async function approveConceptMissionAction(
     return { ok: false, error: 'Only Dough admins can approve studies.' }
   }
   const supabase = await createServerSupabaseClient()
-  const { error } = await supabase.rpc('approve_concept_mission' as never, {
+  const { error } = await supabase.rpc('approve_concept_mission', {
     p_mission_id: missionId,
-  } as never)
+  })
   if (error) return { ok: false, error: error.message }
   return { ok: true }
 }

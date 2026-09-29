@@ -163,9 +163,9 @@ export default async function ConceptStudyReportPage({ params, searchParams }: P
   if (!result.ok) {
     // When flag on, try raw RPC once more for concept_core_v1 shape the legacy parser rejects.
     if (CONCEPT_SINGLE_TEST_ENABLED) {
-      const { data } = await supabase.rpc('get_concept_mission_report' as never, {
+      const { data } = await supabase.rpc('get_concept_mission_report', {
         p_mission_id: missionId,
-      } as never)
+      })
       if (isConceptTestReportPayload(data)) {
         const parsed = parseConceptTestReport(data)
         if (parsed) {
@@ -190,9 +190,9 @@ export default async function ConceptStudyReportPage({ params, searchParams }: P
 
   // Legacy path may accidentally parse a core report — prefer core when flag on.
   if (CONCEPT_SINGLE_TEST_ENABLED) {
-    const { data } = await supabase.rpc('get_concept_mission_report' as never, {
+    const { data } = await supabase.rpc('get_concept_mission_report', {
       p_mission_id: missionId,
-    } as never)
+    })
     const envelope =
       data && typeof data === 'object' && !Array.isArray(data)
         ? (data as Record<string, unknown>)

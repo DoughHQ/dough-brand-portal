@@ -1,12 +1,11 @@
 /**
- * preview_concept_journey shape + phone-preview mapper.
+ * preview_concept_journey shape + outline mapper.
  * Journey subject.display_name / arm_label are brand-facing only —
- * the mock must show Design A/B (same rule as the server).
+ * the outline must show Design A/B (same rule as the server).
  */
 
 import {
   isBrandFacingDesignLabel,
-  respondentDesignLabel,
   respondentLabelForArm,
 } from './designLetters'
 
@@ -269,4 +268,3 @@ export function groupPhonePreviewScreens(
   return groups
 }
 
-export { respondentDesignLabel }

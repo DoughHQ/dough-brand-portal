@@ -13,7 +13,7 @@ function parseTab(raw: string | string[] | undefined): BoxTab {
 export default async function AdminBoxesPage({
   searchParams,
 }: {
-  searchParams?: Promise<Record<string, string | string[] | undefined>> | Record<string, string | string[] | undefined>
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
 }) {
   const scope = await getPortalBrandScope()
   if (!scope) redirect('/login')
@@ -21,9 +21,7 @@ export default async function AdminBoxesPage({
     redirect('/studies')
   }
 
-  const params = typeof (searchParams as { then?: unknown })?.then === 'function'
-    ? await (searchParams as Promise<Record<string, string | string[] | undefined>>)
-    : (searchParams as Record<string, string | string[] | undefined> | undefined)
+  const params = searchParams ? await searchParams : undefined
 
   const tab = parseTab(params?.tab)
   const supabase = await createServerSupabaseClient()

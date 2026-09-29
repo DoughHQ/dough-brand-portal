@@ -33,7 +33,7 @@ export function respondentLabelForArm(
   return respondentDesignLabel(idx >= 0 ? idx : 0)
 }
 
-/** Brand-facing strings that must never appear in the phone mock. */
+/** Brand-facing strings that must never appear in the respondent-facing outline. */
 export function isBrandFacingDesignLabel(text: string): boolean {
   const t = text.trim().toLowerCase()
   if (!t) return false
