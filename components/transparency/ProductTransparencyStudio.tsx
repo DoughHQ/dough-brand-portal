@@ -544,11 +544,12 @@ type LocalRow = {
 
 export default function ProductTransparencyStudio({
   productId,
-  brandId,
-  canEdit,
+  brandId: _brandId,
+  canEdit: canEditProp,
   ingredientStatement = null,
   pcfAsk = null,
 }: Props) {
+  void _brandId
   const supabase = useMemo(() => createClient(), [])
   const [fields, setFields] = useState<ProofSubMetricRow[]>([])
   const [metrics, setMetrics] = useState<ProofMetricRow[]>([])
@@ -561,6 +562,9 @@ export default function ProductTransparencyStudio({
   const [chapterId, setChapterId] = useState<ProofChapterId>('planet')
   const [openKey, setOpenKey] = useState<string | null>(null)
   const [chapterReady, setChapterReady] = useState(false)
+  /** Demoted when the server reports a viewer tried to publish. */
+  const [writeBlocked, setWriteBlocked] = useState(false)
+  const canEdit = canEditProp && !writeBlocked
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -1084,7 +1088,6 @@ export default function ProductTransparencyStudio({
     const result = await saveDisclosure({
       supabase,
       productId,
-      brandId,
       field,
       draft: row.draft,
       prior: row.saved,
@@ -1092,6 +1095,12 @@ export default function ProductTransparencyStudio({
     setSavingKey(null)
     if (!result.ok) {
       setErrors((e) => ({ ...e, [row.key]: result.error }))
+      if (result.code === 'STALE_EDIT' || result.code === 'NOT_CURRENT') {
+        void load()
+      }
+      if (result.code === 'NOT_ALLOWED_TO_PUBLISH') {
+        setWriteBlocked(true)
+      }
       if (process.env.NODE_ENV === 'development') {
         console.error('[transparency] save failed', result.error)
       }
@@ -1183,13 +1192,18 @@ export default function ProductTransparencyStudio({
       const result = await saveDisclosure({
         supabase,
         productId,
-        brandId,
         field: item.field,
         draft: item.draft,
         prior: item.row.saved,
       })
       if (!result.ok) {
         setStoryError(result.error)
+        if (result.code === 'STALE_EDIT' || result.code === 'NOT_CURRENT') {
+          void load()
+        }
+        if (result.code === 'NOT_ALLOWED_TO_PUBLISH') {
+          setWriteBlocked(true)
+        }
         break
       }
       applied.push({
@@ -1266,13 +1280,18 @@ export default function ProductTransparencyStudio({
       const result = await saveDisclosure({
         supabase,
         productId,
-        brandId,
         field: item.field,
         draft: item.draft,
         prior: item.row.saved,
       })
       if (!result.ok) {
         setStoryError(result.error)
+        if (result.code === 'STALE_EDIT' || result.code === 'NOT_CURRENT') {
+          void load()
+        }
+        if (result.code === 'NOT_ALLOWED_TO_PUBLISH') {
+          setWriteBlocked(true)
+        }
         break
       }
       applied.push({

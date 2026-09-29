@@ -48033,6 +48033,32 @@ export type Database = {
         Args: { p_batch_size?: number }
         Returns: string
       }
+      save_product_disclosure: {
+        Args: {
+          p_product_id: number
+          p_sub_metric_code: string
+          p_status: string
+          p_source_tier: string
+          p_subject_kind?: string
+          p_subject_label?: string | null
+          p_value_text?: string | null
+          p_value_num?: number | null
+          p_value_bool?: boolean | null
+          p_value_date?: string | null
+          p_value_unit?: string | null
+          p_method_code?: string | null
+          p_boundary_code?: string | null
+          p_data_quality?: string | null
+          p_other_text?: string | null
+          p_source_url?: string | null
+          p_issuer_name?: string | null
+          p_credential_id?: string | null
+          p_asof_date?: string | null
+          p_published?: boolean
+          p_expected_current_id?: number | null
+        }
+        Returns: Json
+      }
       save_shipping_address: {
         Args: {
           p_address_id?: number
@@ -48343,6 +48369,10 @@ export type Database = {
       }
       set_primary_product_image: {
         Args: { p_product_image_id: number }
+        Returns: Json
+      }
+      set_product_disclosure_published: {
+        Args: { p_disclosure_id: number; p_published: boolean }
         Returns: Json
       }
       set_product_comment: {
