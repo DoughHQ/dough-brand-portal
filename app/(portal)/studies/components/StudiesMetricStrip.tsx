@@ -5,7 +5,7 @@ import type { OperatorStudyRow } from '@/lib/studies/types'
 
 function isActive(row: OperatorStudyRow): boolean {
   const s = row.lifecycle_state
-  return s === 'active' || s === 'paused' || s === 'scheduled'
+  return s === 'active' || s === 'paused' || s === 'scheduled' || s === 'in_review'
 }
 
 function isDraft(row: OperatorStudyRow): boolean {

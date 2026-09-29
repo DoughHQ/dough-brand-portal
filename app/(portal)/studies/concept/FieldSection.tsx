@@ -48,6 +48,8 @@ type Props = {
   publishFailure?: ConceptPublishFailure | null
   disabled?: boolean
   disabledReason?: string | null
+  /** CONCEPT_SINGLE_TEST_ENABLED — benchmark controls, no floor rewrite. */
+  singleTestMode?: boolean
 }
 
 export default function FieldSection({
@@ -57,6 +59,7 @@ export default function FieldSection({
   publishFailure = null,
   disabled,
   disabledReason,
+  singleTestMode = false,
 }: Props) {
   const validity = evaluateFieldValidity(draft)
   const modeLabel = stimulusModeLabel(draft.stimulusMode)
@@ -64,6 +67,11 @@ export default function FieldSection({
   const priceMode = draft.stimulusMode === 'price'
   const blindImageMode = packaging || priceMode
   function updateArms(arms: ConceptArmRow[]) {
+    if (singleTestMode) {
+      // Single-test never rewrites floor prompts from arm names (label bias).
+      onChange({ ...draft, conceptArms: arms })
+      return
+    }
     const leader = arms[0]
     const priceLabel = formatPriceLabel(leader?.frozen_price)
     const floor = draft.floor
@@ -78,6 +86,51 @@ export default function FieldSection({
         }
       : draft.floor
     onChange({ ...draft, conceptArms: arms, floor })
+  }
+
+  function setCurrentPack(localId: string) {
+    const arms = draft.conceptArms.map((a) =>
+      a.localId === localId
+        ? {
+            ...a,
+            benchmark_role: 'current_pack' as const,
+            battle_intent: 'competitor' as const,
+          }
+        : { ...a, benchmark_role: null }
+    )
+    const products = draft.products.map((p) => ({ ...p, benchmark_role: null }))
+    onChange({ ...draft, conceptArms: arms, products })
+  }
+
+  function clearArmBenchmark(localId: string) {
+    const arms = draft.conceptArms.map((a) =>
+      a.localId === localId
+        ? { ...a, benchmark_role: null, battle_intent: 'hero' as const }
+        : a
+    )
+    onChange({ ...draft, conceptArms: arms })
+  }
+
+  function setCompetitorToBeat(localId: string) {
+    const products = draft.products.map((p) =>
+      p.localId === localId
+        ? { ...p, benchmark_role: 'competitor_to_beat' as const }
+        : { ...p, benchmark_role: null }
+    )
+    const arms = draft.conceptArms.map((a) => ({
+      ...a,
+      benchmark_role: null,
+      battle_intent:
+        a.benchmark_role === 'current_pack' ? ('hero' as const) : a.battle_intent,
+    }))
+    onChange({ ...draft, conceptArms: arms, products })
+  }
+
+  function clearProductBenchmark(localId: string) {
+    const products = draft.products.map((p) =>
+      p.localId === localId ? { ...p, benchmark_role: null } : p
+    )
+    onChange({ ...draft, products })
   }
 
   function updateProducts(products: ProductCompetitorRow[]) {
@@ -207,6 +260,9 @@ export default function FieldSection({
             modeLabel={modeLabel}
             addVariant={addVariantAvailability}
             disabled={disabled}
+            singleTestMode={singleTestMode}
+            onSetCurrentPack={singleTestMode ? setCurrentPack : undefined}
+            onClearBenchmark={singleTestMode ? clearArmBenchmark : undefined}
           />
 
           <CompetitorsColumn
@@ -219,6 +275,9 @@ export default function FieldSection({
             progressLabel={competitorLabel}
             disabled={disabled}
             rowErrors={conceptProductRowErrors(draft.products, publishFailure)}
+            singleTestMode={singleTestMode}
+            onSetCompetitorToBeat={singleTestMode ? setCompetitorToBeat : undefined}
+            onClearBenchmark={singleTestMode ? clearProductBenchmark : undefined}
           />
         </div>
       </div>

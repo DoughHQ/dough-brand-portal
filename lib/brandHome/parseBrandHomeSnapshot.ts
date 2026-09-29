@@ -284,7 +284,15 @@ function studyRowFromHighlight(raw: unknown): HomeStudyRow | null {
   const { href, ctaLabel } = studyHref({
     mission_id: id,
     title,
-    lifecycle_state: lifecycle as 'active' | 'scheduled' | 'completed' | 'expired' | 'draft' | 'paused' | 'archived',
+    lifecycle_state: lifecycle as
+      | 'active'
+      | 'scheduled'
+      | 'completed'
+      | 'expired'
+      | 'draft'
+      | 'paused'
+      | 'archived'
+      | 'in_review',
     mission_type: missionType,
     test_type: missionType === 'concept_test' ? 'concept' : null,
     completed_claims: asNum(r.completed_claims),

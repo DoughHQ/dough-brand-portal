@@ -1,0 +1,628 @@
+{
+ "flow": "concept_core_v1",
+ "screens": [
+  {
+   "kind": "screener",
+   "label": "category_frequency",
+   "stage": "screener",
+   "config": {
+    "prompt": "How often do you buy pints of ice cream?",
+    "options": [
+     "Never",
+     "A few times a year",
+     "About once a month",
+     "2-3 times a month",
+     "Weekly or more"
+    ],
+    "max_select": 1,
+    "min_select": 1,
+    "qualify_rule": {
+     "op": "in",
+     "value": [
+      "About once a month",
+      "2-3 times a month",
+      "Weekly or more"
+     ]
+    }
+   },
+   "screen": 1,
+   "answered": false,
+   "prompt_id": null,
+   "answerable": true,
+   "is_required": true,
+   "question_type": "concept_screener",
+   "protocol_question_id": "c0beb81b-e312-4eea-9dc1-c2487a50dc52"
+  },
+  {
+   "kind": "screener",
+   "label": "purchase_verification",
+   "stage": "screener",
+   "config": {
+    "prompt": "Which of these have you bought in the last 3 months? Select all that apply.",
+    "options": [
+     {
+      "id": "brand:20000217",
+      "label": "Häagen-Dazs",
+      "brand_id": 20000217
+     },
+     {
+      "id": "brand:20001741",
+      "label": "Halo Top",
+      "brand_id": 20001741
+     },
+     {
+      "id": "decoy",
+      "label": "Frostline"
+     },
+     {
+      "id": "none_of_these",
+      "label": "None of these"
+     }
+    ],
+    "max_select": 8,
+    "min_select": 1,
+    "qualify_rule": {
+     "op": "not_contains",
+     "value": "Frostline"
+    }
+   },
+   "screen": 2,
+   "answered": false,
+   "prompt_id": null,
+   "answerable": true,
+   "is_required": true,
+   "question_type": "concept_screener",
+   "protocol_question_id": "29fc91fc-4d9f-42e6-9203-20bf99674178"
+  },
+  {
+   "kind": "diagnostic",
+   "label": "first_look",
+   "stage": "pre_battle",
+   "config": {
+    "stage": "pre_battle",
+    "prompt": "First impression: how do you feel about this one?",
+    "options": [
+     "Love it",
+     "Like it",
+     "It's okay",
+     "Don't like it",
+     "Really don't like it"
+    ],
+    "ordinal": "best_first",
+    "focal_arm": "each_arm",
+    "max_select": 1,
+    "min_select": 1,
+    "report_block": "first_look"
+   },
+   "screen": 3,
+   "subject": {
+    "ref": 1,
+    "kind": "concept",
+    "name": "Design A",
+    "brand": null,
+    "price": null,
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/new-design.png",
+    "stimulus_type": "package"
+   },
+   "answered": false,
+   "focal_arm": "each_arm",
+   "prompt_id": null,
+   "answerable": true,
+   "is_required": true,
+   "subject_ref": 1,
+   "question_type": "concept_rating",
+   "protocol_question_id": "5c454ef9-af01-4683-9be4-fc0bf9f511d0"
+  },
+  {
+   "kind": "diagnostic",
+   "label": "first_look",
+   "stage": "pre_battle",
+   "config": {
+    "stage": "pre_battle",
+    "prompt": "First impression: how do you feel about this one?",
+    "options": [
+     "Love it",
+     "Like it",
+     "It's okay",
+     "Don't like it",
+     "Really don't like it"
+    ],
+    "ordinal": "best_first",
+    "focal_arm": "each_arm",
+    "max_select": 1,
+    "min_select": 1,
+    "report_block": "first_look"
+   },
+   "screen": 4,
+   "subject": {
+    "ref": 2,
+    "kind": "concept",
+    "name": "Design B",
+    "brand": null,
+    "price": null,
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/current-pack.png",
+    "stimulus_type": "package"
+   },
+   "answered": false,
+   "focal_arm": "each_arm",
+   "prompt_id": null,
+   "answerable": true,
+   "is_required": true,
+   "subject_ref": 2,
+   "question_type": "concept_rating",
+   "protocol_question_id": "5c454ef9-af01-4683-9be4-fc0bf9f511d0"
+  },
+  {
+   "kind": "forced_choice_battle",
+   "stage": "battle",
+   "config": {
+    "prompt": "Which one would you buy?",
+    "prompt_source": "vetted",
+    "attribute_sample_k": 3,
+    "attribute_prompt_id": 305
+   },
+   "prompt": "Which one would you buy?",
+   "screen": 5,
+   "answered": false,
+   "answerable": true,
+   "round_role": "scoring",
+   "combatant_a": {
+    "ref": 2,
+    "kind": "concept",
+    "name": "Design B",
+    "brand": null,
+    "price": null,
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/current-pack.png",
+    "stimulus_type": "package"
+   },
+   "combatant_b": {
+    "ref": 3,
+    "kind": "product",
+    "name": "PB Blondie Bestie Sundae",
+    "brand": "Ben & Jerry's",
+    "price": null,
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/pb-blondie.png",
+    "stimulus_type": null
+   },
+   "round_number": 1,
+   "question_type": "forced_choice_battle",
+   "combatant_ref_a": 2,
+   "combatant_ref_b": 3,
+   "presented_position": "b_left"
+  },
+  {
+   "kind": "attribute_followup",
+   "label": "Why this one? (sampled)",
+   "stage": "battle",
+   "config": {
+    "sampled": true,
+    "linked_to": "forced_choice_battle"
+   },
+   "screen": 6,
+   "answered": false,
+   "prompt_id": 305,
+   "answerable": null,
+   "winner_ref": null,
+   "is_required": false,
+   "question_type": "attribute_battle",
+   "combatant_ref_a": 2,
+   "combatant_ref_b": 3,
+   "linked_round_number": 1,
+   "protocol_question_id": "80215c45-abe2-44a1-adf6-17e958241152"
+  },
+  {
+   "kind": "forced_choice_battle",
+   "stage": "battle",
+   "config": {
+    "prompt": "Which one would you buy?",
+    "prompt_source": "vetted",
+    "attribute_sample_k": 3,
+    "attribute_prompt_id": 305
+   },
+   "prompt": "Which one would you buy?",
+   "screen": 7,
+   "answered": false,
+   "answerable": true,
+   "round_role": "scoring",
+   "combatant_a": {
+    "ref": 1,
+    "kind": "concept",
+    "name": "Design A",
+    "brand": null,
+    "price": null,
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/new-design.png",
+    "stimulus_type": "package"
+   },
+   "combatant_b": {
+    "ref": 2,
+    "kind": "concept",
+    "name": "Design B",
+    "brand": null,
+    "price": null,
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/current-pack.png",
+    "stimulus_type": "package"
+   },
+   "round_number": 2,
+   "question_type": "forced_choice_battle",
+   "combatant_ref_a": 1,
+   "combatant_ref_b": 2,
+   "presented_position": "b_left"
+  },
+  {
+   "kind": "attribute_followup",
+   "label": "Why this one? (sampled)",
+   "stage": "battle",
+   "config": {
+    "sampled": true,
+    "linked_to": "forced_choice_battle"
+   },
+   "screen": 8,
+   "answered": false,
+   "prompt_id": 305,
+   "answerable": null,
+   "winner_ref": null,
+   "is_required": false,
+   "question_type": "attribute_battle",
+   "combatant_ref_a": 1,
+   "combatant_ref_b": 2,
+   "linked_round_number": 2,
+   "protocol_question_id": "80215c45-abe2-44a1-adf6-17e958241152"
+  },
+  {
+   "kind": "forced_choice_battle",
+   "stage": "battle",
+   "config": {
+    "prompt": "Which one would you buy?",
+    "prompt_source": "vetted",
+    "attribute_sample_k": 3,
+    "attribute_prompt_id": 305
+   },
+   "prompt": "Which one would you buy?",
+   "screen": 9,
+   "answered": false,
+   "answerable": true,
+   "round_role": "scoring",
+   "combatant_a": {
+    "ref": 1,
+    "kind": "concept",
+    "name": "Design A",
+    "brand": null,
+    "price": null,
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/new-design.png",
+    "stimulus_type": "package"
+   },
+   "combatant_b": {
+    "ref": 3,
+    "kind": "product",
+    "name": "PB Blondie Bestie Sundae",
+    "brand": "Ben & Jerry's",
+    "price": null,
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/pb-blondie.png",
+    "stimulus_type": null
+   },
+   "round_number": 3,
+   "question_type": "forced_choice_battle",
+   "combatant_ref_a": 1,
+   "combatant_ref_b": 3,
+   "presented_position": "b_left"
+  },
+  {
+   "kind": "attribute_followup",
+   "label": "Why this one? (sampled)",
+   "stage": "battle",
+   "config": {
+    "sampled": true,
+    "linked_to": "forced_choice_battle"
+   },
+   "screen": 10,
+   "answered": false,
+   "prompt_id": 305,
+   "answerable": null,
+   "winner_ref": null,
+   "is_required": false,
+   "question_type": "attribute_battle",
+   "combatant_ref_a": 1,
+   "combatant_ref_b": 3,
+   "linked_round_number": 3,
+   "protocol_question_id": "80215c45-abe2-44a1-adf6-17e958241152"
+  },
+  {
+   "kind": "maxdiff",
+   "label": "what_matters",
+   "stage": "post_battle",
+   "config": {
+    "stage": "post_battle",
+    "n_sets": 7,
+    "set_size": 6,
+    "report_block": "what_matters",
+    "answer_set_code": "PACKAGING_DRIVERS_BW"
+   },
+   "n_sets": 7,
+   "screen": 11,
+   "answered": false,
+   "prompt_id": 306,
+   "answerable": true,
+   "is_required": true,
+   "question_type": "maxdiff_best_worst",
+   "sets_answered": 0,
+   "protocol_question_id": "af55b05b-8e6c-4532-8453-40abf42117f0"
+  },
+  {
+   "kind": "rank",
+   "items": [
+    {
+     "ref": 1,
+     "kind": "concept",
+     "name": "Design A",
+     "brand": null,
+     "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/new-design.png",
+     "stimulus_type": "package"
+    },
+    {
+     "ref": 3,
+     "kind": "product",
+     "name": "PB Blondie Bestie Sundae",
+     "brand": "Ben & Jerry's",
+     "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/pb-blondie.png",
+     "stimulus_type": null
+    },
+    {
+     "ref": 2,
+     "kind": "concept",
+     "name": "Design B",
+     "brand": null,
+     "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/current-pack.png",
+     "stimulus_type": "package"
+    }
+   ],
+   "label": "stated_rank",
+   "stage": "post_battle",
+   "config": {
+    "stage": "post_battle",
+    "prompt": "Put them in order, your favorite at the top.",
+    "source": "frozen_scoring_field",
+    "start_order": "shuffled",
+    "report_block": "stated_vs_chosen"
+   },
+   "screen": 12,
+   "answered": false,
+   "answerable": true,
+   "is_required": true,
+   "shown_order": [
+    1,
+    3,
+    2
+   ],
+   "question_type": "concept_rank",
+   "concept_session_id": "be770ae3-5155-4c47-9cfd-891106d058db",
+   "protocol_question_id": "5397faa5-8f9a-4f74-8ad4-e2a33c815423"
+  },
+  {
+   "kind": "diagnostic",
+   "label": "price",
+   "stage": "post_battle",
+   "config": {
+    "stage": "post_battle",
+    "prompt": "How much would you pay for a pint of this?",
+    "options": [
+     {
+      "id": "band:lt_4.99",
+      "low": null,
+      "high": 4.99,
+      "label": "Under $4.99"
+     },
+     {
+      "id": "band:4.99_5.99",
+      "low": 4.99,
+      "high": 5.99,
+      "label": "$4.99–$5.99"
+     },
+     {
+      "id": "band:5.99_6.99",
+      "low": 5.99,
+      "high": 6.99,
+      "label": "$5.99–$6.99"
+     },
+     {
+      "id": "band:6.99_7.99",
+      "low": 6.99,
+      "high": 7.99,
+      "label": "$6.99–$7.99"
+     },
+     {
+      "id": "band:7.99_8.99",
+      "low": 7.99,
+      "high": 8.99,
+      "label": "$7.99–$8.99"
+     },
+     {
+      "id": "band:8.99_9.99",
+      "low": 8.99,
+      "high": 9.99,
+      "label": "$8.99–$9.99"
+     },
+     {
+      "id": "band:gt_9.99",
+      "low": 9.99,
+      "high": null,
+      "label": "Over $9.99"
+     },
+     {
+      "id": "wouldnt_buy",
+      "label": "I wouldn't buy it"
+     }
+    ],
+    "focal_arm": "each_arm",
+    "band_basis": "anchor_edge",
+    "max_select": 1,
+    "min_select": 1,
+    "report_block": "price"
+   },
+   "screen": 13,
+   "subject": {
+    "ref": 1,
+    "kind": "concept",
+    "name": "Design A",
+    "brand": null,
+    "price": null,
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/new-design.png",
+    "stimulus_type": "package"
+   },
+   "answered": false,
+   "focal_arm": "each_arm",
+   "prompt_id": null,
+   "answerable": true,
+   "is_required": true,
+   "subject_ref": 1,
+   "question_type": "concept_wtp",
+   "protocol_question_id": "68dbc507-20aa-4b8e-96ff-2d2b6f2cae5f"
+  },
+  {
+   "kind": "diagnostic",
+   "label": "price",
+   "stage": "post_battle",
+   "config": {
+    "stage": "post_battle",
+    "prompt": "How much would you pay for a pint of this?",
+    "options": [
+     {
+      "id": "band:lt_4.99",
+      "low": null,
+      "high": 4.99,
+      "label": "Under $4.99"
+     },
+     {
+      "id": "band:4.99_5.99",
+      "low": 4.99,
+      "high": 5.99,
+      "label": "$4.99–$5.99"
+     },
+     {
+      "id": "band:5.99_6.99",
+      "low": 5.99,
+      "high": 6.99,
+      "label": "$5.99–$6.99"
+     },
+     {
+      "id": "band:6.99_7.99",
+      "low": 6.99,
+      "high": 7.99,
+      "label": "$6.99–$7.99"
+     },
+     {
+      "id": "band:7.99_8.99",
+      "low": 7.99,
+      "high": 8.99,
+      "label": "$7.99–$8.99"
+     },
+     {
+      "id": "band:8.99_9.99",
+      "low": 8.99,
+      "high": 9.99,
+      "label": "$8.99–$9.99"
+     },
+     {
+      "id": "band:gt_9.99",
+      "low": 9.99,
+      "high": null,
+      "label": "Over $9.99"
+     },
+     {
+      "id": "wouldnt_buy",
+      "label": "I wouldn't buy it"
+     }
+    ],
+    "focal_arm": "each_arm",
+    "band_basis": "anchor_edge",
+    "max_select": 1,
+    "min_select": 1,
+    "report_block": "price"
+   },
+   "screen": 14,
+   "subject": {
+    "ref": 2,
+    "kind": "concept",
+    "name": "Design B",
+    "brand": null,
+    "price": null,
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/current-pack.png",
+    "stimulus_type": "package"
+   },
+   "answered": false,
+   "focal_arm": "each_arm",
+   "prompt_id": null,
+   "answerable": true,
+   "is_required": true,
+   "subject_ref": 2,
+   "question_type": "concept_wtp",
+   "protocol_question_id": "68dbc507-20aa-4b8e-96ff-2d2b6f2cae5f"
+  },
+  {
+   "kind": "diagnostic",
+   "label": "brand_question_1",
+   "stage": "brand",
+   "config": {
+    "stage": "brand",
+    "prompt": "Which flavor would you buy first?",
+    "options": [
+     "Vanilla bean",
+     "Cookie dough",
+     "Mint chip"
+    ],
+    "max_select": 1,
+    "min_select": 1,
+    "authored_by": "brand",
+    "needs_review": true,
+    "report_block": "brand_questions",
+    "shuffle_options": true
+   },
+   "screen": 15,
+   "answered": false,
+   "prompt_id": null,
+   "answerable": true,
+   "is_required": true,
+   "question_type": "concept_brand_question",
+   "protocol_question_id": "345ad61f-8ea6-42eb-addb-592521a97fc2"
+  },
+  {
+   "kind": "diagnostic",
+   "label": "open_text",
+   "stage": "closing",
+   "config": {
+    "stage": "closing",
+    "prompt": "Anything else you'd like the brand to know? (optional)",
+    "response": "text",
+    "max_length": 280,
+    "report_block": "open_text",
+    "pii_scrub_required": true
+   },
+   "screen": 16,
+   "answered": false,
+   "prompt_id": null,
+   "answerable": true,
+   "is_required": false,
+   "question_type": "concept_diagnostic",
+   "protocol_question_id": "03b0db18-ffec-4fc2-9fae-efefac76cea8"
+  },
+  {
+   "kind": "session_summary",
+   "stage": "summary",
+   "screen": 17,
+   "allow_reorder": false,
+   "session_number": 1
+  }
+ ],
+ "protocol_id": "1d16ff0d-a831-4e24-a44a-c041de5351cb",
+ "stimulus_mode": "package",
+ "total_screens": 17,
+ "session_number": 1,
+ "mission_claim_id": "efc3bd4b-bd0a-4bfb-9810-af20726f24f9",
+ "recorded_outcomes": [],
+ "concept_session_id": "be770ae3-5155-4c47-9cfd-891106d058db",
+ "diagnostic_focal_ref": 1,
+ "attribute_sampled_rounds": [
+  1,
+  2,
+  3
+ ]
+}

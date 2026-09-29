@@ -5,6 +5,7 @@ import type { ConceptArmRow, PricePosture } from '@/lib/concept/types'
 import { armLabelForIndex, newConceptArm } from '@/lib/concept/defaults'
 import { isAllowedPriceInput } from '@/lib/concept/price'
 import type { AddAvailability } from '@/lib/concept/fieldSize'
+import { respondentDesignLabel } from '@/lib/concept/designLetters'
 import ConceptArmImageUploader from './ConceptArmImageUploader'
 import { DragHandle, TrashIcon } from './fieldIcons'
 import { fieldCard, inputBase, labelSm, sectionEyebrow, trashBtn } from './conceptStyles'
@@ -35,6 +36,10 @@ type Props = {
   /** Authoritative field-capacity verdict — owned by lib/concept/fieldSize. */
   addVariant: AddAvailability
   disabled?: boolean
+  /** Single-test — Design letters + current-pack benchmark. */
+  singleTestMode?: boolean
+  onSetCurrentPack?: (localId: string) => void
+  onClearBenchmark?: (localId: string) => void
 }
 
 export default function OwnProductColumn({
@@ -48,6 +53,9 @@ export default function OwnProductColumn({
   modeLabel,
   addVariant: addVariantAvailability,
   disabled,
+  singleTestMode = false,
+  onSetCurrentPack,
+  onClearBenchmark,
 }: Props) {
   const nameFocusRef = useRef<HTMLInputElement | null>(null)
   const [focusName, setFocusName] = useState(false)
@@ -206,7 +214,19 @@ export default function OwnProductColumn({
                   >
                     {multi && !priceMode ? <DragHandle /> : null}
                     <span className="cb-own-badge">Own product</span>
-                    {multi ? (
+                    {singleTestMode ? (
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: 'var(--sage)',
+                          letterSpacing: '0.04em',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Respondents see: {respondentDesignLabel(index)}
+                      </span>
+                    ) : multi ? (
                       <span
                         style={{
                           fontSize: 11,
@@ -271,6 +291,30 @@ export default function OwnProductColumn({
                       patchArm(arm.localId, { image_url, image_filename })
                     }
                   />
+
+                  {singleTestMode ? (
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        marginTop: 20,
+                        fontSize: 13,
+                        color: 'var(--ink-80)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={arm.benchmark_role === 'current_pack'}
+                        onChange={(e) => {
+                          if (e.target.checked) onSetCurrentPack?.(arm.localId)
+                          else onClearBenchmark?.(arm.localId)
+                        }}
+                      />
+                      This is our current pack
+                    </label>
+                  ) : null}
 
                   {/* 3 · study-controlled context — read-only, not a task */}
                   <div style={{ marginTop: 24 }}>

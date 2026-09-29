@@ -11,5 +11,9 @@ export default async function NewConceptStudyPage() {
     brandId: scope.effectiveBrandId,
   })
 
-  return <ConceptStudyClient initialDraft={draft} mode="new" />
+  const canPublish = scope.portalUser.role !== 'brand_viewer'
+
+  return (
+    <ConceptStudyClient initialDraft={draft} mode="new" canPublish={canPublish} />
+  )
 }

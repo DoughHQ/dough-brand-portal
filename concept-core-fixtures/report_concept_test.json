@@ -1,0 +1,41 @@
+{
+  "flow": "concept_core_v1",
+  "sample": {"n_started": 12, "n_completed": 0, "n_screened_out": 0, "n_battles_excluded_for_timing": 0},
+  "benchmark": {"ref": 2, "name": "Current pack", "role": "current_pack"},
+  "bars": {"created_at": "2026-09-29T01:41:47.637421+00:00", "updated_at": "2026-09-29T01:41:47.637421+00:00", "liking_mode": "vs_current_pack", "price_anchor": 7.99, "dough_defaults": {"version": "v1", "confidence_level": 0.95, "h2h_min_win_share": 0.50, "price_min_share_at_anchor": 0.50, "liking_vs_current_pack_min_diff": 0.00}, "confidence_level": 0.95, "liking_threshold": 0.000, "h2h_min_win_share": 0.500, "price_min_share_at_anchor": 0.500},
+  "verdict": [
+    {"ref": 1, "name": "New design", "overall": "too_close_to_call",
+     "head_to_head": {"hi": 0.862, "lo": 0.391, "bar": 0.500, "wins": 8, "losses": 4, "result": "too_close_to_call", "neither": 0, "win_share": 0.667, "n_decisive": 12, "dough_default": 0.50},
+     "liking": {"hi": 0.612, "lo": 0.055, "bar": 0.000, "mode": "vs_current_pack", "result": "cleared", "n_paired": 12, "dough_default": 0.00, "difference_top_two": 0.333},
+     "price": {"n": 12, "hi": 0.862, "lo": 0.391, "bar": 0.500, "anchor": 7.99, "result": "too_close_to_call", "dough_default": 0.50, "share_generous": 0.667, "share_conservative": 0.667}}
+  ],
+  "first_look": [
+    {"n": 12, "ref": 1, "name": "New design", "top_box": {"hi": 0.680, "lo": 0.193, "share": 0.417}, "top_two": {"hi": 0.911, "lo": 0.468, "share": 0.750}, "distribution": [{"n": 5, "label": "Love it", "share": 0.417}, {"n": 4, "label": "Like it", "share": 0.333}, {"n": 2, "label": "It's okay", "share": 0.167}, {"n": 1, "label": "Don't like it", "share": 0.083}, {"n": 0, "label": "Really don't like it", "share": 0.000}], "is_benchmark": false},
+    {"n": 12, "ref": 2, "name": "Current pack", "top_box": {"hi": 0.448, "lo": 0.047, "share": 0.167}, "top_two": {"hi": 0.680, "lo": 0.193, "share": 0.417}, "distribution": [{"n": 2, "label": "Love it", "share": 0.167}, {"n": 3, "label": "Like it", "share": 0.250}, {"n": 5, "label": "It's okay", "share": 0.417}, {"n": 2, "label": "Don't like it", "share": 0.167}, {"n": 0, "label": "Really don't like it", "share": 0.000}], "is_benchmark": true}
+  ],
+  "what_matters": {"note": "Not enough maxdiff answers yet to score what matters.", "items": [], "detail": "no maxdiff observations for mission 77b06e22-2e75-4ed3-ba6c-7c67a86b91df (answer set PACKAGING_DRIVERS_BW)"},
+  "stated_vs_chosen": {"n_rankings": 12, "top_pick_agreement": 0.750, "mean_pair_agreement": 0.611, "n_top_pick_comparable": 8},
+  "price": [
+    {"ref": 1, "name": "New design", "is_benchmark": false, "report": {"framing": "stated_reservation_price_demand", "cap_note": "Demand curve truncated at the top open-ended band; willingness above that edge is unbounded.", "n_priced": 10, "n_reject": 2, "n_answers": 12, "modal_band": {"low": 7.99, "high": 8.99, "label": "$7.99–$8.99"}, "demand_curve": [{"price": 6.99, "share_would_pay_gte": 0.8333}, {"price": 7.99, "share_would_pay_gte": 0.6667}, {"price": 8.99, "share_would_pay_gte": 0.2500}], "rejection_rate": 0.1667, "reporting_floor": 5, "band_distribution": [{"low": null, "high": 4.99, "count": 0, "label": "Under $4.99", "band_id": "band:lt_4.99"}, {"low": 4.99, "high": 5.99, "count": 0, "label": "$4.99–$5.99", "band_id": "band:4.99_5.99"}, {"low": 5.99, "high": 6.99, "count": 0, "label": "$5.99–$6.99", "band_id": "band:5.99_6.99"}, {"low": 6.99, "high": 7.99, "count": 2, "label": "$6.99–$7.99", "band_id": "band:6.99_7.99"}, {"low": 7.99, "high": 8.99, "count": 5, "label": "$7.99–$8.99", "band_id": "band:7.99_8.99"}, {"low": 8.99, "high": 9.99, "count": 3, "label": "$8.99–$9.99", "band_id": "band:8.99_9.99"}, {"low": 9.99, "high": null, "count": 0, "label": "Over $9.99", "band_id": "band:gt_9.99"}], "presentation_rule": "Stated willingness-to-pay under blind viewing, not a market forecast. The curve shows the share of these respondents whose stated reservation price is at least each price; it asymptotes to (1 - rejection_rate), never 100%.", "below_reporting_floor": false}},
+    {"ref": 2, "name": "Current pack", "is_benchmark": true, "report": {"framing": "stated_reservation_price_demand", "cap_note": "Demand curve truncated at the top open-ended band; willingness above that edge is unbounded.", "n_priced": 12, "n_reject": 0, "n_answers": 12, "modal_band": {"low": 5.99, "high": 6.99, "label": "$5.99–$6.99"}, "demand_curve": [{"price": 5.99, "share_would_pay_gte": 1.0000}, {"price": 7.99, "share_would_pay_gte": 0.4167}], "rejection_rate": 0.0000, "reporting_floor": 5, "band_distribution": [{"low": null, "high": 4.99, "count": 0, "label": "Under $4.99", "band_id": "band:lt_4.99"}, {"low": 4.99, "high": 5.99, "count": 0, "label": "$4.99–$5.99", "band_id": "band:4.99_5.99"}, {"low": 5.99, "high": 6.99, "count": 7, "label": "$5.99–$6.99", "band_id": "band:5.99_6.99"}, {"low": 6.99, "high": 7.99, "count": 0, "label": "$6.99–$7.99", "band_id": "band:6.99_7.99"}, {"low": 7.99, "high": 8.99, "count": 5, "label": "$7.99–$8.99", "band_id": "band:7.99_8.99"}, {"low": 8.99, "high": 9.99, "count": 0, "label": "$8.99–$9.99", "band_id": "band:8.99_9.99"}, {"low": 9.99, "high": null, "count": 0, "label": "Over $9.99", "band_id": "band:gt_9.99"}], "presentation_rule": "Stated willingness-to-pay under blind viewing, not a market forecast. The curve shows the share of these respondents whose stated reservation price is at least each price; it asymptotes to (1 - rejection_rate), never 100%.", "below_reporting_floor": false}}
+  ],
+  "brand_questions": [
+    {"n": 12, "label": "brand_question_1", "prompt": "Which flavor would you buy first?", "framing": "Written by the brand and reviewed by Dough before launch. Report shares with counts, labeled as brand-written; not part of Dough's method.", "options": [{"n": 4, "option": "Vanilla bean"}, {"n": 4, "option": "Mint chip"}, {"n": 4, "option": "Cookie dough"}], "brand_written": true}
+  ],
+  "open_text": {
+    "answers": [
+      {"text": "Love the colors, feels premium", "first_look": {"1": "Love it", "2": "Love it"}},
+      {"text": "Hard to read the flavor name", "first_look": {"1": "Love it", "2": "Like it"}},
+      {"text": "Would buy it, reach me at [removed]", "first_look": {"1": "Like it", "2": "It's okay"}},
+      {"text": "Looks too much like the old one", "first_look": {"1": "It's okay", "2": "It's okay"}}
+    ],
+    "scrub_note": "Emails, links, handles and phone numbers are removed before brands see answers; names are not detected."
+  },
+  "method": {
+    "price": "Stated willingness to pay at or above your price, never a sales forecast. Price bands are ranges, so the share is a range: it clears only if even the conservative count clears the bar.",
+    "liking": "Share answering Love it or Like it, asked before any battle. Against your current pack it is the paired difference on the same respondents.",
+    "confidence": "95%, fixed by Dough; brands set the bars, never the confidence.",
+    "result_rule": "Cleared when the whole interval sits at or above the bar, not cleared when it sits below, too close to call when it straddles; fewer than 10 answers reads as not enough responses.",
+    "head_to_head": "Each respondent's single direct battle between the design and the benchmark (scoring rounds, timing-flagged battles excluded); Wilson interval. Neither answers are shown and not counted as wins."
+  }
+}

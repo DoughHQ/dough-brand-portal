@@ -1,0 +1,266 @@
+{
+ "note": "Your designs are shown in a different order to each respondent, and battle pairs are balanced across respondents. Times are estimates.",
+ "counts": {
+  "rank": 1,
+  "price": 2,
+  "battles": 3,
+  "open_text": 1,
+  "screeners": 2,
+  "total_max": 23,
+  "total_min": 20,
+  "first_look": 2,
+  "maxdiff_sets": 7,
+  "brand_questions": 1,
+  "why_followups_up_to": 3
+ },
+ "screens": [
+  {
+   "kind": "screener",
+   "prompt": "How often do you buy pints of ice cream?",
+   "options": [
+    "Never",
+    "A few times a year",
+    "About once a month",
+    "2-3 times a month",
+    "Weekly or more"
+   ]
+  },
+  {
+   "kind": "screener",
+   "prompt": "Which of these have you bought in the last 3 months? Select all that apply.",
+   "options": [
+    {
+     "id": "brand:20000217",
+     "label": "Häagen-Dazs",
+     "brand_id": 20000217
+    },
+    {
+     "id": "brand:20001741",
+     "label": "Halo Top",
+     "brand_id": 20001741
+    },
+    {
+     "id": "decoy",
+     "label": "Frostline"
+    },
+    {
+     "id": "none_of_these",
+     "label": "None of these"
+    }
+   ]
+  },
+  {
+   "kind": "rating",
+   "prompt": "First impression: how do you feel about this one?",
+   "options": [
+    "Love it",
+    "Like it",
+    "It's okay",
+    "Don't like it",
+    "Really don't like it"
+   ],
+   "subject": {
+    "arm_label": "New design",
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/new-design.png",
+    "display_name": "New design"
+   }
+  },
+  {
+   "kind": "rating",
+   "prompt": "First impression: how do you feel about this one?",
+   "options": [
+    "Love it",
+    "Like it",
+    "It's okay",
+    "Don't like it",
+    "Really don't like it"
+   ],
+   "subject": {
+    "arm_label": "Current pack",
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/current-pack.png",
+    "display_name": "Current pack"
+   }
+  },
+  {
+   "kind": "battles",
+   "count": 3,
+   "prompt": "Which one would you buy?",
+   "needs_review": false,
+   "prompt_source": "vetted"
+  },
+  {
+   "kind": "why_followups",
+   "up_to": 3,
+   "prompt": "What made you pick this one?",
+   "options": [
+    "Looks tasty",
+    "Easy to tell what it is",
+    "Looks high quality",
+    "Looks like good value",
+    "Stands out",
+    "What it says on the front",
+    "The colors and design",
+    "I know this brand"
+   ]
+  },
+  {
+   "kind": "maxdiff",
+   "sets": 7,
+   "items": [
+    "Looks tasty",
+    "Easy to tell what it is",
+    "Looks high quality",
+    "Looks like good value",
+    "Stands out",
+    "What it says on the front",
+    "The colors and design"
+   ],
+   "prompt": "When you look at the package, which matters most to you, and which matters least?",
+   "items_per_set": 6
+  },
+  {
+   "kind": "rank",
+   "items": 3,
+   "prompt": "Put them in order, your favorite at the top."
+  },
+  {
+   "kind": "price",
+   "bands": [
+    {
+     "id": "band:lt_4.99",
+     "low": null,
+     "high": 4.99,
+     "label": "Under $4.99"
+    },
+    {
+     "id": "band:4.99_5.99",
+     "low": 4.99,
+     "high": 5.99,
+     "label": "$4.99–$5.99"
+    },
+    {
+     "id": "band:5.99_6.99",
+     "low": 5.99,
+     "high": 6.99,
+     "label": "$5.99–$6.99"
+    },
+    {
+     "id": "band:6.99_7.99",
+     "low": 6.99,
+     "high": 7.99,
+     "label": "$6.99–$7.99"
+    },
+    {
+     "id": "band:7.99_8.99",
+     "low": 7.99,
+     "high": 8.99,
+     "label": "$7.99–$8.99"
+    },
+    {
+     "id": "band:8.99_9.99",
+     "low": 8.99,
+     "high": 9.99,
+     "label": "$8.99–$9.99"
+    },
+    {
+     "id": "band:gt_9.99",
+     "low": 9.99,
+     "high": null,
+     "label": "Over $9.99"
+    },
+    {
+     "id": "wouldnt_buy",
+     "label": "I wouldn't buy it"
+    }
+   ],
+   "prompt": "How much would you pay for a pint of this?",
+   "subject": {
+    "arm_label": "New design",
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/new-design.png",
+    "display_name": "New design"
+   }
+  },
+  {
+   "kind": "price",
+   "bands": [
+    {
+     "id": "band:lt_4.99",
+     "low": null,
+     "high": 4.99,
+     "label": "Under $4.99"
+    },
+    {
+     "id": "band:4.99_5.99",
+     "low": 4.99,
+     "high": 5.99,
+     "label": "$4.99–$5.99"
+    },
+    {
+     "id": "band:5.99_6.99",
+     "low": 5.99,
+     "high": 6.99,
+     "label": "$5.99–$6.99"
+    },
+    {
+     "id": "band:6.99_7.99",
+     "low": 6.99,
+     "high": 7.99,
+     "label": "$6.99–$7.99"
+    },
+    {
+     "id": "band:7.99_8.99",
+     "low": 7.99,
+     "high": 8.99,
+     "label": "$7.99–$8.99"
+    },
+    {
+     "id": "band:8.99_9.99",
+     "low": 8.99,
+     "high": 9.99,
+     "label": "$8.99–$9.99"
+    },
+    {
+     "id": "band:gt_9.99",
+     "low": 9.99,
+     "high": null,
+     "label": "Over $9.99"
+    },
+    {
+     "id": "wouldnt_buy",
+     "label": "I wouldn't buy it"
+    }
+   ],
+   "prompt": "How much would you pay for a pint of this?",
+   "subject": {
+    "arm_label": "Current pack",
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/current-pack.png",
+    "display_name": "Current pack"
+   }
+  },
+  {
+   "kind": "brand_question",
+   "prompt": "Which flavor would you buy first?",
+   "options": [
+    "Vanilla bean",
+    "Mint chip",
+    "Cookie dough"
+   ],
+   "max_select": 1,
+   "needs_review": true
+  },
+  {
+   "kind": "open_text",
+   "prompt": "Anything else you'd like the brand to know? (optional)",
+   "optional": true
+  },
+  {
+   "kind": "summary"
+  }
+ ],
+ "field_issues": [],
+ "needs_review": true,
+ "estimated_minutes": {
+  "max": 3.5,
+  "min": 3.5
+ }
+}

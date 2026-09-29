@@ -23,6 +23,7 @@ import {
 } from './missionTrashActions'
 import { closeStudyAction } from './closeStudyAction'
 import { listOperatorStudiesPageAction } from './listStudiesPageAction'
+import { approveConceptMissionAction } from './concept/actions'
 import ConfirmDialog from './ConfirmDialog'
 import StudiesMetricStrip from './components/StudiesMetricStrip'
 import StudyDraftsPanel from './components/StudyDraftsPanel'
@@ -67,7 +68,11 @@ function isDraftBucket(state: OperatorStudyLifecycleState): boolean {
   return state === 'draft'
 }
 
-/** Same buckets the Active/Complete tabs used. Draft operator rows stay hidden. */
+function isInReview(state: OperatorStudyLifecycleState): boolean {
+  return state === 'in_review'
+}
+
+/** Same buckets the Active/Complete tabs used. Draft operator rows stay hidden; in_review is Active. */
 function bucketForRow(row: OperatorStudyRow): 'active' | 'complete' | null {
   const state = lifecycleOf(row)
   if (isDraftBucket(state)) return null
@@ -311,6 +316,29 @@ export default function StudiesClient({
     [refresh]
   )
 
+  const executeApprove = useCallback(
+    async (row: OperatorStudyRow) => {
+      setBusyId(row.mission_id)
+      setErrorBanner(null)
+      const result = await approveConceptMissionAction(row.mission_id)
+      setBusyId(null)
+      if (!result.ok) {
+        setErrorBanner(result.error)
+        return
+      }
+      setActiveRowsState((rows) =>
+        rows.map((r) =>
+          r.mission_id === row.mission_id
+            ? { ...r, lifecycle_state: 'active' as OperatorStudyLifecycleState }
+            : r
+        )
+      )
+      setToast({ kind: 'plain', message: 'Study approved and released' })
+      refresh()
+    },
+    [refresh]
+  )
+
   const undoWithdraw = useCallback(async () => {
     if (!toast || toast.kind !== 'withdraw_undo') return
     const pendingUndo = toast
@@ -546,6 +574,7 @@ export default function StudiesClient({
               showBrand={showBrand}
               onClose={(row) => setConfirm({ kind: 'close', row })}
               onWithdraw={(row) => void executeWithdraw(row)}
+              onApprove={(row) => void executeApprove(row)}
             />
           )}
           {activeHasMore ? (

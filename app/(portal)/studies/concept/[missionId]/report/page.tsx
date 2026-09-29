@@ -7,6 +7,13 @@ import { mergeCombatantDisplay } from '@/lib/conceptReport/mergeCombatants'
 import { conceptReportFixture, conceptReportThinSampleFixture } from '@/lib/conceptReport/fixture'
 import type { ConceptReportErrorCode } from '@/lib/conceptReport/types'
 import { ConceptReportDeck } from '@/components/conceptReport/ConceptReportDeck'
+import { ConceptTestReportDeck } from '@/components/conceptReport/ConceptTestReportDeck'
+import {
+  isConceptTestReportPayload,
+  parseConceptTestReport,
+} from '@/lib/conceptReport/conceptTestTypes'
+import { CONCEPT_SINGLE_TEST_ENABLED } from '@/lib/studies/features'
+import conceptTestFixture from '../../../../../../concept-core-fixtures/report_concept_test.json'
 
 type Props = {
   params: Promise<{ missionId: string }>
@@ -90,6 +97,34 @@ export default async function ConceptStudyReportPage({ params, searchParams }: P
   if (!scope) redirect('/login')
 
   if (
+    CONCEPT_SINGLE_TEST_ENABLED &&
+    sp.preview === 'core' &&
+    scope.portalUser.role === 'dough_admin'
+  ) {
+    const parsed = parseConceptTestReport(conceptTestFixture)
+    if (parsed) {
+      return (
+        <>
+          <div
+            className="no-print"
+            style={{
+              background: 'var(--amber-soft)',
+              color: 'var(--amber)',
+              fontFamily: 'var(--font-sans)',
+              fontSize: 12,
+              textAlign: 'center',
+              padding: '8px 12px',
+            }}
+          >
+            Preview fixture (concept_core_v1) — not a live frozen report
+          </div>
+          <ConceptTestReportDeck report={parsed} backHref={backHref} />
+        </>
+      )
+    }
+  }
+
+  if (
     (sp.preview === '1' || sp.preview === 'thin' || sp.preview === 'sim') &&
     scope.portalUser.role === 'dough_admin'
   ) {
@@ -126,8 +161,49 @@ export default async function ConceptStudyReportPage({ params, searchParams }: P
   const result = await fetchConceptMissionReport(supabase, missionId)
 
   if (!result.ok) {
+    // When flag on, try raw RPC once more for concept_core_v1 shape the legacy parser rejects.
+    if (CONCEPT_SINGLE_TEST_ENABLED) {
+      const { data } = await supabase.rpc('get_concept_mission_report' as never, {
+        p_mission_id: missionId,
+      } as never)
+      if (isConceptTestReportPayload(data)) {
+        const parsed = parseConceptTestReport(data)
+        if (parsed) {
+          return <ConceptTestReportDeck report={parsed} backHref={backHref} />
+        }
+      }
+      const envelope =
+        data && typeof data === 'object' && !Array.isArray(data)
+          ? (data as Record<string, unknown>)
+          : null
+      const inner = envelope?.report ?? envelope?.data ?? data
+      if (isConceptTestReportPayload(inner)) {
+        const parsed = parseConceptTestReport(inner)
+        if (parsed) {
+          return <ConceptTestReportDeck report={parsed} backHref={backHref} />
+        }
+      }
+    }
     const copy = messageForCode(result.code)
     return <StateCard title={copy.title} body={copy.body} backHref={backHref} />
+  }
+
+  // Legacy path may accidentally parse a core report — prefer core when flag on.
+  if (CONCEPT_SINGLE_TEST_ENABLED) {
+    const { data } = await supabase.rpc('get_concept_mission_report' as never, {
+      p_mission_id: missionId,
+    } as never)
+    const envelope =
+      data && typeof data === 'object' && !Array.isArray(data)
+        ? (data as Record<string, unknown>)
+        : null
+    const candidate = envelope?.report ?? envelope?.data ?? data
+    if (isConceptTestReportPayload(candidate)) {
+      const parsed = parseConceptTestReport(candidate)
+      if (parsed) {
+        return <ConceptTestReportDeck report={parsed} backHref={backHref} />
+      }
+    }
   }
 
   const report = await mergeCombatantDisplay(supabase, missionId, result.report)

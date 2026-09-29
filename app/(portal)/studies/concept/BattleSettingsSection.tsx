@@ -17,6 +17,8 @@ type Props = {
   onChange: (next: ConceptStudyDraft) => void
   disabled?: boolean
   disabledReason?: string | null
+  /** Single-test floor — UI min and clamp. */
+  minCompletions?: number
 }
 
 const stripItem = (ok: boolean): CSSProperties => ({
@@ -34,9 +36,11 @@ export default function BattleSettingsSection({
   onChange,
   disabled,
   disabledReason,
+  minCompletions = 1,
 }: Props) {
   const fieldSize = draft.conceptArms.length + draft.products.length
   const battles = uniquePairs(fieldSize)
+  const min = Math.max(1, minCompletions)
 
   return (
     <section
@@ -88,17 +92,22 @@ export default function BattleSettingsSection({
           <input
             id="field_target_completions"
             type="number"
-            min={1}
+            min={min}
             className="cb-input"
             value={draft.targetCompletions}
             onChange={(e) =>
               onChange({
                 ...draft,
-                targetCompletions: Math.max(1, Number(e.target.value) || 1),
+                targetCompletions: Math.max(min, Number(e.target.value) || min),
               })
             }
             style={inputBase}
           />
+          {min > 1 ? (
+            <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--ink-50)' }}>
+              Minimum {min} completions.
+            </p>
+          ) : null}
         </div>
         <div>
           <label style={labelSm} htmlFor="field_expires_at">

@@ -64,6 +64,9 @@ type Props = {
   disabled?: boolean
   /** localId → inline UPC / duplicate error on the competitor card. */
   rowErrors?: Record<string, string>
+  singleTestMode?: boolean
+  onSetCompetitorToBeat?: (localId: string) => void
+  onClearBenchmark?: (localId: string) => void
 }
 
 export default function CompetitorsColumn({
@@ -77,6 +80,9 @@ export default function CompetitorsColumn({
   progressLabel,
   disabled,
   rowErrors = {},
+  singleTestMode = false,
+  onSetCompetitorToBeat,
+  onClearBenchmark,
 }: Props) {
   /** Snapshot of the row being replaced, so Change can be cancelled without data loss. */
   const [changing, setChanging] = useState<{ localId: string; prev: ProductCompetitorRow } | null>(
@@ -281,6 +287,9 @@ export default function CompetitorsColumn({
                   }
                   onReplace={() => beginChange(row)}
                   onRemove={() => removeRow(row.localId)}
+                  singleTestMode={singleTestMode}
+                  onSetCompetitorToBeat={onSetCompetitorToBeat}
+                  onClearBenchmark={onClearBenchmark}
                 />
               ) : (
                 <CompetitorSearchSlot
@@ -320,6 +329,9 @@ function SelectedCompetitor({
   onReplace,
   onRemove,
   error,
+  singleTestMode = false,
+  onSetCompetitorToBeat,
+  onClearBenchmark,
 }: {
   row: ProductCompetitorRow
   hidePrice: boolean
@@ -330,6 +342,9 @@ function SelectedCompetitor({
   onPatch: (patch: Partial<ProductCompetitorRow>) => void
   onReplace: () => void
   onRemove: () => void
+  singleTestMode?: boolean
+  onSetCompetitorToBeat?: (localId: string) => void
+  onClearBenchmark?: (localId: string) => void
 }) {
   const [imgFailed, setImgFailed] = useState(false)
   useEffect(() => {
@@ -402,6 +417,29 @@ function SelectedCompetitor({
         <div style={{ fontSize: 13, color: 'var(--ink-50)', marginTop: 4 }}>
           {row.frozen_brand_name}
         </div>
+        {singleTestMode ? (
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              marginTop: 10,
+              fontSize: 12,
+              color: 'var(--ink-80)',
+              cursor: 'pointer',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={row.benchmark_role === 'competitor_to_beat'}
+              onChange={(e) => {
+                if (e.target.checked) onSetCompetitorToBeat?.(row.localId)
+                else onClearBenchmark?.(row.localId)
+              }}
+            />
+            Competitor to beat
+          </label>
+        ) : null}
         <div style={{ marginTop: 10 }}>
           {awaitingConfirm && row.upc ? (
             <ProductIdentityConfirm

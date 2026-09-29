@@ -145,6 +145,7 @@ export function studyHref(row: HomeStudyInput): { href: string; ctaLabel: string
 export function studyBadge(state: HomeStudyInput['lifecycle_state']): string {
   if (state === 'completed') return 'Results ready'
   if (state === 'draft') return 'Draft'
+  if (state === 'in_review') return 'In review'
   if (state === 'scheduled') return 'Scheduled'
   if (state === 'paused') return 'Paused'
   if (state === 'expired') return 'Expired'

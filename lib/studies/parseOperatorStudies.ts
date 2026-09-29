@@ -8,6 +8,7 @@ const LIFECYCLE_STATES = new Set<OperatorStudyLifecycleState>([
   'paused',
   'scheduled',
   'draft',
+  'in_review',
 ])
 
 export function normalizeLifecycle(

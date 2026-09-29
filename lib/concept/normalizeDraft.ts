@@ -1,33 +1,53 @@
 import { sanitizeSelectedModules } from '@/lib/study/modules'
+import { CONCEPT_SINGLE_TEST_ENABLED } from '@/lib/studies/features'
 import { createEmptyConceptDraft } from './defaults'
+import {
+  DEFAULT_DECOY_OPTION,
+  defaultSuccessBarsDraft,
+} from './singleTest'
 import type { ConceptStudyDraft } from './types'
 
 /** Hydrate a stored / server draft onto today's ConceptStudyDraft shape. */
 export function normalizeDraft(draft: ConceptStudyDraft): ConceptStudyDraft {
   const base = createEmptyConceptDraft()
+  const singleTest = CONCEPT_SINGLE_TEST_ENABLED
   const blindImageMode =
-    draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
-  const priceMode = draft.stimulusMode === 'price'
+    singleTest ||
+    draft.stimulusMode === 'package' ||
+    draft.stimulusMode === 'price'
+  const priceMode = !singleTest && draft.stimulusMode === 'price'
   const rawArms = draft.conceptArms ?? base.conceptArms
   const armsSource = priceMode ? rawArms.slice(0, 1) : rawArms
   const { scoringRounds: _retired, ...legacy } = draft as ConceptStudyDraft & {
     scoringRounds?: unknown
   }
+
+  const templateConfig = {
+    ...base.templateConfig,
+    ...(draft.templateConfig ?? {}),
+    price_answer_mode: draft.templateConfig?.price_answer_mode ?? 'bands',
+  }
+  if (singleTest && !templateConfig.decoy_option?.trim()) {
+    templateConfig.decoy_option = DEFAULT_DECOY_OPTION
+  }
+
   return {
     ...base,
     ...legacy,
-    stimulusMode: draft.stimulusMode ?? null,
-    templateConfig: {
-      ...base.templateConfig,
-      ...(draft.templateConfig ?? {}),
-      price_answer_mode: draft.templateConfig?.price_answer_mode ?? 'bands',
-    },
+    stimulusMode: singleTest
+      ? draft.stimulusMode === 'package'
+        ? 'package'
+        : draft.stimulusMode ?? 'package'
+      : draft.stimulusMode ?? null,
+    templateConfig,
     taxonomyNodeId: draft.taxonomyNodeId ?? null,
     eligibility: {
       ...base.eligibility,
       ...(draft.eligibility ?? {}),
     },
-    selectedModules: sanitizeSelectedModules(draft.selectedModules, 'concept'),
+    selectedModules: singleTest
+      ? []
+      : sanitizeSelectedModules(draft.selectedModules, 'concept'),
     targetCompletions: draft.targetCompletions ?? base.targetCompletions,
     expiresAt: draft.expiresAt ?? base.expiresAt,
     pricePosture: blindImageMode ? 'blind' : draft.pricePosture ?? base.pricePosture,
@@ -39,9 +59,16 @@ export function normalizeDraft(draft: ConceptStudyDraft): ConceptStudyDraft {
       image_url: arm.image_url ?? null,
       image_filename: arm.image_filename ?? null,
       stimulus_payload: arm.stimulus_payload ?? {},
+      battle_intent: arm.battle_intent,
+      benchmark_role: arm.benchmark_role ?? null,
     })),
-    products: (draft.products ?? []).map((p) =>
-      blindImageMode ? { ...p, frozen_price: null } : p
-    ),
+    products: (draft.products ?? []).map((p) => ({
+      ...(blindImageMode ? { ...p, frozen_price: null } : p),
+      benchmark_role: p.benchmark_role ?? null,
+    })),
+    battlePromptCode: draft.battlePromptCode ?? 'CONCEPT_BATTLE_BUY',
+    customBattlePrompt: draft.customBattlePrompt ?? null,
+    brandQuestions: draft.brandQuestions ?? [],
+    successBars: draft.successBars ?? defaultSuccessBarsDraft(),
   }
 }

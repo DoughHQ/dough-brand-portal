@@ -46,6 +46,41 @@ export const CONCEPT_PUBLISH_HINT_MESSAGES: Record<string, string> = {
     'Category requirements need a qualifying category. Pick one, or clear the bars.',
   CATEGORY_LEVEL_OUT_OF_RANGE: 'Category level must be between 1 and 20.',
   CATEGORY_BAR_INVALID: 'Category requirements cannot be negative.',
+  // Single-test / CONCEPT_CORE_V1
+  NOT_ALLOWED_TO_PUBLISH:
+    'Your role can view studies but not publish them; ask a brand admin.',
+  TARGET_COMPLETIONS_TOO_LOW: 'Target completions must be at least 30.',
+  CORE_REQUIRES_BLIND: 'This study type is always blind — no prices on the field.',
+  CORE_REQUIRES_PACKAGE_STIMULUS: 'Every design must be a package stimulus.',
+  IMAGE_REQUIRED: 'Every design and competitor needs an https image.',
+  PACK_SIZE_REQUIRED: 'Pick a pack size.',
+  ANCHOR_PRICE_REQUIRED: 'Set an expected retail price.',
+  DECOY_REQUIRED: 'Add a fake brand name for the attention check.',
+  DECOY_IS_REAL_BRAND: 'That decoy matches a real brand — pick a made-up name.',
+  DECOY_LABEL_MISMATCH: 'Decoy label must match the decoy option.',
+  BENCHMARK_REQUIRED: 'Mark exactly one benchmark (current pack or competitor to beat).',
+  TOO_MANY_BENCHMARKS: 'Only one benchmark is allowed.',
+  INVALID_BENCHMARK_ROLE: "That benchmark role isn't valid.",
+  NOTHING_TO_TEST: 'Keep at least one of your designs that is not the benchmark.',
+  BATTLE_PROMPT_CONFLICT: 'Use a vetted prompt or write your own — not both.',
+  UNKNOWN_BATTLE_PROMPT: "That battle prompt isn't recognized.",
+  INVALID_BATTLE_PROMPT: 'Custom battle prompts must be 8–120 characters and end with ?.',
+  TOO_MANY_BRAND_QUESTIONS: 'You can add at most two of your own questions.',
+  BRAND_QUESTION_OPTION_COUNT: 'Each of your questions needs 2–8 options.',
+  DUPLICATE_BRAND_QUESTION_OPTION: 'Options on a question must be unique.',
+  INVALID_BRAND_QUESTION_PROMPT: 'Brand question prompts must be 8–140 characters.',
+  INVALID_BRAND_QUESTION_OPTION: 'Each option must be at most 60 characters.',
+  INVALID_BRAND_QUESTION_MAX_SELECT: 'max_select must be between 1 and the option count.',
+  H2H_BAR_OUT_OF_RANGE: 'Head-to-head bar must be between 50% and 90%.',
+  PRICE_BAR_OUT_OF_RANGE: 'Price bar must be between 10% and 95%.',
+  LIKING_NEEDS_CURRENT_PACK:
+    'Liking vs current pack needs a current-pack benchmark.',
+  LIKING_THRESHOLD_REQUIRED: 'Absolute liking needs a threshold.',
+  LIKING_BAR_OUT_OF_RANGE: 'That liking threshold is out of range.',
+  INVALID_SUCCESS_BARS: 'Check the success bars.',
+  CONCEPT_CORE_EXCLUSIVE: 'This study type cannot mix other modules.',
+  INVALID_TEMPLATE_VALUE: 'One of the questionnaire fields is invalid.',
+  TOO_FEW_ENTITY_OPTIONS: 'Add at least two real brands for verification.',
 }
 
 export type ConceptErrorSection =
@@ -194,6 +229,7 @@ function sectionForCode(code: string): ConceptErrorSection {
   }
   if (
     code === 'FIELD_TOO_SMALL' ||
+    code === 'FIELD_TOO_LARGE' ||
     code === 'DUPLICATE_COMPETITOR' ||
     code === 'NO_CONCEPT_ARM' ||
     code === 'NO_CONCEPT_ARMS' ||
@@ -205,7 +241,14 @@ function sectionForCode(code: string): ConceptErrorSection {
     code === 'UPC_PRODUCT_MISMATCH' ||
     code === 'DUPLICATE_FIELD_UPC' ||
     code === 'INVALID_PRICE_POSTURE' ||
-    code === 'CONCEPT_STIMULUS_MISMATCH'
+    code === 'CONCEPT_STIMULUS_MISMATCH' ||
+    code === 'BENCHMARK_REQUIRED' ||
+    code === 'TOO_MANY_BENCHMARKS' ||
+    code === 'INVALID_BENCHMARK_ROLE' ||
+    code === 'NOTHING_TO_TEST' ||
+    code === 'IMAGE_REQUIRED' ||
+    code === 'CORE_REQUIRES_PACKAGE_STIMULUS' ||
+    code === 'CORE_REQUIRES_BLIND'
   ) {
     return 'field'
   }
@@ -228,9 +271,34 @@ function sectionForCode(code: string): ConceptErrorSection {
     code === 'NO_BATTLE_QUESTION' ||
     code === 'MISSING_TEMPLATE_CONFIG' ||
     code === 'UNRESOLVED_TEMPLATE_TOKEN' ||
+    code === 'DECOY_REQUIRED' ||
+    code === 'DECOY_IS_REAL_BRAND' ||
+    code === 'DECOY_LABEL_MISMATCH' ||
+    code === 'PACK_SIZE_REQUIRED' ||
+    code === 'ANCHOR_PRICE_REQUIRED' ||
+    code === 'BATTLE_PROMPT_CONFLICT' ||
+    code === 'UNKNOWN_BATTLE_PROMPT' ||
+    code === 'INVALID_BATTLE_PROMPT' ||
+    code === 'TOO_MANY_BRAND_QUESTIONS' ||
+    code === 'BRAND_QUESTION_OPTION_COUNT' ||
+    code === 'DUPLICATE_BRAND_QUESTION_OPTION' ||
+    code === 'INVALID_BRAND_QUESTION_PROMPT' ||
+    code === 'INVALID_BRAND_QUESTION_OPTION' ||
+    code === 'INVALID_BRAND_QUESTION_MAX_SELECT' ||
+    code === 'H2H_BAR_OUT_OF_RANGE' ||
+    code === 'PRICE_BAR_OUT_OF_RANGE' ||
+    code === 'LIKING_NEEDS_CURRENT_PACK' ||
+    code === 'LIKING_THRESHOLD_REQUIRED' ||
+    code === 'LIKING_BAR_OUT_OF_RANGE' ||
+    code === 'INVALID_SUCCESS_BARS' ||
+    code === 'TOO_FEW_ENTITY_OPTIONS' ||
+    code === 'INVALID_TEMPLATE_VALUE' ||
     RETURNED_ERROR_CODES.has(code)
   ) {
     return 'questions'
+  }
+  if (code === 'TARGET_COMPLETIONS_TOO_LOW') {
+    return 'advanced'
   }
   return 'publish'
 }
