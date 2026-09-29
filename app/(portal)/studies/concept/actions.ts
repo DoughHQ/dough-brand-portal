@@ -32,6 +32,12 @@ import {
   taxonomyBreadcrumb,
   type TaxonomySibling,
 } from '@/lib/concept/taxonomySiblings'
+import {
+  mapJourneyForPhonePreview,
+  parseConceptJourney,
+  type PhonePreviewJourney,
+} from '@/lib/concept/journey'
+import journeyFixture from '../../../../concept-core-fixtures/journey.json'
 
 export type ConceptCampaignOption = {
   id: string
@@ -313,6 +319,16 @@ export async function publishConceptStudyAction(
     }
   }
 
+  if (portalUser.role === 'brand_viewer') {
+    return {
+      ok: false,
+      error:
+        'Your role can view studies but not publish them; ask a brand admin.',
+      section: 'publish',
+      hint: 'NOT_ALLOWED_TO_PUBLISH',
+    }
+  }
+
   if (!draft.stimulusMode) {
     return {
       ok: false,
@@ -427,6 +443,10 @@ export async function publishConceptStudyAction(
           (draft.stimulusMode === 'price'
             ? PRICE_TEMPLATE_CODE
             : PACKAGING_TEMPLATE_CODE),
+        awaiting_review:
+          root?.awaiting_review === true ||
+          strOrNull(root?.status)?.toLowerCase() === 'draft' ||
+          strOrNull(root?.lifecycle_state)?.toLowerCase() === 'in_review',
       },
     }
   } catch (err) {
@@ -649,3 +669,120 @@ export async function searchTaxonomyNodesAction(
   if (error || !data) return []
   return (data as Parameters<typeof toNodeInfo>[0][]).map(toNodeInfo)
 }
+
+/** Decoy attention-check validation. Falls back to local heuristics if RPC is dark. */
+export async function checkConceptDecoyAction(
+  decoy: string
+): Promise<{ ok: true; decoy: string } | { ok: false; reason: string }> {
+  const trimmed = decoy.trim()
+  if (!trimmed) return { ok: false, reason: 'EMPTY' }
+  if (trimmed.length > 60) return { ok: false, reason: 'TOO_LONG' }
+  if (/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/.test(trimmed)) {
+    return { ok: false, reason: 'PHONE_NUMBER' }
+  }
+  if (/@|https?:\/\//i.test(trimmed)) {
+    return { ok: false, reason: 'LINK_OR_EMAIL' }
+  }
+
+  const portalUser = await getPortalUser()
+  if (!portalUser) return { ok: false, reason: 'NOT_A_BRAND_PORTAL_USER' }
+
+  const supabase = await createServerSupabaseClient()
+  try {
+    const { data, error } = await supabase.rpc('check_concept_decoy' as never, {
+      p_decoy: trimmed,
+    } as never)
+    if (error) {
+      // Dark backend — local checks only.
+      return { ok: true, decoy: trimmed }
+    }
+    const row = data as { ok?: boolean; reason?: string; decoy?: string } | null
+    if (row && row.ok === false) {
+      return { ok: false, reason: row.reason ?? 'REAL_BRAND' }
+    }
+    return { ok: true, decoy: typeof row?.decoy === 'string' ? row.decoy : trimmed }
+  } catch {
+    return { ok: true, decoy: trimmed }
+  }
+}
+
+/**
+ * preview_concept_journey — Section 2 phone preview.
+ * On UNKNOWN_MODULE / dark pack, returns fixture journey remapped to Design letters.
+ */
+export async function previewConceptJourneyAction(
+  draft: ConceptStudyDraft
+): Promise<
+  | { ok: true; preview: PhonePreviewJourney; fromFixture: boolean }
+  | { ok: false; error: string; preview: PhonePreviewJourney | null }
+> {
+  const portalUser = await getPortalUser()
+  if (!portalUser) {
+    return { ok: false, error: "You don't have access to that brand.", preview: null }
+  }
+
+  const fixturePreview = (): PhonePreviewJourney | null => {
+    const parsed = parseConceptJourney(journeyFixture)
+    if (!parsed) return null
+    return mapJourneyForPhonePreview(parsed, draft.conceptArms)
+  }
+
+  const supabase = await createServerSupabaseClient()
+  try {
+    const args = draftToConceptPublishStudyArgs(draft, {
+      campaignId: draft.brandCampaignId || '00000000-0000-0000-0000-000000000000',
+      createdBy: portalUser.auth_uid || '00000000-0000-0000-0000-000000000000',
+      expiresAt: draft.expiresAt || new Date().toISOString(),
+    })
+
+    const { data, error } = await supabase.rpc('preview_concept_journey' as never, {
+      p_field: args.p_field as unknown as Json,
+      p_module_config: args.p_module_config,
+      p_battle_prompt: args.p_battle_prompt ?? null,
+    } as never)
+
+    if (error) {
+      const preview = fixturePreview()
+      return {
+        ok: false,
+        error: error.message || 'Preview unavailable',
+        preview,
+      }
+    }
+
+    const parsed = parseConceptJourney(data)
+    if (!parsed) {
+      const preview = fixturePreview()
+      return { ok: false, error: 'Could not parse journey preview.', preview }
+    }
+    return {
+      ok: true,
+      preview: mapJourneyForPhonePreview(parsed, draft.conceptArms),
+      fromFixture: false,
+    }
+  } catch (err) {
+    const preview = fixturePreview()
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : 'Preview failed',
+      preview,
+    }
+  }
+}
+
+/** Dough-admin only — releases a held study. */
+export async function approveConceptMissionAction(
+  missionId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const portalUser = await getPortalUser()
+  if (!portalUser || portalUser.role !== 'dough_admin') {
+    return { ok: false, error: 'Only Dough admins can approve studies.' }
+  }
+  const supabase = await createServerSupabaseClient()
+  const { error } = await supabase.rpc('approve_concept_mission' as never, {
+    p_mission_id: missionId,
+  } as never)
+  if (error) return { ok: false, error: error.message }
+  return { ok: true }
+}
+

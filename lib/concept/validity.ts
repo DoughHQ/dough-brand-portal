@@ -13,7 +13,7 @@ import {
 import { uniquePairs } from './publish'
 import { isSignedStorageUrl } from './stimuliStorage'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
-import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
+import { STUDY_AUDIENCE_BUILDER_ENABLED, CONCEPT_SINGLE_TEST_ENABLED } from '@/lib/studies/features'
 import {
   MAX_CONCEPT_FIELD_SIZE,
   competitorMinimum,
@@ -98,10 +98,13 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     outstanding.push({ message: msg, anchor: 'concept-category' })
   }
 
-  const publishableMode =
-    draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
+  const publishableMode = CONCEPT_SINGLE_TEST_ENABLED
+    ? draft.stimulusMode === 'package'
+    : draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
   if (modeOk && !publishableMode) {
-    const msg = 'Question set in progress — packaging and price studies are live now.'
+    const msg = CONCEPT_SINGLE_TEST_ENABLED
+      ? 'Packaging is the only study type for this test.'
+      : 'Question set in progress — packaging and price studies are live now.'
     reasons.push(msg)
     outstanding.push({ message: msg, anchor: 'concept-mode' })
   }
@@ -318,14 +321,71 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     : []
   const hasVerificationScreener = verificationBrands.length >= 2
   if (isTemplateMode && categoryOk && verificationBrands.length === 0) {
-    softOutstanding.push({
-      message: 'Add verification brands',
+    if (CONCEPT_SINGLE_TEST_ENABLED) {
+      const msg = 'Add at least two verification brands.'
+      reasons.push(msg)
+      outstanding.push({
+        message: msg,
+        anchor: templateFieldAnchor('verification_options'),
+      })
+    } else {
+      softOutstanding.push({
+        message: 'Add verification brands',
+        anchor: templateFieldAnchor('verification_options'),
+      })
+    }
+  }
+  if (
+    CONCEPT_SINGLE_TEST_ENABLED &&
+    isTemplateMode &&
+    verificationBrands.length === 1
+  ) {
+    const msg = 'Add at least two real brands, or none at all.'
+    reasons.push(msg)
+    outstanding.push({
+      message: msg,
       anchor: templateFieldAnchor('verification_options'),
     })
   }
 
-  if (!draft.targetCompletions || draft.targetCompletions < 1) {
-    const msg = 'Set a target completion count so the study can close when full.'
+  if (CONCEPT_SINGLE_TEST_ENABLED) {
+    const armBench = draft.conceptArms.filter((a) => a.benchmark_role === 'current_pack')
+    const prodBench = draft.products.filter(
+      (p) => p.benchmark_role === 'competitor_to_beat'
+    )
+    const benchCount = armBench.length + prodBench.length
+    if (benchCount === 0) {
+      const msg = 'Mark exactly one benchmark (current pack or competitor to beat).'
+      reasons.push(msg)
+      outstanding.push({ message: msg, anchor: 'concept-field' })
+    } else if (benchCount > 1) {
+      const msg = 'Only one benchmark is allowed.'
+      reasons.push(msg)
+      outstanding.push({ message: msg, anchor: 'concept-field' })
+    } else if (armBench.length === 1) {
+      const nonBench = draft.conceptArms.filter((a) => a.benchmark_role !== 'current_pack')
+      if (nonBench.length < 1) {
+        const msg = 'Keep at least one of your designs that is not the benchmark.'
+        reasons.push(msg)
+        outstanding.push({ message: msg, anchor: 'concept-field' })
+      }
+    }
+    for (const arm of draft.conceptArms) {
+      const url = arm.image_url?.trim() ?? ''
+      if (!/^https:\/\//i.test(url)) {
+        const msg = 'Every design needs an https pack image.'
+        if (!reasons.includes(msg)) reasons.push(msg)
+        outstanding.push({ message: msg, anchor: 'concept-field' })
+        break
+      }
+    }
+  }
+
+  const minCompletions = CONCEPT_SINGLE_TEST_ENABLED ? 30 : 1
+  if (!draft.targetCompletions || draft.targetCompletions < minCompletions) {
+    const msg = CONCEPT_SINGLE_TEST_ENABLED
+      ? 'Set target completions to at least 30.'
+      : 'Set a target completion count so the study can close when full.'
     reasons.push(msg)
     outstanding.push({ message: msg, anchor: 'field_target_completions' })
   }
@@ -416,6 +476,14 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     }
   }
 
+  const singleTestBenchCount = CONCEPT_SINGLE_TEST_ENABLED
+    ? draft.conceptArms.filter((a) => a.benchmark_role === 'current_pack').length +
+      draft.products.filter((p) => p.benchmark_role === 'competitor_to_beat').length
+    : 1
+  const singleTestNonBenchArm =
+    !CONCEPT_SINGLE_TEST_ENABLED ||
+    draft.conceptArms.some((a) => a.benchmark_role !== 'current_pack')
+
   const readyToPublish =
     modeOk &&
     categoryOk &&
@@ -423,8 +491,12 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     fieldOk &&
     templateOk &&
     audienceOk &&
-    draft.targetCompletions >= 1 &&
-    !!draft.expiresAt
+    draft.targetCompletions >= (CONCEPT_SINGLE_TEST_ENABLED ? 30 : 1) &&
+    !!draft.expiresAt &&
+    (!CONCEPT_SINGLE_TEST_ENABLED ||
+      (hasVerificationScreener &&
+        singleTestBenchCount === 1 &&
+        singleTestNonBenchArm))
 
   return {
     competitorCount: total,

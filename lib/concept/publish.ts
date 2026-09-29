@@ -6,10 +6,20 @@ import type {
 import type { PublishConceptStudyArgs } from './rpc'
 import { armLabelForIndex } from './defaults'
 import { priceToWire } from './price'
-import { templateConfigToWire } from './templateConfig'
+import { templateConfigToWire, composeVerificationOptions } from './templateConfig'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
 import { composeConceptPublishModules } from '@/lib/study/modules'
-import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
+import {
+  CONCEPT_SINGLE_TEST_ENABLED,
+  STUDY_AUDIENCE_BUILDER_ENABLED,
+} from '@/lib/studies/features'
+import {
+  MODULE_CONCEPT_CORE_V1,
+  brandQuestionsToWire,
+  defaultSuccessBarsDraft,
+  successBarsToWire,
+} from './singleTest'
+import type { Json } from '@/lib/database.types'
 
 /** Combinatorial pairs for a field of size n. Full round-robin battle count. */
 export function uniquePairs(n: number): number {
@@ -17,24 +27,47 @@ export function uniquePairs(n: number): number {
   return (n * (n - 1)) / 2
 }
 
+function isHttpsUrl(raw: string | null | undefined): boolean {
+  const s = (raw ?? '').trim()
+  return /^https:\/\//i.test(s)
+}
+
 /**
  * Map UI draft → field arms for publish_study.
  * Questions / modules are resolved server-side from p_modules + p_module_config.
  */
-export function draftToPublishPayload(draft: ConceptStudyDraft): {
+export function draftToPublishPayload(
+  draft: ConceptStudyDraft,
+  opts?: { singleTest?: boolean }
+): {
   concepts: ConceptPublishConcept[]
   products: ConceptPublishProduct[]
 } {
+  const singleTest = opts?.singleTest === true
+
   const concepts: ConceptPublishConcept[] = draft.conceptArms.map((arm, i) => {
+    const intent =
+      singleTest && arm.benchmark_role === 'current_pack'
+        ? ('competitor' as const)
+        : singleTest && arm.battle_intent === 'competitor'
+          ? ('competitor' as const)
+          : ('hero' as const)
+
     const base: ConceptPublishConcept = {
       arm_label: arm.arm_label || armLabelForIndex(i),
       display_name: arm.display_name.trim(),
       image_url: arm.image_url?.trim() || null,
       frozen_price: priceToWire(arm.frozen_price),
       stimulus_payload: arm.stimulus_payload ?? {},
-      battle_intent: 'hero',
+      battle_intent: intent,
     }
-    if (
+
+    if (singleTest) {
+      base.stimulus_type = 'package'
+      if (arm.benchmark_role === 'current_pack') {
+        base.benchmark_role = 'current_pack'
+      }
+    } else if (
       draft.stimulusMode &&
       draft.stimulusMode !== 'package' &&
       draft.stimulusMode !== 'price'
@@ -59,16 +92,31 @@ export function draftToPublishPayload(draft: ConceptStudyDraft): {
     throw new Error('DUPLICATE_COMPETITOR')
   }
 
-  const products: ConceptPublishProduct[] = resolvedProducts.map((p) => ({
-    product_id: p.product_id,
-    frozen_display_name: p.frozen_display_name.trim(),
-    frozen_brand_name: p.frozen_brand_name.trim(),
-    frozen_image_url: p.frozen_image_url,
-    frozen_price: priceToWire(p.frozen_price),
-    market_reference_price: priceToWire(p.market_reference_price),
-    battle_intent: 'competitor',
-    upc: p.upc!.trim(),
-  }))
+  if (singleTest) {
+    for (const arm of draft.conceptArms) {
+      if (!isHttpsUrl(arm.image_url)) throw new Error('IMAGE_REQUIRED')
+    }
+    for (const p of resolvedProducts) {
+      if (!isHttpsUrl(p.frozen_image_url)) throw new Error('IMAGE_REQUIRED')
+    }
+  }
+
+  const products: ConceptPublishProduct[] = resolvedProducts.map((p) => {
+    const row: ConceptPublishProduct = {
+      product_id: p.product_id,
+      frozen_display_name: p.frozen_display_name.trim(),
+      frozen_brand_name: p.frozen_brand_name.trim(),
+      frozen_image_url: p.frozen_image_url,
+      frozen_price: priceToWire(p.frozen_price),
+      market_reference_price: priceToWire(p.market_reference_price),
+      battle_intent: 'competitor',
+      upc: p.upc!.trim(),
+    }
+    if (singleTest && p.benchmark_role === 'competitor_to_beat') {
+      row.benchmark_role = 'competitor_to_beat'
+    }
+    return row
+  })
 
   return { concepts, products }
 }
@@ -116,6 +164,43 @@ export function conceptEligibilityToWire(
   return Object.keys(wire).length > 0 ? wire : null
 }
 
+function singleTestModuleConfig(draft: ConceptStudyDraft): Record<string, unknown> {
+  const wired = templateConfigToWire(draft.templateConfig)
+  // Decoy label always derived from decoy_option — DECOY_LABEL_MISMATCH impossible.
+  const decoy = draft.templateConfig.decoy_option.trim()
+  const verification = composeVerificationOptions({
+    ...draft.templateConfig,
+    decoy_option: decoy,
+  })
+
+  const config: Record<string, unknown> = {
+    category_plural: wired.category_plural,
+    pack_size: wired.pack_size,
+    expected_price: wired.expected_price,
+    price_display: wired.price_display,
+    decoy_option: decoy,
+    verification_options: verification,
+  }
+
+  const custom = (draft.customBattlePrompt ?? '').trim()
+  const code = draft.battlePromptCode ?? null
+  if (custom) {
+    // XOR: custom goes on p_battle_prompt, not in module_config code
+  } else if (code) {
+    config.battle_prompt_code = code
+  } else {
+    config.battle_prompt_code = 'CONCEPT_BATTLE_BUY'
+  }
+
+  const brandQs = brandQuestionsToWire(draft.brandQuestions ?? [])
+  if (brandQs.length > 0) config.brand_questions = brandQs
+
+  const bars = successBarsToWire(draft.successBars ?? defaultSuccessBarsDraft())
+  if (bars) config.success_bars = bars
+
+  return config
+}
+
 /** Full publish_study args for the concept branch. */
 export function draftToConceptPublishStudyArgs(
   draft: ConceptStudyDraft,
@@ -126,11 +211,22 @@ export function draftToConceptPublishStudyArgs(
   }
 ): PublishConceptStudyArgs {
   if (draft.taxonomyNodeId == null) throw new Error('NODE_REQUIRED')
-  if (draft.stimulusMode !== 'package' && draft.stimulusMode !== 'price') {
+
+  const singleTest = CONCEPT_SINGLE_TEST_ENABLED
+
+  if (singleTest) {
+    if (draft.stimulusMode !== 'package') {
+      throw new Error('CORE_REQUIRES_PACKAGE_STIMULUS')
+    }
+  } else if (draft.stimulusMode !== 'package' && draft.stimulusMode !== 'price') {
     throw new Error('NO_TEMPLATE_FOR_MODE')
   }
 
-  const { concepts, products } = draftToPublishPayload(draft)
+  const { concepts, products } = draftToPublishPayload(draft, { singleTest })
+
+  const customPrompt = singleTest
+    ? (draft.customBattlePrompt ?? '').trim() || undefined
+    : undefined
 
   const args: PublishConceptStudyArgs = {
     p_test_type: 'concept',
@@ -142,21 +238,30 @@ export function draftToConceptPublishStudyArgs(
       concepts: concepts as unknown as PublishConceptStudyArgs['p_field']['concepts'],
       products: products as unknown as PublishConceptStudyArgs['p_field']['products'],
     },
-    p_modules: composeConceptPublishModules(
-      draft.stimulusMode,
-      draft.selectedModules
-    ),
-    p_module_config: templateConfigToWire(
-      draft.templateConfig
-    ) as unknown as PublishConceptStudyArgs['p_module_config'],
+    p_modules: singleTest
+      ? ([MODULE_CONCEPT_CORE_V1] as unknown as PublishConceptStudyArgs['p_modules'])
+      : composeConceptPublishModules(draft.stimulusMode as 'package' | 'price', draft.selectedModules),
+    p_module_config: (singleTest
+      ? singleTestModuleConfig(draft)
+      : templateConfigToWire(draft.templateConfig)) as unknown as PublishConceptStudyArgs['p_module_config'],
     p_created_by: ctx.createdBy,
-    p_price_posture:
-      draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
+    p_price_posture: singleTest
+      ? 'blind'
+      : draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
         ? 'blind'
         : draft.pricePosture,
     p_expires_at: ctx.expiresAt,
     p_target_completions: draft.targetCompletions,
     p_audience_definition: draft.audienceDefinition.trim() || undefined,
+  }
+
+  if (customPrompt) {
+    args.p_battle_prompt = customPrompt
+  }
+
+  if (singleTest) {
+    args.p_predictive_validity_opt_in = draft.predictiveValidityOptIn !== false
+    args.p_category_intelligence_opt_in = draft.categoryIntelligenceOptIn === true
   }
 
   const eligibility = conceptEligibilityToWire(draft)
@@ -166,3 +271,13 @@ export function draftToConceptPublishStudyArgs(
 
   return args
 }
+
+/** Stable snapshot of publish args for tests (drops created_by). */
+export function publishArgsForFixtureCompare(
+  args: PublishConceptStudyArgs
+): Record<string, unknown> {
+  const { p_created_by: _c, ...rest } = args
+  return rest as unknown as Record<string, unknown>
+}
+
+export type { Json }

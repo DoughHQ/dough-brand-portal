@@ -1,0 +1,78 @@
+{
+ "p_test_type": "concept",
+ "p_brand_campaign_id": "a0225844-21e0-4786-b81d-f352768c3148",
+ "p_brand_id": 20016372,
+ "p_title": "fixture study",
+ "p_taxonomy_node_id": 9330085,
+ "p_modules": [
+  "CONCEPT_CORE_V1"
+ ],
+ "p_price_posture": "blind",
+ "p_target_completions": 30,
+ "p_field": {
+  "concepts": [
+   {
+    "arm_label": "New design",
+    "stimulus_type": "package",
+    "display_name": "New design",
+    "battle_intent": "hero",
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/new-design.png"
+   },
+   {
+    "arm_label": "Current pack",
+    "stimulus_type": "package",
+    "display_name": "Current pack",
+    "battle_intent": "competitor",
+    "benchmark_role": "current_pack",
+    "image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/current-pack.png"
+   }
+  ],
+  "products": [
+   {
+    "product_id": 30615039,
+    "upc": "00076840004492",
+    "battle_intent": "competitor",
+    "frozen_display_name": "PB Blondie Bestie Sundae",
+    "frozen_brand_name": "Ben & Jerry's",
+    "frozen_image_url": "https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/pb-blondie.png"
+   }
+  ]
+ },
+ "p_module_config": {
+  "category_plural": "pints of ice cream",
+  "pack_size": "pint",
+  "expected_price": "7.99",
+  "price_display": "7.99",
+  "decoy_option": "Frostline",
+  "verification_options": [
+   {
+    "id": "brand:20000217",
+    "brand_id": 20000217,
+    "label": "Häagen-Dazs"
+   },
+   {
+    "id": "brand:20001741",
+    "brand_id": 20001741,
+    "label": "HALO TOP"
+   },
+   {
+    "id": "decoy",
+    "label": "Frostline"
+   },
+   {
+    "id": "none_of_these",
+    "label": "None of these"
+   }
+  ],
+  "brand_questions": [
+   {
+    "prompt": "Which flavor would you buy first?",
+    "options": [
+     "Vanilla bean",
+     "Mint chip",
+     "Cookie dough"
+    ]
+   }
+  ]
+ }
+}

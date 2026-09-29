@@ -17,6 +17,7 @@ import BattleSettingsSection from './BattleSettingsSection'
 import ModulesSection from './ModulesSection'
 import FieldSection from './FieldSection'
 import QuestionsSection from './QuestionsSection'
+import SingleTestJourneySection from './SingleTestJourneySection'
 import StudyTypeSection from './StudyTypeSection'
 import ResumeDraftBanner from '../components/ResumeDraftBanner'
 import PublishingDock from '../components/PublishingDock'
@@ -24,15 +25,21 @@ import {
   formatResumeWhen,
   useServerStudyDraft,
 } from '@/lib/studies/useServerStudyDraft'
-import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
+import { STUDY_AUDIENCE_BUILDER_ENABLED, CONCEPT_SINGLE_TEST_ENABLED } from '@/lib/studies/features'
 import './conceptBuilder.css'
 
 type Props = {
   initialDraft: ConceptStudyDraft
   mode: 'new' | 'edit'
+  /** Hide Publish for viewers (missions.write). */
+  canPublish?: boolean
 }
 
-export default function ConceptStudyClient({ initialDraft, mode }: Props) {
+export default function ConceptStudyClient({
+  initialDraft,
+  mode,
+  canPublish = true,
+}: Props) {
   const router = useRouter()
   const [draft, setDraft] = useState<ConceptStudyDraft>(() =>
     normalizeDraft(initialDraft)
@@ -58,7 +65,9 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
   const validity = useMemo(() => evaluateFieldValidity(draft), [draft])
   const builderLocked = !draft.stimulusMode || draft.taxonomyNodeId == null
   const lockReason = !draft.stimulusMode
-    ? 'Choose a study type and category above to unlock the field.'
+    ? CONCEPT_SINGLE_TEST_ENABLED
+      ? 'Choose a category above to unlock the field.'
+      : 'Choose a study type and category above to unlock the field.'
     : 'Choose a category above to unlock the field.'
   const setupDone = !!draft.stimulusMode && draft.taxonomyNodeId != null
   const fieldDone = validity.fieldOk && !!draft.title.trim()
@@ -332,7 +341,7 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
               color: 'var(--ink-50)',
             }}
           >
-            {draft.stimulusMode === 'package'
+            {CONCEPT_SINGLE_TEST_ENABLED || draft.stimulusMode === 'package'
               ? 'Packaging concept test'
               : draft.stimulusMode === 'price'
                 ? 'Blind price concept test'
@@ -363,7 +372,7 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
             },
             {
               id: 'concept-questions',
-              label: 'Questionnaire',
+              label: CONCEPT_SINGLE_TEST_ENABLED ? 'Journey' : 'Questionnaire',
               done: setupDone && fieldDone && questionsDone,
               active: setupDone && fieldDone && !questionsDone,
             },
@@ -381,12 +390,16 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
                   },
                 ] as const)
               : []),
-            {
-              id: 'concept-modules',
-              label: 'Modules',
-              done: setupDone && fieldDone && questionsDone && validity.audienceOk,
-              active: false,
-            },
+            ...(!CONCEPT_SINGLE_TEST_ENABLED
+              ? ([
+                  {
+                    id: 'concept-modules',
+                    label: 'Modules',
+                    done: setupDone && fieldDone && questionsDone && validity.audienceOk,
+                    active: false,
+                  },
+                ] as const)
+              : []),
             {
               id: 'concept-battle-settings',
               label: 'Battle settings',
@@ -439,6 +452,7 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
         error={sectionErrors.mode ?? null}
         titleError={sectionErrors.title ?? null}
         showErrors={publishAttempted}
+        packagingOnly={CONCEPT_SINGLE_TEST_ENABLED}
       />
 
       <FieldSection
@@ -448,15 +462,25 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
         publishFailure={publishFailure}
         disabled={builderLocked}
         disabledReason={builderLocked ? lockReason : null}
+        singleTestMode={CONCEPT_SINGLE_TEST_ENABLED}
       />
 
-      <QuestionsSection
-        draft={draft}
-        onChange={persist}
-        error={sectionErrors.questions ?? null}
-        disabled={builderLocked}
-        disabledReason={builderLocked ? lockReason : null}
-      />
+      {CONCEPT_SINGLE_TEST_ENABLED ? (
+        <SingleTestJourneySection
+          draft={draft}
+          onChange={persist}
+          error={sectionErrors.questions ?? null}
+          disabled={builderLocked}
+        />
+      ) : (
+        <QuestionsSection
+          draft={draft}
+          onChange={persist}
+          error={sectionErrors.questions ?? null}
+          disabled={builderLocked}
+          disabledReason={builderLocked ? lockReason : null}
+        />
+      )}
 
       {STUDY_AUDIENCE_BUILDER_ENABLED ? (
         <AudienceSection
@@ -468,18 +492,21 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
         />
       ) : null}
 
-      <ModulesSection
-        draft={draft}
-        onChange={persist}
-        disabled={builderLocked}
-        disabledReason={builderLocked ? lockReason : null}
-      />
+      {!CONCEPT_SINGLE_TEST_ENABLED ? (
+        <ModulesSection
+          draft={draft}
+          onChange={persist}
+          disabled={builderLocked}
+          disabledReason={builderLocked ? lockReason : null}
+        />
+      ) : null}
 
       <BattleSettingsSection
         draft={draft}
         onChange={persist}
         disabled={builderLocked}
         disabledReason={builderLocked ? lockReason : null}
+        minCompletions={CONCEPT_SINGLE_TEST_ENABLED ? 30 : 1}
       />
 
       {sectionErrors.publish &&
@@ -623,10 +650,12 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
                 margin: '0 0 8px',
               }}
             >
-              Study published
+              {publishMeta.awaiting_review ? 'In review' : 'Study published'}
             </h2>
             <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}>
-              Confirm the shape of what was created before leaving the builder.
+              {publishMeta.awaiting_review
+                ? 'In review: Dough is checking your wording. You’ll see the study on the Active tab.'
+                : 'Confirm the shape of what was created before leaving the builder.'}
             </p>
             <dl
               style={{
@@ -704,19 +733,22 @@ export default function ConceptStudyClient({ initialDraft, mode }: Props) {
 
       <PublishingDock
         stickyRef={stickyRef}
-        ready={ready}
+        ready={ready && canPublish}
         needs={stickyNeeds}
         saveStatus={saveStatus}
         saving={saving}
         publishing={publishing}
-        actionsLocked={pending || !!publishMeta}
-        publishMuted={!validity.readyToPublish || publishing}
-        publishLabel="Publish study"
+        actionsLocked={pending || !!publishMeta || !canPublish}
+        publishMuted={!canPublish || !validity.readyToPublish || publishing}
+        publishLabel={canPublish ? 'Publish study' : 'View only'}
         showPreview
         previewLabel="Preview"
         canPreview={validity.readyToPublish}
         onSave={saveDraft}
-        onPublish={() => requestPublish()}
+        onPublish={() => {
+          if (!canPublish) return
+          requestPublish()
+        }}
         onPreview={() => {
           flushSaveNow(draft)
           router.push(`/studies/concept/${draft.draftId}/preview`)

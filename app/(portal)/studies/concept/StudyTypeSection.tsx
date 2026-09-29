@@ -40,6 +40,8 @@ type Props = {
   /** Publish-time blocker for the study name, which now lives in this section. */
   titleError?: string | null
   showErrors?: boolean
+  /** CONCEPT_SINGLE_TEST — packaging only, always blind, no coming-soon list. */
+  packagingOnly?: boolean
 }
 
 /** Required-and-empty marker. One token, one radius, every field. */
@@ -58,11 +60,25 @@ export default function StudyTypeSection({
   error,
   titleError,
   showErrors,
+  packagingOnly = false,
 }: Props) {
   const [node, setNode] = useState<TaxonomyNodeInfo | null>(null)
   const [wordingOpen, setWordingOpen] = useState(false)
   const [confirm, setConfirm] = useState<ConfirmRequest | null>(null)
   const studyTypeLabelId = useId()
+
+  // Single-test: mode is not a choice — lock packaging + blind without a picker.
+  useEffect(() => {
+    if (!packagingOnly) return
+    if (draft.stimulusMode === 'package' && draft.pricePosture === 'blind') return
+    const plan = planModeTransition(draft, 'package', true)
+    const next =
+      plan.kind === 'noop'
+        ? { ...draft, stimulusMode: 'package' as const, pricePosture: 'blind' as const }
+        : { ...plan.next, pricePosture: 'blind' as const }
+    onChange(next)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [packagingOnly, draft.stimulusMode, draft.pricePosture])
 
   useEffect(() => {
     if (draft.taxonomyNodeId == null) {
@@ -174,6 +190,9 @@ export default function StudyTypeSection({
   // fetch only enriches the name and breadcrumb.
   const hasCategory = draft.taxonomyNodeId != null
   const packagingMode = draft.stimulusMode === 'package'
+  const liveModes = packagingOnly
+    ? LIVE_MODES.filter((o) => o.value === 'package')
+    : LIVE_MODES
 
   return (
     <section style={sectionCard} id="concept-mode">
@@ -182,7 +201,9 @@ export default function StudyTypeSection({
         Set up the study
       </h2>
       <p style={sectionHelp}>
-        Name the study, choose what you&rsquo;re testing, and select the category.
+        {packagingOnly
+          ? 'Name the study and select the category.'
+          : 'Name the study, choose what you&rsquo;re testing, and select the category.'}
       </p>
 
       {/* 1 — name it */}
@@ -205,33 +226,47 @@ export default function StudyTypeSection({
         ) : null}
       </div>
 
-      {/* 2 — what are we testing */}
-      <div id={studyTypeLabelId} style={{ ...labelSm, marginBottom: 12 }}>
-        Study type
-      </div>
-      <div className="cb-mode-grid" role="radiogroup" aria-labelledby={studyTypeLabelId}>
-        {LIVE_MODES.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            role="radio"
-            aria-checked={draft.stimulusMode === opt.value}
-            className="cb-mode-card"
-            onClick={() => selectMode(opt.value, opt.publishable)}
-          >
-            <span className="cb-mode-card-label">{opt.label}</span>
-            <span className="cb-mode-card-help">{opt.help}</span>
-          </button>
-        ))}
-      </div>
+      {packagingOnly ? (
+        <p
+          className="cb-mode-roadmap"
+          style={{ marginTop: 0, marginBottom: 24 }}
+          role="status"
+        >
+          <span className="cb-mode-roadmap-lead">Packaging concept test · always blind</span>
+          <span className="cb-mode-roadmap-list">
+            Respondents see Design A, Design B — never your product names.
+          </span>
+        </p>
+      ) : (
+        <>
+          {/* 2 — what are we testing */}
+          <div id={studyTypeLabelId} style={{ ...labelSm, marginBottom: 12 }}>
+            Study type
+          </div>
+          <div className="cb-mode-grid" role="radiogroup" aria-labelledby={studyTypeLabelId}>
+            {liveModes.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={draft.stimulusMode === opt.value}
+                className="cb-mode-card"
+                onClick={() => selectMode(opt.value, opt.publishable)}
+              >
+                <span className="cb-mode-card-label">{opt.label}</span>
+                <span className="cb-mode-card-help">{opt.help}</span>
+              </button>
+            ))}
+          </div>
 
-      {/* Information, not a control — outside the radiogroup on purpose. */}
-      <p className="cb-mode-roadmap">
-        <span className="cb-mode-roadmap-lead">More study types coming soon</span>
-        <span className="cb-mode-roadmap-list">
-          {COMING_SOON_MODES.map((o) => o.label).join(' · ')}
-        </span>
-      </p>
+          <p className="cb-mode-roadmap">
+            <span className="cb-mode-roadmap-lead">More study types coming soon</span>
+            <span className="cb-mode-roadmap-list">
+              {COMING_SOON_MODES.map((o) => o.label).join(' · ')}
+            </span>
+          </p>
+        </>
+      )}
 
       {/* 3 — where does it compete */}
       <CategoryCombobox

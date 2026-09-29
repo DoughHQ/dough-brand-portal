@@ -88,6 +88,13 @@ export type ConceptArmRow = {
   /** Draft-only display name for the uploader filled state. */
   image_filename: string | null
   stimulus_payload: Record<string, unknown>
+  /**
+   * Single-test only. Current pack is a concept arm with battle_intent competitor
+   * + benchmark_role current_pack. Default hero when unset (legacy).
+   */
+  battle_intent?: BattleIntent
+  /** Single-test only — at most one across the whole field. */
+  benchmark_role?: 'current_pack' | null
 }
 
 /** One barcode from list_product_barcodes — draft picker only. */
@@ -131,6 +138,8 @@ export type ProductCompetitorRow = {
    * Undefined on legacy drafts — treated as confirmed when upc is present.
    */
   identityConfirmed?: boolean
+  /** Single-test only — at most one across the whole field. */
+  benchmark_role?: 'competitor_to_beat' | null
 }
 
 export type ConceptQuestionCode =
@@ -223,6 +232,14 @@ export type ConceptStudyDraft = {
   updatedAt: string
   /** Source draft id if duplicated */
   duplicatedFrom?: string | null
+  /**
+   * Single-test (CONCEPT_CORE_V1) only. Flag-off ignores these.
+   * Battle: vetted code XOR custom prompt (never both on the wire).
+   */
+  battlePromptCode?: import('./singleTest').BattlePromptCode | null
+  customBattlePrompt?: string | null
+  brandQuestions?: import('./singleTest').BrandQuestionDraft[]
+  successBars?: import('./singleTest').SuccessBarsDraft
 }
 
 /** Wire shape for own concept arms under publish_study. */
@@ -233,10 +250,14 @@ export type ConceptPublishConcept = {
   /** String "4.99" — RPC casts numeric. null = unpriced. */
   frozen_price: string | null
   stimulus_payload: Record<string, unknown>
-  /** Concept arms are the study hero. kind='concept' is set by the RPC. */
-  battle_intent: 'hero'
-  /** Only for non-package escape hatch when p_questions is sent. */
+  /**
+   * Usually hero. Single-test current pack is competitor + benchmark_role.
+   */
+  battle_intent: 'hero' | 'competitor'
+  /** Only for non-package escape hatch when p_questions is sent. Single-test always package. */
   stimulus_type?: StimulusMode
+  /** Single-test — current_pack on exactly one concept arm when used. */
+  benchmark_role?: 'current_pack'
 }
 
 export type ConceptPublishProduct = {
@@ -250,6 +271,8 @@ export type ConceptPublishProduct = {
   market_reference_price: string | null
   battle_intent: 'competitor'
   upc: string
+  /** Single-test — competitor_to_beat on at most one product. */
+  benchmark_role?: 'competitor_to_beat'
 }
 
 export type ConceptPublishQuestion = {
@@ -271,4 +294,6 @@ export type ConceptPublishSuccessMeta = {
   coverage_note: string | null
   target_completions: number | null
   template_code: string | null
+  /** Single-test held for Dough wording review. */
+  awaiting_review?: boolean
 }

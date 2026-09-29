@@ -7,6 +7,8 @@ export type OperatorStudyLifecycleState =
   | 'paused'
   | 'scheduled'
   | 'draft'
+  /** Held for Dough wording review (custom battle prompt or brand question). */
+  | 'in_review'
 
 /** Row from list_operator_studies — tenancy enforced server-side by the RPC. */
 export type OperatorStudyRow = {

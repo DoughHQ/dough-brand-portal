@@ -206,6 +206,10 @@ export function createEmptyConceptDraft(
     categoryIntelligenceOptIn: false,
     updatedAt: new Date().toISOString(),
     duplicatedFrom: null,
+    battlePromptCode: 'CONCEPT_BATTLE_BUY',
+    customBattlePrompt: null,
+    brandQuestions: [],
+    successBars: undefined,
     ...partial,
   }
 }

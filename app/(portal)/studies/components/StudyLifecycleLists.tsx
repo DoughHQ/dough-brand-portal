@@ -197,6 +197,7 @@ type StudyListProps = {
   showBrand: boolean
   onClose: (row: OperatorStudyRow) => void
   onWithdraw: (row: OperatorStudyRow) => void
+  onApprove?: (row: OperatorStudyRow) => void
 }
 
 function rowOverflow(
@@ -268,13 +269,15 @@ export function ActiveStudyList({
   showBrand,
   onClose,
   onWithdraw,
+  onApprove,
 }: StudyListProps) {
   return (
     <div className="studies-list">
       {rows.map((row) => {
         const progress = claimProgress(row)
         const state = row.lifecycle_state
-        const showState = state === 'paused' || state === 'scheduled'
+        const showState =
+          state === 'paused' || state === 'scheduled' || state === 'in_review'
         const overflow = rowOverflow(row, {
           canOperate,
           busyId,
@@ -282,6 +285,11 @@ export function ActiveStudyList({
           onClose,
           onWithdraw,
         })
+        const showApprove =
+          canOperate &&
+          state === 'in_review' &&
+          typeof onApprove === 'function' &&
+          (row.test_type === 'concept' || row.mission_type === 'concept_test')
 
         return (
           <div key={row.mission_id} className="studies-study-row studies-study-row--active">
@@ -289,7 +297,17 @@ export function ActiveStudyList({
               <NameBlock
                 row={row}
                 showBrand={showBrand}
-                extraBadges={showState ? <StatusPillView state={state} /> : null}
+                extraBadges={
+                  showState ? (
+                    state === 'in_review' ? (
+                      <span className="studies-status-pill" title="Awaiting Dough review">
+                        In review: Dough is checking your wording
+                      </span>
+                    ) : (
+                      <StatusPillView state={state} />
+                    )
+                  ) : null
+                }
               />
             </div>
             <div className="studies-study-mid">
@@ -309,9 +327,26 @@ export function ActiveStudyList({
               ) : null}
             </div>
             <div className="studies-study-actions">
-              <Link href={reportHref(row)} className="studies-row-cta">
-                View report →
-              </Link>
+              {showApprove ? (
+                <button
+                  type="button"
+                  className="studies-row-cta"
+                  disabled={busyId === row.mission_id || pending}
+                  onClick={() => onApprove(row)}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  Approve →
+                </button>
+              ) : (
+                <Link href={reportHref(row)} className="studies-row-cta">
+                  View report →
+                </Link>
+              )}
               {canOperate ? <RowOverflowMenu actions={overflow} /> : null}
             </div>
           </div>
