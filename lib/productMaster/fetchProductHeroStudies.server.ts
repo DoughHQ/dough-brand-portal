@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { attachOrderStatus } from '@/lib/checkout/load'
 import { logHandledRpcFailure } from '@/lib/portal/logHandledRpcFailure'
 import { looksLikeMissingRpc, type RpcErrorLike } from '@/lib/productMaster/errors'
 import { parseOperatorStudyRows } from '@/lib/studies/parseOperatorStudies'
@@ -26,7 +27,8 @@ export async function fetchProductHeroStudies(opts: {
   } as never)
 
   if (!error) {
-    return toProductStudyCards(parseOperatorStudyRows(data), opts.productId, {
+    const rows = await attachOrderStatus(supabase, parseOperatorStudyRows(data))
+    return toProductStudyCards(rows, opts.productId, {
       alreadyHeroScoped: true,
     })
   }

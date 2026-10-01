@@ -4,7 +4,7 @@
 
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ConceptStudyDraft } from '@/lib/concept/types'
 import {
   BATTLE_PROMPT_OPTIONS,
@@ -22,20 +22,19 @@ import {
   type PhonePreviewJourney,
 } from '@/lib/concept/journey'
 import { respondentDesignLabel } from '@/lib/concept/designLetters'
-import {
-  editableVerificationOptions,
-  previewPriceBands,
-  templateFieldAnchor,
-  brandVerificationOption,
-} from '@/lib/concept/templateConfig'
-import { formatPriceDisplay, normalizeExpectedPrice } from '@/lib/concept/priceBands'
+import { previewPriceBands } from '@/lib/concept/templateConfig'
 import { CONCEPT_ANCHORS } from '@/lib/concept/validity'
 import {
-  Chip,
-  ExpectedPriceCard,
-  QCard,
-  VerificationCard,
-} from './conceptCards'
+  customBattlePromptNote,
+  firstUnfinishedJourneyStep,
+  isJourneyStepId,
+  journeyStepCountLabel,
+  journeyStepDone,
+  journeyStepOwned,
+  journeyStepSummary,
+  type JourneyStepId,
+} from '@/lib/concept/journeyAccordion'
+import { ExpectedPriceCard, VerificationCard } from './conceptCards'
 import {
   inputBase,
   labelSm,
@@ -57,61 +56,81 @@ type Props = {
   error?: string | null
 }
 
-function JourneyCard({
+function AccordionRow({
+  id,
+  index,
   title,
-  ownership,
+  summary,
+  countLabel,
+  done,
+  open,
   measures,
   reportSection,
+  onToggle,
+  rowRef,
   children,
 }: {
+  id: JourneyStepId
+  index: string | null
   title: string
-  ownership: 'Dough method' | 'Yours to write'
+  summary: string
+  countLabel: string | null
+  done: boolean
+  open: boolean
   measures: string
   reportSection: string
+  onToggle: () => void
+  rowRef: (node: HTMLElement | null) => void
   children?: React.ReactNode
 }) {
+  const owned = journeyStepOwned(id)
   return (
-    <div
-      style={{
-        border: '1px solid var(--ink-10)',
-        borderRadius: 'var(--r-md)',
-        padding: '16px 18px',
-        marginBottom: 14,
-        background: 'var(--white)',
-      }}
+    <section
+      id={`journey-step-${id}`}
+      ref={rowRef}
+      className={`cb-acc${open ? ' is-open' : ''}${owned ? '' : ' is-locked'}`}
     >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          gap: 12,
-          marginBottom: 6,
-          alignItems: 'baseline',
-        }}
-      >
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}>
-          {title}
-        </h3>
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase',
-            color: ownership === 'Dough method' ? 'var(--ink-50)' : 'var(--sage)',
-          }}
+      <h3 className="cb-acc-heading">
+        <button
+          type="button"
+          className="cb-acc-head"
+          aria-expanded={open}
+          aria-controls={open ? `journey-step-panel-${id}` : undefined}
+          onClick={onToggle}
         >
-          {ownership}
-        </span>
-      </div>
-      <p style={{ margin: '0 0 4px', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}>
-        {measures}
-      </p>
-      <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--ink-30)' }}>
-        Report → {reportSection}
-      </p>
-      {children}
-    </div>
+          <span className="cb-acc-index">{index ?? ''}</span>
+          <span className="cb-acc-main">
+            <span className="cb-acc-title">{title}</span>
+            <span className="cb-acc-summary">{summary}</span>
+          </span>
+          <span className="cb-acc-count">{countLabel ?? ''}</span>
+          {owned && done ? (
+            <span className="cb-acc-check" aria-label="Done">
+              <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+                <path
+                  d="M3.5 8.2 6.4 11 12.5 4.8"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          ) : (
+            <span className="cb-acc-check is-blank" aria-hidden="true" />
+          )}
+          <span className="cb-acc-chevron" aria-hidden="true" />
+        </button>
+      </h3>
+      {open ? (
+        <div className="cb-acc-body" id={`journey-step-panel-${id}`} role="region">
+          <p className="cb-acc-measures">{measures}</p>
+          {owned ? children : null}
+          <p className="cb-acc-report">Report → {reportSection}</p>
+        </div>
+      ) : null}
+    </section>
   )
 }
 
@@ -126,6 +145,10 @@ export default function SingleTestJourneySection({
   const [journey, setJourney] = useState<PhonePreviewJourney | null>(null)
   const [journeyError, setJourneyError] = useState<string | null>(null)
   const [decoyHint, setDecoyHint] = useState<string | null>(null)
+  const [openId, setOpenId] = useState<JourneyStepId | null>(() =>
+    firstUnfinishedJourneyStep(draft)
+  )
+  const rowRefs = useRef<Partial<Record<JourneyStepId, HTMLElement | null>>>({})
 
   const fieldErrors = useMemo(() => {
     const m = new Map<string, string>()
@@ -182,17 +205,35 @@ export default function SingleTestJourneySection({
   const bands = previewPriceBands(config)
   const customPrompt = (draft.customBattlePrompt ?? '').trim()
   const usingCustom = customPrompt.length > 0
+  const customNote = customBattlePromptNote(draft.customBattlePrompt ?? '')
   const brandQuestions = draft.brandQuestions ?? []
+  const counts = journey?.counts ?? null
+
+  function toggleStep(id: JourneyStepId) {
+    setOpenId((current) => (current === id ? null : id))
+  }
+
+  function openStep(id: JourneyStepId) {
+    setOpenId(id)
+    requestAnimationFrame(() => {
+      rowRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
+
+  function bindRow(id: JourneyStepId) {
+    return (node: HTMLElement | null) => {
+      rowRefs.current[id] = node
+    }
+  }
 
   return (
     <section style={sectionCard} id={CONCEPT_ANCHORS.questions}>
-      <div style={sectionEyebrow}>Section 2 · Questionnaire</div>
+      <div style={sectionEyebrow}>Section 3 · Questionnaire</div>
       <h2 className="cb-section-title" style={sectionTitle}>
         Respondent journey
       </h2>
       <p style={sectionHelp}>
-        One card per step, in the order respondents see. Dough method steps are locked;
-        yours need your input.
+        Dough&apos;s steps are locked. Yours need your input.
       </p>
 
       <div
@@ -203,17 +244,23 @@ export default function SingleTestJourneySection({
           alignItems: 'start',
         }}
       >
-        <div style={{ opacity: disabled ? 0.55 : 1, pointerEvents: disabled ? 'none' : 'auto' }}>
-          <JourneyCard
-            title="1 · Screeners"
-            ownership="Yours to write"
-            measures="How often they buy, then which brands (with decoy + none)."
-            reportSection="qualification (not scored in verdict)"
+        <div
+          className="cb-acc-list"
+          style={{ opacity: disabled ? 0.55 : 1, pointerEvents: disabled ? 'none' : 'auto' }}
+        >
+          <AccordionRow
+            id="screeners"
+            index="1"
+            title="Screeners"
+            summary={journeyStepSummary('screeners', draft)}
+            countLabel={journeyStepCountLabel('screeners', counts)}
+            done={journeyStepDone('screeners', draft)}
+            open={openId === 'screeners'}
+            measures="How often they buy is locked. You name at least two real brands, plus a decoy and none of these."
+            reportSection="qualification (not scored in the verdict)"
+            onToggle={() => toggleStep('screeners')}
+            rowRef={bindRow('screeners')}
           >
-            <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--ink-50)' }}>
-              Frequency is Dough method (locked). Brands and decoy are yours — at least two
-              real brands required.
-            </p>
             <VerificationCard
               config={config}
               patchConfig={patchConfig}
@@ -229,28 +276,38 @@ export default function SingleTestJourneySection({
               </button>
             ) : null}
             {decoyHint ? (
-              <p role="alert" style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--red)' }}>
+              <p role="alert" className="cb-acc-alert">
                 Decoy: {decoyHint}
               </p>
             ) : null}
-          </JourneyCard>
+          </AccordionRow>
 
-          <JourneyCard
-            title="2 · First look"
-            ownership="Dough method"
-            measures="Love it → Really don't like it on each of your designs."
+          <AccordionRow
+            id="first_look"
+            index="2"
+            title="First look"
+            summary={journeyStepSummary('first_look', draft)}
+            countLabel={journeyStepCountLabel('first_look', counts)}
+            done={journeyStepDone('first_look', draft)}
+            open={openId === 'first_look'}
+            measures="Love it to really don’t like it, once per design. Locked 5-point scale. The order rotates for each respondent."
             reportSection="first_look"
-          >
-            <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-50)' }}>
-              Locked 5-point rating. Shown once per design (order rotates per respondent).
-            </p>
-          </JourneyCard>
+            onToggle={() => toggleStep('first_look')}
+            rowRef={bindRow('first_look')}
+          />
 
-          <JourneyCard
-            title="3 · Battles"
-            ownership="Yours to write"
-            measures="Forced choice with your prompt; sampled “why” after some rounds."
+          <AccordionRow
+            id="battles"
+            index="3"
+            title="Battles"
+            summary={journeyStepSummary('battles', draft)}
+            countLabel={journeyStepCountLabel('battles', counts)}
+            done={journeyStepDone('battles', draft)}
+            open={openId === 'battles'}
+            measures="A forced choice with your prompt. After some rounds they say why."
             reportSection="head_to_head / stated_vs_chosen"
+            onToggle={() => toggleStep('battles')}
+            rowRef={bindRow('battles')}
           >
             <div style={{ ...labelSm, marginBottom: 8 }}>Battle prompt</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -285,7 +342,7 @@ export default function SingleTestJourneySection({
                 )
               })}
               <label style={{ ...labelSm, marginTop: 8 }} htmlFor="custom_battle_prompt">
-                Write your own (Dough reviews before launch)
+                Write your own
               </label>
               <input
                 id="custom_battle_prompt"
@@ -305,33 +362,57 @@ export default function SingleTestJourneySection({
                   borderColor: usingCustom ? 'var(--sage)' : undefined,
                 }}
               />
-              {usingCustom ? (
-                <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--sage)' }}>
-                  Custom prompt selected — Dough will review before launch.
+              {customNote ? (
+                <p
+                  className="cb-acc-note"
+                  style={{ color: customNote.ok ? 'var(--sage)' : 'var(--red)' }}
+                >
+                  {customNote.message}
                 </p>
               ) : null}
             </div>
-          </JourneyCard>
+          </AccordionRow>
 
-          <JourneyCard
-            title="4 · What matters"
-            ownership="Dough method"
-            measures="7 packaging items, best/worst MaxDiff."
+          <AccordionRow
+            id="what_matters"
+            index="4"
+            title="What matters"
+            summary={journeyStepSummary('what_matters', draft)}
+            countLabel={journeyStepCountLabel('what_matters', counts)}
+            done={journeyStepDone('what_matters', draft)}
+            open={openId === 'what_matters'}
+            measures="Seven packaging items. Each set asks which matters most and which matters least."
             reportSection="what_matters"
+            onToggle={() => toggleStep('what_matters')}
+            rowRef={bindRow('what_matters')}
           />
 
-          <JourneyCard
-            title="5 · Rank the field"
-            ownership="Dough method"
-            measures="Forced rank of every item — favorite on top."
+          <AccordionRow
+            id="rank"
+            index="5"
+            title="Rank the field"
+            summary={journeyStepSummary('rank', draft)}
+            countLabel={journeyStepCountLabel('rank', counts)}
+            done={journeyStepDone('rank', draft)}
+            open={openId === 'rank'}
+            measures="They put every item in order, favorite on top."
             reportSection="stated_vs_chosen"
+            onToggle={() => toggleStep('rank')}
+            rowRef={bindRow('rank')}
           />
 
-          <JourneyCard
-            title="6 · Price"
-            ownership="Yours to write"
-            measures="Expected retail anchors the WTP bands (never shown as a shelf price)."
+          <AccordionRow
+            id="price"
+            index="6"
+            title="Price"
+            summary={journeyStepSummary('price', draft)}
+            countLabel={journeyStepCountLabel('price', counts)}
+            done={journeyStepDone('price', draft)}
+            open={openId === 'price'}
+            measures="Your expected retail price anchors the bands. Respondents never see that number as a shelf price."
             reportSection="price / verdict.price"
+            onToggle={() => toggleStep('price')}
+            rowRef={bindRow('price')}
           >
             <ExpectedPriceCard
               config={config}
@@ -341,17 +422,22 @@ export default function SingleTestJourneySection({
               helpOverride="Bands generate from this anchor. Respondents never see your number as a tag."
             />
             {bands.length > 0 ? (
-              <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--ink-50)' }}>
-                Bands: {bands.join(' · ')}
-              </p>
+              <p className="cb-acc-note">Bands: {bands.join(' · ')}</p>
             ) : null}
-          </JourneyCard>
+          </AccordionRow>
 
-          <JourneyCard
-            title="7 · Your questions"
-            ownership="Yours to write"
-            measures="0–2 brand-written questions (reviewed before launch)."
+          <AccordionRow
+            id="brand_questions"
+            index="7"
+            title="Your questions"
+            summary={journeyStepSummary('brand_questions', draft)}
+            countLabel={journeyStepCountLabel('brand_questions', counts)}
+            done={journeyStepDone('brand_questions', draft)}
+            open={openId === 'brand_questions'}
+            measures="Up to two questions in your words. None is fine. A question needs a prompt and at least two options."
             reportSection="brand_questions"
+            onToggle={() => toggleStep('brand_questions')}
+            rowRef={bindRow('brand_questions')}
           >
             {brandQuestions.map((q, qi) => (
               <BrandQuestionEditor
@@ -384,20 +470,34 @@ export default function SingleTestJourneySection({
                 Add a question
               </button>
             ) : null}
-          </JourneyCard>
+          </AccordionRow>
 
-          <JourneyCard
-            title="8 · Open text"
-            ownership="Dough method"
-            measures="Optional verbatim at the end."
+          <AccordionRow
+            id="open_text"
+            index="8"
+            title="Open text"
+            summary={journeyStepSummary('open_text', draft)}
+            countLabel={journeyStepCountLabel('open_text', counts)}
+            done={journeyStepDone('open_text', draft)}
+            open={openId === 'open_text'}
+            measures="An optional note at the end, in their own words."
             reportSection="open_text"
+            onToggle={() => toggleStep('open_text')}
+            rowRef={bindRow('open_text')}
           />
 
-          <JourneyCard
+          <AccordionRow
+            id="success"
+            index={null}
             title="What does success look like?"
-            ownership="Yours to write"
-            measures="Clearing bars for head-to-head, liking, and price."
+            summary={journeyStepSummary('success', draft)}
+            countLabel={journeyStepCountLabel('success', counts)}
+            done={journeyStepDone('success', draft)}
+            open={openId === 'success'}
+            measures="Clearing bars for head-to-head, liking, and price. Respondents never see this step."
             reportSection="verdict"
+            onToggle={() => toggleStep('success')}
+            rowRef={bindRow('success')}
           >
             <SuccessBarsEditor
               bars={bars}
@@ -406,10 +506,10 @@ export default function SingleTestJourneySection({
               )}
               onChange={patchBars}
             />
-          </JourneyCard>
+          </AccordionRow>
 
           {error ? (
-            <p role="alert" style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--red)' }}>
+            <p role="alert" className="cb-acc-alert">
               {error}
             </p>
           ) : null}
@@ -420,6 +520,8 @@ export default function SingleTestJourneySection({
             journey={journey}
             journeyError={journeyError}
             conceptArms={draft.conceptArms}
+            openId={openId}
+            onOpen={openStep}
           />
         </aside>
       </div>
@@ -455,10 +557,14 @@ function JourneyOutlinePanel({
   journey,
   journeyError,
   conceptArms,
+  openId,
+  onOpen,
 }: {
   journey: PhonePreviewJourney | null
   journeyError: string | null
   conceptArms: ConceptStudyDraft['conceptArms']
+  openId: JourneyStepId | null
+  onOpen: (id: JourneyStepId) => void
 }) {
   const stages = journey ? groupPhonePreviewScreens(journey.screens) : []
   const minutes = journey?.estimated_minutes
@@ -518,20 +624,6 @@ function JourneyOutlinePanel({
           >
             {journey.counts.total_min}–{journey.counts.total_max} screens
           </span>
-          {journey.needs_review ? (
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: 'var(--amber, #b45309)',
-                background: 'var(--amber-soft, #fef3c7)',
-                borderRadius: 999,
-                padding: '5px 11px',
-              }}
-            >
-              In review after publish
-            </span>
-          ) : null}
         </div>
       ) : null}
 
@@ -564,26 +656,23 @@ function JourneyOutlinePanel({
         <div style={{ maxHeight: 480, overflowY: 'auto', paddingRight: 2 }}>
           {stages.map((stage) => {
             const ownership = phonePreviewOwnership(stage.screens[0]!.kind)
+            const stepId = isJourneyStepId(stage.id) ? stage.id : null
+            const current = stepId != null && stepId === openId
             return (
               <div key={stage.id} style={{ marginBottom: 16 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'baseline',
-                    gap: 8,
-                    marginBottom: 6,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: 'var(--ink-80)',
-                    }}
-                  >
-                    {stage.title}
-                  </div>
+                <div className="cb-outline-stage">
+                  {stepId ? (
+                    <button
+                      type="button"
+                      className={`cb-outline-jump${current ? ' is-current' : ''}`}
+                      aria-current={current ? 'true' : undefined}
+                      onClick={() => onOpen(stepId)}
+                    >
+                      {stage.title}
+                    </button>
+                  ) : (
+                    <div className="cb-outline-jump">{stage.title}</div>
+                  )}
                   <span
                     style={{
                       fontSize: 10,
@@ -663,6 +752,16 @@ function JourneyOutlinePanel({
           })}
         </div>
       )}
+
+      <button
+        type="button"
+        className={`cb-outline-success${openId === 'success' ? ' is-current' : ''}`}
+        aria-current={openId === 'success' ? 'true' : undefined}
+        onClick={() => onOpen('success')}
+      >
+        <span>Success bars</span>
+        <span>Not shown to respondents</span>
+      </button>
 
       {journeyError && journey ? (
         <p style={{ margin: '12px 0 0', fontSize: 11, color: 'var(--ink-30)', lineHeight: 1.4 }}>

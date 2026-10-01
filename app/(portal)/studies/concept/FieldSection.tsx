@@ -168,7 +168,7 @@ export default function FieldSection({
   return (
     <section style={{ ...sectionCard, position: 'relative' }} id="concept-field">
       <div style={{ ...sectionEyebrow, letterSpacing: '0.12em', color: 'var(--ink-50)' }}>
-        Section 1 · Field
+        Section 2 · Field
       </div>
       <h2
         className="cb-section-title"

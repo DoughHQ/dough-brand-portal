@@ -19,6 +19,8 @@ type Props = {
   disabledReason?: string | null
   /** Single-test floor — UI min and clamp. */
   minCompletions?: number
+  /** Visible section number. Audience is hidden, so this is 4 unless that section is on. */
+  sectionNumber?: number
 }
 
 const stripItem = (ok: boolean): CSSProperties => ({
@@ -37,6 +39,7 @@ export default function BattleSettingsSection({
   disabled,
   disabledReason,
   minCompletions = 1,
+  sectionNumber = 4,
 }: Props) {
   const fieldSize = draft.conceptArms.length + draft.products.length
   const battles = uniquePairs(fieldSize)
@@ -52,7 +55,7 @@ export default function BattleSettingsSection({
       id="concept-battle-settings"
       aria-disabled={disabled || undefined}
     >
-      <div style={sectionEyebrow}>Section 5 · Battle settings</div>
+      <div style={sectionEyebrow}>Section {sectionNumber} · Battle settings</div>
       <h2 className="cb-section-title" style={sectionTitle}>
         Battle settings
       </h2>

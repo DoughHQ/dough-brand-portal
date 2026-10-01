@@ -114,7 +114,7 @@ export default function ContentsSection({
         boxShadow: 'var(--cb-shadow-card)',
       }}
     >
-      <div style={eyebrow}>Section 1 · Contents</div>
+      <div style={eyebrow}>Section 2 · Contents</div>
       <h2 className="cb-section-title" style={titleStyle}>
         Fill the box
       </h2>

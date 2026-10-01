@@ -22,6 +22,7 @@ import {
 } from '@/lib/studies/useServerStudyDraft'
 import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 import '../concept/conceptBuilder.css'
+import BuilderStepper from '../concept/BuilderStepper'
 
 type Props = {
   initialDraft: BoxStudyDraft
@@ -238,43 +239,18 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
 
   return (
     <div className="concept-builder box-builder" ref={rootRef}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          marginBottom: 8,
-          gap: 16,
-        }}
-      >
-        <div>
-          <Link
-            href="/studies"
-            style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: 13,
-              fontWeight: 500,
-              color: 'var(--ink-50)',
-              textDecoration: 'none',
-            }}
-          >
-            ← Studies
-          </Link>
-          <h1 className="cb-page-title">Sampling box</h1>
-          <p
-            style={{
-              margin: '8px 0 0',
-              fontFamily: 'var(--font-sans)',
-              fontSize: 14,
-              color: 'var(--ink-50)',
-            }}
-          >
-            {isImpersonating
-              ? 'Building as the impersonated brand'
-              : 'Ship real products to qualified users'}
+      <header className="cb-page-head">
+        <Link href="/studies" className="cb-back">
+          ← Studies
+        </Link>
+        {draft.title.trim() ? <p className="cb-page-kicker">Sampling box</p> : null}
+        <h1 className="cb-page-title">{draft.title.trim() || 'Sampling box'}</h1>
+        {isImpersonating ? (
+          <p style={{ margin: '8px 0 0', fontSize: 14, color: 'var(--ink-50)' }}>
+            Building as the impersonated brand
           </p>
-        </div>
-      </div>
+        ) : null}
+      </header>
 
       {resumeOffer ? (
         <ResumeDraftBanner
@@ -286,51 +262,36 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
         />
       ) : null}
 
-      <nav className="cb-progress" aria-label="Box builder steps">
-        {(
-          [
-            { id: BOX_ANCHORS.setup, label: 'Setup', done: validity.setupOk, active: !validity.setupOk },
-            {
-              id: BOX_ANCHORS.field,
-              label: 'Contents',
-              done: validity.setupOk && validity.fieldOk,
-              active: validity.setupOk && !validity.fieldOk,
-            },
-            ...(STUDY_AUDIENCE_BUILDER_ENABLED
-              ? [
-                  {
-                    id: BOX_ANCHORS.audience,
-                    label: 'Audience',
-                    done: validity.setupOk && validity.fieldOk && validity.audienceOk,
-                    active: validity.setupOk && validity.fieldOk && !validity.audienceOk,
-                  },
-                ]
-              : []),
-            {
-              id: BOX_ANCHORS.logistics,
-              label: 'Logistics',
-              done: validity.readyToPublish,
-              active:
-                validity.setupOk &&
-                validity.fieldOk &&
-                validity.audienceOk &&
-                !validity.readyToPublish,
-            },
-          ]
-        ).map((step, i) => (
-          <button
-            key={`${step.label}-${i}`}
-            type="button"
-            data-done={step.done}
-            data-active={step.active}
-            onClick={() => scrollTo(step.id)}
-          >
-            <span className="cb-progress-dot" aria-hidden />
-            {step.done ? '✓ ' : ''}
-            {step.label}
-          </button>
-        ))}
-      </nav>
+      <BuilderStepper
+        label="Sampling box sections"
+        steps={[
+          { id: BOX_ANCHORS.setup, label: 'Setup', done: validity.setupOk },
+          {
+            id: BOX_ANCHORS.field,
+            label: 'Contents',
+            done: validity.setupOk && validity.fieldOk,
+          },
+          {
+            id: BOX_ANCHORS.battle,
+            label: 'The battle',
+            done: validity.setupOk && validity.fieldOk,
+          },
+          ...(STUDY_AUDIENCE_BUILDER_ENABLED
+            ? [
+                {
+                  id: BOX_ANCHORS.audience,
+                  label: 'Audience',
+                  done: validity.setupOk && validity.fieldOk && validity.audienceOk,
+                },
+              ]
+            : []),
+          {
+            id: BOX_ANCHORS.logistics,
+            label: 'Logistics',
+            done: validity.readyToPublish,
+          },
+        ]}
+      />
 
       {toast ? (
         <div
@@ -381,6 +342,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
         draft={draft}
         onChange={persist}
         error={publishAttempted ? sectionErrors.logistics : undefined}
+        sectionNumber={STUDY_AUDIENCE_BUILDER_ENABLED ? 5 : 4}
       />
 
       {sectionErrors.publish &&

@@ -23,7 +23,6 @@ import {
 } from './missionTrashActions'
 import { closeStudyAction } from './closeStudyAction'
 import { listOperatorStudiesPageAction } from './listStudiesPageAction'
-import { approveConceptMissionAction } from './concept/actions'
 import ConfirmDialog from './ConfirmDialog'
 import StudiesMetricStrip from './components/StudiesMetricStrip'
 import StudyDraftsPanel from './components/StudyDraftsPanel'
@@ -38,6 +37,8 @@ import {
 } from './components/StudyLifecycleLists'
 import { ICON_ARCHIVE, StudiesGlyph } from './components/studiesIcons'
 import type { StudyDraftListItem } from './drafts/actions'
+import type { StudyOrderRow } from '@/lib/checkout/payment'
+import StudyCheckoutDesk from './components/StudyCheckoutDesk'
 import './studiesPage.css'
 
 const COMPLETE_ORDER: Record<string, number> = {
@@ -165,6 +166,12 @@ interface Props {
   canOperate: boolean
   brandName?: string | null
   loadError?: string | null
+  awaitingOrders?: StudyOrderRow[]
+  orderBrandNames?: Record<number, string>
+  /** Staff desk only. Brand sessions never receive these addresses. */
+  invoiceContactLabels?: Record<string, string>
+  conceptUnitPriceCents?: number | null
+  conceptCurrency?: string
 }
 
 export default function StudiesClient({
@@ -179,6 +186,11 @@ export default function StudiesClient({
   effectiveBrandId,
   canOperate,
   loadError = null,
+  awaitingOrders = [],
+  orderBrandNames = {},
+  invoiceContactLabels = {},
+  conceptUnitPriceCents = null,
+  conceptCurrency = 'usd',
 }: Props) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -311,29 +323,6 @@ export default function StudiesClient({
         missionId: row.mission_id,
         studySnapshot: row,
       })
-      refresh()
-    },
-    [refresh]
-  )
-
-  const executeApprove = useCallback(
-    async (row: OperatorStudyRow) => {
-      setBusyId(row.mission_id)
-      setErrorBanner(null)
-      const result = await approveConceptMissionAction(row.mission_id)
-      setBusyId(null)
-      if (!result.ok) {
-        setErrorBanner(result.error)
-        return
-      }
-      setActiveRowsState((rows) =>
-        rows.map((r) =>
-          r.mission_id === row.mission_id
-            ? { ...r, lifecycle_state: 'active' as OperatorStudyLifecycleState }
-            : r
-        )
-      )
-      setToast({ kind: 'plain', message: 'Study approved and released' })
       refresh()
     },
     [refresh]
@@ -561,6 +550,16 @@ export default function StudiesClient({
           </div>
         ) : null}
 
+        {canOperate ? (
+          <StudyCheckoutDesk
+            orders={awaitingOrders}
+            brandNames={orderBrandNames}
+            invoiceContactLabels={invoiceContactLabels}
+            unitPriceCents={conceptUnitPriceCents}
+            currency={conceptCurrency}
+          />
+        ) : null}
+
         <section className="studies-lifecycle">
           <InProgressSectionHead />
           {activeRows.length === 0 ? (
@@ -574,7 +573,6 @@ export default function StudiesClient({
               showBrand={showBrand}
               onClose={(row) => setConfirm({ kind: 'close', row })}
               onWithdraw={(row) => void executeWithdraw(row)}
-              onApprove={(row) => void executeApprove(row)}
             />
           )}
           {activeHasMore ? (

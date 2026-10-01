@@ -140,7 +140,7 @@ export default function SetupSection({
         boxShadow: 'var(--cb-shadow-card)',
       }}
     >
-      <div style={eyebrow}>Section 0 · Setup</div>
+      <div style={eyebrow}>Section 1 · Setup</div>
       <h2 className="cb-section-title" style={titleStyle}>
         Set up the box
       </h2>

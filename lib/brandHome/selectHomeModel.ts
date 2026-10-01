@@ -2,6 +2,7 @@ import type { BrandCategoryL2 } from '@/lib/brandCategories'
 import type { BrandSnapshot, ProductIntelligence } from '@/lib/queries'
 import { brandCategoryOverviewHref } from '@/lib/categoryReport/href'
 import type { OperatorStudyRow } from '@/lib/studies/types'
+import { checkoutHref, conceptListStatus, isConceptStudy } from '@/lib/checkout/status'
 
 export type HomeHeroKind = 'study_ready' | 'narrative' | 'category' | 'empty'
 
@@ -77,6 +78,7 @@ export type HomeStudyInput = Pick<
   | 'completed_claims'
   | 'total_claims'
   | 'target_completions'
+  | 'order_status'
 >
 
 export type HomeProductName = {
@@ -114,8 +116,10 @@ export function productInsight(
 }
 
 export function studyHref(row: HomeStudyInput): { href: string; ctaLabel: string } {
-  const isConcept =
-    row.test_type === 'concept' || row.mission_type === 'concept_test'
+  const isConcept = isConceptStudy(row)
+  if (row.order_status === 'awaiting_payment' && isConcept) {
+    return { href: checkoutHref(row.mission_id), ctaLabel: 'Checkout' }
+  }
   if (
     row.lifecycle_state === 'completed' ||
     row.lifecycle_state === 'expired' ||
@@ -142,9 +146,12 @@ export function studyHref(row: HomeStudyInput): { href: string; ctaLabel: string
   }
 }
 
-export function studyBadge(state: HomeStudyInput['lifecycle_state']): string {
+export function studyBadge(row: HomeStudyInput): string {
+  const state = row.lifecycle_state
   if (state === 'completed') return 'Results ready'
   if (state === 'draft') return 'Draft'
+  const concept = conceptListStatus(row)
+  if (concept) return concept.label
   if (state === 'in_review') return 'In review'
   if (state === 'scheduled') return 'Scheduled'
   if (state === 'paused') return 'Paused'
@@ -188,7 +195,7 @@ function pickStudies(studies: HomeStudyInput[]): HomeStudyRow[] {
       return {
         missionId: s.mission_id,
         title: s.title || 'Untitled study',
-        badge: studyBadge(s.lifecycle_state),
+        badge: studyBadge(s),
         detail,
         progress,
         href,

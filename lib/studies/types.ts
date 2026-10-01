@@ -41,6 +41,8 @@ export type OperatorStudyRow = {
   expires_at: string | null
   /** Present on list_product_hero_studies. True when the session brand owns the campaign. */
   is_campaign_owner?: boolean
+  /** From study_orders. Absent until the studies list joins it. */
+  order_status?: 'awaiting_payment' | 'paid' | 'waived' | null
 }
 
 /** Row from list_withdrawn_studies — tenancy enforced server-side by the RPC. */

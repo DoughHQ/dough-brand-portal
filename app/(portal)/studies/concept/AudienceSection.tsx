@@ -161,7 +161,7 @@ export default function AudienceSection({
       }}
       aria-disabled={disabled || undefined}
     >
-      <div style={sectionEyebrow}>Section 3 · Audience</div>
+      <div style={sectionEyebrow}>Section 4 · Audience</div>
       <h2 className="cb-section-title" style={sectionTitle}>
         Who qualifies
       </h2>

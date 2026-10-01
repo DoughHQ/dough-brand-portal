@@ -294,6 +294,12 @@ export type ConceptPublishSuccessMeta = {
   coverage_note: string | null
   target_completions: number | null
   template_code: string | null
-  /** Single-test held for Dough wording review. */
-  awaiting_review?: boolean
+  /** Present when publish_study created a priced order. Totals stay on the order. */
+  order?: {
+    status: string | null
+    completions: number | null
+    unit_price_cents: number | null
+    amount_cents: number | null
+    currency: string | null
+  } | null
 }

@@ -8,7 +8,8 @@ import type {
   HomeStudyRow,
 } from '@/lib/brandHome/selectHomeModel'
 import { brandCategoryOverviewHref } from '@/lib/categoryReport/href'
-import { studyHref } from '@/lib/brandHome/selectHomeModel'
+import { studyHref, type HomeStudyInput } from '@/lib/brandHome/selectHomeModel'
+import { conceptListStatus, type StudyOrderStatus } from '@/lib/checkout/status'
 import type { Brand, BrandSnapshot, TopOccasion } from '@/lib/queries'
 import { generateBrandHomeNarrative } from '@/lib/brandHome/narrative'
 
@@ -273,43 +274,61 @@ function parseL2NodeIds(raw: unknown): number[] {
   return out
 }
 
-function studyRowFromHighlight(raw: unknown): HomeStudyRow | null {
+function studyRowFromHighlight(
+  raw: unknown,
+  orderStatus: StudyOrderStatus | null
+): HomeStudyRow | null {
   const r = asRecord(raw)
   if (!r) return null
   const id = asStr(r.id)
   const title = asStr(r.title)
   if (!id || !title) return null
-  const lifecycle = (asStr(r.lifecycle_state) ?? 'active') as HomeStudyRow extends never ? never : string
+  const lifecycle = (asStr(r.lifecycle_state) ?? 'active') as
+    | 'active'
+    | 'scheduled'
+    | 'completed'
+    | 'expired'
+    | 'draft'
+    | 'paused'
+    | 'archived'
+    | 'in_review'
   const missionType = asStr(r.mission_type)
-  const { href, ctaLabel } = studyHref({
+  const input: HomeStudyInput = {
     mission_id: id,
     title,
-    lifecycle_state: lifecycle as
-      | 'active'
-      | 'scheduled'
-      | 'completed'
-      | 'expired'
-      | 'draft'
-      | 'paused'
-      | 'archived'
-      | 'in_review',
+    lifecycle_state: lifecycle,
     mission_type: missionType,
     test_type: missionType === 'concept_test' ? 'concept' : null,
     completed_claims: asNum(r.completed_claims),
     total_claims: asNum(r.total_claims),
     target_completions: r.target_completions == null ? null : asNum(r.target_completions),
-  })
+    order_status: orderStatus,
+  }
+  const { href, ctaLabel } = studyHref(input)
+  const concept = conceptListStatus(input)
   const kind = asStr(r.kind)
-  const badge =
-    kind === 'stuck' ? 'Needs claims' : kind === 'results' ? 'Results ready' : 'Live'
+  const badge = concept
+    ? concept.label
+    : kind === 'stuck'
+      ? 'Needs claims'
+      : kind === 'results'
+        ? 'Results ready'
+        : 'Live'
+  const snapshotDetail = asStr(r.detail) || ''
+  const detail =
+    concept?.label === 'Awaiting payment'
+      ? 'Waiting on payment.'
+      : concept?.label === 'Not live'
+        ? 'This study is not live yet.'
+        : snapshotDetail
   return {
     missionId: id,
     title,
     badge,
-    detail: asStr(r.detail) || '',
+    detail,
     progress: null,
-    href,
-    ctaLabel,
+    href: concept?.href ?? href,
+    ctaLabel: concept?.href ? 'Checkout' : ctaLabel,
   }
 }
 
@@ -323,7 +342,10 @@ function buildHeroFromSnapshot(
       kind: study.badge === 'Results ready' ? 'study_ready' : 'narrative',
       eyebrow: study.badge,
       headline: study.title,
-      body: study.detail || 'Your research is live.',
+      body:
+        study.badge === 'Awaiting payment' || study.badge === 'Not live'
+          ? study.detail
+          : study.detail || 'Your research is live.',
       ctaLabel: study.ctaLabel,
       ctaHref: study.href,
     }
@@ -348,7 +370,10 @@ function buildHeroFromSnapshot(
   }
 }
 
-export function parseBrandHomeSnapshot(raw: unknown): BrandHomeSnapshotDoc | null {
+export function parseBrandHomeSnapshot(
+  raw: unknown,
+  orderStatusByMission?: Readonly<Record<string, StudyOrderStatus | null>>
+): BrandHomeSnapshotDoc | null {
   const root = asRecord(raw)
   if (!root) return null
   const chrome = parseBrandPortalChrome(root.chrome)
@@ -381,7 +406,11 @@ export function parseBrandHomeSnapshot(raw: unknown): BrandHomeSnapshotDoc | nul
   const signalCards = parseSignalCards(root.signal_cards)
   const categoriesTop = parseCategoriesTop(root.categories_top)
   const l2NodeIds = parseL2NodeIds(root.l2_node_ids)
-  const studyHighlight = studyRowFromHighlight(studiesRaw.highlight)
+  const highlightId = asStr(asRecord(studiesRaw.highlight)?.id)
+  const studyHighlight = studyRowFromHighlight(
+    studiesRaw.highlight,
+    highlightId ? (orderStatusByMission?.[highlightId] ?? null) : null
+  )
   const studies = studyHighlight ? [studyHighlight] : []
   const intel = parseIntel(root.intel)
   const snapshot = intel ? intelToSnapshot(brand.brand_id, intel) : null

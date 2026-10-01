@@ -327,10 +327,17 @@ export async function publishConceptStudyAction(
         coverage_note: strOrNull(root?.coverage_note),
         target_completions: numOrNull(root?.target_completions) ?? draft.targetCompletions,
         template_code: strOrNull(root?.template_code) ?? PACKAGING_TEMPLATE_CODE,
-        awaiting_review:
-          root?.awaiting_review === true ||
-          strOrNull(root?.status)?.toLowerCase() === 'draft' ||
-          strOrNull(root?.lifecycle_state)?.toLowerCase() === 'in_review',
+        order: (() => {
+          const order = asRecord(root?.order)
+          if (!order) return null
+          return {
+            status: strOrNull(order.status),
+            completions: numOrNull(order.completions),
+            unit_price_cents: numOrNull(order.unit_price_cents),
+            amount_cents: numOrNull(order.amount_cents),
+            currency: strOrNull(order.currency),
+          }
+        })(),
       },
     }
   } catch (err) {
@@ -654,21 +661,5 @@ export async function previewConceptJourneyAction(
       preview,
     }
   }
-}
-
-/** Dough-admin only — releases a held study. */
-export async function approveConceptMissionAction(
-  missionId: string
-): Promise<{ ok: true } | { ok: false; error: string }> {
-  const portalUser = await getPortalUser()
-  if (!portalUser || portalUser.role !== 'dough_admin') {
-    return { ok: false, error: 'Only Dough admins can approve studies.' }
-  }
-  const supabase = await createServerSupabaseClient()
-  const { error } = await supabase.rpc('approve_concept_mission', {
-    p_mission_id: missionId,
-  })
-  if (error) return { ok: false, error: error.message }
-  return { ok: true }
 }
 

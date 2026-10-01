@@ -102,6 +102,26 @@ const FIXTURE = {
   pending_ownership: false,
 }
 
+function conceptHome(lifecycle: string) {
+  return {
+    ...FIXTURE,
+    studies: {
+      open_count: 1,
+      highlight: {
+        id: 'concept-1',
+        title: 'Pack test',
+        kind: 'running',
+        detail: '',
+        mission_type: 'concept_test',
+        lifecycle_state: lifecycle,
+        completed_claims: 0,
+        total_claims: 0,
+        target_completions: 100,
+      },
+    },
+  }
+}
+
 describe('parseBrandPortalChrome', () => {
   it('maps chrome document', () => {
     const chrome = parseBrandPortalChrome(FIXTURE.chrome)
@@ -137,6 +157,67 @@ describe('parseBrandHomeSnapshot', () => {
     expect(doc?.narrative.headline.length).toBeGreaterThan(0)
     expect(doc?.l2NodeIds).toEqual([9, 11, 12])
     expect(doc?.snapshot?.elo_velocity_30d).toBe(12)
+    expect(doc?.homeModel.studies[0]?.badge).toBe('Needs claims')
+  })
+
+  it('labels an unpaid concept highlight as awaiting payment', () => {
+    const doc = parseBrandHomeSnapshot(conceptHome('in_review'), {
+      'concept-1': 'awaiting_payment',
+    })
+    const study = doc?.homeModel.studies[0]
+    expect(study?.badge).toBe('Awaiting payment')
+    expect(study?.href).toBe('/studies/concept-1/checkout')
+    expect(study?.ctaLabel).toBe('Checkout')
+    expect(doc?.homeModel.hero.body).toBe('Waiting on payment.')
+    expect(doc?.homeModel.hero.eyebrow).toBe('Awaiting payment')
+  })
+
+  it('labels a paid concept highlight as live', () => {
+    const doc = parseBrandHomeSnapshot(conceptHome('in_review'), {
+      'concept-1': 'paid',
+    })
+    expect(doc?.homeModel.studies[0]?.badge).toBe('Live')
+    expect(doc?.homeModel.hero.body).toBe('Your research is live.')
+  })
+
+  it('labels a concept highlight with no order as not live', () => {
+    const doc = parseBrandHomeSnapshot(conceptHome('in_review'), {
+      'concept-1': null,
+    })
+    expect(doc?.homeModel.studies[0]?.badge).toBe('Not live')
+    expect(doc?.homeModel.hero.body).toBe('This study is not live yet.')
+    expect(doc?.homeModel.studies[0]?.href).toBe('/studies/concept/concept-1')
+  })
+
+  it('omits a highlight that has no mission id', () => {
+    const doc = parseBrandHomeSnapshot({
+      ...FIXTURE,
+      studies: {
+        open_count: 1,
+        highlight: { title: 'No id', mission_type: 'concept_test', lifecycle_state: 'in_review' },
+      },
+    })
+    expect(doc?.homeModel.studies).toEqual([])
+    expect(doc?.homeModel.hero.eyebrow).not.toBe('Live')
+    expect(doc?.homeModel.hero.eyebrow).not.toBe('Awaiting payment')
+  })
+
+  it('leaves a non-concept active highlight live', () => {
+    const doc = parseBrandHomeSnapshot({
+      ...conceptHome('active'),
+      studies: {
+        open_count: 1,
+        highlight: {
+          id: 'box-1',
+          title: 'Tasting box',
+          kind: 'running',
+          mission_type: 'ihut',
+          lifecycle_state: 'active',
+        },
+      },
+    })
+    expect(doc?.homeModel.studies[0]?.badge).toBe('Live')
+    expect(doc?.homeModel.studies[0]?.href).toBe('/studies')
   })
 
   it('rejects documents without brand stub', () => {

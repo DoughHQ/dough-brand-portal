@@ -195,7 +195,7 @@ export default function StudyTypeSection({
 
   return (
     <section style={sectionCard} id="concept-mode">
-      <div style={sectionEyebrow}>Section 0 · Setup</div>
+      <div style={sectionEyebrow}>Section 1 · Setup</div>
       <h2 className="cb-section-title" style={sectionTitle}>
         Set up the study
       </h2>

@@ -19,7 +19,7 @@ type Props = {
 export default function BattleSection({ draft, onChange }: Props) {
   return (
     <section id={BOX_ANCHORS.battle} style={card}>
-      <div style={eyebrow}>Section 2 · The battle</div>
+      <div style={eyebrow}>Section 3 · The battle</div>
       <h2 className="cb-section-title" style={titleStyle}>
         The battle
       </h2>

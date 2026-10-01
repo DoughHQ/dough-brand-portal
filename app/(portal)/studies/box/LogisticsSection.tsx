@@ -13,6 +13,8 @@ type Props = {
   draft: BoxStudyDraft
   onChange: (next: BoxStudyDraft) => void
   error?: string | null
+  /** Visible section number. Audience is hidden, so this is 4 unless that section is on. */
+  sectionNumber?: number
 }
 
 const DEFAULT_SESSION_INTERVAL_HOURS = 48
@@ -35,13 +37,18 @@ function isoToLocalInput(iso: string): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-export default function LogisticsSection({ draft, onChange, error }: Props) {
+export default function LogisticsSection({
+  draft,
+  onChange,
+  error,
+  sectionNumber = 4,
+}: Props) {
   const selectedModules = resolveBoxSelectedModules(draft)
   const loyaltyOn = hasLoyaltyModule(selectedModules)
 
   return (
     <section id={BOX_ANCHORS.logistics} style={card}>
-      <div style={eyebrow}>Section 4 · Logistics</div>
+      <div style={eyebrow}>Section {sectionNumber} · Logistics</div>
       <h2 className="cb-section-title" style={titleStyle}>
         Shipping and sessions
       </h2>
