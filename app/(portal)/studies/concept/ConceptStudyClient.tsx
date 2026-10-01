@@ -3,20 +3,21 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
+import { formatOrderMoney } from '@/lib/checkout/money'
 import type { ConceptPublishSuccessMeta, ConceptStudyDraft } from '@/lib/concept/types'
 import { createEmptyConceptDraft } from '@/lib/concept/defaults'
 import { normalizeDraft } from '@/lib/concept/normalizeDraft'
 import { deleteConceptDraft, saveConceptDraft } from '@/lib/concept/draftStore'
-import { evaluateFieldValidity, type ConceptPublishFailure } from '@/lib/concept/validity'
+import { evaluateFieldValidity, CONCEPT_ANCHORS, type ConceptPublishFailure } from '@/lib/concept/validity'
 import {
   createConceptCampaignAction,
   publishConceptStudyAction,
 } from './actions'
 import AudienceSection from './AudienceSection'
-import BattleSettingsSection from './BattleSettingsSection'
 import FieldSection from './FieldSection'
 import SingleTestJourneySection from './SingleTestJourneySection'
 import StudyTypeSection from './StudyTypeSection'
+import BuilderStepper from './BuilderStepper'
 import ResumeDraftBanner from '../components/ResumeDraftBanner'
 import PublishingDock from '../components/PublishingDock'
 import {
@@ -285,7 +286,7 @@ export default function ConceptStudyClient({
     deleteConceptDraft(draft.draftId)
     void deleteOnPublish()
     startTransition(() => {
-      router.push(`/studies/concept/${publishMeta.missionId}?published=1`)
+      router.push(`/studies/${publishMeta.missionId}/checkout`)
     })
   }
 
@@ -297,43 +298,13 @@ export default function ConceptStudyClient({
 
   return (
     <div className="concept-builder" ref={rootRef}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          marginBottom: 8,
-          gap: 16,
-        }}
-      >
-        <div>
-          <Link
-            href="/studies"
-            style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: 13,
-              fontWeight: 500,
-              color: 'var(--ink-50)',
-              textDecoration: 'none',
-            }}
-          >
-            ← Studies
-          </Link>
-          <h1 className="cb-page-title">Concept study</h1>
-          <p
-            style={{
-              margin: '8px 0 0',
-              fontFamily: 'var(--font-sans)',
-              fontSize: 14,
-              color: 'var(--ink-50)',
-            }}
-          >
-            {draft.stimulusMode === 'package'
-              ? 'Single concept test'
-              : 'Concept study'}
-          </p>
-        </div>
-      </div>
+      <header className="cb-page-head">
+        <Link href="/studies" className="cb-back">
+          ← Studies
+        </Link>
+        {draft.title.trim() ? <p className="cb-page-kicker">Concept study</p> : null}
+        <h1 className="cb-page-title">{draft.title.trim() || 'Concept study'}</h1>
+      </header>
 
       {resumeOffer ? (
         <ResumeDraftBanner
@@ -345,62 +316,31 @@ export default function ConceptStudyClient({
         />
       ) : null}
 
-      <nav className="cb-progress" aria-label="Study builder steps">
-        {(
-          [
-            { id: 'concept-mode', label: 'Setup', done: setupDone, active: !setupDone },
-            {
-              id: 'concept-field',
-              label: 'Field',
-              done: setupDone && fieldDone,
-              active: setupDone && !fieldDone,
-            },
-            {
-              id: 'concept-questions',
-              label: 'Journey',
-              done: setupDone && fieldDone && questionsDone,
-              active: setupDone && fieldDone && !questionsDone,
-            },
-            ...(STUDY_AUDIENCE_BUILDER_ENABLED
-              ? ([
-                  {
-                    id: 'concept-audience',
-                    label: 'Audience',
-                    done: setupDone && fieldDone && questionsDone && validity.audienceOk,
-                    active:
-                      setupDone &&
-                      fieldDone &&
-                      questionsDone &&
-                      !validity.audienceOk,
-                  },
-                ] as const)
-              : []),
-            {
-              id: 'concept-battle-settings',
-              label: 'Battle settings',
-              done: validity.readyToPublish,
-              active:
-                setupDone &&
-                fieldDone &&
-                questionsDone &&
-                validity.audienceOk &&
-                !validity.readyToPublish,
-            },
-          ]
-        ).map((step, i) => (
-          <button
-            key={`${step.label}-${i}`}
-            type="button"
-            data-done={step.done}
-            data-active={step.active}
-            onClick={() => scrollTo(step.id)}
-          >
-            <span className="cb-progress-dot" aria-hidden />
-            {step.done ? '✓ ' : ''}
-            {step.label}
-          </button>
-        ))}
-      </nav>
+      <BuilderStepper
+        label="Concept study sections"
+        steps={[
+          { id: CONCEPT_ANCHORS.mode, label: 'Setup', done: setupDone },
+          {
+            id: CONCEPT_ANCHORS.field,
+            label: 'Field',
+            done: setupDone && fieldDone,
+          },
+          {
+            id: CONCEPT_ANCHORS.questions,
+            label: 'Questionnaire',
+            done: setupDone && fieldDone && questionsDone,
+          },
+          ...(STUDY_AUDIENCE_BUILDER_ENABLED
+            ? [
+                {
+                  id: CONCEPT_ANCHORS.audience,
+                  label: 'Audience',
+                  done: setupDone && fieldDone && questionsDone && validity.audienceOk,
+                },
+              ]
+            : []),
+        ]}
+      />
 
       {toast ? (
         <div
@@ -428,6 +368,7 @@ export default function ConceptStudyClient({
         titleError={sectionErrors.title ?? null}
         showErrors={publishAttempted}
         packagingOnly
+        minCompletions={30}
       />
 
       <FieldSection
@@ -445,6 +386,11 @@ export default function ConceptStudyClient({
         onChange={persist}
         error={sectionErrors.questions ?? null}
         disabled={builderLocked}
+        canPreview={validity.readyToPublish}
+        onPreview={() => {
+          flushSaveNow(draft)
+          router.push(`/studies/concept/${draft.draftId}/preview`)
+        }}
       />
 
       {STUDY_AUDIENCE_BUILDER_ENABLED ? (
@@ -457,14 +403,6 @@ export default function ConceptStudyClient({
         />
       ) : null}
 
-
-      <BattleSettingsSection
-        draft={draft}
-        onChange={persist}
-        disabled={builderLocked}
-        disabledReason={builderLocked ? lockReason : null}
-        minCompletions={30}
-      />
 
       {sectionErrors.publish &&
       !sectionErrors.field &&
@@ -607,12 +545,12 @@ export default function ConceptStudyClient({
                 margin: '0 0 8px',
               }}
             >
-              {publishMeta.awaiting_review ? 'In review' : 'Study published'}
+              Ready for checkout
             </h2>
             <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}>
-              {publishMeta.awaiting_review
-                ? 'In review: Dough is checking your wording. You’ll see the study on the Active tab.'
-                : 'Confirm the shape of what was created before leaving the builder.'}
+              {publishMeta.order?.amount_cents != null && publishMeta.order.currency
+                ? `The order is ${formatOrderMoney(publishMeta.order.amount_cents, publishMeta.order.currency)}. Nothing goes live until it is paid.`
+                : 'Nothing goes live until the order is paid.'}
             </p>
             <dl
               style={{
@@ -681,7 +619,7 @@ export default function ConceptStudyClient({
                   cursor: 'pointer',
                 }}
               >
-                Continue to study
+                Continue to checkout
               </button>
             </div>
           </div>

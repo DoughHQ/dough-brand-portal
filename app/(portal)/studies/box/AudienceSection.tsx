@@ -197,7 +197,7 @@ export default function AudienceSection({ draft, onChange, error }: Props) {
 
   return (
     <section id={BOX_ANCHORS.audience} style={card}>
-      <div style={eyebrow}>Section 3 · Audience</div>
+      <div style={eyebrow}>Section 4 · Audience</div>
       <div
         style={{
           display: 'flex',

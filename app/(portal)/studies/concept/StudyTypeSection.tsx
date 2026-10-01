@@ -23,14 +23,10 @@ import {
 } from './actions'
 import CategoryCombobox from './CategoryCombobox'
 import ConfirmDialog, { type ConfirmRequest } from './ConfirmDialog'
-import PackSizeField from './PackSizeField'
 import {
   inputBase,
   labelSm,
   sectionCard,
-  sectionEyebrow,
-  sectionHelp,
-  sectionTitle,
 } from './conceptStyles'
 
 type Props = {
@@ -42,6 +38,8 @@ type Props = {
   showErrors?: boolean
   /** @deprecated Always packaging-only; kept for call-site compatibility. */
   packagingOnly?: boolean
+  /** Floor for target completions. */
+  minCompletions?: number
 }
 
 /** Required-and-empty marker. One token, one radius, every field. */
@@ -61,6 +59,7 @@ export default function StudyTypeSection({
   titleError,
   showErrors,
   packagingOnly = true,
+  minCompletions = 30,
 }: Props) {
   const [node, setNode] = useState<TaxonomyNodeInfo | null>(null)
   const [wordingOpen, setWordingOpen] = useState(false)
@@ -188,22 +187,14 @@ export default function StudyTypeSection({
   // Visibility follows the draft, which is known synchronously; the taxonomy
   // fetch only enriches the name and breadcrumb.
   const hasCategory = draft.taxonomyNodeId != null
-  const packagingMode = draft.stimulusMode === 'package'
   const liveModes = packagingOnly
     ? LIVE_MODES.filter((o) => o.value === 'package')
     : LIVE_MODES
+  const completionFloor = Math.max(1, minCompletions)
 
   return (
     <section style={sectionCard} id="concept-mode">
-      <div style={sectionEyebrow}>Section 0 · Setup</div>
-      <h2 className="cb-section-title" style={sectionTitle}>
-        Set up the study
-      </h2>
-      <p style={sectionHelp}>
-        {packagingOnly
-          ? 'Name the study and select the category.'
-          : 'Name the study, choose what you&rsquo;re testing, and select the category.'}
-      </p>
+      <h2 className="cb-sr">Setup</h2>
 
       {/* 1 — name it */}
       <div style={{ marginBottom: 24 }}>
@@ -225,18 +216,7 @@ export default function StudyTypeSection({
         ) : null}
       </div>
 
-      {packagingOnly ? (
-        <p
-          className="cb-mode-roadmap"
-          style={{ marginTop: 0, marginBottom: 24 }}
-          role="status"
-        >
-          <span className="cb-mode-roadmap-lead">Packaging concept test · always blind</span>
-          <span className="cb-mode-roadmap-list">
-            Respondents see Design A, Design B — never your product names.
-          </span>
-        </p>
-      ) : (
+      {packagingOnly ? null : (
         <>
           {/* 2 — what are we testing */}
           <div id={studyTypeLabelId} style={{ ...labelSm, marginBottom: 12 }}>
@@ -276,6 +256,12 @@ export default function StudyTypeSection({
         onClear={clearCategory}
         error={showErrors ? error : null}
       />
+
+      {packagingOnly ? (
+        <p className="cb-setup-caption">
+          Packaging concept test, always blind. Respondents see Design A and Design B, never your product names.
+        </p>
+      ) : null}
 
       {hasCategory ? (
         // The template anchor lives on a wrapper that exists whenever a category
@@ -342,10 +328,56 @@ export default function StudyTypeSection({
               </button>
             </p>
           )}
-
-          {packagingMode ? <PackSizeField draft={draft} onChange={onChange} /> : null}
         </div>
       ) : null}
+
+      <div className="cb-setup-pair">
+        <div>
+          <label style={labelSm} htmlFor="field_target_completions">
+            Target completions
+          </label>
+          <input
+            id="field_target_completions"
+            type="number"
+            min={completionFloor}
+            className="cb-input"
+            value={draft.targetCompletions}
+            onChange={(e) =>
+              onChange({
+                ...draft,
+                targetCompletions: Math.max(completionFloor, Number(e.target.value) || completionFloor),
+              })
+            }
+            style={inputBase}
+          />
+          <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--ink-50)' }}>
+            Minimum {completionFloor} completions.
+          </p>
+        </div>
+        <div>
+          <label style={labelSm} htmlFor="field_expires_at">
+            Expires
+          </label>
+          <input
+            id="field_expires_at"
+            className="cb-input"
+            type="date"
+            value={
+              draft.expiresAt
+                ? new Date(draft.expiresAt).toISOString().slice(0, 10)
+                : ''
+            }
+            onChange={(e) => {
+              const day = e.target.value
+              onChange({
+                ...draft,
+                expiresAt: day ? new Date(`${day}T23:59:59.000Z`).toISOString() : '',
+              })
+            }}
+            style={inputBase}
+          />
+        </div>
+      </div>
       <ConfirmDialog request={confirm} onCancel={() => setConfirm(null)} />
     </section>
   )

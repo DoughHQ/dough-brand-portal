@@ -31,12 +31,12 @@ import {
   competitorProgressLabel,
 } from '@/lib/concept/fieldSize'
 import { formatPriceLabel } from '@/lib/concept/price'
+import { uniquePairs } from '@/lib/concept/publish'
 import CompetitorsColumn from './CompetitorsColumn'
 import OwnProductColumn from './OwnProductColumn'
 import {
   labelSm,
   sectionCard,
-  sectionEyebrow,
   sectionHelp,
   sectionTitle,
 } from './conceptStyles'
@@ -62,6 +62,7 @@ export default function FieldSection({
   singleTestMode = true,
 }: Props) {
   const validity = evaluateFieldValidity(draft)
+  const battles = uniquePairs(draft.conceptArms.length + draft.products.length)
   const modeLabel = stimulusModeLabel(draft.stimulusMode)
   const packaging = draft.stimulusMode === 'package'
   const priceMode = draft.stimulusMode === 'price'
@@ -167,9 +168,6 @@ export default function FieldSection({
 
   return (
     <section style={{ ...sectionCard, position: 'relative' }} id="concept-field">
-      <div style={{ ...sectionEyebrow, letterSpacing: '0.12em', color: 'var(--ink-50)' }}>
-        Section 1 · Field
-      </div>
       <h2
         className="cb-section-title"
         style={{
@@ -179,10 +177,16 @@ export default function FieldSection({
       >
         Build the field
       </h2>
-      <p style={{ ...sectionHelp, maxWidth: 720 }}>
+      <p style={{ ...sectionHelp, maxWidth: 720, marginBottom: battles > 0 ? 8 : 24 }}>
         Choose the product you want feedback on, then add the real products it should be
         judged against.
       </p>
+      {battles > 0 ? (
+        <p className="cb-field-battles">
+          This study will run {battles} battle{battles === 1 ? '' : 's'} per respondent — every
+          item vs every item.
+        </p>
+      ) : null}
 
       {disabled ? (
         <div className="cb-locked-panel" role="status">

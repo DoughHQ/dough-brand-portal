@@ -32038,6 +32038,73 @@ export type Database = {
           },
         ]
       }
+      study_orders: {
+        Row: {
+          amount_cents: number
+          brand_id: number
+          completions: number
+          created_at: string
+          currency: string
+          mission_id: string
+          paid_at: string | null
+          paid_by: string | null
+          payment_reference: string | null
+          status: string
+          title: string
+          unit_price_cents: number
+        }
+        Insert: {
+          brand_id: number
+          completions: number
+          created_at?: string
+          currency: string
+          mission_id: string
+          paid_at?: string | null
+          paid_by?: string | null
+          payment_reference?: string | null
+          status?: string
+          title: string
+          unit_price_cents: number
+        }
+        Update: {
+          brand_id?: number
+          completions?: number
+          created_at?: string
+          currency?: string
+          mission_id?: string
+          paid_at?: string | null
+          paid_by?: string | null
+          payment_reference?: string | null
+          status?: string
+          title?: string
+          unit_price_cents?: number
+        }
+        Relationships: []
+      }
+      study_prices: {
+        Row: {
+          currency: string
+          test_type: string
+          unit_price_cents: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          currency?: string
+          test_type: string
+          unit_price_cents: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          currency?: string
+          test_type?: string
+          unit_price_cents?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       sw_backfill_20260901_flag_backup: {
         Row: {
           backed_up_at: string | null
@@ -47734,6 +47801,16 @@ export type Database = {
         }
         Returns: Json
       }
+      record_study_payment: {
+        Args: {
+          p_mission_id: string
+          p_payment_reference: string
+          p_waived?: boolean
+          p_amount_cents?: number
+          p_currency?: string
+        }
+        Returns: Json
+      }
       record_substitution_response: {
         Args: {
           p_chosen_destination_product_id: number
@@ -48374,6 +48451,10 @@ export type Database = {
       }
       set_product_disclosure_published: {
         Args: { p_disclosure_id: number; p_published: boolean }
+        Returns: Json
+      }
+      set_study_price: {
+        Args: { p_test_type: string; p_unit_price_cents: number }
         Returns: Json
       }
       set_product_comment: {

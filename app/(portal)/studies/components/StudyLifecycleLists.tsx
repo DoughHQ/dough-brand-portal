@@ -8,6 +8,11 @@ import type {
 } from '@/lib/studies/types'
 import RowOverflowMenu from './RowOverflowMenu'
 import {
+  checkoutHref,
+  conceptListStatus,
+  isConceptStudy,
+} from '@/lib/checkout/status'
+import {
   ICON_CHECK,
   ICON_CLOCK,
   ICON_FILE,
@@ -64,6 +69,9 @@ function claimProgress(row: OperatorStudyRow): {
 }
 
 function reportHref(row: OperatorStudyRow): string {
+  if (row.order_status === 'awaiting_payment' && isConceptStudy(row)) {
+    return checkoutHref(row.mission_id)
+  }
   if (row.test_type === 'concept' || row.mission_type === 'concept_test') {
     return `/studies/concept/${row.mission_id}/report`
   }
@@ -197,7 +205,6 @@ type StudyListProps = {
   showBrand: boolean
   onClose: (row: OperatorStudyRow) => void
   onWithdraw: (row: OperatorStudyRow) => void
-  onApprove?: (row: OperatorStudyRow) => void
 }
 
 function rowOverflow(
@@ -269,7 +276,6 @@ export function ActiveStudyList({
   showBrand,
   onClose,
   onWithdraw,
-  onApprove,
 }: StudyListProps) {
   return (
     <div className="studies-list">
@@ -278,6 +284,7 @@ export function ActiveStudyList({
         const state = row.lifecycle_state
         const showState =
           state === 'paused' || state === 'scheduled' || state === 'in_review'
+        const conceptStatus = conceptListStatus(row)
         const overflow = rowOverflow(row, {
           canOperate,
           busyId,
@@ -285,11 +292,6 @@ export function ActiveStudyList({
           onClose,
           onWithdraw,
         })
-        const showApprove =
-          canOperate &&
-          state === 'in_review' &&
-          typeof onApprove === 'function' &&
-          (row.test_type === 'concept' || row.mission_type === 'concept_test')
 
         return (
           <div key={row.mission_id} className="studies-study-row studies-study-row--active">
@@ -298,7 +300,17 @@ export function ActiveStudyList({
                 row={row}
                 showBrand={showBrand}
                 extraBadges={
-                  showState ? (
+                  conceptStatus ? (
+                    conceptStatus.href ? (
+                      <Link href={conceptStatus.href} className="studies-status-pill" style={{ color: 'var(--sage-dark)', background: 'var(--sage-soft)', textDecoration: 'none' }}>
+                        {conceptStatus.label}
+                      </Link>
+                    ) : (
+                      <span className="studies-status-pill" style={{ color: 'var(--ink-50)', background: 'var(--paper, var(--cream))' }}>
+                        {conceptStatus.label}
+                      </span>
+                    )
+                  ) : showState ? (
                     state === 'in_review' ? (
                       <span className="studies-status-pill" title="Awaiting Dough review">
                         In review: Dough is checking your wording
@@ -327,26 +339,11 @@ export function ActiveStudyList({
               ) : null}
             </div>
             <div className="studies-study-actions">
-              {showApprove ? (
-                <button
-                  type="button"
-                  className="studies-row-cta"
-                  disabled={busyId === row.mission_id || pending}
-                  onClick={() => onApprove(row)}
-                  style={{
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                  }}
-                >
-                  Approve →
-                </button>
-              ) : (
-                <Link href={reportHref(row)} className="studies-row-cta">
-                  View report →
-                </Link>
-              )}
+              <Link href={reportHref(row)} className="studies-row-cta">
+                {row.order_status === 'awaiting_payment' && isConceptStudy(row)
+                  ? 'Checkout →'
+                  : 'View report →'}
+              </Link>
               {canOperate ? <RowOverflowMenu actions={overflow} /> : null}
             </div>
           </div>

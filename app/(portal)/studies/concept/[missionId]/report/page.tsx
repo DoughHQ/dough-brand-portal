@@ -113,7 +113,7 @@ export default async function ConceptStudyReportPage({ params, searchParams }: P
   const scope = await getPortalBrandScope()
   if (!scope) redirect('/login')
 
-  if (sp.preview === 'core' && scope.portalUser.role === 'dough_admin') {
+  if (sp.preview === 'sample' || (sp.preview === 'core' && scope.portalUser.role === 'dough_admin')) {
     const parsed = parseConceptTestReport(conceptTestFixture)
     if (parsed) {
       return (
@@ -129,7 +129,7 @@ export default async function ConceptStudyReportPage({ params, searchParams }: P
               padding: '8px 12px',
             }}
           >
-            Preview fixture (concept_core_v1) — not a live frozen report
+            Preview fixture — not a live report. These numbers are an example of the format.
           </div>
           <ConceptTestReportDeck report={parsed} backHref={backHref} />
         </>

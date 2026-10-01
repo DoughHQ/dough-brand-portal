@@ -6,6 +6,8 @@ import {
   type StudiesPageCursor,
   type StudiesPageTab,
 } from '@/lib/studies/fetchOperatorStudies'
+import { attachOrderStatus } from '@/lib/checkout/load'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { OperatorStudyRow } from '@/lib/studies/types'
 
 export async function listOperatorStudiesPageAction(opts: {
@@ -36,9 +38,11 @@ export async function listOperatorStudiesPageAction(opts: {
     includeDrafts: false,
   })
   if (!result.ok) return result
+  const supabase = await createServerSupabaseClient()
+  const rows = await attachOrderStatus(supabase, result.page.rows)
   return {
     ok: true,
-    rows: result.page.rows,
+    rows,
     hasMore: result.page.hasMore,
     nextCursor: result.page.nextCursor,
   }

@@ -62,7 +62,7 @@ export function toProductStudyCards(
       missionId: row.mission_id,
       title: row.title?.trim() || 'Untitled study',
       typeLabel: typeBadgeLabel(row),
-      badge: studyBadge(row.lifecycle_state),
+      badge: studyBadge(row),
       progressDetail: detail,
       progressPct: progress,
       href,

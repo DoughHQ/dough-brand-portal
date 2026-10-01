@@ -1,15 +1,27 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { fetchStudyOrder } from '@/lib/checkout/load'
+import { checkoutHref } from '@/lib/checkout/status'
+import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 type Props = {
   params: Promise<{ missionId: string }>
-  searchParams: Promise<{ published?: string }>
 }
 
-/** Post-publish status — report memo at /report when frozen snapshot exists. */
-export default async function ConceptStudyStatusPage({ params, searchParams }: Props) {
+/** After payment, the study page. An unpaid order goes to checkout. */
+export default async function ConceptStudyStatusPage({ params }: Props) {
+  const scope = await getPortalBrandScope()
+  if (!scope) redirect('/login')
+
   const { missionId } = await params
-  const sp = await searchParams
-  const justPublished = sp.published === '1'
+  const supabase = await createServerSupabaseClient()
+  const order = await fetchStudyOrder(supabase, missionId)
+  if (order?.status === 'awaiting_payment') {
+    redirect(checkoutHref(missionId))
+  }
+
+  const live = order?.status === 'paid' || order?.status === 'waived'
   const reportHref = `/studies/concept/${missionId}/report`
 
   return (
@@ -36,44 +48,31 @@ export default async function ConceptStudyStatusPage({ params, searchParams }: P
           margin: '12px 0 8px',
         }}
       >
-        {justPublished ? 'Study published' : 'Concept study'}
+        {live ? 'Your study is live' : 'Concept study'}
       </h1>
       <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.5, margin: '0 0 20px' }}>
-        Mission <code style={{ fontSize: 12 }}>{missionId}</code> is live. The report memo
-        appears once enough people complete — manage close / withdraw from Studies.
+        {live
+          ? 'Respondents can take it. The report appears once enough people finish.'
+          : 'This study is not live. If it has an order, checkout is where it gets paid.'}
       </p>
-      {justPublished ? (
-        <div
-          role="status"
-          style={{
-            fontSize: 13,
-            color: 'var(--sage-dark)',
-            background: 'var(--sage-soft)',
-            border: '1px solid rgba(62, 107, 74, 0.2)',
-            borderRadius: 'var(--r-md)',
-            padding: '10px 14px',
-            marginBottom: 20,
-          }}
-        >
-          Study published
-        </div>
-      ) : null}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-        <Link
-          href={reportHref}
-          style={{
-            display: 'inline-block',
-            background: 'var(--sage)',
-            color: 'var(--white)',
-            fontSize: 13,
-            fontWeight: 600,
-            padding: '10px 18px',
-            borderRadius: 'var(--r-sm)',
-            textDecoration: 'none',
-          }}
-        >
-          View report
-        </Link>
+        {live ? (
+          <Link
+            href={reportHref}
+            style={{
+              display: 'inline-block',
+              background: 'var(--sage)',
+              color: 'var(--white)',
+              fontSize: 13,
+              fontWeight: 600,
+              padding: '10px 18px',
+              borderRadius: 'var(--r-sm)',
+              textDecoration: 'none',
+            }}
+          >
+            View report
+          </Link>
+        ) : null}
         <Link
           href="/studies"
           style={{

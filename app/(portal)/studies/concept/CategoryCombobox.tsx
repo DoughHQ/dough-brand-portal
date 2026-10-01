@@ -236,7 +236,7 @@ export default function CategoryCombobox({
         ) : null}
       </div>
       <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--cb-secondary)' }}>
-        Choose a study type and category to unlock Field, Questions, and Battle settings.
+        Choose a category to unlock the field.
       </p>
 
       {showPanel ? (

@@ -4,7 +4,7 @@
 
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ConceptStudyDraft } from '@/lib/concept/types'
 import {
   BATTLE_PROMPT_OPTIONS,
@@ -16,31 +16,28 @@ import {
   type SuccessBarsDraft,
 } from '@/lib/concept/singleTest'
 import {
-  groupPhonePreviewScreens,
-  phonePreviewOwnership,
-  phonePreviewScreenLabel,
   type PhonePreviewJourney,
 } from '@/lib/concept/journey'
 import { respondentDesignLabel } from '@/lib/concept/designLetters'
-import {
-  editableVerificationOptions,
-  previewPriceBands,
-  templateFieldAnchor,
-  brandVerificationOption,
-} from '@/lib/concept/templateConfig'
-import { formatPriceDisplay, normalizeExpectedPrice } from '@/lib/concept/priceBands'
 import { CONCEPT_ANCHORS } from '@/lib/concept/validity'
 import {
-  Chip,
-  ExpectedPriceCard,
-  QCard,
-  VerificationCard,
-} from './conceptCards'
+  customBattlePromptNote,
+  firstUnfinishedJourneyStep,
+  journeyAsked,
+  journeyClosedLine,
+  journeyStepCountLabel,
+  journeyStepDone,
+  journeyStepOwned,
+  type AskedBlock,
+  type JourneyClosedLine,
+  type JourneyStepId,
+} from '@/lib/concept/journeyAccordion'
+import { ExpectedPriceCard, VerificationCard } from './conceptCards'
+import PackSizeField from './PackSizeField'
 import {
   inputBase,
   labelSm,
   sectionCard,
-  sectionEyebrow,
   sectionHelp,
   sectionTitle,
 } from './conceptStyles'
@@ -55,63 +52,120 @@ type Props = {
   onChange: (next: ConceptStudyDraft) => void
   disabled?: boolean
   error?: string | null
+  canPreview?: boolean
+  onPreview?: () => void
 }
 
-function JourneyCard({
+function ClosedLine({ line }: { line: JourneyClosedLine }) {
+  if (line.kind === 'required') {
+    return (
+      <span className="cb-acc-summary is-required">
+        <span className="cb-required-dot" aria-hidden="true" />
+        <span className="cb-sr">Required</span>
+      </span>
+    )
+  }
+  if (line.kind === 'empty') return <span className="cb-acc-summary" />
+  return <span className="cb-acc-summary">{line.text}</span>
+}
+
+function AskedList({ blocks }: { blocks: AskedBlock[] }) {
+  if (blocks.length === 0) return null
+  return (
+    <div className="cb-acc-asked-list">
+      {blocks.map((block, index) => (
+        <div className="cb-acc-asked" key={`${block.prompt}-${index}`}>
+          <p className="cb-acc-question">{block.prompt}</p>
+          {block.items.length > 0 ? (
+            <ol className="cb-acc-options">
+              {block.items.map((item, itemIndex) => (
+                <li key={`${item}-${itemIndex}`}>{item}</li>
+              ))}
+            </ol>
+          ) : null}
+          {block.blank ? <div className="cb-acc-blank" /> : null}
+          {block.note ? <p className="cb-acc-note">{block.note}</p> : null}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function AccordionRow({
+  id,
+  index,
   title,
-  ownership,
+  line,
+  countLabel,
+  done,
+  open,
   measures,
   reportSection,
+  onToggle,
+  rowRef,
   children,
 }: {
+  id: JourneyStepId
+  index: string | null
   title: string
-  ownership: 'Dough method' | 'Yours to write'
-  measures: string
+  line: JourneyClosedLine
+  countLabel: string | null
+  done: boolean
+  open: boolean
+  measures?: string
   reportSection: string
+  onToggle: () => void
+  rowRef: (node: HTMLElement | null) => void
   children?: React.ReactNode
 }) {
+  const owned = journeyStepOwned(id)
   return (
-    <div
-      style={{
-        border: '1px solid var(--ink-10)',
-        borderRadius: 'var(--r-md)',
-        padding: '16px 18px',
-        marginBottom: 14,
-        background: 'var(--white)',
-      }}
+    <section
+      id={`journey-step-${id}`}
+      ref={rowRef}
+      className={`cb-acc${open ? ' is-open' : ''}${owned ? '' : ' is-locked'}`}
     >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          gap: 12,
-          marginBottom: 6,
-          alignItems: 'baseline',
-        }}
-      >
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}>
-          {title}
-        </h3>
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase',
-            color: ownership === 'Dough method' ? 'var(--ink-50)' : 'var(--sage)',
-          }}
+      <h3 className="cb-acc-heading">
+        <button
+          type="button"
+          className="cb-acc-head"
+          aria-expanded={open}
+          aria-controls={open ? `journey-step-panel-${id}` : undefined}
+          onClick={onToggle}
         >
-          {ownership}
-        </span>
-      </div>
-      <p style={{ margin: '0 0 4px', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}>
-        {measures}
-      </p>
-      <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--ink-30)' }}>
-        Report → {reportSection}
-      </p>
-      {children}
-    </div>
+          <span className="cb-acc-index">{index ?? ''}</span>
+          <span className="cb-acc-main">
+            <span className="cb-acc-title">{title}</span>
+            <ClosedLine line={line} />
+          </span>
+          <span className="cb-acc-count">{countLabel ?? ''}</span>
+          {owned && done ? (
+            <span className="cb-acc-check" aria-label="Done">
+              <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+                <path
+                  d="M3.5 8.2 6.4 11 12.5 4.8"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          ) : (
+            <span className="cb-acc-check is-blank" aria-hidden="true" />
+          )}
+          <span className="cb-acc-chevron" aria-hidden="true" />
+        </button>
+      </h3>
+      {open ? (
+        <div className="cb-acc-body" id={`journey-step-panel-${id}`} role="region">
+          {measures ? <p className="cb-acc-measures">{measures}</p> : null}
+          {children}
+          <p className="cb-acc-report">Report → {reportSection}</p>
+        </div>
+      ) : null}
+    </section>
   )
 }
 
@@ -120,12 +174,19 @@ export default function SingleTestJourneySection({
   onChange,
   disabled,
   error,
+  canPreview = false,
+  onPreview,
 }: Props) {
   const config = draft.templateConfig
   const bars = draft.successBars ?? defaultSuccessBarsDraft()
   const [journey, setJourney] = useState<PhonePreviewJourney | null>(null)
   const [journeyError, setJourneyError] = useState<string | null>(null)
   const [decoyHint, setDecoyHint] = useState<string | null>(null)
+  const [openId, setOpenId] = useState<JourneyStepId | null>(() =>
+    firstUnfinishedJourneyStep(draft)
+  )
+  const [methodOpen, setMethodOpen] = useState(false)
+  const rowRefs = useRef<Partial<Record<JourneyStepId, HTMLElement | null>>>({})
 
   const fieldErrors = useMemo(() => {
     const m = new Map<string, string>()
@@ -179,20 +240,33 @@ export default function SingleTestJourneySection({
     return () => clearTimeout(t)
   }, [config.decoy_option])
 
-  const bands = previewPriceBands(config)
   const customPrompt = (draft.customBattlePrompt ?? '').trim()
   const usingCustom = customPrompt.length > 0
+  const customNote = customBattlePromptNote(draft.customBattlePrompt ?? '')
   const brandQuestions = draft.brandQuestions ?? []
+  const counts = journey?.counts ?? null
+  const screens = journey?.screens
+  const lineFor = (id: JourneyStepId) => journeyClosedLine(id, draft, screens)
+  const askedFor = (id: JourneyStepId) => journeyAsked(id, draft, screens)
+
+  function toggleStep(id: JourneyStepId) {
+    setOpenId((current) => (current === id ? null : id))
+  }
+
+  function bindRow(id: JourneyStepId) {
+    return (node: HTMLElement | null) => {
+      rowRefs.current[id] = node
+    }
+  }
 
   return (
     <section style={sectionCard} id={CONCEPT_ANCHORS.questions}>
-      <div style={sectionEyebrow}>Section 2 · Questionnaire</div>
       <h2 className="cb-section-title" style={sectionTitle}>
-        Respondent journey
+        Questions
       </h2>
       <p style={sectionHelp}>
-        One card per step, in the order respondents see. Dough method steps are locked;
-        yours need your input.
+        You write the screeners, the battle prompt, the price, and your own questions.
+        Dough&apos;s method is locked.
       </p>
 
       <div
@@ -203,17 +277,23 @@ export default function SingleTestJourneySection({
           alignItems: 'start',
         }}
       >
-        <div style={{ opacity: disabled ? 0.55 : 1, pointerEvents: disabled ? 'none' : 'auto' }}>
-          <JourneyCard
-            title="1 · Screeners"
-            ownership="Yours to write"
-            measures="How often they buy, then which brands (with decoy + none)."
-            reportSection="qualification (not scored in verdict)"
+        <div
+          style={{ opacity: disabled ? 0.55 : 1, pointerEvents: disabled ? 'none' : 'auto' }}
+        >
+        <div className="cb-acc-list">
+          <AccordionRow
+            id="screeners"
+            index="1"
+            title="Screeners"
+            line={lineFor('screeners')}
+            countLabel={journeyStepCountLabel('screeners', counts)}
+            done={journeyStepDone('screeners', draft)}
+            open={openId === 'screeners'}
+            reportSection="qualification (not scored in the verdict)"
+            onToggle={() => toggleStep('screeners')}
+            rowRef={bindRow('screeners')}
           >
-            <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--ink-50)' }}>
-              Frequency is Dough method (locked). Brands and decoy are yours — at least two
-              real brands required.
-            </p>
+            <AskedList blocks={askedFor('screeners')} />
             <VerificationCard
               config={config}
               patchConfig={patchConfig}
@@ -229,29 +309,25 @@ export default function SingleTestJourneySection({
               </button>
             ) : null}
             {decoyHint ? (
-              <p role="alert" style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--red)' }}>
+              <p role="alert" className="cb-acc-alert">
                 Decoy: {decoyHint}
               </p>
             ) : null}
-          </JourneyCard>
+          </AccordionRow>
 
-          <JourneyCard
-            title="2 · First look"
-            ownership="Dough method"
-            measures="Love it → Really don't like it on each of your designs."
-            reportSection="first_look"
-          >
-            <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-50)' }}>
-              Locked 5-point rating. Shown once per design (order rotates per respondent).
-            </p>
-          </JourneyCard>
-
-          <JourneyCard
-            title="3 · Battles"
-            ownership="Yours to write"
-            measures="Forced choice with your prompt; sampled “why” after some rounds."
+          <AccordionRow
+            id="battles"
+            index="2"
+            title="Battles"
+            line={lineFor('battles')}
+            countLabel={journeyStepCountLabel('battles', counts)}
+            done={journeyStepDone('battles', draft)}
+            open={openId === 'battles'}
             reportSection="head_to_head / stated_vs_chosen"
+            onToggle={() => toggleStep('battles')}
+            rowRef={bindRow('battles')}
           >
+            <AskedList blocks={askedFor('battles')} />
             <div style={{ ...labelSm, marginBottom: 8 }}>Battle prompt</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {BATTLE_PROMPT_OPTIONS.map((opt) => {
@@ -285,7 +361,7 @@ export default function SingleTestJourneySection({
                 )
               })}
               <label style={{ ...labelSm, marginTop: 8 }} htmlFor="custom_battle_prompt">
-                Write your own (Dough reviews before launch)
+                Write your own
               </label>
               <input
                 id="custom_battle_prompt"
@@ -305,34 +381,42 @@ export default function SingleTestJourneySection({
                   borderColor: usingCustom ? 'var(--sage)' : undefined,
                 }}
               />
-              {usingCustom ? (
-                <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--sage)' }}>
-                  Custom prompt selected — Dough will review before launch.
+              {customNote ? (
+                <p
+                  className="cb-acc-note"
+                  style={{ color: customNote.ok ? 'var(--sage)' : 'var(--red)' }}
+                >
+                  {customNote.message}
                 </p>
               ) : null}
             </div>
-          </JourneyCard>
+          </AccordionRow>
 
-          <JourneyCard
-            title="4 · What matters"
-            ownership="Dough method"
-            measures="7 packaging items, best/worst MaxDiff."
-            reportSection="what_matters"
+          <DoughMethodRow
+            open={methodOpen}
+            countLabel={doughMethodCountLabel(counts)}
+            onToggle={() => setMethodOpen((open) => !open)}
+            blocks={[
+              { title: 'First look', when: 'Before the battles', asked: askedFor('first_look') },
+              { title: 'What matters', when: 'After the battles', asked: askedFor('what_matters') },
+              { title: 'Rank the field', when: 'After the battles', asked: askedFor('rank') },
+            ]}
           />
 
-          <JourneyCard
-            title="5 · Rank the field"
-            ownership="Dough method"
-            measures="Forced rank of every item — favorite on top."
-            reportSection="stated_vs_chosen"
-          />
-
-          <JourneyCard
-            title="6 · Price"
-            ownership="Yours to write"
-            measures="Expected retail anchors the WTP bands (never shown as a shelf price)."
+          <AccordionRow
+            id="price"
+            index="3"
+            title="Price"
+            line={lineFor('price')}
+            countLabel={journeyStepCountLabel('price', counts)}
+            done={journeyStepDone('price', draft)}
+            open={openId === 'price'}
             reportSection="price / verdict.price"
+            onToggle={() => toggleStep('price')}
+            rowRef={bindRow('price')}
           >
+            <AskedList blocks={askedFor('price')} />
+            <PackSizeField draft={draft} onChange={onChange} />
             <ExpectedPriceCard
               config={config}
               patchConfig={patchConfig}
@@ -340,19 +424,21 @@ export default function SingleTestJourneySection({
               labelOverride="Expected retail price"
               helpOverride="Bands generate from this anchor. Respondents never see your number as a tag."
             />
-            {bands.length > 0 ? (
-              <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--ink-50)' }}>
-                Bands: {bands.join(' · ')}
-              </p>
-            ) : null}
-          </JourneyCard>
+          </AccordionRow>
 
-          <JourneyCard
-            title="7 · Your questions"
-            ownership="Yours to write"
-            measures="0–2 brand-written questions (reviewed before launch)."
+          <AccordionRow
+            id="brand_questions"
+            index="4"
+            title="Your questions"
+            line={lineFor('brand_questions')}
+            countLabel={journeyStepCountLabel('brand_questions', counts)}
+            done={journeyStepDone('brand_questions', draft)}
+            open={openId === 'brand_questions'}
             reportSection="brand_questions"
+            onToggle={() => toggleStep('brand_questions')}
+            rowRef={bindRow('brand_questions')}
           >
+            <AskedList blocks={askedFor('brand_questions')} />
             {brandQuestions.map((q, qi) => (
               <BrandQuestionEditor
                 key={q.localId}
@@ -384,20 +470,44 @@ export default function SingleTestJourneySection({
                 Add a question
               </button>
             ) : null}
-          </JourneyCard>
+          </AccordionRow>
 
-          <JourneyCard
-            title="8 · Open text"
-            ownership="Dough method"
-            measures="Optional verbatim at the end."
+          <AccordionRow
+            id="open_text"
+            index="5"
+            title="Open text"
+            line={lineFor('open_text')}
+            countLabel={journeyStepCountLabel('open_text', counts)}
+            done={journeyStepDone('open_text', draft)}
+            open={openId === 'open_text'}
             reportSection="open_text"
-          />
+            onToggle={() => toggleStep('open_text')}
+            rowRef={bindRow('open_text')}
+          >
+            <AskedList blocks={askedFor('open_text')} />
+          </AccordionRow>
 
-          <JourneyCard
+          {error ? (
+            <p role="alert" className="cb-acc-alert">
+              {error}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="cb-report-block">
+          <p className="cb-report-kicker">Report</p>
+          <AccordionRow
+            id="success"
+            index={null}
             title="What does success look like?"
-            ownership="Yours to write"
-            measures="Clearing bars for head-to-head, liking, and price."
+            line={lineFor('success')}
+            countLabel={null}
+            done={journeyStepDone('success', draft)}
+            open={openId === 'success'}
+            measures="Clearing bars for head-to-head, liking, and price. Respondents never see this."
             reportSection="verdict"
+            onToggle={() => toggleStep('success')}
+            rowRef={bindRow('success')}
           >
             <SuccessBarsEditor
               bars={bars}
@@ -406,20 +516,17 @@ export default function SingleTestJourneySection({
               )}
               onChange={patchBars}
             />
-          </JourneyCard>
-
-          {error ? (
-            <p role="alert" style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--red)' }}>
-              {error}
-            </p>
-          ) : null}
+          </AccordionRow>
+        </div>
         </div>
 
-        <aside style={{ position: 'sticky', top: 16 }}>
+        <aside style={{ position: 'sticky', top: 88 }}>
           <JourneyOutlinePanel
             journey={journey}
             journeyError={journeyError}
             conceptArms={draft.conceptArms}
+            canPreview={canPreview}
+            onPreview={onPreview}
           />
         </aside>
       </div>
@@ -427,6 +534,77 @@ export default function SingleTestJourneySection({
   )
 }
 
+
+function doughMethodCountLabel(
+  counts: PhonePreviewJourney['counts'] | null
+): string | null {
+  if (!counts) return null
+  const parts = [counts.first_look, counts.maxdiff_sets, counts.rank]
+  if (parts.some((n) => typeof n !== 'number' || !Number.isFinite(n))) return null
+  const n =
+    (counts.first_look ?? 0) + (counts.maxdiff_sets ?? 0) + (counts.rank ?? 0)
+  if (n <= 0) return null
+  return n === 1 ? '1 screen' : `${n} screens`
+}
+
+function journeyLengthLabel(journey: PhonePreviewJourney | null): string | null {
+  if (!journey) return null
+  const { total_min, total_max } = journey.counts
+  const screens =
+    total_min === total_max
+      ? `${total_min} ${total_min === 1 ? 'screen' : 'screens'}`
+      : `${total_min}–${total_max} screens`
+  const minutes = journey.estimated_minutes
+  if (!minutes) return screens
+  const minuteLabel =
+    minutes.min === minutes.max ? `~${minutes.min} min` : `~${minutes.min}–${minutes.max} min`
+  return `${screens} · ${minuteLabel}`
+}
+
+function DoughMethodRow({
+  open,
+  countLabel,
+  onToggle,
+  blocks,
+}: {
+  open: boolean
+  countLabel: string | null
+  onToggle: () => void
+  blocks: { title: string; when: string; asked: AskedBlock[] }[]
+}) {
+  return (
+    <section
+      className={`cb-acc is-locked${open ? ' is-open' : ''}`}
+      id="journey-step-dough-method"
+    >
+      <h3 className="cb-acc-heading">
+        <button type="button" className="cb-acc-head" aria-expanded={open} onClick={onToggle}>
+          <span className="cb-acc-index" />
+          <span className="cb-acc-main">
+            <span className="cb-acc-title">Dough&apos;s method</span>
+            <span className="cb-acc-summary">Locked</span>
+          </span>
+          <span className="cb-acc-count">{countLabel ?? ''}</span>
+          <span className="cb-acc-check is-blank" aria-hidden="true" />
+          <span className="cb-acc-chevron" aria-hidden="true" />
+        </button>
+      </h3>
+      {open ? (
+        <div className="cb-acc-body">
+          {blocks.map((block) => (
+            <div className="cb-method-block" key={block.title}>
+              <p className="cb-method-kicker">
+                {block.title}
+                <span>{block.when}</span>
+              </p>
+              <AskedList blocks={block.asked} />
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  )
+}
 
 function fieldIssueLabel(code: string): string {
   switch (code) {
@@ -450,24 +628,21 @@ function fieldIssueLabel(code: string): string {
   }
 }
 
-/** Length + order outline — not a device mock of the app. */
+/** Length and preview. The accordion is the order. */
 function JourneyOutlinePanel({
   journey,
   journeyError,
   conceptArms,
+  canPreview,
+  onPreview,
 }: {
   journey: PhonePreviewJourney | null
   journeyError: string | null
   conceptArms: ConceptStudyDraft['conceptArms']
+  canPreview: boolean
+  onPreview?: () => void
 }) {
-  const stages = journey ? groupPhonePreviewScreens(journey.screens) : []
-  const minutes = journey?.estimated_minutes
-  const minuteLabel =
-    minutes == null
-      ? null
-      : minutes.min === minutes.max
-        ? `~${minutes.min} min`
-        : `~${minutes.min}–${minutes.max} min`
+  const lengthLabel = journeyLengthLabel(journey)
 
   return (
     <div
@@ -478,191 +653,33 @@ function JourneyOutlinePanel({
         background: 'var(--surface-1)',
       }}
     >
-      <div style={{ ...labelSm, marginBottom: 4 }}>Respondent journey</div>
-      <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--ink-50)', lineHeight: 1.4 }}>
-        Order and length respondents will see. Preview opens the phone walkthrough.
+      <div style={{ ...labelSm, marginBottom: 8 }}>Length</div>
+      <p className="cb-length-line">
+        {lengthLabel ?? (journeyError ? 'Length unavailable' : 'Building length…')}
       </p>
 
-      {journey ? (
-        <div
-          style={{
-            display: 'flex',
-            gap: 8,
-            flexWrap: 'wrap',
-            marginBottom: 14,
-            alignItems: 'center',
-          }}
-        >
-          <span
-            style={{
-              fontSize: 13,
-              fontWeight: 600,
-              color: 'var(--ink-80)',
-              background: 'var(--white)',
-              border: '1px solid var(--ink-10)',
-              borderRadius: 999,
-              padding: '5px 11px',
-            }}
-          >
-            {minuteLabel ?? 'Length TBD'}
-          </span>
-          <span
-            style={{
-              fontSize: 12,
-              color: 'var(--ink-50)',
-              background: 'var(--white)',
-              border: '1px solid var(--ink-10)',
-              borderRadius: 999,
-              padding: '5px 11px',
-            }}
-          >
-            {journey.counts.total_min}–{journey.counts.total_max} screens
-          </span>
-          {journey.needs_review ? (
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: 'var(--amber, #b45309)',
-                background: 'var(--amber-soft, #fef3c7)',
-                borderRadius: 999,
-                padding: '5px 11px',
-              }}
-            >
-              In review after publish
-            </span>
-          ) : null}
-        </div>
-      ) : null}
-
       {journey?.field_issues.length ? (
-        <ul
-          style={{
-            margin: '0 0 14px',
-            padding: '10px 12px',
-            listStyle: 'none',
-            fontSize: 12,
-            color: 'var(--red)',
-            background: 'var(--white)',
-            border: '1px solid var(--ink-10)',
-            borderRadius: 'var(--r-sm)',
-          }}
-        >
+        <ul className="cb-length-issues">
           {journey.field_issues.map((c) => (
-            <li key={c} style={{ marginBottom: 4 }}>
-              {fieldIssueLabel(c)}
-            </li>
+            <li key={c}>{fieldIssueLabel(c)}</li>
           ))}
         </ul>
       ) : null}
 
-      {!journey ? (
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-50)' }}>
-          {journeyError ?? 'Building outline…'}
+      <button
+        type="button"
+        className="cb-btn cb-btn-secondary"
+        style={{ width: '100%', marginTop: 14 }}
+        disabled={!canPreview}
+        onClick={onPreview}
+      >
+        Preview
+      </button>
+      {!canPreview ? (
+        <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--ink-50)', lineHeight: 1.4 }}>
+          Opens when the study is ready to publish.
         </p>
-      ) : (
-        <div style={{ maxHeight: 480, overflowY: 'auto', paddingRight: 2 }}>
-          {stages.map((stage) => {
-            const ownership = phonePreviewOwnership(stage.screens[0]!.kind)
-            return (
-              <div key={stage.id} style={{ marginBottom: 16 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'baseline',
-                    gap: 8,
-                    marginBottom: 6,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: 'var(--ink-80)',
-                    }}
-                  >
-                    {stage.title}
-                  </div>
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 600,
-                      letterSpacing: '0.04em',
-                      textTransform: 'uppercase',
-                      color: ownership === 'Dough method' ? 'var(--ink-50)' : 'var(--sage)',
-                    }}
-                  >
-                    {ownership}
-                  </span>
-                </div>
-                <ol
-                  style={{
-                    margin: 0,
-                    padding: 0,
-                    listStyle: 'none',
-                    borderTop: '1px solid var(--ink-10)',
-                  }}
-                >
-                  {stage.screens.map((screen) => {
-                    const label = phonePreviewScreenLabel(screen.kind)
-                    const subject = screen.subject?.respondent_label
-                    const detail =
-                      screen.prompt?.trim() ||
-                      (typeof screen.count === 'number'
-                        ? `${screen.count} battles`
-                        : null) ||
-                      (typeof screen.sets === 'number' ? `${screen.sets} sets` : null) ||
-                      (typeof screen.up_to === 'number'
-                        ? `Up to ${screen.up_to}`
-                        : null)
-                    return (
-                      <li
-                        key={`${screen.kind}-${screen.index}`}
-                        style={{
-                          padding: '8px 0',
-                          borderBottom: '1px solid var(--ink-10)',
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 500,
-                            color: 'var(--ink-80)',
-                          }}
-                        >
-                          <span style={{ color: 'var(--ink-50)', fontWeight: 500 }}>
-                            {screen.index}.
-                          </span>{' '}
-                          {label}
-                          {subject ? (
-                            <span style={{ color: 'var(--ink-50)', fontWeight: 500 }}>
-                              {' '}
-                              · {subject}
-                            </span>
-                          ) : null}
-                        </div>
-                        {detail ? (
-                          <div
-                            style={{
-                              marginTop: 2,
-                              fontSize: 12,
-                              color: 'var(--ink-50)',
-                              lineHeight: 1.4,
-                            }}
-                          >
-                            {detail}
-                          </div>
-                        ) : null}
-                      </li>
-                    )
-                  })}
-                </ol>
-              </div>
-            )
-          })}
-        </div>
-      )}
+      ) : null}
 
       {journeyError && journey ? (
         <p style={{ margin: '12px 0 0', fontSize: 11, color: 'var(--ink-30)', lineHeight: 1.4 }}>

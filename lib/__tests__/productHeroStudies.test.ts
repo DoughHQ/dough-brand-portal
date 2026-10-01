@@ -44,6 +44,27 @@ describe('isHeroStudyForProduct', () => {
 })
 
 describe('toProductStudyCards', () => {
+  it('labels an unpaid concept study as awaiting payment and sends it to checkout', () => {
+    const cards = toProductStudyCards(
+      [
+        row({
+          mission_id: 'concept-1',
+          title: 'Spring pack',
+          test_type: 'concept',
+          mission_type: 'concept_test',
+          lifecycle_state: 'in_review',
+          status: 'draft',
+          focal_product_id: 99,
+          order_status: 'awaiting_payment',
+        }),
+      ],
+      99
+    )
+    expect(cards[0]?.badge).toBe('Awaiting payment')
+    expect(cards[0]?.href).toBe('/studies/concept-1/checkout')
+    expect(cards[0]?.ctaLabel).toBe('Checkout')
+  })
+
   it('maps owned iHUT rows and ignores competitor focals', () => {
     const cards = toProductStudyCards(
       [
