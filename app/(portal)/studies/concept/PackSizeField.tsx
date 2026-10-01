@@ -144,7 +144,7 @@ export default function PackSizeField({ draft, onChange }: Props) {
       <p id="pack_size_hint" className="cb-field-note">
         {loadError
           ? 'Could not load category pack sizes — type a custom pack size below, or re-pick the category.'
-          : 'Used in respondent copy for this packaging study.'}
+          : 'Fills the price question.'}
       </p>
       <p
         id="pack_size_preview"

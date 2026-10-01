@@ -14,7 +14,6 @@ import {
   publishConceptStudyAction,
 } from './actions'
 import AudienceSection from './AudienceSection'
-import BattleSettingsSection from './BattleSettingsSection'
 import FieldSection from './FieldSection'
 import SingleTestJourneySection from './SingleTestJourneySection'
 import StudyTypeSection from './StudyTypeSection'
@@ -340,11 +339,6 @@ export default function ConceptStudyClient({
                 },
               ]
             : []),
-          {
-            id: CONCEPT_ANCHORS.battleSettings,
-            label: 'Battle settings',
-            done: validity.readyToPublish,
-          },
         ]}
       />
 
@@ -374,6 +368,7 @@ export default function ConceptStudyClient({
         titleError={sectionErrors.title ?? null}
         showErrors={publishAttempted}
         packagingOnly
+        minCompletions={30}
       />
 
       <FieldSection
@@ -391,6 +386,11 @@ export default function ConceptStudyClient({
         onChange={persist}
         error={sectionErrors.questions ?? null}
         disabled={builderLocked}
+        canPreview={validity.readyToPublish}
+        onPreview={() => {
+          flushSaveNow(draft)
+          router.push(`/studies/concept/${draft.draftId}/preview`)
+        }}
       />
 
       {STUDY_AUDIENCE_BUILDER_ENABLED ? (
@@ -403,15 +403,6 @@ export default function ConceptStudyClient({
         />
       ) : null}
 
-
-      <BattleSettingsSection
-        draft={draft}
-        onChange={persist}
-        disabled={builderLocked}
-        disabledReason={builderLocked ? lockReason : null}
-        minCompletions={30}
-        sectionNumber={STUDY_AUDIENCE_BUILDER_ENABLED ? 5 : 4}
-      />
 
       {sectionErrors.publish &&
       !sectionErrors.field &&
