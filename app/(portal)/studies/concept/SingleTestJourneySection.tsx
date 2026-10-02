@@ -16,7 +16,8 @@ import {
   DEFAULT_DECOY_OPTION,
   defaultSuccessBarsDraft,
   emptyBrandQuestion,
-  fieldAnswerOptionLabels,
+  fieldAnswerOptionSeats,
+  type FieldAnswerSeat,
   headToHeadWinSentence,
   priceWinSentence,
   syncBrandQuestionFieldOptions,
@@ -49,6 +50,8 @@ import {
 import { ExpectedPriceCard, VerificationCard } from './conceptCards'
 import PackSizeField from './PackSizeField'
 import { DragHandle } from './fieldIcons'
+import { resolveStimuliPreviewUrl } from '@/lib/concept/stimuliStorage'
+import { createClient } from '@/lib/supabase'
 import {
   inputBase,
   labelSm,
@@ -260,13 +263,17 @@ export default function SingleTestJourneySection({
   const usingCustom = customPrompt.length > 0
   const customNote = customBattlePromptNote(draft.customBattlePrompt ?? '')
   const brandQuestions = draft.brandQuestions ?? []
-  const fieldOptions = useMemo(
+  const fieldSeats = useMemo(
     () =>
-      fieldAnswerOptionLabels({
+      fieldAnswerOptionSeats({
         conceptArms: draft.conceptArms,
         products: draft.products,
       }),
     [draft.conceptArms, draft.products]
+  )
+  const fieldOptions = useMemo(
+    () => fieldSeats.map((seat) => seat.label),
+    [fieldSeats]
   )
 
   // Keep Choose-from-field questions aligned with the live field seats.
@@ -566,6 +573,7 @@ export default function SingleTestJourneySection({
               >
                 <BrandQuestionEditor
                   question={question}
+                  fieldSeats={fieldSeats}
                   fieldOptions={fieldOptions}
                   onChange={(next) => {
                     const list = [...brandQuestions]
@@ -705,11 +713,13 @@ function fieldIssueLabel(code: string): string {
 
 function BrandQuestionEditor({
   question,
+  fieldSeats,
   fieldOptions,
   onChange,
   onRemove,
 }: {
   question: BrandQuestionDraft
+  fieldSeats: FieldAnswerSeat[]
   fieldOptions: string[]
   onChange: (q: BrandQuestionDraft) => void
   onRemove: () => void
@@ -812,24 +822,25 @@ function BrandQuestionEditor({
         </div>
 
         {fromField ? (
-          fieldOptions.length === 0 ? (
+          fieldSeats.length === 0 ? (
             <p className="cb-bq-field-empty" role="status">
               Add designs and competitors in Field first.
             </p>
           ) : (
             <>
               <ul className="cb-bq-field-options" aria-label="Field as answers">
-                {fieldOptions.map((label) => (
-                  <li key={label} className="cb-bq-field-option">
+                {fieldSeats.map((seat) => (
+                  <li key={seat.label} className="cb-bq-field-option">
+                    <FieldOptionPhoto imageRef={seat.imageRef} src={seat.imageSrc} />
                     <span
                       className={`cb-bq-option-mark${several ? ' is-multi' : ''}`}
                       aria-hidden="true"
                     />
-                    <span className="cb-bq-field-option-label">{label}</span>
+                    <span className="cb-bq-field-option-label">{seat.label}</span>
                   </li>
                 ))}
               </ul>
-              {fieldOptions.length < 2 ? (
+              {fieldSeats.length < 2 ? (
                 <p role="alert" className="cb-bq-hint is-error">
                   Need at least two items in the field.
                 </p>
@@ -937,6 +948,39 @@ function BrandQuestionEditor({
         </button>
       </div>
     </div>
+  )
+}
+
+function FieldOptionPhoto({
+  imageRef,
+  src,
+}: {
+  imageRef?: string | null
+  src?: string | null
+}) {
+  const [url, setUrl] = useState<string | null>(src ?? null)
+  useEffect(() => {
+    if (src) {
+      setUrl(src)
+      return
+    }
+    if (!imageRef) {
+      setUrl(null)
+      return
+    }
+    let cancelled = false
+    const supabase = createClient()
+    void resolveStimuliPreviewUrl(supabase, imageRef).then((next) => {
+      if (!cancelled) setUrl(next)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [imageRef, src])
+  return (
+    <span className="cb-bq-field-photo">
+      {url ? <img src={url} alt="" /> : null}
+    </span>
   )
 }
 

@@ -7,6 +7,7 @@ import {
   brandQuestionsToWire,
   emptyBrandQuestion,
   fieldAnswerOptionLabels,
+  fieldAnswerOptionSeats,
   syncBrandQuestionFieldOptions,
   withBrandQuestionAnswerSource,
   withBrandQuestionKind,
@@ -79,12 +80,16 @@ describe('brand question builder', () => {
   it('builds field answer labels from designs and resolved competitors', () => {
     expect(
       fieldAnswerOptionLabels({
-        conceptArms: [{ display_name: 'Midnight' }, { display_name: '' }],
+        conceptArms: [
+          { display_name: 'Midnight', image_url: 'concept-stimuli/a.png' },
+          { display_name: '' },
+        ],
         products: [
           {
             product_id: 1,
             frozen_display_name: 'Half Baked',
             frozen_brand_name: "Ben & Jerry's",
+            frozen_image_url: 'https://cdn.example/half.jpg',
           },
           {
             product_id: null,
@@ -94,6 +99,32 @@ describe('brand question builder', () => {
         ],
       })
     ).toEqual(['Design A — Midnight', 'Design B', "Ben & Jerry's — Half Baked"])
+  })
+
+  it('carries image refs on field answer seats', () => {
+    const seats = fieldAnswerOptionSeats({
+      conceptArms: [{ display_name: 'Midnight', image_url: 'concept-stimuli/a.png' }],
+      products: [
+        {
+          product_id: 1,
+          frozen_display_name: 'Half Baked',
+          frozen_brand_name: "Ben & Jerry's",
+          frozen_image_url: 'https://cdn.example/half.jpg',
+        },
+      ],
+    })
+    expect(seats).toEqual([
+      {
+        label: 'Design A — Midnight',
+        imageRef: 'concept-stimuli/a.png',
+        imageSrc: null,
+      },
+      {
+        label: "Ben & Jerry's — Half Baked",
+        imageRef: null,
+        imageSrc: 'https://cdn.example/half.jpg',
+      },
+    ])
   })
 
   it('stashes custom answers when switching to field and restores them', () => {

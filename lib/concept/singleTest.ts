@@ -106,29 +106,62 @@ export function withBrandQuestionOptions(
  * Labels for Choose-from-field mode — same seat order as ranking:
  * design letters (with operator name when set), then resolved competitors.
  */
-export function fieldAnswerOptionLabels(input: {
-  conceptArms: ReadonlyArray<{ display_name: string }>
+export type FieldAnswerSeat = {
+  label: string
+  /** Concept stimuli storage path (signed at render). */
+  imageRef?: string | null
+  /** Competitor catalog image URL. */
+  imageSrc?: string | null
+}
+
+export function fieldAnswerOptionSeats(input: {
+  conceptArms: ReadonlyArray<{ display_name: string; image_url?: string | null }>
   products: ReadonlyArray<{
     product_id: number | null
     frozen_display_name: string
     frozen_brand_name: string
+    frozen_image_url?: string | null
   }>
-}): string[] {
+}): FieldAnswerSeat[] {
   const designs = input.conceptArms.map((arm, index) => {
     const letter = respondentDesignLabel(index)
     const name = arm.display_name.trim()
-    return name ? `${letter} — ${name}` : letter
+    return {
+      label: name ? `${letter} — ${name}` : letter,
+      imageRef: arm.image_url ?? null,
+      imageSrc: null,
+    }
   })
   const competitors = input.products.flatMap((product) => {
     if (product.product_id == null) return []
     const name = product.frozen_display_name.trim()
     const brand = product.frozen_brand_name.trim()
-    if (name && brand && brand.toLowerCase() !== name.toLowerCase()) {
-      return [`${brand} — ${name}`]
-    }
-    return name || brand ? [name || brand] : []
+    const label =
+      name && brand && brand.toLowerCase() !== name.toLowerCase()
+        ? `${brand} — ${name}`
+        : name || brand
+    if (!label) return []
+    return [
+      {
+        label,
+        imageRef: null,
+        imageSrc: product.frozen_image_url ?? null,
+      },
+    ]
   })
   return [...designs, ...competitors]
+}
+
+export function fieldAnswerOptionLabels(input: {
+  conceptArms: ReadonlyArray<{ display_name: string; image_url?: string | null }>
+  products: ReadonlyArray<{
+    product_id: number | null
+    frozen_display_name: string
+    frozen_brand_name: string
+    frozen_image_url?: string | null
+  }>
+}): string[] {
+  return fieldAnswerOptionSeats(input).map((seat) => seat.label)
 }
 
 function sameOptionList(a: string[], b: string[]): boolean {
