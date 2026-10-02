@@ -880,8 +880,15 @@
   border: 1px solid var(--cb-border);
   border-radius: var(--cb-radius-card);
   background: var(--cb-surface);
-  padding: 14px;
-  margin-bottom: 12px;
+  padding: 10px 12px 12px;
+  margin-bottom: 10px;
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.concept-builder .cb-concept-card.is-shelf-focus,
+.concept-builder .cb-comp-row.is-shelf-focus {
+  border-color: var(--cb-sage);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cb-sage) 22%, transparent);
 }
 
 .concept-builder .cb-concept-card-top {
@@ -889,13 +896,31 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .concept-builder .cb-concept-letter {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
+  letter-spacing: 0.02em;
   color: var(--cb-heading);
+}
+
+.concept-builder .cb-concept-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.concept-builder .cb-concept-card-body:has(.cb-concept-stage) {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px 12px;
+  align-items: center;
+}
+
+.concept-builder .cb-concept-card-body:has(.cb-concept-stage) .cb-concept-name {
+  margin-top: 0;
 }
 
 .concept-builder .cb-concept-stage-frame {
@@ -903,9 +928,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 140px;
+  width: 72px;
+  height: 72px;
   border: 1px solid var(--ink-10);
-  border-radius: var(--cb-radius-card);
+  border-radius: 10px;
   background: var(--surface-1);
   overflow: hidden;
 }
@@ -923,20 +949,24 @@
 }
 
 .concept-builder .cb-concept-stage-empty {
-  font-size: 13px;
+  font-size: 11px;
   color: var(--ink-30);
+  text-align: center;
+  padding: 4px;
+  line-height: 1.2;
 }
 
 .concept-builder .cb-concept-stage-replace {
   position: absolute;
-  left: 8px;
-  bottom: 8px;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
   border: 0;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.92);
-  padding: 4px 10px;
+  padding: 2px 6px;
   font: inherit;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--cb-heading);
   cursor: pointer;
@@ -975,7 +1005,7 @@
 
 .concept-builder .cb-concept-add {
   width: 100%;
-  min-height: 72px;
+  min-height: 52px;
   border: var(--cb-border-dashed);
   border-radius: var(--cb-radius-card);
   background: var(--cb-surface-muted);
@@ -991,53 +1021,97 @@
   cursor: not-allowed;
 }
 
-.concept-builder .cb-field-member {
+/* Lined-up shelf — the equal-field composition. Editors above; this is the read. */
+.concept-builder .cb-field-shelf {
   margin-top: 28px;
-  padding-top: 16px;
-  border-top: 1px solid var(--cb-border-soft);
+  padding: 16px 18px 18px;
+  border-radius: var(--cb-radius-card);
+  background: var(--cb-surface-muted);
+  border: 1px solid var(--cb-border-soft);
 }
 
-.concept-builder .cb-field-member-head {
+.concept-builder .cb-field-shelf-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 14px;
+}
+
+.concept-builder .cb-field-shelf-title {
   font-size: 13px;
   font-weight: 600;
   color: var(--cb-heading);
-  margin-bottom: 10px;
 }
 
-.concept-builder .cb-field-member ul {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
+.concept-builder .cb-field-shelf-meta {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--ink-50);
+}
+
+.concept-builder .cb-field-shelf-rail {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.concept-builder .cb-field-member li {
+.concept-builder .cb-field-shelf-tile {
   display: flex;
-  flex: 1 1 0;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
   min-width: 0;
-  text-align: center;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--cb-border);
+  border-radius: 12px;
+  background: var(--cb-surface);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
 
-.concept-builder .cb-field-member li span {
+button.cb-field-shelf-tile:hover {
+  border-color: color-mix(in srgb, var(--cb-sage) 45%, var(--cb-border));
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink-80) 4%, transparent);
+}
+
+button.cb-field-shelf-tile:focus-visible {
+  outline: 2px solid var(--cb-sage);
+  outline-offset: 2px;
+}
+
+.concept-builder .cb-field-shelf-tile.is-empty {
+  border-style: dashed;
+  background: transparent;
+  cursor: default;
+  opacity: 0.72;
+}
+
+.concept-builder .cb-field-shelf-copy {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  width: 100%;
-  font-size: 12px;
-  line-height: 1.35;
+  font-size: 11px;
+  line-height: 1.3;
   color: var(--ink-50);
 }
 
-.concept-builder .cb-field-member strong {
-  font-size: 13px;
+.concept-builder .cb-field-shelf-copy strong {
+  font-size: 12px;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.3;
   color: var(--cb-heading);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1045,31 +1119,43 @@
   overflow: hidden;
 }
 
-.concept-builder .cb-field-member-photo {
-  width: 96px;
-  height: 96px;
-  flex-shrink: 0;
-  border-radius: 12px;
+.concept-builder .cb-field-shelf-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 64px;
+  border-radius: 8px;
   background: var(--surface-1);
   border: 1px solid var(--ink-10);
   overflow: hidden;
 }
 
-.concept-builder .cb-field-member-photo img {
+.concept-builder .cb-field-shelf-tile.is-empty .cb-field-shelf-photo {
+  border-style: dashed;
+  background: transparent;
+}
+
+.concept-builder .cb-field-shelf-photo img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
 }
 
+@media (max-width: 900px) {
+  .concept-builder .cb-field-shelf-rail {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  }
+}
+
 @media (max-width: 720px) {
-  .concept-builder .cb-field-member ul {
-    flex-wrap: wrap;
-    justify-content: flex-start;
+  .concept-builder .cb-concept-card-body:has(.cb-concept-stage) {
+    grid-template-columns: 64px minmax(0, 1fr);
   }
 
-  .concept-builder .cb-field-member li {
-    flex: 0 1 120px;
+  .concept-builder .cb-concept-stage-frame {
+    width: 64px;
+    height: 64px;
   }
 }
 

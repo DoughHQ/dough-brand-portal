@@ -152,17 +152,17 @@ export default function ConceptArmImageUploader({
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 12,
-                  minHeight: 140,
+                  gap: 6,
+                  minHeight: 72,
                   boxSizing: 'border-box',
                   border: dragOver
                     ? '1px solid var(--cb-sage)'
                     : 'var(--cb-border-dashed)',
-                  borderRadius: 'var(--cb-radius-card)',
+                  borderRadius: 10,
                   background: dragOver
                     ? 'var(--cb-sage-hover)'
                     : 'var(--cb-surface-muted)',
-                  padding: '32px 24px',
+                  padding: '10px 8px',
                   cursor: disabled || uploading ? 'not-allowed' : 'pointer',
                   opacity: disabled ? 0.55 : 1,
                   transition: 'border-color 120ms ease, background 120ms ease',
@@ -186,23 +186,24 @@ export default function ConceptArmImageUploader({
                 }
           }
         >
-          <DropGlyph active={dragOver || uploading} large={hero} />
+          <DropGlyph active={dragOver || uploading} large={false} />
           <div style={{ flex: hero ? undefined : 1, minWidth: 0 }}>
             {uploading ? (
-              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
                 Uploading…
               </div>
             ) : (
               <>
                 <div
                   style={{
-                    fontSize: hero ? 15 : 13,
+                    fontSize: 13,
                     fontWeight: 600,
                     color: 'var(--ink-80)',
                   }}
                 >
-                  {hero ? 'Upload pack image' : 'Choose a file or drag it here'}
+                  {hero ? 'Add pack image' : 'Choose a file or drag it here'}
                 </div>
+                {!hero ? (
                 <div
                   style={{
                     fontSize: 12,
@@ -212,6 +213,7 @@ export default function ConceptArmImageUploader({
                 >
                   PNG, JPG, or WebP · under 15 MB
                 </div>
+                ) : null}
               </>
             )}
           </div>
