@@ -17013,7 +17013,8 @@ export type Database = {
           effects_config: Json
           eligibility_tier: Database["public"]["Enums"]["mission_eligibility_tier"]
           evidence_timing: string
-          expires_at: string
+          fielding_days: number | null
+          expires_at: string | null
           id: string
           internal_notes: string | null
           max_claims: number | null
@@ -17064,7 +17065,8 @@ export type Database = {
           effects_config?: Json
           eligibility_tier?: Database["public"]["Enums"]["mission_eligibility_tier"]
           evidence_timing?: string
-          expires_at: string
+          fielding_days?: number | null
+          expires_at: string | null
           id?: string
           internal_notes?: string | null
           max_claims?: number | null
@@ -17115,7 +17117,8 @@ export type Database = {
           effects_config?: Json
           eligibility_tier?: Database["public"]["Enums"]["mission_eligibility_tier"]
           evidence_timing?: string
-          expires_at?: string
+          fielding_days?: number | null
+          expires_at?: string | null
           id?: string
           internal_notes?: string | null
           max_claims?: number | null

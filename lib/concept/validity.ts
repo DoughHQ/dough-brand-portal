@@ -11,9 +11,10 @@ import {
   type TemplateConfigError,
 } from './templateConfig'
 import { uniquePairs } from './publish'
-import { isSignedStorageUrl } from './stimuliStorage'
+import { isPublishableImageRef } from './stimuliStorage'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
 import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
+import { fieldingDaysMessage } from '@/lib/studies/fieldingWindow'
 import {
   MAX_CONCEPT_FIELD_SIZE,
   competitorMinimum,
@@ -24,7 +25,6 @@ import {
   isFieldDeadEnd,
   resolvedCompetitors,
 } from './fieldSize'
-import { armLabelForIndex } from './defaults'
 
 export const CONCEPT_ANCHORS = {
   mode: 'concept-mode',
@@ -280,21 +280,14 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     draft.stimulusMode === 'package' || draft.stimulusMode === 'price'
   const imagesOk =
     !needsImages ||
-    arms.every((a) => {
-      const ref = a.image_url?.trim()
-      return !!ref && !isSignedStorageUrl(ref)
-    })
+    (arms.every((a) => isPublishableImageRef(a.image_url)) &&
+      draft.products
+        .filter((p) => p.product_id != null)
+        .every((p) => isPublishableImageRef(p.frozen_image_url)))
   if (needsImages && !imagesOk) {
-    arms.forEach((a, i) => {
-      const ref = a.image_url?.trim()
-      if (ref && !isSignedStorageUrl(ref)) return
-      const msg =
-        arms.length > 1
-          ? `Upload pack image for Variant ${a.arm_label || armLabelForIndex(i)}`
-          : 'Upload the pack image for your product'
-      reasons.push(msg)
-      outstanding.push({ message: msg, anchor: 'concept-field' })
-    })
+    const msg = CONCEPT_PUBLISH_HINT_MESSAGES.IMAGE_REQUIRED
+    reasons.push(msg)
+    outstanding.push({ message: msg, anchor: 'concept-field' })
   }
 
   const isTemplateMode =
@@ -355,15 +348,6 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
         outstanding.push({ message: msg, anchor: 'concept-field' })
       }
     }
-    for (const arm of draft.conceptArms) {
-      const url = arm.image_url?.trim() ?? ''
-      if (!/^https:\/\//i.test(url)) {
-        const msg = 'Every design needs an https pack image.'
-        if (!reasons.includes(msg)) reasons.push(msg)
-        outstanding.push({ message: msg, anchor: 'concept-field' })
-        break
-      }
-    }
   }
 
   const minCompletions = 30
@@ -373,10 +357,10 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     outstanding.push({ message: msg, anchor: 'field_target_completions' })
   }
 
-  if (!draft.expiresAt) {
-    const msg = 'Set an expiry date.'
-    reasons.push(msg)
-    outstanding.push({ message: msg, anchor: 'field_expires_at' })
+  const fieldingMessage = fieldingDaysMessage(draft.fieldingDays)
+  if (fieldingMessage) {
+    reasons.push(fieldingMessage)
+    outstanding.push({ message: fieldingMessage, anchor: 'field_expires_at' })
   }
 
   const competitorsOk = competitorsMissing === 0
@@ -474,7 +458,7 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     templateOk &&
     audienceOk &&
     draft.targetCompletions >= 30 &&
-    !!draft.expiresAt &&
+    fieldingDaysMessage(draft.fieldingDays) == null &&
     hasVerificationScreener &&
     singleTestBenchCount === 1 &&
     singleTestNonBenchArm

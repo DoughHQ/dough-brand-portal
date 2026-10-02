@@ -2,21 +2,21 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { isDisplayableImageUrl } from '@/lib/concept/stimuliStorage'
-import { CHECKOUT_ASSURANCES, CONCEPT_CORE_INCLUDED } from '@/lib/checkout/included'
+import { CHECKOUT_ASSURANCES, CONCEPT_REPORT_CHAPTERS } from '@/lib/checkout/included'
 import { formatOrderMoney } from '@/lib/checkout/money'
 import type { CheckoutThumb, StudyOrderRow } from '@/lib/checkout/payment'
+import { checkoutWindowFacts } from '@/lib/checkout/windowFacts'
 import './checkout.css'
 
-function Thumb({ item }: { item: CheckoutThumb }) {
-  const show = isDisplayableImageUrl(item.imageUrl)
+function Thumb({ item, size }: { item: CheckoutThumb; size: 'stage' | 'quiet' }) {
+  const letter = item.name.trim().charAt(0).toUpperCase() || (item.kind === 'design' ? 'A' : '·')
   return (
-    <figure className="checkout-thumb">
-      {show && item.imageUrl ? (
+    <figure className={size === 'stage' ? 'checkout-pack' : 'checkout-face'}>
+      {item.imageUrl ? (
         <img src={item.imageUrl} alt="" />
       ) : (
-        <div className="checkout-thumb-fallback" aria-hidden>
-          {item.kind === 'design' ? 'Design' : 'Product'}
+        <div className="checkout-pack-fallback" aria-hidden>
+          {letter}
         </div>
       )}
       <figcaption>{item.name}</figcaption>
@@ -40,11 +40,15 @@ export default function CheckoutClient({
   designs,
   products,
   email,
+  fieldingDays,
+  expiresAt,
 }: {
   order: StudyOrderRow
   designs: CheckoutThumb[]
   products: CheckoutThumb[]
   email: string | null
+  fieldingDays: number | null
+  expiresAt: string | null
 }) {
   const [requested, setRequested] = useState(false)
   const total = formatOrderMoney(order.amount_cents, order.currency)
@@ -52,6 +56,12 @@ export default function CheckoutClient({
   const settled = order.status === 'paid' || order.status === 'waived'
   const invoiceEmail = email?.trim() || 'your account email'
   const when = paidDate(order.paid_at)
+  const facts = checkoutWindowFacts({
+    completions: order.completions,
+    fieldingDays,
+    expiresAt,
+    settled,
+  })
 
   return (
     <div className="checkout-page">
@@ -62,23 +72,20 @@ export default function CheckoutClient({
       <h1 className="checkout-title">{order.title}</h1>
       <p className="checkout-lede">
         {settled
-          ? 'This study is live. The receipt is the order that was settled.'
-          : 'Nothing goes live until this order is paid. Dough does not review the study.'}
+          ? 'This study is live.'
+          : 'A blind read of these packs, from real shoppers.'}
       </p>
 
       <div className="checkout-grid">
         <div>
-          <section className="checkout-panel">
-            <h2>What you are buying</h2>
+          <section className="checkout-panel" aria-label="The study">
             {designs.length > 0 ? (
               <>
-                <p className="checkout-line" style={{ marginTop: 0 }}>
-                  Designs
-                </p>
-                <ul className="checkout-thumbs">
+                <h2>The packs</h2>
+                <ul className="checkout-packs">
                   {designs.map((item, index) => (
                     <li key={`design-${index}`}>
-                      <Thumb item={item} />
+                      <Thumb item={item} size="stage" />
                     </li>
                   ))}
                 </ul>
@@ -86,34 +93,55 @@ export default function CheckoutClient({
             ) : null}
             {products.length > 0 ? (
               <>
-                <p className="checkout-line">Products they face</p>
-                <ul className="checkout-thumbs">
+                <h2 className={designs.length > 0 ? 'checkout-subhead' : undefined}>They face</h2>
+                <ul className="checkout-faces">
                   {products.map((item, index) => (
                     <li key={`product-${index}`}>
-                      <Thumb item={item} />
+                      <Thumb item={item} size="quiet" />
                     </li>
                   ))}
                 </ul>
               </>
             ) : null}
-            <p className="checkout-line">
-              {order.completions.toLocaleString('en-US')} completed responses
-            </p>
+            <dl className="checkout-facts">
+              <div>
+                <dt>Responses</dt>
+                <dd>{facts.responses}</dd>
+              </div>
+              <div>
+                <dt>Runs</dt>
+                <dd>
+                  {facts.length}
+                  <small>{facts.lengthNote}</small>
+                </dd>
+              </div>
+              <div>
+                <dt>Ends</dt>
+                <dd>
+                  {facts.end}
+                  <small>{facts.endNote}</small>
+                </dd>
+              </div>
+            </dl>
           </section>
 
-          <section className="checkout-panel">
-            <h2>Included</h2>
-            <ul className="checkout-included">
-              {CONCEPT_CORE_INCLUDED.map((item) => (
-                <li key={item}>{item}</li>
+          <section className="checkout-panel" aria-labelledby="checkout-report-title">
+            <h2 id="checkout-report-title">What you get back</h2>
+            <div className="checkout-chapters">
+              {CONCEPT_REPORT_CHAPTERS.map((chapter) => (
+                <div className="checkout-chapter" key={chapter.title}>
+                  <p className="checkout-chapter-title">{chapter.title}</p>
+                  <p className="checkout-chapter-body">{chapter.body}</p>
+                </div>
               ))}
-            </ul>
-            <Link
-              className="checkout-sample"
-              href={`/studies/concept/${order.mission_id}/report?preview=sample`}
-            >
-              See a sample report
-            </Link>
+              <Link
+                className="checkout-chapter checkout-chapter-link"
+                href={`/studies/concept/${order.mission_id}/report?preview=sample`}
+              >
+                <p className="checkout-chapter-title">Sample report</p>
+                <p className="checkout-chapter-body">See what the team gets back.</p>
+              </Link>
+            </div>
           </section>
         </div>
 
@@ -160,6 +188,8 @@ export default function CheckoutClient({
               {CHECKOUT_ASSURANCES.map((line) => (
                 <li key={line}>{line}</li>
               ))}
+              <li>Invoice to {invoiceEmail}.</li>
+              <li>Dough does not review the study.</li>
             </ul>
           ) : null}
         </aside>

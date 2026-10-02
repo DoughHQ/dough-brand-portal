@@ -98,6 +98,14 @@ export function isConceptStimuliRef(value: string): boolean {
   return storageRefToObjectPath(value) != null
 }
 
+/** A publishable image is a concept-stimuli path or a normal https URL, never a signed link. */
+export function isPublishableImageRef(raw: string | null | undefined): boolean {
+  const value = (raw ?? '').trim()
+  if (!value || isSignedStorageUrl(value)) return false
+  if (isConceptStimuliRef(value)) return true
+  return /^https:\/\//i.test(value)
+}
+
 /** True when the string is safe to put in <img src>. Raw storage refs are not. */
 export function isDisplayableImageUrl(value: string | null | undefined): boolean {
   if (!value?.trim()) return false

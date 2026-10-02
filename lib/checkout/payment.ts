@@ -56,6 +56,7 @@ const HINT_COPY: Record<string, string> = {
   AMOUNT_MISMATCH: 'That amount does not match the order.',
   MISSION_NOT_FOUND: 'That study is no longer there.',
   MISSION_EXPIRED: 'This study expired before it was paid.',
+  FIELDING_WINDOW_TOO_SHORT: 'A study needs at least 7 days to run.',
   PRICE_OUT_OF_RANGE: 'A price per response must be between $1 and $10,000.',
   UNKNOWN_TEST_TYPE: 'That study type has no price.',
 }

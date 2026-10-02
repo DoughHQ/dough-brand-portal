@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
-import { formatOrderMoney } from '@/lib/checkout/money'
+import CheckoutHandoff, { AwaitingPaymentNotice } from './CheckoutHandoff'
 import type { ConceptPublishSuccessMeta, ConceptStudyDraft } from '@/lib/concept/types'
 import { createEmptyConceptDraft } from '@/lib/concept/defaults'
 import { normalizeDraft } from '@/lib/concept/normalizeDraft'
@@ -48,6 +48,7 @@ export default function ConceptStudyClient({
   const [publishing, setPublishing] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [publishMeta, setPublishMeta] = useState<ConceptPublishSuccessMeta | null>(null)
+  const [handoffOpen, setHandoffOpen] = useState(false)
   const [noVerificationOpen, setNoVerificationOpen] = useState(false)
   const [publishAttempted, setPublishAttempted] = useState(false)
   const [sectionErrors, setSectionErrors] = useState<{
@@ -187,6 +188,7 @@ export default function ConceptStudyClient({
   }
 
   function requestPublish() {
+    if (publishMeta) return
     setPublishAttempted(true)
     setSectionErrors({})
     setPublishFailure(null)
@@ -273,6 +275,7 @@ export default function ConceptStudyClient({
 
       setPublishing(false)
       setPublishMeta(result.meta)
+      setHandoffOpen(true)
     } catch (err) {
       setSectionErrors({
         publish: err instanceof Error ? err.message : 'Publish failed.',
@@ -314,6 +317,10 @@ export default function ConceptStudyClient({
           onResume={() => void acceptResume()}
           onStartFresh={dismissResume}
         />
+      ) : null}
+
+      {publishMeta && !handoffOpen ? (
+        <AwaitingPaymentNotice onContinue={confirmPublished} />
       ) : null}
 
       <BuilderStepper
@@ -509,121 +516,13 @@ export default function ConceptStudyClient({
         </div>
       ) : null}
 
-      {publishMeta ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="publish-confirm-title"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 50,
-            background: 'rgba(20, 24, 20, 0.45)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 24,
-          }}
-        >
-          <div
-            style={{
-              background: 'var(--white)',
-              borderRadius: 'var(--r-lg)',
-              maxWidth: 480,
-              width: '100%',
-              padding: 24,
-              boxShadow: 'var(--cb-shadow-modal)',
-            }}
-          >
-            <h2
-              id="publish-confirm-title"
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 16,
-                fontWeight: 600,
-                color: 'var(--ink-80)',
-                margin: '0 0 8px',
-              }}
-            >
-              Ready for checkout
-            </h2>
-            <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}>
-              {publishMeta.order?.amount_cents != null && publishMeta.order.currency
-                ? `The order is ${formatOrderMoney(publishMeta.order.amount_cents, publishMeta.order.currency)}. Nothing goes live until it is paid.`
-                : 'Nothing goes live until the order is paid.'}
-            </p>
-            <dl
-              style={{
-                margin: 0,
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '12px 16px',
-                fontSize: 13,
-              }}
-            >
-              <div>
-                <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
-                  Field size
-                </dt>
-                <dd style={{ margin: 0 }}>{publishMeta.field_size ?? '—'}</dd>
-              </div>
-              <div>
-                <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
-                  Unique pairs
-                </dt>
-                <dd style={{ margin: 0 }}>{publishMeta.unique_pairs ?? '—'}</dd>
-              </div>
-              <div>
-                <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
-                  Rounds / respondent
-                </dt>
-                <dd style={{ margin: 0 }}>{publishMeta.rounds_per_respondent ?? '—'}</dd>
-              </div>
-              <div>
-                <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
-                  Target completions
-                </dt>
-                <dd style={{ margin: 0 }}>{publishMeta.target_completions ?? '—'}</dd>
-              </div>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
-                  Template
-                </dt>
-                <dd style={{ margin: 0 }}>{publishMeta.template_code ?? '—'}</dd>
-              </div>
-              {publishMeta.coverage_note ? (
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
-                    Coverage
-                  </dt>
-                  <dd style={{ margin: 0, lineHeight: 1.4 }}>{publishMeta.coverage_note}</dd>
-                </div>
-              ) : null}
-            </dl>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
-              <button
-                type="button"
-                onClick={confirmPublished}
-                style={{
-                  border: 'none',
-                  background: 'var(--sage)',
-                  color: 'var(--white)',
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  minHeight: 36,
-                  padding: '0 16px',
-                  borderRadius: 'var(--r-sm)',
-                  cursor: 'pointer',
-                }}
-              >
-                Continue to checkout
-              </button>
-            </div>
-          </div>
-        </div>
+      {publishMeta && handoffOpen ? (
+        <CheckoutHandoff
+          draft={draft}
+          meta={publishMeta}
+          onClose={() => setHandoffOpen(false)}
+          onContinue={confirmPublished}
+        />
       ) : null}
 
       <PublishingDock
@@ -633,9 +532,11 @@ export default function ConceptStudyClient({
         saveStatus={saveStatus}
         saving={saving}
         publishing={publishing}
-        actionsLocked={pending || !!publishMeta || !canPublish}
-        publishMuted={!canPublish || !validity.readyToPublish || publishing}
-        publishLabel={canPublish ? 'Publish study' : 'View only'}
+        actionsLocked={pending || handoffOpen || !canPublish}
+        publishMuted={!canPublish || !validity.readyToPublish || publishing || !!publishMeta}
+        publishDisabled={!!publishMeta}
+        holdLabel={publishMeta ? 'Awaiting payment' : undefined}
+        publishLabel={publishMeta ? 'Awaiting payment' : canPublish ? 'Publish study' : 'View only'}
         showPreview
         previewLabel="Preview"
         canPreview={validity.readyToPublish}

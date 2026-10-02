@@ -29,6 +29,10 @@ import {
   type PhonePreviewJourney,
 } from '@/lib/concept/journey'
 import journeyFixture from '../../../../concept-core-fixtures/journey.json'
+import {
+  fieldingDaysMessage,
+  expiresAtFromFieldingDays,
+} from '@/lib/studies/fieldingWindow'
 
 export type ConceptCampaignOption = {
   id: string
@@ -271,8 +275,19 @@ export async function publishConceptStudyAction(
     campaignId = created.campaignId
   }
 
+  const fieldingError = fieldingDaysMessage(draft.fieldingDays)
+  if (fieldingError) {
+    return {
+      ok: false,
+      error: fieldingError,
+      section: 'advanced',
+      hint: 'FIELDING_WINDOW_TOO_SHORT',
+    }
+  }
+
   const supabase = await createServerSupabaseClient()
-  const expiresAt = draft.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+  const expiresAt =
+    draft.fieldingDays == null ? null : expiresAtFromFieldingDays(draft.fieldingDays)
 
   try {
     const args = draftToConceptPublishStudyArgs(draft, {
@@ -623,7 +638,8 @@ export async function previewConceptJourneyAction(
     const args = draftToConceptPublishStudyArgs(draft, {
       campaignId: draft.brandCampaignId || '00000000-0000-0000-0000-000000000000',
       createdBy: portalUser.auth_uid || '00000000-0000-0000-0000-000000000000',
-      expiresAt: draft.expiresAt || new Date().toISOString(),
+      expiresAt:
+        draft.fieldingDays == null ? null : expiresAtFromFieldingDays(draft.fieldingDays),
     })
 
     const { data, error } = await supabase.rpc('preview_concept_journey', {

@@ -325,37 +325,8 @@
   margin-top: 28px;
 }
 
-.concept-builder .cb-report-kicker {
+.concept-builder .cb-report-block .cb-acc-note {
   margin: 0 0 8px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-50);
-}
-
-.concept-builder .cb-method-block + .cb-method-block {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--ink-10);
-}
-
-.concept-builder .cb-method-kicker {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 0 0 8px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-50);
-}
-
-.concept-builder .cb-method-kicker span {
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
 }
 
 @media (max-width: 720px) {
@@ -1264,6 +1235,125 @@
   gap: var(--cb-space-md);
 }
 
+.cb-handoff-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cb-handoff-head .cb-confirm-title {
+  margin-bottom: 0;
+}
+
+.cb-handoff-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 18px;
+}
+
+.cb-handoff-photo,
+.cb-handoff-letter {
+  width: 72px;
+  height: 72px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--cb-sage-soft);
+}
+
+.cb-handoff-photo {
+  object-fit: cover;
+}
+
+.cb-handoff-letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--cb-sage);
+}
+
+.cb-handoff-name {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cb-heading);
+}
+
+.cb-handoff-design {
+  margin: 2px 0 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--cb-secondary);
+}
+
+.cb-handoff-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 14px 0;
+  border-top: 1px solid var(--cb-border-soft);
+  border-bottom: 1px solid var(--cb-border-soft);
+}
+
+.cb-handoff-facts dt {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--cb-secondary);
+}
+
+.cb-handoff-facts dd {
+  margin: 4px 0 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cb-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.cb-handoff-facts small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--cb-secondary);
+}
+
+.concept-builder .cb-awaiting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: var(--cb-sage-soft);
+  border: 1px solid var(--cb-border);
+  border-radius: var(--cb-radius-card);
+}
+
+.concept-builder .cb-awaiting-title {
+  margin: 0 0 3px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cb-heading);
+}
+
+.concept-builder .cb-awaiting-body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--cb-secondary);
+}
+
 /* The document is the scroll owner. Anchored blockers scroll fields into view,
    so reserve the dock's measured height plus its offset and a little margin —
    otherwise a bottom-of-page field lands underneath the dock. */
@@ -1342,8 +1432,18 @@ html {
   line-height: 1.25;
 }
 
-.concept-builder .cb-acc.is-locked .cb-acc-title {
-  font-weight: 500;
+.concept-builder .cb-add-question,
+.concept-builder .cb-question-cap {
+  margin: 2px 0 6px 40px;
+}
+
+.concept-builder .cb-add-question {
+  padding: 10px 0;
+}
+
+.concept-builder .cb-question-cap {
+  font-size: 13px;
+  line-height: 1.4;
   color: var(--cb-secondary);
 }
 
@@ -1479,12 +1579,6 @@ html {
   background: var(--cb-bg);
 }
 
-.concept-builder .cb-acc-report {
-  margin: 12px 0 0;
-  font-size: 12px;
-  color: var(--cb-tertiary);
-}
-
 .concept-builder .cb-acc-note {
   margin: 6px 0 0;
   font-size: 12px;
@@ -1570,4 +1664,50 @@ html {
   outline: none;
   box-shadow: var(--cb-focus-ring);
   border-radius: 4px;
+}
+
+.concept-builder .cb-end {
+  margin-top: 22px;
+}
+
+.concept-builder .cb-end-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.concept-builder .cb-end-option {
+  border: 1px solid var(--cb-line, rgba(0, 0, 0, 0.12));
+  background: transparent;
+  color: inherit;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.concept-builder .cb-end-option.is-on {
+  background: var(--cb-ink, #1c1915);
+  color: white;
+  border-color: transparent;
+}
+
+.concept-builder .cb-end-note {
+  margin: 10px 0 0;
+  max-width: 520px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-50, rgba(0, 0, 0, 0.55));
+}
+
+.concept-builder .cb-end-days {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.concept-builder .cb-end-days input {
+  width: 88px;
 }

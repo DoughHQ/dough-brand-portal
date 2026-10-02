@@ -21,6 +21,8 @@ import {
 import { respondentDesignLabel } from '@/lib/concept/designLetters'
 import { CONCEPT_ANCHORS } from '@/lib/concept/validity'
 import {
+  brandQuestionClosedLine,
+  brandQuestionScreenLabel,
   customBattlePromptNote,
   firstUnfinishedJourneyStep,
   journeyAsked,
@@ -28,6 +30,9 @@ import {
   journeyStepCountLabel,
   journeyStepDone,
   journeyStepOwned,
+  pairedScreenerCountLabel,
+  whyFollowupAsked,
+  whyFollowupCountLabel,
   type AskedBlock,
   type JourneyClosedLine,
   type JourneyStepId,
@@ -69,13 +74,20 @@ function ClosedLine({ line }: { line: JourneyClosedLine }) {
   return <span className="cb-acc-summary">{line.text}</span>
 }
 
-function AskedList({ blocks }: { blocks: AskedBlock[] }) {
+function AskedList({
+  blocks,
+  prompt = true,
+}: {
+  blocks: AskedBlock[]
+  /** The header already says the question. The panel then shows only the choices. */
+  prompt?: boolean
+}) {
   if (blocks.length === 0) return null
   return (
     <div className="cb-acc-asked-list">
       {blocks.map((block, index) => (
         <div className="cb-acc-asked" key={`${block.prompt}-${index}`}>
-          <p className="cb-acc-question">{block.prompt}</p>
+          {prompt ? <p className="cb-acc-question">{block.prompt}</p> : null}
           {block.items.length > 0 ? (
             <ol className="cb-acc-options">
               {block.items.map((item, itemIndex) => (
@@ -91,6 +103,8 @@ function AskedList({ blocks }: { blocks: AskedBlock[] }) {
   )
 }
 
+const BRAND_QUESTION_CAP = 2
+
 function AccordionRow({
   id,
   index,
@@ -99,31 +113,30 @@ function AccordionRow({
   countLabel,
   done,
   open,
+  owned,
   measures,
-  reportSection,
   onToggle,
   rowRef,
   children,
 }: {
-  id: JourneyStepId
+  id: string
   index: string | null
   title: string
   line: JourneyClosedLine
   countLabel: string | null
   done: boolean
   open: boolean
+  owned: boolean
   measures?: string
-  reportSection: string
   onToggle: () => void
   rowRef: (node: HTMLElement | null) => void
   children?: React.ReactNode
 }) {
-  const owned = journeyStepOwned(id)
   return (
     <section
       id={`journey-step-${id}`}
       ref={rowRef}
-      className={`cb-acc${open ? ' is-open' : ''}${owned ? '' : ' is-locked'}`}
+      className={`cb-acc${open ? ' is-open' : ''}`}
     >
       <h3 className="cb-acc-heading">
         <button
@@ -136,7 +149,7 @@ function AccordionRow({
           <span className="cb-acc-index">{index ?? ''}</span>
           <span className="cb-acc-main">
             <span className="cb-acc-title">{title}</span>
-            <ClosedLine line={line} />
+            {open && line.kind === 'question' ? null : <ClosedLine line={line} />}
           </span>
           <span className="cb-acc-count">{countLabel ?? ''}</span>
           {owned && done ? (
@@ -162,7 +175,6 @@ function AccordionRow({
         <div className="cb-acc-body" id={`journey-step-panel-${id}`} role="region">
           {measures ? <p className="cb-acc-measures">{measures}</p> : null}
           {children}
-          <p className="cb-acc-report">Report → {reportSection}</p>
         </div>
       ) : null}
     </section>
@@ -182,10 +194,7 @@ export default function SingleTestJourneySection({
   const [journey, setJourney] = useState<PhonePreviewJourney | null>(null)
   const [journeyError, setJourneyError] = useState<string | null>(null)
   const [decoyHint, setDecoyHint] = useState<string | null>(null)
-  const [openId, setOpenId] = useState<JourneyStepId | null>(() =>
-    firstUnfinishedJourneyStep(draft)
-  )
-  const [methodOpen, setMethodOpen] = useState(false)
+  const [openKey, setOpenKey] = useState<string | null>(() => initialJourneyOpen(draft))
   const rowRefs = useRef<Partial<Record<JourneyStepId, HTMLElement | null>>>({})
 
   const fieldErrors = useMemo(() => {
@@ -248,9 +257,22 @@ export default function SingleTestJourneySection({
   const screens = journey?.screens
   const lineFor = (id: JourneyStepId) => journeyClosedLine(id, draft, screens)
   const askedFor = (id: JourneyStepId) => journeyAsked(id, draft, screens)
+  const screenerAsked = askedFor('screeners')
+  const howOften = screenerAsked[0]
+  const boughtLately = screenerAsked[1]
+  const why = whyFollowupAsked(screens)
+  const screenerCount = pairedScreenerCountLabel(counts)
+  const brandStart = 9
 
-  function toggleStep(id: JourneyStepId) {
-    setOpenId((current) => (current === id ? null : id))
+  function toggleStep(id: string) {
+    setOpenKey((current) => (current === id ? null : id))
+  }
+
+  function addBrandQuestion() {
+    if (brandQuestions.length >= BRAND_QUESTION_CAP) return
+    const next = emptyBrandQuestion()
+    onChange({ ...draft, brandQuestions: [...brandQuestions, next] })
+    setOpenKey(`brand-${next.localId}`)
   }
 
   function bindRow(id: JourneyStepId) {
@@ -264,10 +286,7 @@ export default function SingleTestJourneySection({
       <h2 className="cb-section-title" style={sectionTitle}>
         Questions
       </h2>
-      <p style={sectionHelp}>
-        You write the screeners, the battle prompt, the price, and your own questions.
-        Dough&apos;s method is locked.
-      </p>
+      <p style={sectionHelp}>Shoppers answer these, in this order.</p>
 
       <div
         style={{
@@ -282,18 +301,37 @@ export default function SingleTestJourneySection({
         >
         <div className="cb-acc-list">
           <AccordionRow
-            id="screeners"
+            id="how_often"
             index="1"
-            title="Screeners"
+            title="How often"
+            line={
+              howOften
+                ? { kind: 'question', text: howOften.prompt }
+                : { kind: 'empty' }
+            }
+            countLabel={screenerCount}
+            done={false}
+            owned={false}
+            open={openKey === 'how_often'}
+            onToggle={() => toggleStep('how_often')}
+            rowRef={() => {}}
+          >
+            <AskedList blocks={howOften ? [howOften] : []} />
+          </AccordionRow>
+
+          <AccordionRow
+            id="screeners"
+            index="2"
+            title="Bought recently"
             line={lineFor('screeners')}
-            countLabel={journeyStepCountLabel('screeners', counts)}
+            countLabel={screenerCount}
             done={journeyStepDone('screeners', draft)}
-            open={openId === 'screeners'}
-            reportSection="qualification (not scored in the verdict)"
+            owned={journeyStepOwned('screeners')}
+            open={openKey === 'screeners'}
             onToggle={() => toggleStep('screeners')}
             rowRef={bindRow('screeners')}
           >
-            <AskedList blocks={askedFor('screeners')} />
+            <AskedList blocks={boughtLately ? [boughtLately] : []} />
             <VerificationCard
               config={config}
               patchConfig={patchConfig}
@@ -316,18 +354,32 @@ export default function SingleTestJourneySection({
           </AccordionRow>
 
           <AccordionRow
+            id="first_look"
+            index="3"
+            title="First look"
+            line={lineFor('first_look')}
+            countLabel={journeyStepCountLabel('first_look', counts)}
+            done={false}
+            owned={false}
+            open={openKey === 'first_look'}
+            onToggle={() => toggleStep('first_look')}
+            rowRef={bindRow('first_look')}
+          >
+            <AskedList blocks={askedFor('first_look')} />
+          </AccordionRow>
+
+          <AccordionRow
             id="battles"
-            index="2"
+            index="4"
             title="Battles"
             line={lineFor('battles')}
             countLabel={journeyStepCountLabel('battles', counts)}
             done={journeyStepDone('battles', draft)}
-            open={openId === 'battles'}
-            reportSection="head_to_head / stated_vs_chosen"
+            owned={journeyStepOwned('battles')}
+            open={openKey === 'battles'}
             onToggle={() => toggleStep('battles')}
             rowRef={bindRow('battles')}
           >
-            <AskedList blocks={askedFor('battles')} />
             <div style={{ ...labelSm, marginBottom: 8 }}>Battle prompt</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {BATTLE_PROMPT_OPTIONS.map((opt) => {
@@ -392,26 +444,60 @@ export default function SingleTestJourneySection({
             </div>
           </AccordionRow>
 
-          <DoughMethodRow
-            open={methodOpen}
-            countLabel={doughMethodCountLabel(counts)}
-            onToggle={() => setMethodOpen((open) => !open)}
-            blocks={[
-              { title: 'First look', when: 'Before the battles', asked: askedFor('first_look') },
-              { title: 'What matters', when: 'After the battles', asked: askedFor('what_matters') },
-              { title: 'Rank the field', when: 'After the battles', asked: askedFor('rank') },
-            ]}
-          />
+          <AccordionRow
+            id="why"
+            index="5"
+            title={why.prompt}
+            line={{ kind: 'empty' }}
+            countLabel={whyFollowupCountLabel(counts)}
+            done={false}
+            owned={false}
+            open={openKey === 'why'}
+            onToggle={() => toggleStep('why')}
+            rowRef={() => {}}
+          >
+            <AskedList blocks={[why]} prompt={false} />
+          </AccordionRow>
+
+          <AccordionRow
+            id="what_matters"
+            index="6"
+            title="What matters"
+            line={lineFor('what_matters')}
+            countLabel={journeyStepCountLabel('what_matters', counts)}
+            done={false}
+            owned={false}
+            open={openKey === 'what_matters'}
+            onToggle={() => toggleStep('what_matters')}
+            rowRef={bindRow('what_matters')}
+          >
+            <AskedList blocks={askedFor('what_matters')} />
+          </AccordionRow>
+
+          <AccordionRow
+            id="rank"
+            index="7"
+            title="Rank the field"
+            line={lineFor('rank')}
+            countLabel={journeyStepCountLabel('rank', counts)}
+            done={false}
+            owned={false}
+            open={openKey === 'rank'}
+            onToggle={() => toggleStep('rank')}
+            rowRef={bindRow('rank')}
+          >
+            <AskedList blocks={askedFor('rank')} />
+          </AccordionRow>
 
           <AccordionRow
             id="price"
-            index="3"
+            index="8"
             title="Price"
             line={lineFor('price')}
             countLabel={journeyStepCountLabel('price', counts)}
             done={journeyStepDone('price', draft)}
-            open={openId === 'price'}
-            reportSection="price / verdict.price"
+            owned={journeyStepOwned('price')}
+            open={openKey === 'price'}
             onToggle={() => toggleStep('price')}
             rowRef={bindRow('price')}
           >
@@ -426,61 +512,57 @@ export default function SingleTestJourneySection({
             />
           </AccordionRow>
 
-          <AccordionRow
-            id="brand_questions"
-            index="4"
-            title="Your questions"
-            line={lineFor('brand_questions')}
-            countLabel={journeyStepCountLabel('brand_questions', counts)}
-            done={journeyStepDone('brand_questions', draft)}
-            open={openId === 'brand_questions'}
-            reportSection="brand_questions"
-            onToggle={() => toggleStep('brand_questions')}
-            rowRef={bindRow('brand_questions')}
-          >
-            <AskedList blocks={askedFor('brand_questions')} />
-            {brandQuestions.map((q, qi) => (
-              <BrandQuestionEditor
-                key={q.localId}
-                question={q}
-                onChange={(next) => {
-                  const list = [...brandQuestions]
-                  list[qi] = next
-                  onChange({ ...draft, brandQuestions: list })
-                }}
-                onRemove={() =>
-                  onChange({
-                    ...draft,
-                    brandQuestions: brandQuestions.filter((x) => x.localId !== q.localId),
-                  })
-                }
-              />
-            ))}
-            {brandQuestions.length < 2 ? (
-              <button
-                type="button"
-                className="cb-quiet-action"
-                onClick={() =>
-                  onChange({
-                    ...draft,
-                    brandQuestions: [...brandQuestions, emptyBrandQuestion()],
-                  })
-                }
+          {brandQuestions.map((question, qi) => {
+            const rowId = `brand-${question.localId}`
+            const line = brandQuestionClosedLine(question)
+            return (
+              <AccordionRow
+                key={question.localId}
+                id={rowId}
+                index={String(brandStart + qi)}
+                title="Your question"
+                line={line}
+                countLabel={brandQuestionScreenLabel(brandQuestions.length, counts)}
+                done={line.kind === 'question'}
+                owned
+                open={openKey === rowId}
+                onToggle={() => toggleStep(rowId)}
+                rowRef={() => {}}
               >
-                Add a question
-              </button>
-            ) : null}
-          </AccordionRow>
+                <BrandQuestionEditor
+                  question={question}
+                  onChange={(next) => {
+                    const list = [...brandQuestions]
+                    list[qi] = next
+                    onChange({ ...draft, brandQuestions: list })
+                  }}
+                  onRemove={() => {
+                    onChange({
+                      ...draft,
+                      brandQuestions: brandQuestions.filter((item) => item.localId !== question.localId),
+                    })
+                    setOpenKey((current) => (current === rowId ? null : current))
+                  }}
+                />
+              </AccordionRow>
+            )
+          })}
+
+          <AddQuestionControl
+            count={brandQuestions.length}
+            cap={BRAND_QUESTION_CAP}
+            onAdd={addBrandQuestion}
+          />
 
           <AccordionRow
             id="open_text"
-            index="5"
+            index={String(brandStart + brandQuestions.length)}
             title="Open text"
             line={lineFor('open_text')}
             countLabel={journeyStepCountLabel('open_text', counts)}
             done={journeyStepDone('open_text', draft)}
-            open={openId === 'open_text'}
-            reportSection="open_text"
+            owned={journeyStepOwned('open_text')}
+            open={openKey === 'open_text'}
             onToggle={() => toggleStep('open_text')}
             rowRef={bindRow('open_text')}
           >
@@ -495,7 +577,7 @@ export default function SingleTestJourneySection({
         </div>
 
         <div className="cb-report-block">
-          <p className="cb-report-kicker">Report</p>
+          <p className="cb-acc-note">Respondents never see this.</p>
           <AccordionRow
             id="success"
             index={null}
@@ -503,9 +585,9 @@ export default function SingleTestJourneySection({
             line={lineFor('success')}
             countLabel={null}
             done={journeyStepDone('success', draft)}
-            open={openId === 'success'}
-            measures="Clearing bars for head-to-head, liking, and price. Respondents never see this."
-            reportSection="verdict"
+            owned={journeyStepOwned('success')}
+            open={openKey === 'success'}
+            measures="Clearing bars for head-to-head, liking, and price."
             onToggle={() => toggleStep('success')}
             rowRef={bindRow('success')}
           >
@@ -535,16 +617,32 @@ export default function SingleTestJourneySection({
 }
 
 
-function doughMethodCountLabel(
-  counts: PhonePreviewJourney['counts'] | null
-): string | null {
-  if (!counts) return null
-  const parts = [counts.first_look, counts.maxdiff_sets, counts.rank]
-  if (parts.some((n) => typeof n !== 'number' || !Number.isFinite(n))) return null
-  const n =
-    (counts.first_look ?? 0) + (counts.maxdiff_sets ?? 0) + (counts.rank ?? 0)
-  if (n <= 0) return null
-  return n === 1 ? '1 screen' : `${n} screens`
+function initialJourneyOpen(draft: ConceptStudyDraft): string | null {
+  const step = firstUnfinishedJourneyStep(draft)
+  if (step !== 'brand_questions') return step
+  const pending = (draft.brandQuestions ?? []).find(
+    (question) => brandQuestionClosedLine(question).kind !== 'question'
+  )
+  return pending ? `brand-${pending.localId}` : step
+}
+
+function AddQuestionControl({
+  count,
+  cap,
+  onAdd,
+}: {
+  count: number
+  cap: number
+  onAdd: () => void
+}) {
+  if (count >= cap) {
+    return <p className="cb-question-cap">Two questions.</p>
+  }
+  return (
+    <button type="button" className="cb-quiet-action cb-add-question" onClick={onAdd}>
+      Add a question
+    </button>
+  )
 }
 
 function journeyLengthLabel(journey: PhonePreviewJourney | null): string | null {
@@ -561,51 +659,6 @@ function journeyLengthLabel(journey: PhonePreviewJourney | null): string | null 
   return `${screens} · ${minuteLabel}`
 }
 
-function DoughMethodRow({
-  open,
-  countLabel,
-  onToggle,
-  blocks,
-}: {
-  open: boolean
-  countLabel: string | null
-  onToggle: () => void
-  blocks: { title: string; when: string; asked: AskedBlock[] }[]
-}) {
-  return (
-    <section
-      className={`cb-acc is-locked${open ? ' is-open' : ''}`}
-      id="journey-step-dough-method"
-    >
-      <h3 className="cb-acc-heading">
-        <button type="button" className="cb-acc-head" aria-expanded={open} onClick={onToggle}>
-          <span className="cb-acc-index" />
-          <span className="cb-acc-main">
-            <span className="cb-acc-title">Dough&apos;s method</span>
-            <span className="cb-acc-summary">Locked</span>
-          </span>
-          <span className="cb-acc-count">{countLabel ?? ''}</span>
-          <span className="cb-acc-check is-blank" aria-hidden="true" />
-          <span className="cb-acc-chevron" aria-hidden="true" />
-        </button>
-      </h3>
-      {open ? (
-        <div className="cb-acc-body">
-          {blocks.map((block) => (
-            <div className="cb-method-block" key={block.title}>
-              <p className="cb-method-kicker">
-                {block.title}
-                <span>{block.when}</span>
-              </p>
-              <AskedList blocks={block.asked} />
-            </div>
-          ))}
-        </div>
-      ) : null}
-    </section>
-  )
-}
-
 function fieldIssueLabel(code: string): string {
   switch (code) {
     case 'FIELD_TOO_SMALL':
@@ -619,7 +672,7 @@ function fieldIssueLabel(code: string): string {
     case 'NOTHING_TO_TEST':
       return 'Add a design that isn’t the benchmark'
     case 'IMAGE_REQUIRED':
-      return 'Every design and competitor needs an https image'
+      return 'Every design and competitor needs an image.'
     default:
       return code
         .split('_')
@@ -741,14 +794,7 @@ function BrandQuestionEditor({
   onRemove: () => void
 }) {
   return (
-    <div
-      style={{
-        marginBottom: 12,
-        padding: 12,
-        border: '1px solid var(--ink-10)',
-        borderRadius: 'var(--r-sm)',
-      }}
-    >
+    <div>
       <input
         className="cb-input"
         value={question.prompt}

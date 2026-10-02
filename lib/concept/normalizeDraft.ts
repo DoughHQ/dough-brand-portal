@@ -1,3 +1,4 @@
+import { fieldingDaysOrNone } from '@/lib/studies/fieldingWindow'
 import { createEmptyConceptDraft } from './defaults'
 import {
   DEFAULT_DECOY_OPTION,
@@ -11,9 +12,11 @@ import type { ConceptStudyDraft } from './types'
  */
 export function normalizeDraft(draft: ConceptStudyDraft): ConceptStudyDraft {
   const base = createEmptyConceptDraft()
-  const { scoringRounds: _retired, ...legacy } = draft as ConceptStudyDraft & {
-    scoringRounds?: unknown
-  }
+  const { scoringRounds: _retired, endsOn: _retiredEnd, ...legacy } =
+    draft as ConceptStudyDraft & {
+      scoringRounds?: unknown
+      endsOn?: unknown
+    }
 
   const templateConfig = {
     ...base.templateConfig,
@@ -41,6 +44,7 @@ export function normalizeDraft(draft: ConceptStudyDraft): ConceptStudyDraft {
       draft.targetCompletions ?? base.targetCompletions,
       30
     ),
+    fieldingDays: fieldingDaysOrNone(draft.fieldingDays),
     expiresAt: draft.expiresAt ?? base.expiresAt,
     pricePosture: 'blind',
     conceptArms: rawArms.map((arm, i) => ({

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useId, useState } from 'react'
+import FieldingLengthField from './FieldingLengthField'
 import type { ConceptStudyDraft, StimulusMode } from '@/lib/concept/types'
 import { templateFieldAnchor } from '@/lib/concept/templateConfig'
 import { STIMULUS_MODE_OPTIONS } from '@/lib/concept/constants'
@@ -354,30 +355,11 @@ export default function StudyTypeSection({
             Minimum {completionFloor} completions.
           </p>
         </div>
-        <div>
-          <label style={labelSm} htmlFor="field_expires_at">
-            Expires
-          </label>
-          <input
-            id="field_expires_at"
-            className="cb-input"
-            type="date"
-            value={
-              draft.expiresAt
-                ? new Date(draft.expiresAt).toISOString().slice(0, 10)
-                : ''
-            }
-            onChange={(e) => {
-              const day = e.target.value
-              onChange({
-                ...draft,
-                expiresAt: day ? new Date(`${day}T23:59:59.000Z`).toISOString() : '',
-              })
-            }}
-            style={inputBase}
-          />
-        </div>
       </div>
+      <FieldingLengthField
+        days={draft.fieldingDays}
+        onChange={(fieldingDays) => onChange({ ...draft, fieldingDays })}
+      />
       <ConfirmDialog request={confirm} onCancel={() => setConfirm(null)} />
     </section>
   )
