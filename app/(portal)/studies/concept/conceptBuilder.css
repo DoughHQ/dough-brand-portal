@@ -346,10 +346,8 @@
 }
 
 .concept-builder .cb-setup-run-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 20px 24px;
-  align-items: start;
+  display: block;
+  max-width: 420px;
 }
 
 .concept-builder .cb-setup-presets {
@@ -509,8 +507,7 @@
 }
 
 @media (max-width: 720px) {
-  .concept-builder .cb-setup-pair,
-  .concept-builder .cb-setup-run-body {
+  .concept-builder .cb-setup-pair {
     grid-template-columns: 1fr;
   }
 }

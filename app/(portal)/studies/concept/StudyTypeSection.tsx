@@ -1,12 +1,10 @@
 'use client'
 
 import { useEffect, useId, useState } from 'react'
-import FieldingLengthField from './FieldingLengthField'
 import type { ConceptStudyDraft, StimulusMode } from '@/lib/concept/types'
 import { templateFieldAnchor } from '@/lib/concept/templateConfig'
 import { STIMULUS_MODE_OPTIONS } from '@/lib/concept/constants'
 import { categoryPluralFromNodeName } from '@/lib/concept/taxonomySiblings'
-import { fieldingEndDateLabel } from '@/lib/studies/fieldingWindow'
 import {
   CATEGORY_RESET_BODY,
   categoryResetConfirmLabel,
@@ -82,6 +80,13 @@ export default function StudyTypeSection({
     onChange(next)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft.stimulusMode, draft.pricePosture])
+
+  // End dates are deferred — every concept study runs until the target is full.
+  useEffect(() => {
+    if (draft.fieldingDays == null) return
+    onChange({ ...draft, fieldingDays: null })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft.fieldingDays])
 
   useEffect(() => {
     if (draft.taxonomyNodeId == null) {
@@ -205,6 +210,7 @@ export default function StudyTypeSection({
     onChange({
       ...draft,
       targetCompletions: next,
+      fieldingDays: null,
     })
   }
 
@@ -217,7 +223,7 @@ export default function StudyTypeSection({
   const titleLabel = draft.title.trim() || null
   const showReadout = !!(categoryLabel || titleLabel)
 
-  const runMeta = buildRunMeta(draft.targetCompletions, draft.fieldingDays)
+  const runMeta = buildRunMeta(draft.targetCompletions)
 
   return (
     <section style={sectionCard} id="concept-mode" className="cb-setup">
@@ -225,7 +231,7 @@ export default function StudyTypeSection({
         Setup
       </h2>
       <p style={{ ...sectionHelp, marginBottom: 16 }}>
-        Name the study, choose where it competes, and set how it runs.
+        Name the study, choose where it competes, and set how many responses you need.
       </p>
 
       {packagingOnly ? (
@@ -365,7 +371,7 @@ export default function StudyTypeSection({
         ) : null}
       </div>
 
-      {/* Beat 3 — how it runs */}
+      {/* Beat 3 — how it runs (completions only; end dates deferred) */}
       <div className="cb-setup-run">
         <div className="cb-setup-run-head">
           <div className="cb-setup-run-title">How it runs</div>
@@ -427,7 +433,7 @@ export default function StudyTypeSection({
                     // Commit only once the typed count clears the floor, so
                     // typing "100" is not yanked back to 30 mid-keystroke.
                     if (raw !== '' && Number(raw) >= completionFloor) {
-                      onChange({ ...draft, targetCompletions: Number(raw) })
+                      onChange({ ...draft, targetCompletions: Number(raw), fieldingDays: null })
                     }
                   }}
                   onBlur={() => {
@@ -450,11 +456,6 @@ export default function StudyTypeSection({
               />
             )}
           </div>
-
-          <FieldingLengthField
-            days={draft.fieldingDays}
-            onChange={(fieldingDays) => onChange({ ...draft, fieldingDays })}
-          />
         </div>
       </div>
 
@@ -463,11 +464,7 @@ export default function StudyTypeSection({
   )
 }
 
-function buildRunMeta(completions: number, days: number | null): string {
+function buildRunMeta(completions: number): string {
   const n = Math.max(0, completions)
-  const completionPart = `${n} completion${n === 1 ? '' : 's'}`
-  if (days == null) {
-    return `${completionPart} · No end date · Goes live when paid`
-  }
-  return `${completionPart} · ${days} days · Ends ${fieldingEndDateLabel(days)} if paid today`
+  return `${n} completion${n === 1 ? '' : 's'} · Runs until full`
 }

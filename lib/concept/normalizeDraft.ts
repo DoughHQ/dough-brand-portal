@@ -1,4 +1,3 @@
-import { fieldingDaysOrNone } from '@/lib/studies/fieldingWindow'
 import { createEmptyConceptDraft } from './defaults'
 import {
   DEFAULT_DECOY_OPTION,
@@ -44,7 +43,8 @@ export function normalizeDraft(draft: ConceptStudyDraft): ConceptStudyDraft {
       draft.targetCompletions ?? base.targetCompletions,
       30
     ),
-    fieldingDays: fieldingDaysOrNone(draft.fieldingDays),
+    // End-date picker is deferred: concept studies always run until full.
+    fieldingDays: null,
     expiresAt: draft.expiresAt ?? base.expiresAt,
     pricePosture: 'blind',
     conceptArms: rawArms.map((arm, i) => ({
