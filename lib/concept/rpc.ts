@@ -20,7 +20,7 @@ export type PublishConceptStudyArgs = {
   p_battle_prompt?: string
   p_created_by: string
   p_price_posture: string
-  p_expires_at: string
+  p_expires_at: string | null
   p_target_completions: number
   p_audience_definition?: string
   p_eligibility?: Json

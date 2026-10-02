@@ -24,6 +24,10 @@ type Props = {
   publishing: boolean
   /** Disables all actions (pending transition, post-publish lock, etc.). */
   actionsLocked: boolean
+  /** Replaces “Ready to publish” after the order exists. */
+  holdLabel?: string
+  /** Publish stays quiet while the order is awaiting payment. */
+  publishDisabled?: boolean
   publishMuted: boolean
   publishLabel: string
   publishBusyLabel?: string
@@ -50,6 +54,8 @@ export default function PublishingDock({
   saving,
   publishing,
   actionsLocked,
+  holdLabel,
+  publishDisabled = false,
   publishMuted,
   publishLabel,
   publishBusyLabel = 'Publishing…',
@@ -98,16 +104,14 @@ export default function PublishingDock({
     closeList()
   }
 
-  const statusTone = ready ? 'ok' : 'warn'
-  const statusLabel = ready
-    ? 'Ready to publish'
-    : count === 1
-      ? '1 left'
-      : `${count} left`
+  const statusTone = holdLabel || ready ? 'ok' : 'warn'
+  const statusLabel =
+    holdLabel ??
+    (ready ? 'Ready to publish' : count === 1 ? '1 left' : `${count} left`)
 
   return (
     <div className="cb-sticky" ref={stickyRef}>
-      <div className="cb-sticky-inner" data-ready={ready ? 'true' : 'false'}>
+        <div className="cb-sticky-inner" data-ready={!holdLabel && ready ? 'true' : 'false'}>
         <div className="cb-dock-status" ref={statusRef}>
           <button
             type="button"
@@ -115,24 +119,24 @@ export default function PublishingDock({
             data-tone={statusTone}
             aria-expanded={listOpen}
             aria-controls={count > 0 ? panelId : undefined}
-            disabled={count === 0}
+            disabled={count === 0 || !!holdLabel}
             onClick={() => {
               if (count === 0) return
               setListOpen((v) => !v)
             }}
           >
             <span className="cb-dock-status-icon" data-tone={statusTone} aria-hidden>
-              {ready ? '✓' : '!'}
+              {holdLabel || ready ? '✓' : '!'}
             </span>
             <span className="cb-dock-status-label">{statusLabel}</span>
-            {count > 0 ? (
+            {count > 0 && !holdLabel ? (
               <span className="cb-dock-status-chevron" aria-hidden>
                 {listOpen ? '▴' : '▾'}
               </span>
             ) : null}
           </button>
 
-          {!ready && next ? (
+          {!holdLabel && !ready && next ? (
             <button
               type="button"
               className="cb-dock-next"
@@ -202,7 +206,7 @@ export default function PublishingDock({
             className="cb-btn cb-btn-primary cb-btn-dock"
             data-muted={publishMuted || publishing}
             onClick={onPublish}
-            disabled={publishing || actionsLocked}
+            disabled={publishing || actionsLocked || publishDisabled}
           >
             {publishing ? publishBusyLabel : publishLabel}
           </button>

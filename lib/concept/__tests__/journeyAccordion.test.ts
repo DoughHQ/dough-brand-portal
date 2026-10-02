@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { createEmptyConceptDraft, newConceptArm } from '../defaults'
+import { createEmptyConceptDraft, newConceptArm, newProductCompetitor } from '../defaults'
 import type { ConceptJourney } from '../journey'
 import {
+  brandQuestionClosedLine,
+  brandQuestionScreenLabel,
   firstUnfinishedJourneyStep,
   journeyAsked,
   journeyClosedLine,
@@ -9,7 +11,10 @@ import {
   journeyStepCountsAsScreen,
   journeyStepDone,
   journeyStepOwned,
+  pairedScreenerCountLabel,
   whatMattersAsked,
+  whyFollowupAsked,
+  whyFollowupCountLabel,
 } from '../journeyAccordion'
 import { emptyBrandQuestion } from '../singleTest'
 import { brandVerificationOption } from '../templateConfig'
@@ -57,7 +62,7 @@ describe('journey accordion', () => {
     })
   })
 
-  it('gives locked steps the question, not a status line', () => {
+  it('gives the fixed steps the question, not a status line', () => {
     const draft = createEmptyConceptDraft()
     expect(journeyStepOwned('first_look')).toBe(false)
     expect(journeyStepOwned('what_matters')).toBe(false)
@@ -116,12 +121,12 @@ describe('journey accordion', () => {
     expect(journeyClosedLine('battles', short, null)).toEqual({ kind: 'required' })
   })
 
-  it('shows the locked what-matters prompt and the seven package options', () => {
-    const locked = whatMattersAsked(null)
-    expect(locked.prompt).toBe(
+  it('shows the what-matters prompt and the seven package options', () => {
+    const asked = whatMattersAsked(null)
+    expect(asked.prompt).toBe(
       'When you look at the package, which matters most to you, and which matters least?'
     )
-    expect(locked.items).toEqual([
+    expect(asked.items).toEqual([
       'Looks tasty',
       'Easy to tell what it is',
       'Looks high quality',
@@ -157,6 +162,9 @@ describe('journey accordion', () => {
       kind: 'question',
       text: 'Which of these have you bought in the last 3 months? Select all that apply.',
     })
+    expect(pairedScreenerCountLabel(counts)).toBe('1 screen')
+    expect(pairedScreenerCountLabel({ ...counts, screeners: 3 })).toBeNull()
+    expect(pairedScreenerCountLabel(null)).toBeNull()
     expect(journeyAsked('screeners', draft, null)).toEqual([
       {
         prompt: 'How often do you buy pints of ice cream?',
@@ -175,6 +183,15 @@ describe('journey accordion', () => {
     ])
   })
 
+  it('asks why they picked it, and counts that follow-up as an upper bound', () => {
+    expect(whyFollowupAsked(null).prompt).toBe('What made you pick this one?')
+    expect(whyFollowupAsked(null).items).toContain('I know this brand')
+    expect(whyFollowupCountLabel({ ...counts, why_followups_up_to: 3 })).toBe('Up to 3 screens')
+    expect(whyFollowupCountLabel({ ...counts, why_followups_up_to: 1 })).toBe('Up to 1 screen')
+    expect(whyFollowupCountLabel(counts)).toBeNull()
+    expect(whyFollowupCountLabel(null)).toBeNull()
+  })
+
   it('ranks the field as design letters, with the current pack named', () => {
     const draft = createEmptyConceptDraft({
       conceptArms: [
@@ -187,6 +204,29 @@ describe('journey accordion', () => {
       prompt: 'Put them in order, your favorite at the top.',
       items: ['Design A', 'Current pack', 'Design B'],
     })
+  })
+
+  it('ranks every chosen competitor with the designs', () => {
+    const draft = createEmptyConceptDraft({
+      conceptArms: [
+        newConceptArm(0),
+        { ...newConceptArm(1), benchmark_role: 'current_pack' },
+      ],
+      products: [
+        {
+          ...newProductCompetitor(),
+          product_id: 42,
+          frozen_display_name: "Ben & Jerry's Half Baked",
+          frozen_brand_name: "Ben & Jerry's",
+        },
+        newProductCompetitor(),
+      ],
+    })
+    expect(journeyAsked('rank', draft, null)[0]?.items).toEqual([
+      'Design A',
+      'Current pack',
+      "Ben & Jerry's Half Baked",
+    ])
   })
 
   it('prices from the pack size and keeps the reject option', () => {
@@ -227,6 +267,14 @@ describe('journey accordion', () => {
       kind: 'question',
       text: 'Which flavor would you buy?',
     })
+    expect(brandQuestionClosedLine(ready.brandQuestions![0]!)).toEqual({
+      kind: 'question',
+      text: 'Which flavor would you buy?',
+    })
+    expect(brandQuestionClosedLine(started.brandQuestions![0]!)).toEqual({ kind: 'required' })
+    expect(brandQuestionScreenLabel(2, { ...counts, brand_questions: 2 })).toBe('1 screen')
+    expect(brandQuestionScreenLabel(2, { ...counts, brand_questions: 1 })).toBeNull()
+    expect(brandQuestionScreenLabel(1, null)).toBeNull()
   })
 
   it('keeps the optional parenthetical on the open-text question respondents see', () => {

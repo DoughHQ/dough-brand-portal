@@ -1,7 +1,11 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
-import { fetchCheckoutField, fetchStudyOrder } from '@/lib/checkout/load'
+import {
+  fetchCheckoutField,
+  fetchMissionCheckoutWindow,
+  fetchStudyOrder,
+} from '@/lib/checkout/load'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import CheckoutClient from './CheckoutClient'
 import './checkout.css'
@@ -30,9 +34,10 @@ export default async function CheckoutPage({ params }: Props) {
     )
   }
 
-  const [{ data: userData }, field] = await Promise.all([
+  const [{ data: userData }, field, window] = await Promise.all([
     supabase.auth.getUser(),
     fetchCheckoutField(supabase, missionId),
+    fetchMissionCheckoutWindow(supabase, missionId),
   ])
 
   return (
@@ -41,6 +46,8 @@ export default async function CheckoutPage({ params }: Props) {
       designs={field.designs}
       products={field.products}
       email={userData.user?.email ?? null}
+      fieldingDays={window.fieldingDays}
+      expiresAt={window.expiresAt}
     />
   )
 }

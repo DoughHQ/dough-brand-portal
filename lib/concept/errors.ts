@@ -51,9 +51,10 @@ export const CONCEPT_PUBLISH_HINT_MESSAGES: Record<string, string> = {
   NOT_ALLOWED_TO_PUBLISH:
     'Your role can view studies but not publish them; ask a brand admin.',
   TARGET_COMPLETIONS_TOO_LOW: 'Target completions must be at least 30.',
+  FIELDING_WINDOW_TOO_SHORT: 'A study needs at least 7 days to run.',
   CORE_REQUIRES_BLIND: 'This study type is always blind — no prices on the field.',
   CORE_REQUIRES_PACKAGE_STIMULUS: 'Every design must be a package stimulus.',
-  IMAGE_REQUIRED: 'Every design and competitor needs an https image.',
+  IMAGE_REQUIRED: 'Every design and competitor needs an image.',
   PACK_SIZE_REQUIRED: 'Pick a pack size.',
   ANCHOR_PRICE_REQUIRED: 'Set an expected retail price.',
   DECOY_REQUIRED: 'Add a fake brand name for the attention check.',
@@ -298,7 +299,7 @@ function sectionForCode(code: string): ConceptErrorSection {
   ) {
     return 'questions'
   }
-  if (code === 'TARGET_COMPLETIONS_TOO_LOW') {
+  if (code === 'TARGET_COMPLETIONS_TOO_LOW' || code === 'FIELDING_WINDOW_TOO_SHORT') {
     return 'advanced'
   }
   return 'publish'

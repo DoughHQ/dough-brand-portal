@@ -211,7 +211,12 @@ export type ConceptStudyDraft = {
   session2IntervalHours: number
   /** Closes the study when hit. Required in practice. */
   targetCompletions: number
-  /** ISO timestamp — missions.expires_at is NOT NULL. */
+  /**
+   * Days the study runs after payment, or null for no end date.
+   * The unpaid wait does not consume these days. A stored expiresAt is not the choice.
+   */
+  fieldingDays: number | null
+  /** Legacy ISO timestamp. Ignored. The length is fieldingDays. */
   expiresAt: string
   conceptArms: ConceptArmRow[]
   products: ProductCompetitorRow[]

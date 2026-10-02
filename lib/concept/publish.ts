@@ -8,6 +8,7 @@ import { armLabelForIndex } from './defaults'
 import { priceToWire } from './price'
 import { templateConfigToWire, composeVerificationOptions } from './templateConfig'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
+import { isPublishableImageRef } from './stimuliStorage'
 import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 import {
   MODULE_CONCEPT_CORE_V1,
@@ -21,11 +22,6 @@ import type { Json } from '@/lib/database.types'
 export function uniquePairs(n: number): number {
   if (n < 2) return 0
   return (n * (n - 1)) / 2
-}
-
-function isHttpsUrl(raw: string | null | undefined): boolean {
-  const s = (raw ?? '').trim()
-  return /^https:\/\//i.test(s)
 }
 
 /**
@@ -90,10 +86,10 @@ export function draftToPublishPayload(
 
   if (singleTest) {
     for (const arm of draft.conceptArms) {
-      if (!isHttpsUrl(arm.image_url)) throw new Error('IMAGE_REQUIRED')
+      if (!isPublishableImageRef(arm.image_url)) throw new Error('IMAGE_REQUIRED')
     }
     for (const p of resolvedProducts) {
-      if (!isHttpsUrl(p.frozen_image_url)) throw new Error('IMAGE_REQUIRED')
+      if (!isPublishableImageRef(p.frozen_image_url)) throw new Error('IMAGE_REQUIRED')
     }
   }
 
@@ -203,7 +199,7 @@ export function draftToConceptPublishStudyArgs(
   ctx: {
     campaignId: string
     createdBy: string
-    expiresAt: string
+    expiresAt: string | null
   }
 ): PublishConceptStudyArgs {
   if (draft.taxonomyNodeId == null) throw new Error('NODE_REQUIRED')

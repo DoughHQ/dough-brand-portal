@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
 import {
   isDisplayableImageUrl,
+  isPublishableImageRef,
   objectPathFromSignedUrl,
   resolveStimuliPreviewUrl,
   storageRefToObjectPath,
@@ -60,6 +61,23 @@ describe('isDisplayableImageUrl', () => {
     expect(isDisplayableImageUrl('concept-stimuli/1/d/C.png')).toBe(false)
     expect(isDisplayableImageUrl('1/d/C.png')).toBe(false)
     expect(isDisplayableImageUrl(null)).toBe(false)
+  })
+})
+
+describe('isPublishableImageRef', () => {
+  it('accepts a concept-stimuli path and a normal https photo', () => {
+    expect(isPublishableImageRef('concept-stimuli/12/draft/C.png')).toBe(true)
+    expect(isPublishableImageRef('https://cdn.example/pack.jpg')).toBe(true)
+  })
+
+  it('rejects a signed storage URL and an empty value', () => {
+    expect(
+      isPublishableImageRef(
+        'https://proj.supabase.co/storage/v1/object/sign/concept-stimuli/1/d/C.png?token=abc'
+      )
+    ).toBe(false)
+    expect(isPublishableImageRef('')).toBe(false)
+    expect(isPublishableImageRef(null)).toBe(false)
   })
 })
 

@@ -39,7 +39,8 @@ function draft(mode: StimulusMode, own: number, comps: number, opts: { dupe?: bo
     products: [
       ...Array.from({ length: comps }, (_, i) => ({
         localId: 'p' + i, product_id: (opts.dupe ? 900 : 100 + i) as unknown as number,
-        frozen_display_name: 'Competitor ' + i, frozen_brand_name: 'Brand', frozen_image_url: null,
+        frozen_display_name: 'Competitor ' + i, frozen_brand_name: 'Brand',
+        frozen_image_url: opts.noImage ? null : 'https://cdn.example/pack.jpg',
         frozen_price: null, market_reference_price: null, battle_intent: 'competitor' as const,
         upc: '02840000' + String(1000 + i),
       })),
@@ -103,7 +104,9 @@ ok(un.fieldSize === 4, 'unresolved persisted row occupies a seat', un.fieldSize)
 ok(!un.intentsOk && !un.readyToPublish, 'unresolved row still blocks publish for identity')
 ok(un.competitorsOk, 'unresolved row does not count toward the competitor minimum')
 const noImg = evaluateFieldValidity(draft('package', 2, 2, { noImage: true }))
-ok(noImg.outstanding.some(o => o.message === 'Upload pack image for Variant A'), 'per-variant image item', noImg.outstanding.map(o=>o.message))
+ok(noImg.outstanding.some(o => o.message === 'Every design and competitor needs an image.'), 'one image rule for designs and competitors', noImg.outstanding.map(o=>o.message))
+const withRefs = evaluateFieldValidity(draft('package', 2, 2))
+ok(!withRefs.outstanding.some(o => /needs an image/.test(o.message)), 'a storage path and a catalog photo both count')
 const all = [dead, over, un, noImg, evaluateFieldValidity(draft('package',1,0))]
 ok(!all.some(v => v.outstanding.some(o => /\barm\b/i.test(o.message))), 'no "arm" terminology in any blocker')
 ok(!all.some(v => v.reasons.some(r => /at least two competitors/i.test(r))), 'the old "at least two competitors" message is gone')

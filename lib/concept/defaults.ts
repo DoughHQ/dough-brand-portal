@@ -193,6 +193,7 @@ export function createEmptyConceptDraft(
     pricePosture: 'realistic' as PricePosture,
     session2IntervalHours: 24,
     targetCompletions: 100,
+    fieldingDays: null,
     expiresAt: defaultExpiresAt(30),
     conceptArms: arms,
     products: [],

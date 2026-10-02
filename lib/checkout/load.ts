@@ -2,6 +2,7 @@ import 'server-only'
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/database.types'
+import { resolveStimuliPreviewUrl } from '@/lib/concept/stimuliStorage'
 import { isStudyOrderStatus, type StudyOrderStatus } from './status'
 import type { CheckoutThumb, StudyOrderRow } from './payment'
 
@@ -97,6 +98,22 @@ export async function fetchStudyOrder(
   return parseStudyOrder(data)
 }
 
+export async function fetchMissionCheckoutWindow(
+  supabase: Client,
+  missionId: string
+): Promise<{ fieldingDays: number | null; expiresAt: string | null }> {
+  const { data, error } = await supabase
+    .from('missions')
+    .select('fielding_days, expires_at')
+    .eq('id', missionId)
+    .maybeSingle()
+  if (error || !data) return { fieldingDays: null, expiresAt: null }
+  return {
+    fieldingDays: data.fielding_days,
+    expiresAt: data.expires_at,
+  }
+}
+
 export async function fetchCheckoutField(
   supabase: Client,
   missionId: string
@@ -108,16 +125,21 @@ export async function fetchCheckoutField(
     .is('deleted_at', null)
     .order('display_order', { ascending: true })
   if (error || !data) return { designs: [], products: [] }
+  const thumbs = await Promise.all(
+    data.map(async (row) => {
+      const thumb: CheckoutThumb = {
+        name: row.frozen_display_name,
+        imageUrl: await resolveStimuliPreviewUrl(supabase, row.frozen_image_url),
+        kind: row.kind === 'product' ? 'product' : 'design',
+      }
+      return { rowKind: row.kind, thumb }
+    })
+  )
   const designs: CheckoutThumb[] = []
   const products: CheckoutThumb[] = []
-  for (const row of data) {
-    const thumb: CheckoutThumb = {
-      name: row.frozen_display_name,
-      imageUrl: row.frozen_image_url,
-      kind: row.kind === 'product' ? 'product' : 'design',
-    }
-    if (row.kind === 'product') products.push(thumb)
-    else if (row.kind === 'concept') designs.push(thumb)
+  for (const item of thumbs) {
+    if (item.rowKind === 'product') products.push(item.thumb)
+    else if (item.rowKind === 'concept') designs.push(item.thumb)
   }
   return { designs, products }
 }

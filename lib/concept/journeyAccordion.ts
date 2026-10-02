@@ -4,6 +4,7 @@ import { normalizeExpectedPrice } from './priceBands'
 import {
   BATTLE_PROMPT_OPTIONS,
   type BattlePromptCode,
+  type BrandQuestionDraft,
   defaultSuccessBarsDraft,
   type SuccessBarsDraft,
 } from './singleTest'
@@ -70,6 +71,23 @@ function countFor(id: JourneyStepId, counts: Counts): number | undefined {
   }
 }
 
+/**
+ * Each screener is one screen when the preview reports the pair.
+ * Any other count stays blank rather than splitting a number the journey did not give.
+ */
+export function pairedScreenerCountLabel(counts: Counts | null | undefined): string | null {
+  if (!counts || counts.screeners !== 2) return null
+  return '1 screen'
+}
+
+/** The follow-up after a pick. The preview reports an upper bound, not a fixed count. */
+export function whyFollowupCountLabel(counts: Counts | null | undefined): string | null {
+  if (!counts) return null
+  const n = counts.why_followups_up_to
+  if (n == null || !Number.isFinite(n) || n <= 0) return null
+  return n === 1 ? 'Up to 1 screen' : `Up to ${n} screens`
+}
+
 /** Blank until the preview returns a count. Never a guessed number. */
 export function journeyStepCountLabel(id: JourneyStepId, counts: Counts | null | undefined): string | null {
   if (!journeyStepCountsAsScreen(id) || !counts) return null
@@ -97,6 +115,12 @@ function barsReady(bars: SuccessBarsDraft): boolean {
   return values.every((state) => state.kind !== 'custom' || Number.isFinite(state.value))
 }
 
+function brandQuestionReady(question: { prompt: string; options: string[] }): boolean {
+  const prompt = question.prompt.trim()
+  const options = question.options.map((option) => option.trim()).filter(Boolean)
+  return prompt.length >= 8 && options.length >= 2
+}
+
 export function journeyStepDone(id: JourneyStepId, draft: ConceptStudyDraft): boolean {
   if (!journeyStepOwned(id)) return false
   if (id === 'screeners') {
@@ -112,12 +136,7 @@ export function journeyStepDone(id: JourneyStepId, draft: ConceptStudyDraft): bo
     return Boolean(anchor) && Number(anchor) > 0
   }
   if (id === 'brand_questions') {
-    const questions = draft.brandQuestions ?? []
-    return questions.every((q) => {
-      const prompt = q.prompt.trim()
-      const options = q.options.map((o) => o.trim()).filter(Boolean)
-      return prompt.length >= 8 && options.length >= 2
-    })
+    return (draft.brandQuestions ?? []).every(brandQuestionReady)
   }
   return barsReady(draft.successBars ?? defaultSuccessBarsDraft())
 }
@@ -262,6 +281,13 @@ function battleSentence(draft: ConceptStudyDraft): string {
   return BATTLE_PROMPT_OPTIONS.find((opt) => opt.code === code)?.prompt ?? 'Which one would you buy?'
 }
 
+/** The question after a pick, and the reasons. */
+export function whyFollowupAsked(
+  screens: ReadonlyArray<JourneyAskScreen> | null | undefined
+): AskedBlock {
+  return whyBlock(screens)
+}
+
 function whyBlock(screens: ReadonlyArray<JourneyAskScreen> | null | undefined): AskedBlock {
   const found = screensOf(screens, 'why_followups')[0]
   const items = choiceLabels(found?.options)
@@ -283,12 +309,18 @@ function firstLookBlock(screens: ReadonlyArray<JourneyAskScreen> | null | undefi
 
 function rankStack(draft: ConceptStudyDraft): string[] {
   let design = 0
-  return draft.conceptArms.map((arm) => {
+  const designs = draft.conceptArms.map((arm) => {
     if (arm.benchmark_role === 'current_pack') return 'Current pack'
     const label = respondentDesignLabel(design)
     design += 1
     return label
   })
+  const competitors = draft.products.flatMap((product) => {
+    if (product.product_id == null) return []
+    const name = product.frozen_display_name.trim() || product.frozen_brand_name.trim()
+    return name ? [name] : []
+  })
+  return [...designs, ...competitors]
 }
 
 function rankBlock(
@@ -332,7 +364,7 @@ function openTextBlock(screens: ReadonlyArray<JourneyAskScreen> | null | undefin
   }
 }
 
-/** The locked MaxDiff question. Journey items win when the preview has them. */
+/** The what-matters question. Journey items win when the preview has them. */
 export function whatMattersAsked(
   screens: ReadonlyArray<JourneyAskScreen> | null | undefined
 ): { prompt: string; items: string[] } {
@@ -402,6 +434,27 @@ function questionText(
     default:
       return ''
   }
+}
+
+/** One brand question, closed on the prompt shoppers will read. */
+export function brandQuestionClosedLine(question: BrandQuestionDraft): JourneyClosedLine {
+  const prompt = question.prompt.trim()
+  if (!brandQuestionReady(question) || !prompt) return { kind: 'required' }
+  return { kind: 'question', text: prompt }
+}
+
+/**
+ * One screen per question, only when the preview count matches the draft.
+ * A mismatch stays blank rather than showing a number the journey did not return.
+ */
+export function brandQuestionScreenLabel(
+  questionCount: number,
+  counts: Counts | null | undefined
+): string | null {
+  if (!counts || questionCount <= 0) return null
+  const n = counts.brand_questions
+  if (n == null || !Number.isFinite(n) || n !== questionCount) return null
+  return '1 screen'
 }
 
 /** The closed-row line: the question respondents read, or the required dot. */
