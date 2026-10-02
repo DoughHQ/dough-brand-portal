@@ -22,6 +22,7 @@ import AudienceSection from './AudienceSection'
 import FieldSection from './FieldSection'
 import SingleTestJourneySection from './SingleTestJourneySection'
 import StudyTypeSection from './StudyTypeSection'
+import StudyMasthead from './StudyMasthead'
 import BuilderStepper from './BuilderStepper'
 import ResumeDraftBanner from '../components/ResumeDraftBanner'
 import PublishingDock from '../components/PublishingDock'
@@ -322,6 +323,18 @@ export default function ConceptStudyClient({
           ← Studies
         </Link>
         <h1 className="cb-page-title">{draft.title.trim() || 'Concept study'}</h1>
+        <StudyMasthead
+          draft={draft}
+          locked={builderLocked}
+          lockReason={lockReason}
+          onOpenField={() => {
+            if (builderLocked) {
+              scrollToAnchor(CONCEPT_ANCHORS.mode)
+              return
+            }
+            scrollToAnchor(CONCEPT_ANCHORS.field)
+          }}
+        />
       </header>
 
       {resumeOffer ? (

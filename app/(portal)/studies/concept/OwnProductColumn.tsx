@@ -6,6 +6,8 @@ import { armLabelForIndex, newConceptArm } from '@/lib/concept/defaults'
 import { isAllowedPriceInput } from '@/lib/concept/price'
 import type { AddAvailability } from '@/lib/concept/fieldSize'
 import { respondentDesignLabel } from '@/lib/concept/designLetters'
+import { FIELD_ADD_DESIGN_EVENT } from '@/lib/concept/studyMasthead'
+import { CONCEPT_ANCHORS } from '@/lib/concept/validity'
 import ConceptArmImageUploader from './ConceptArmImageUploader'
 import { DragHandle, TrashIcon } from './fieldIcons'
 import { fieldCard, inputBase, labelSm, sectionEyebrow, trashBtn } from './conceptStyles'
@@ -69,6 +71,26 @@ export default function OwnProductColumn({
       setFocusName(false)
     }
   }, [focusName, arms.length])
+
+  const mastheadAddRef = useRef<() => void>(() => {})
+  mastheadAddRef.current = () => {
+    if (disabled) return
+    if (!configured && !revealed) {
+      startSetup()
+      return
+    }
+    addVariant()
+  }
+
+  useEffect(() => {
+    const root = document.getElementById(CONCEPT_ANCHORS.field)
+    if (!root) return
+    function onMastheadAdd() {
+      mastheadAddRef.current()
+    }
+    root.addEventListener(FIELD_ADD_DESIGN_EVENT, onMastheadAdd)
+    return () => root.removeEventListener(FIELD_ADD_DESIGN_EVENT, onMastheadAdd)
+  }, [])
 
   /**
    * This action owns creation of the first product.
