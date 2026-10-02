@@ -11,6 +11,7 @@ import {
 import { createEmptyBoxFieldRow } from '@/lib/box/defaults'
 import { hydrateBoxFieldRow } from '@/lib/box/hydrate'
 import { BOX_UPC_SCAN_HELP } from '@/lib/box/constants'
+import { canAddBoxProduct, MAX_BOX_FIELD_SIZE } from '@/lib/box/fieldSize'
 import { categoryFromSearchResult, isIdentityConfirmed } from '@/lib/productEntryMode'
 import { createClient } from '@/lib/supabase'
 import BoxProductSearchSlot from './BoxProductSearchSlot'
@@ -64,6 +65,10 @@ export default function ContentsSection({
   }
 
   function addProduct(p: AdminProductSearchResult, knownUpc?: string) {
+    if (!canAddBoxProduct(draftRef.current)) {
+      setAdding(false)
+      return
+    }
     const row: BoxFieldRow = {
       ...createEmptyBoxFieldRow(),
       product_id: p.product_id,
@@ -101,6 +106,8 @@ export default function ContentsSection({
   const unconfirmedCount = rows.filter(
     (r) => r.product_id != null && !!r.upc?.trim() && !isIdentityConfirmed(r)
   ).length
+  const canAdd = canAddBoxProduct(draft)
+  const overBy = Math.max(0, rows.length - MAX_BOX_FIELD_SIZE)
 
   return (
     <section
@@ -276,7 +283,7 @@ export default function ContentsSection({
           </div>
 
           <div style={{ marginTop: 16 }}>
-            {adding ? (
+            {adding && canAdd ? (
               <BoxProductSearchSlot
                 taken={taken}
                 onPick={addProduct}
@@ -285,7 +292,7 @@ export default function ContentsSection({
                 entryModes
                 placeholder="Add another product by name, brand, or barcode…"
               />
-            ) : (
+            ) : canAdd ? (
               <button
                 type="button"
                 className="cb-btn cb-btn-secondary"
@@ -293,12 +300,21 @@ export default function ContentsSection({
               >
                 + Add product
               </button>
+            ) : (
+              <p className="cb-field-note" style={{ margin: 0 }}>
+                Field full · {MAX_BOX_FIELD_SIZE} of {MAX_BOX_FIELD_SIZE}
+              </p>
             )}
           </div>
 
           <p className="cb-field-note" style={{ marginTop: 12 }}>
-            {resolvedCount} product{resolvedCount === 1 ? '' : 's'} in the box
+            {resolvedCount} of {MAX_BOX_FIELD_SIZE} product{resolvedCount === 1 ? '' : 's'} in the box
             {resolvedCount < 2 ? ' · at least 2 needed' : ''}
+            {overBy > 0
+              ? ` · remove ${overBy} to fit`
+              : !canAdd && resolvedCount >= 2
+                ? ' · full round-robin (10 battles)'
+                : ''}
             {missingUpcCount > 0 ? ' · UPC required per product' : ''}
             {unconfirmedCount > 0 ? ' · confirm each product' : ''}
           </p>

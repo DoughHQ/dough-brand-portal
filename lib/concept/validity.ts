@@ -121,7 +121,7 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
   }
 
   // ---- the six-seat field ----------------------------------------------------
-  // Own variants and real competitors share one pool of six seats.
+  // Own variants and real competitors share one pool of five seats.
   const fieldSize = getConceptFieldSize(draft)
   const fieldOverBy = getFieldOverBy(draft)
   const competitorMin = competitorMinimum(draft.stimulusMode)

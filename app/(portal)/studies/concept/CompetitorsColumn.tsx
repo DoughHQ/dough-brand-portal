@@ -86,7 +86,7 @@ export default function CompetitorsColumn({
   )
   /**
    * The add flow is transient local state — it never writes an unresolved row into the
-   * draft, so an open search box can never occupy one of the six field seats.
+   * draft, so an open search box can never occupy one of the five field seats.
    */
   const [adding, setAdding] = useState(false)
 
