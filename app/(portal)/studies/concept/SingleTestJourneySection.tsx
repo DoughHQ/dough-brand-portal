@@ -50,14 +50,13 @@ import {
 import { ExpectedPriceCard, VerificationCard } from './conceptCards'
 import PackSizeField from './PackSizeField'
 import { DragHandle } from './fieldIcons'
+import BuilderSectionChrome from './BuilderSectionChrome'
 import { resolveStimuliPreviewUrl } from '@/lib/concept/stimuliStorage'
 import { createClient } from '@/lib/supabase'
 import {
   inputBase,
   labelSm,
-  sectionCard,
   sectionHelp,
-  sectionTitle,
 } from './conceptStyles'
 import {
   checkConceptDecoyAction,
@@ -72,6 +71,8 @@ type Props = {
   error?: string | null
   canPreview?: boolean
   onPreview?: () => void
+  /** Collapse when the questionnaire is publish-ready. */
+  sectionDone?: boolean
 }
 
 function ClosedLine({ line }: { line: JourneyClosedLine }) {
@@ -198,6 +199,7 @@ export default function SingleTestJourneySection({
   error,
   canPreview = false,
   onPreview,
+  sectionDone = false,
 }: Props) {
   const config = draft.templateConfig
   const bars = draft.successBars ?? defaultSuccessBarsDraft()
@@ -317,17 +319,21 @@ export default function SingleTestJourneySection({
   }
 
   return (
-    <section style={sectionCard} id={CONCEPT_ANCHORS.questions}>
-      <h2 className="cb-section-title" style={sectionTitle}>
-        Questions
-      </h2>
+    <BuilderSectionChrome
+      id={CONCEPT_ANCHORS.questions}
+      title="Questions"
+      summary={lengthLabel ?? ''}
+      done={sectionDone}
+    >
       <p style={{ ...sectionHelp, marginBottom: 8 }}>
         They qualify, react to each design, choose, and say why. Then they rank the field and
         name a price. Your questions come after that.
       </p>
-      <p className="cb-questions-length">
-        {lengthLabel ?? (journeyError ? 'Length unavailable' : 'Building length…')}
-      </p>
+      {!lengthLabel ? (
+        <p className="cb-questions-length">
+          {journeyError ? 'Length unavailable' : 'Building length…'}
+        </p>
+      ) : null}
       {journey?.field_issues.length ? (
         <ul className="cb-length-issues">
           {journey.field_issues.map((c) => (
@@ -644,7 +650,7 @@ export default function SingleTestJourneySection({
           </AccordionRow>
         </div>
       </div>
-    </section>
+    </BuilderSectionChrome>
   )
 }
 

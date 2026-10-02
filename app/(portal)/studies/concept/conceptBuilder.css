@@ -123,6 +123,95 @@
   line-height: 1.2;
 }
 
+.concept-builder .cb-builder-section {
+  position: relative;
+}
+
+.concept-builder .cb-builder-section-head {
+  margin: 0 0 4px;
+}
+
+.concept-builder .cb-builder-section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  margin: 0;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.concept-builder .cb-builder-section-toggle:focus-visible {
+  outline: 2px solid var(--cb-sage);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.concept-builder .cb-builder-section-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.concept-builder .cb-builder-section-title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--cb-heading);
+}
+
+.concept-builder .cb-builder-section-summary {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink-50);
+}
+
+.concept-builder .cb-builder-section[data-done='true'] .cb-builder-section-summary {
+  color: var(--cb-heading);
+}
+
+.concept-builder .cb-builder-section-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  color: var(--cb-heading);
+  background: var(--cb-surface-muted);
+  border: 1px solid var(--cb-border-soft);
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.concept-builder .cb-builder-section-toggle:hover .cb-builder-section-chevron {
+  background: color-mix(in srgb, var(--cb-sage) 12%, var(--cb-surface-muted));
+  border-color: color-mix(in srgb, var(--cb-sage) 35%, var(--cb-border));
+  color: var(--cb-sage);
+}
+
+.concept-builder .cb-builder-section-chevron svg {
+  display: block;
+}
+
+.concept-builder .cb-builder-section-body {
+  margin-top: 16px;
+}
+
+.concept-builder .cb-builder-section[data-open='false'] {
+  padding-bottom: 22px;
+}
+
 .concept-builder .cb-input:focus,
 .concept-builder .cb-input:focus-visible {
   outline: none;

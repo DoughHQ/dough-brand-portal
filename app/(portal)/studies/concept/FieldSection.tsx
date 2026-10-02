@@ -28,11 +28,11 @@ import { resolveStimuliPreviewUrl } from '@/lib/concept/stimuliStorage'
 import { createClient } from '@/lib/supabase'
 import CompetitorsColumn from './CompetitorsColumn'
 import OwnProductColumn from './OwnProductColumn'
+import BuilderSectionChrome from './BuilderSectionChrome'
+import { summarizeField } from '@/lib/concept/builderSummaries'
 import {
   labelSm,
-  sectionCard,
   sectionHelp,
-  sectionTitle,
 } from './conceptStyles'
 
 type Props = {
@@ -119,16 +119,13 @@ export default function FieldSection({
   const shelfOwnsStatus = singleTestMode && showCapacity
 
   return (
-    <section style={{ ...sectionCard, position: 'relative' }} id="concept-field">
-      <h2
-        className="cb-section-title"
-        style={{
-          ...sectionTitle,
-          color: 'var(--ink-80)',
-        }}
-      >
-        Build the field
-      </h2>
+    <BuilderSectionChrome
+      id="concept-field"
+      title="Build the field"
+      summary={summarizeField(draft)}
+      done={!disabled && validity.fieldOk}
+      className="cb-field-section"
+    >
       <p style={{ ...sectionHelp, maxWidth: 720, marginBottom: 24 }}>
         Add your concepts, then choose the real products shoppers would compare them against.
       </p>
@@ -265,7 +262,7 @@ export default function FieldSection({
           {error}
         </p>
       ) : null}
-    </section>
+    </BuilderSectionChrome>
   )
 }
 
