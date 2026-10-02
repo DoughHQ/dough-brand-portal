@@ -8,6 +8,7 @@ describe('box UPC HINT mapping', () => {
     'UPC_PRODUCT_MISMATCH',
     'DUPLICATE_FIELD_UPC',
     'DUPLICATE_FIELD_PRODUCT',
+    'FIELD_TOO_LARGE',
   ])('maps %s to the field section', (code) => {
     expect(sectionForBoxCode(code)).toBe('field')
   })

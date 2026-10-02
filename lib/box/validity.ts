@@ -12,6 +12,7 @@ import type { BoxStudyDraft } from './types'
 import { uniquePairs } from '@/lib/concept/publish'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
 import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
+import { MAX_BOX_FIELD_SIZE } from './fieldSize'
 
 export type BoxOutstandingItem = {
   message: string
@@ -131,6 +132,18 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
     })
   }
 
+  const fieldOverBy = Math.max(0, draft.fieldProducts.length - MAX_BOX_FIELD_SIZE)
+  const fieldSizeCapOk = fieldOverBy === 0
+  if (!fieldSizeCapOk) {
+    outstanding.push({
+      message:
+        fieldOverBy === 1
+          ? `Remove 1 item — the box holds ${MAX_BOX_FIELD_SIZE} products.`
+          : `Remove ${fieldOverBy} items — the box holds ${MAX_BOX_FIELD_SIZE} products.`,
+      anchor: BOX_ANCHORS.field,
+    })
+  }
+
   const ids = resolved.map((r) => r.product_id as number)
   const dupes = ids.filter((id, i) => ids.indexOf(id) !== i)
   const dupesOk = dupes.length === 0
@@ -192,6 +205,7 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
   const fieldOk =
     rowsResolvedOk &&
     sizeOk &&
+    fieldSizeCapOk &&
     dupesOk &&
     focalInField &&
     upcOk &&

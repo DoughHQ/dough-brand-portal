@@ -1,13 +1,15 @@
 import type { ConceptStudyDraft, ProductCompetitorRow, StimulusMode } from './types'
 
 /**
- * A Concept Study field has six seats in total.
+ * A Concept Study field has five seats in total.
  *
  * The seats are shared by the brand's own concept variants AND the real competitor
- * products — it is NOT six competitors plus the own product. Every rule below derives
- * from this one constant; nothing else in the builder should hard-code 6, 2 or 1.
+ * products — it is NOT five competitors plus the own product. Every rule below derives
+ * from this one constant; nothing else in the builder should hard-code 5, 2 or 1.
+ *
+ * Cap is 5 so a full round-robin is at most 10 battles (matches the server FIELD_TOO_LARGE gate).
  */
-export const MAX_CONCEPT_FIELD_SIZE = 6
+export const MAX_CONCEPT_FIELD_SIZE = 5
 
 /** Real competitors required before a study of this mode can publish. */
 export function competitorMinimum(mode: StimulusMode | null): number {
@@ -99,7 +101,7 @@ export function canAddCompetitor(draft: ConceptStudyDraft): AddAvailability {
 
 /**
  * Adding a variant needs a free seat AND must leave room for every competitor the mode
- * still requires — so the operator can never fill all six seats with their own variants
+ * still requires — so the operator can never fill all five seats with their own variants
  * and then discover the study can't satisfy its competitor minimum.
  */
 export function canAddVariant(draft: ConceptStudyDraft): AddAvailability {

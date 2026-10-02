@@ -41,6 +41,7 @@ export const BOX_PUBLISH_HINT_MESSAGES: Record<string, string> = {
   DUPLICATE_FIELD_UPC:
     'The same barcode is on two products. Each package in the box needs its own UPC.',
   FIELD_TOO_SMALL: 'A box needs at least two products to battle.',
+  FIELD_TOO_LARGE: 'A box can have at most 5 products to battle.',
   FOCAL_NOT_IN_FIELD: 'The hero product must ship in the box. Add it to the contents.',
   UPC_REQUIRED:
     'Every product in the box needs a barcode. Identify the UPC on each package.',
@@ -123,6 +124,7 @@ export function sectionForBoxCode(code: string): BoxErrorSection {
     case 'DUPLICATE_FIELD_PRODUCT':
     case 'DUPLICATE_FIELD_UPC':
     case 'FIELD_TOO_SMALL':
+    case 'FIELD_TOO_LARGE':
     case 'FOCAL_NOT_IN_FIELD':
     case 'UPC_REQUIRED':
     case 'UPC_INVALID':

@@ -53,6 +53,24 @@ describe('evaluateBoxValidity UPC gate', () => {
     expect(v.outstanding.map((o) => o.message).join(' ')).toMatch(/at least two/i)
   })
 
+  it('blocks publish when the box exceeds 5 products', () => {
+    const v = evaluateBoxValidity(
+      boxDraft({
+        fieldProducts: [
+          fieldRow(1, '028400017688'),
+          fieldRow(2, '028400017695'),
+          fieldRow(3, '028400017701'),
+          fieldRow(4, '028400017718'),
+          fieldRow(5, '028400017725'),
+          fieldRow(6, '028400017732'),
+        ],
+      })
+    )
+    expect(v.fieldOk).toBe(false)
+    expect(v.readyToPublish).toBe(false)
+    expect(v.outstanding.map((o) => o.message).join(' ')).toMatch(/holds 5/)
+  })
+
   it('blocks publish when a resolved row is missing a UPC', () => {
     const v = evaluateBoxValidity(
       boxDraft({

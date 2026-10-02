@@ -101,9 +101,9 @@ export default function FieldSection({
   const addCompetitorAvailability = canAddCompetitor(draft)
   const competitorLabel = competitorProgressLabel(draft)
 
-  // The one fact neither column can state on its own: the six seats are shared.
+  // The one fact neither column can state on its own: the five seats are shared.
   //
-  // Hidden entirely on an empty field. A capacity meter reading "0 of 6" announces
+  // Hidden entirely on an empty field. A capacity meter reading "0 of 5" announces
   // a constraint before anything exists to constrain — it only became reachable
   // once fresh drafts stopped seeding blank rows.
   const spots = `${validity.fieldSize} of ${MAX_CONCEPT_FIELD_SIZE} spots used`
