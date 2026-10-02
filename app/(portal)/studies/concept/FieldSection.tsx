@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import type {
   ConceptArmRow,
   ConceptStudyDraft,
@@ -21,11 +20,8 @@ import {
   canAddVariant,
   competitorProgressLabel,
 } from '@/lib/concept/fieldSize'
-import { respondentDesignLabel } from '@/lib/concept/designLetters'
 import { formatPriceLabel } from '@/lib/concept/price'
 import { uniquePairs } from '@/lib/concept/publish'
-import { resolveStimuliPreviewUrl } from '@/lib/concept/stimuliStorage'
-import { createClient } from '@/lib/supabase'
 import CompetitorsColumn from './CompetitorsColumn'
 import OwnProductColumn from './OwnProductColumn'
 import BuilderSectionChrome from './BuilderSectionChrome'
@@ -100,6 +96,7 @@ export default function FieldSection({
   const spots = `${validity.fieldSize} of ${MAX_CONCEPT_FIELD_SIZE} spots used`
   const reserved = validity.competitorsMissing
   const remaining = MAX_CONCEPT_FIELD_SIZE - validity.fieldSize
+  // The page masthead owns the shelf polaroid; capacity stays next to the editors.
   const showCapacity = validity.fieldSize > 0
   const capacityText = !validity.fieldSizeOk
     ? `${spots} · Remove ${validity.fieldOverBy} item${validity.fieldOverBy === 1 ? '' : 's'}`
@@ -114,9 +111,6 @@ export default function FieldSection({
           remaining === 1
           ? `${spots} · 1 spot left`
           : spots
-
-  // Single-test: the shelf owns capacity + matchup copy. Legacy modes keep the strip.
-  const shelfOwnsStatus = singleTestMode && showCapacity
 
   return (
     <BuilderSectionChrome
@@ -228,18 +222,9 @@ export default function FieldSection({
             singleTestMode={singleTestMode}
           />
         </div>
-        {singleTestMode ? (
-          <FieldShelf
-            draft={draft}
-            battles={battles}
-            capacityText={capacityText}
-            fieldSizeOk={validity.fieldSizeOk}
-            remaining={Math.max(0, remaining)}
-          />
-        ) : null}
       </div>
 
-      {!disabled && showCapacity && !shelfOwnsStatus ? (
+      {!disabled && showCapacity ? (
         <div className="cb-field-status" role="status">
           {validity.fieldSizeOk ? (
             /* Plain text, not a pass: a full field is not the same as a valid study. */
@@ -263,173 +248,6 @@ export default function FieldSection({
         </p>
       ) : null}
     </BuilderSectionChrome>
-  )
-}
-
-type ShelfSeat =
-  | { kind: 'arm'; localId: string; index: number; name: string; imageRef: string | null }
-  | {
-      kind: 'product'
-      localId: string
-      name: string
-      brand: string
-      imageSrc: string | null
-    }
-  | { kind: 'empty'; key: string }
-
-function FieldShelf({
-  draft,
-  battles,
-  capacityText,
-  fieldSizeOk,
-  remaining,
-}: {
-  draft: ConceptStudyDraft
-  battles: number
-  capacityText: string
-  fieldSizeOk: boolean
-  remaining: number
-}) {
-  const filled: ShelfSeat[] = [
-    ...draft.conceptArms.map((arm, index) => ({
-      kind: 'arm' as const,
-      localId: arm.localId,
-      index,
-      name: arm.display_name.trim() || 'Name this design',
-      imageRef: arm.image_url,
-    })),
-    ...draft.products.map((product) => ({
-      kind: 'product' as const,
-      localId: product.localId,
-      name: product.frozen_display_name.trim() || 'Competitor',
-      brand: product.frozen_brand_name.trim(),
-      imageSrc: product.frozen_image_url,
-    })),
-  ]
-  if (filled.length === 0) return null
-
-  const emptyCount = Math.min(
-    remaining,
-    Math.max(0, MAX_CONCEPT_FIELD_SIZE - filled.length)
-  )
-  const seats: ShelfSeat[] = [
-    ...filled,
-    ...Array.from({ length: emptyCount }, (_, i) => ({
-      kind: 'empty' as const,
-      key: `empty-${i}`,
-    })),
-  ]
-
-  const n = filled.length
-  const productWord = n === 1 ? 'product' : 'products'
-  const matchupWord = battles === 1 ? 'matchup' : 'matchups'
-  const metaParts = [
-    `${n} ${productWord}`,
-    battles > 0 ? `${battles} ${matchupWord} per respondent` : null,
-    remaining > 0
-      ? remaining === 1
-        ? '1 spot left'
-        : `${remaining} spots left`
-      : 'field full',
-  ].filter(Boolean)
-
-  return (
-    <div className="cb-field-shelf" data-testid="field-shelf">
-      <div className="cb-field-shelf-head">
-        <div className="cb-field-shelf-title">Your field</div>
-        <p
-          className="cb-field-shelf-meta"
-          role="status"
-          data-testid="field-capacity"
-          data-ok={fieldSizeOk ? 'true' : 'false'}
-        >
-          {!fieldSizeOk ? (
-            <StatusChip ok={false} tone="warn" label={capacityText} />
-          ) : (
-            metaParts.join(' · ')
-          )}
-        </p>
-      </div>
-      <ul className="cb-field-shelf-rail" aria-label="Products in the field">
-        {seats.map((seat) => {
-          if (seat.kind === 'empty') {
-            return (
-              <li key={seat.key} className="cb-field-shelf-tile is-empty" aria-hidden>
-                <span className="cb-field-shelf-photo" />
-                <span className="cb-field-shelf-copy">
-                  <strong>Open</strong>
-                  Spot
-                </span>
-              </li>
-            )
-          }
-          const focusId =
-            seat.kind === 'arm'
-              ? `field-seat-arm-${seat.localId}`
-              : `field-seat-product-${seat.localId}`
-          const subtitle =
-            seat.kind === 'arm' ? respondentDesignLabel(seat.index) : seat.brand || 'Competitor'
-          return (
-            <li key={`${seat.kind}-${seat.localId}`}>
-              <button
-                type="button"
-                className="cb-field-shelf-tile"
-                onClick={() => focusFieldSeat(focusId)}
-              >
-                {seat.kind === 'arm' ? (
-                  <MemberPhoto imageRef={seat.imageRef} />
-                ) : (
-                  <MemberPhoto src={seat.imageSrc} />
-                )}
-                <span className="cb-field-shelf-copy">
-                  <strong>{seat.name}</strong>
-                  {subtitle}
-                </span>
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-    </div>
-  )
-}
-
-function focusFieldSeat(elementId: string) {
-  const el = document.getElementById(elementId)
-  if (!el) return
-  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  el.classList.add('is-shelf-focus')
-  window.setTimeout(() => el.classList.remove('is-shelf-focus'), 1200)
-  const focusable = el.querySelector<HTMLElement>(
-    'input:not([type="hidden"]), button.cb-concept-stage-replace, [data-shelf-focus]'
-  )
-  focusable?.focus({ preventScroll: true })
-}
-
-function MemberPhoto({ imageRef, src }: { imageRef?: string | null; src?: string | null }) {
-  const [url, setUrl] = useState<string | null>(src ?? null)
-  useEffect(() => {
-    if (src) {
-      setUrl(src)
-      return
-    }
-    if (!imageRef) {
-      setUrl(null)
-      return
-    }
-    let cancelled = false
-    const supabase = createClient()
-    void resolveStimuliPreviewUrl(supabase, imageRef).then((next) => {
-      if (!cancelled) setUrl(next)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [imageRef, src])
-  return (
-    <span className="cb-field-shelf-photo">
-      {url ? <img src={url} alt="" /> : null}
-    </span>
   )
 }
 

@@ -24,6 +24,8 @@ import {
   searchProductsByBarcode,
 } from '@/lib/concept/barcodes'
 import { CONCEPT_UPC_IDENTITY_HELP } from '@/lib/concept/constants'
+import { FIELD_ADD_COMPETITOR_EVENT } from '@/lib/concept/studyMasthead'
+import { CONCEPT_ANCHORS } from '@/lib/concept/validity'
 import {
   categoryFromSearchResult,
   isIdentityConfirmed,
@@ -98,6 +100,22 @@ export default function CompetitorsColumn({
     if (!addAvailability.allowed) return
     setAdding(true)
   }
+
+  const mastheadAddRef = useRef<() => void>(() => {})
+  mastheadAddRef.current = () => {
+    if (disabled) return
+    openAdd()
+  }
+
+  useEffect(() => {
+    const root = document.getElementById(CONCEPT_ANCHORS.field)
+    if (!root) return
+    function onMastheadAdd() {
+      mastheadAddRef.current()
+    }
+    root.addEventListener(FIELD_ADD_COMPETITOR_EVENT, onMastheadAdd)
+    return () => root.removeEventListener(FIELD_ADD_COMPETITOR_EVENT, onMastheadAdd)
+  }, [])
 
   async function hydrateFromPick(
     base: ProductCompetitorRow,
