@@ -133,12 +133,12 @@
 
 .concept-builder .cb-builder-section-toggle {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   width: 100%;
   margin: 0;
-  padding: 0;
+  padding: 2px 0;
   border: 0;
   background: transparent;
   text-align: left;
@@ -181,10 +181,27 @@
 }
 
 .concept-builder .cb-builder-section-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  margin-top: 8px;
-  font-size: 14px;
-  color: var(--ink-30);
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  color: var(--cb-heading);
+  background: var(--cb-surface-muted);
+  border: 1px solid var(--cb-border-soft);
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.concept-builder .cb-builder-section-toggle:hover .cb-builder-section-chevron {
+  background: color-mix(in srgb, var(--cb-sage) 12%, var(--cb-surface-muted));
+  border-color: color-mix(in srgb, var(--cb-sage) 35%, var(--cb-border));
+  color: var(--cb-sage);
+}
+
+.concept-builder .cb-builder-section-chevron svg {
+  display: block;
 }
 
 .concept-builder .cb-builder-section-body {
