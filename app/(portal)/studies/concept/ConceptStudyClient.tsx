@@ -305,7 +305,6 @@ export default function ConceptStudyClient({
         <Link href="/studies" className="cb-back">
           ← Studies
         </Link>
-        {draft.title.trim() ? <p className="cb-page-kicker">Concept study</p> : null}
         <h1 className="cb-page-title">{draft.title.trim() || 'Concept study'}</h1>
       </header>
 

@@ -36,10 +36,8 @@ type Props = {
   /** Authoritative field-capacity verdict — owned by lib/concept/fieldSize. */
   addVariant: AddAvailability
   disabled?: boolean
-  /** Single-test — Design letters + current-pack benchmark. */
+  /** Single-test — Design letters by field position. */
   singleTestMode?: boolean
-  onSetCurrentPack?: (localId: string) => void
-  onClearBenchmark?: (localId: string) => void
 }
 
 export default function OwnProductColumn({
@@ -54,8 +52,6 @@ export default function OwnProductColumn({
   addVariant: addVariantAvailability,
   disabled,
   singleTestMode = false,
-  onSetCurrentPack,
-  onClearBenchmark,
 }: Props) {
   const nameFocusRef = useRef<HTMLInputElement | null>(null)
   const [focusName, setFocusName] = useState(false)
@@ -224,8 +220,6 @@ export default function OwnProductColumn({
                       onPatch={(patch) => patchArm(arm.localId, patch)}
                       onNameKeyDown={(e) => onNameKeyDown(e, isLast)}
                       onRemove={multi ? () => removeVariant(arm.localId) : undefined}
-                      onSetCurrentPack={() => onSetCurrentPack?.(arm.localId)}
-                      onClearBenchmark={() => onClearBenchmark?.(arm.localId)}
                     />
                   ) : (
                   <>
@@ -317,30 +311,6 @@ export default function OwnProductColumn({
                     }
                   />
 
-                  {singleTestMode ? (
-                    <label
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        marginTop: 20,
-                        fontSize: 13,
-                        color: 'var(--ink-80)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={arm.benchmark_role === 'current_pack'}
-                        onChange={(e) => {
-                          if (e.target.checked) onSetCurrentPack?.(arm.localId)
-                          else onClearBenchmark?.(arm.localId)
-                        }}
-                      />
-                      This is our current pack
-                    </label>
-                  ) : null}
-
                   {/* 3 · study-controlled context — read-only, not a task */}
                   <div style={{ marginTop: 24 }}>
                     <div style={sectionEyebrow}>Study format</div>
@@ -429,8 +399,6 @@ function ConceptCardBody({
   onPatch,
   onNameKeyDown,
   onRemove,
-  onSetCurrentPack,
-  onClearBenchmark,
 }: {
   arm: ConceptArmRow
   index: number
@@ -444,10 +412,7 @@ function ConceptCardBody({
   onPatch: (patch: Partial<ConceptArmRow>) => void
   onNameKeyDown: (e: KeyboardEvent) => void
   onRemove?: () => void
-  onSetCurrentPack: () => void
-  onClearBenchmark: () => void
 }) {
-  const current = arm.benchmark_role === 'current_pack'
   const letter = respondentDesignLabel(index)
   return (
     <>
@@ -481,14 +446,6 @@ function ConceptCardBody({
         placeholder="Name this design"
         style={inputBase}
       />
-      <button
-        type="button"
-        className={`cb-concept-current${current ? ' is-on' : ''}`}
-        aria-pressed={current}
-        onClick={() => (current ? onClearBenchmark() : onSetCurrentPack())}
-      >
-        {current ? 'Current pack' : 'Mark as current pack'}
-      </button>
     </>
   )
 }

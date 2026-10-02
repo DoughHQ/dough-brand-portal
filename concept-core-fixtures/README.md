@@ -22,7 +22,7 @@ The report fixture comes from the same scripted answers; none of its fields depe
 ## Journey (portal)
 - Option lists equal what publish stores, byte for byte (proven). Brand options show the catalog display name: the brand typed "HALO TOP", respondents see "Halo Top".
 - `subject.display_name` / `arm_label` are the **brand's** labels, for the brand's orientation. The journey outline must show what respondents see: Design A/B… (never brand arm labels).
-- `field_issues` codes: `FIELD_TOO_SMALL`, `FIELD_TOO_LARGE`, `BENCHMARK_REQUIRED`, `TOO_MANY_BENCHMARKS`, `NOTHING_TO_TEST`.
+- `field_issues` codes: `FIELD_TOO_SMALL`, `FIELD_TOO_LARGE`, `IMAGE_REQUIRED`. (Legacy benchmark codes retire with the server gate.)
 - `needs_review: true` means a custom battle prompt or brand question is present, so the study is held until Dough approves it.
 - Per-design screens (rating, price) rotate per respondent. Invalid brand text raises the same errors publish does.
 

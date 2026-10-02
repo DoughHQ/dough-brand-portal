@@ -27,7 +27,11 @@ export type ConceptTestVerdict = {
     losses: number
     neither: number
     win_share: number
-    n_decisive: number
+    /** Equal-field report: respondents are the unit. */
+    n_respondents: number
+    basis?: 'field' | string
+    /** Legacy benchmark-paired shape. Prefer n_respondents. */
+    n_decisive?: number
   }
   liking: ConceptTestInterval & {
     mode: string
@@ -167,7 +171,12 @@ export function parseConceptTestReport(payload: unknown): ConceptTestReport | nu
           losses: num(h2h.losses),
           neither: num(h2h.neither),
           win_share: num(h2h.win_share),
-          n_decisive: num(h2h.n_decisive),
+          n_respondents: num(
+            h2h.n_respondents ?? h2h.n_decisive
+          ),
+          basis: typeof h2h.basis === 'string' ? h2h.basis : undefined,
+          n_decisive:
+            typeof h2h.n_decisive === 'number' ? h2h.n_decisive : undefined,
         },
         liking: {
           lo: num(liking.lo),

@@ -9,7 +9,7 @@ import { MODULE_CONCEPT_CORE_V1 } from '../singleTest'
 import publishFixture from '../../../concept-core-fixtures/publish_args.json'
 
 describe('concept CORE publish payload', () => {
-  it('emits current_pack benchmark + CONCEPT_CORE_V1 only', () => {
+  it('emits equal concepts + CONCEPT_CORE_V1 only — no benchmark_role', () => {
     const draft = createEmptyConceptDraft({
       stimulusMode: 'package',
       title: 'fixture study',
@@ -28,12 +28,11 @@ describe('concept CORE publish payload', () => {
         },
         {
           ...newConceptArm(1),
-          display_name: 'Current pack',
-          arm_label: 'Current pack',
+          display_name: 'Alt design',
+          arm_label: 'Alt design',
           image_url:
             'https://rzovknemrvpioidkaqrk.supabase.co/storage/v1/object/public/concept-images/fixture/current-pack.png',
-          battle_intent: 'competitor',
-          benchmark_role: 'current_pack',
+          battle_intent: 'hero',
         },
       ],
       products: [
@@ -75,10 +74,11 @@ describe('concept CORE publish payload', () => {
 
     const payload = draftToPublishPayload(draft)
     expect(payload.concepts[0]).not.toHaveProperty('benchmark_role')
+    expect(payload.concepts[1]).not.toHaveProperty('benchmark_role')
     expect(payload.concepts[1]).toMatchObject({
-      benchmark_role: 'current_pack',
-      battle_intent: 'competitor',
+      battle_intent: 'hero',
     })
+    expect(payload.products[0]).not.toHaveProperty('benchmark_role')
 
     const args = draftToConceptPublishStudyArgs(draft, {
       campaignId: '00000000-0000-0000-0000-000000000001',
@@ -90,14 +90,15 @@ describe('concept CORE publish payload', () => {
     expect(args.p_target_completions).toBe(30)
     const concepts = args.p_field.concepts as unknown[]
     expect(concepts).toHaveLength(2)
-    expect(concepts[1]).toMatchObject({
-      benchmark_role: 'current_pack',
-      battle_intent: 'competitor',
-    })
+    expect(concepts[0]).toMatchObject({ battle_intent: 'hero' })
+    expect(concepts[1]).toMatchObject({ battle_intent: 'hero' })
+    expect(concepts[0]).not.toHaveProperty('benchmark_role')
+    expect(concepts[1]).not.toHaveProperty('benchmark_role')
     expect(args.p_module_config).toMatchObject({
       category_plural: 'pints of ice cream',
       pack_size: 'pint',
       decoy_option: 'Frostline',
+      success_bars: { liking_mode: 'off' },
     })
     const mod = args.p_module_config as Record<string, unknown>
     expect(mod.brand_questions).toEqual([
@@ -124,8 +125,7 @@ describe('concept CORE publish payload', () => {
           ...newConceptArm(1),
           display_name: 'B',
           image_url: 'https://example.com/b.png',
-          benchmark_role: 'current_pack',
-          battle_intent: 'competitor',
+          battle_intent: 'hero',
         },
       ],
       products: [

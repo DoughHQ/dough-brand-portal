@@ -19,11 +19,14 @@ import {
   modeSwitchConfirmTitle,
   categoryResetLoses,
   categoryResetMessage,
+  conceptStudyTitle,
   isConfiguredArm,
+  isDerivedStudyTitle,
   modeSwitchLossMessage,
   normalizeSeededArms,
   planModeTransition,
   rehydrateCategoryDerived,
+  titleAfterCategory,
   withDerivedCategoryPlural,
 } from '../modeTransition'
 
@@ -265,6 +268,56 @@ sec('§5/§32 · phrasing derives at the state layer, never from a blur')
   ok(rehydrateCategoryDerived(d, NODE).templateConfig.category_plural === 'ice cream', 'rehydrate fills an empty phrasing')
   const noCat = createEmptyConceptDraft({ taxonomyNodeId: null, templateConfig: empty })
   ok(rehydrateCategoryDerived(noCat, NODE) === noCat, 'no category → nothing derived')
+}
+
+sec('study title · category names the invite')
+{
+  ok(conceptStudyTitle('Ice Cream') === 'Ice Cream concept test', 'Ice Cream derives Ice Cream concept test')
+  ok(conceptStudyTitle('Ice cream concept test') === 'Ice cream concept test', 'a name that already ends in concept test is not doubled')
+  ok(conceptStudyTitle('  ') === '', 'blank display name → empty title')
+  ok(isDerivedStudyTitle('', NODE), 'empty title is derived')
+  ok(isDerivedStudyTitle('Ice Cream concept test', NODE), 'matching derived title is derived')
+  ok(!isDerivedStudyTitle('Midnight snack concept — Q3', NODE), 'a typed title is the brand’s')
+  ok(!isDerivedStudyTitle('Midnight snack concept — Q3', null), 'non-empty with no node is the brand’s')
+
+  const emptyPhrase = { ...fullTemplate(), category_plural: '' }
+  const emptyTitle = createEmptyConceptDraft({
+    taxonomyNodeId: 9330054,
+    title: '',
+    templateConfig: emptyPhrase,
+  })
+  const filled = rehydrateCategoryDerived(emptyTitle, NODE)
+  ok(filled.title === 'Ice Cream concept test', 'rehydrate fills an empty title', filled.title)
+  ok(filled.templateConfig.category_plural === 'ice cream', 'rehydrate still fills empty phrasing')
+
+  const typed = createEmptyConceptDraft({
+    taxonomyNodeId: 9330054,
+    title: 'Midnight snack concept — Q3',
+    templateConfig: emptyPhrase,
+  })
+  ok(
+    rehydrateCategoryDerived(typed, NODE).title === 'Midnight snack concept — Q3',
+    'rehydrate leaves a typed title alone'
+  )
+
+  ok(
+    titleAfterCategory('Ice Cream concept test', NODE, 'Frozen Yogurt') === 'Frozen Yogurt concept test',
+    'changing Ice cream → Frozen yogurt updates a derived title'
+  )
+  ok(
+    titleAfterCategory('Midnight snack concept — Q3', NODE, 'Frozen Yogurt') ===
+      'Midnight snack concept — Q3',
+    'changing category keeps a typed title'
+  )
+  ok(titleAfterCategory('Ice Cream concept test', NODE, null) === '', 'clearing the category clears a derived title')
+  ok(
+    titleAfterCategory('Midnight snack concept — Q3', NODE, null) === 'Midnight snack concept — Q3',
+    'clearing the category keeps a typed title'
+  )
+  ok(
+    titleAfterCategory('Ice Cream concept test', NODE, NODE) === 'Ice Cream concept test',
+    'a custom category_plural does not change the title helper'
+  )
 }
 
 sec('§13/§15/§43 · one guard, two paths, honest copy')

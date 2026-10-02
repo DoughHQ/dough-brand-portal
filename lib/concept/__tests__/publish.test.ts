@@ -26,10 +26,9 @@ function draftWithProduct(
       },
       {
         ...newConceptArm(1),
-        display_name: 'Current',
-        image_url: 'https://example.com/current.png',
-        battle_intent: 'competitor',
-        benchmark_role: 'current_pack',
+        display_name: 'Alt',
+        image_url: 'https://example.com/alt.png',
+        battle_intent: 'hero',
       },
     ],
     products: [

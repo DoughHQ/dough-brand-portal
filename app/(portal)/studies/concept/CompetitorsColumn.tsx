@@ -65,8 +65,6 @@ type Props = {
   /** localId → inline UPC / duplicate error on the competitor card. */
   rowErrors?: Record<string, string>
   singleTestMode?: boolean
-  onSetCompetitorToBeat?: (localId: string) => void
-  onClearBenchmark?: (localId: string) => void
 }
 
 export default function CompetitorsColumn({
@@ -81,8 +79,6 @@ export default function CompetitorsColumn({
   disabled,
   rowErrors = {},
   singleTestMode = false,
-  onSetCompetitorToBeat,
-  onClearBenchmark,
 }: Props) {
   /** Snapshot of the row being replaced, so Change can be cancelled without data loss. */
   const [changing, setChanging] = useState<{ localId: string; prev: ProductCompetitorRow } | null>(
@@ -294,8 +290,6 @@ export default function CompetitorsColumn({
                   onReplace={() => beginChange(row)}
                   onRemove={() => removeRow(row.localId)}
                   singleTestMode={singleTestMode}
-                  onSetCompetitorToBeat={onSetCompetitorToBeat}
-                  onClearBenchmark={onClearBenchmark}
                 />
               ) : (
                 <CompetitorSearchSlot
@@ -336,8 +330,6 @@ function SelectedCompetitor({
   onRemove,
   error,
   singleTestMode = false,
-  onSetCompetitorToBeat,
-  onClearBenchmark,
 }: {
   row: ProductCompetitorRow
   hidePrice: boolean
@@ -349,8 +341,6 @@ function SelectedCompetitor({
   onReplace: () => void
   onRemove: () => void
   singleTestMode?: boolean
-  onSetCompetitorToBeat?: (localId: string) => void
-  onClearBenchmark?: (localId: string) => void
 }) {
   const [imgFailed, setImgFailed] = useState(false)
   useEffect(() => {
@@ -423,19 +413,6 @@ function SelectedCompetitor({
         <div style={{ fontSize: 13, color: 'var(--ink-50)', marginTop: 4 }}>
           {row.frozen_brand_name}
         </div>
-        {singleTestMode ? (
-          <button
-            type="button"
-            className={`cb-concept-current${row.benchmark_role === 'competitor_to_beat' ? ' is-on' : ''}`}
-            aria-pressed={row.benchmark_role === 'competitor_to_beat'}
-            onClick={() => {
-              if (row.benchmark_role === 'competitor_to_beat') onClearBenchmark?.(row.localId)
-              else onSetCompetitorToBeat?.(row.localId)
-            }}
-          >
-            {row.benchmark_role === 'competitor_to_beat' ? 'To beat' : 'Mark to beat'}
-          </button>
-        ) : null}
         <div style={{ marginTop: 10 }}>
           {awaitingConfirm && row.upc ? (
             <ProductIdentityConfirm

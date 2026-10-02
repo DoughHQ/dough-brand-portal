@@ -184,7 +184,7 @@ export function ConceptTestReportDeck({ report, backHref }: Props) {
                   bar={v.head_to_head.bar}
                   doughDefault={v.head_to_head.dough_default}
                   result={v.head_to_head.result}
-                  detail={`${v.head_to_head.wins}–${v.head_to_head.losses} (${v.head_to_head.n_decisive} decisive)`}
+                  detail={`${v.head_to_head.wins}–${v.head_to_head.losses} (${v.head_to_head.n_respondents} respondent${v.head_to_head.n_respondents === 1 ? '' : 's'})`}
                 />
                 <IntervalCard
                   title="Liking"

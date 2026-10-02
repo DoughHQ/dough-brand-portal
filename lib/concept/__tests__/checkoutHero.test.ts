@@ -15,31 +15,30 @@ function arm(partial: Partial<ConceptArmRow> & Pick<ConceptArmRow, 'localId'>): 
 }
 
 describe('checkoutHero', () => {
-  it('uses the brand package and skips a current-pack benchmark', () => {
+  it('prefers a hero intent over a competitor seat', () => {
     const hero = arm({ localId: 'own', display_name: 'Package A', battle_intent: 'hero' })
-    const current = arm({
-      localId: 'current',
-      display_name: 'Current',
+    const other = arm({
+      localId: 'other',
+      display_name: 'Other',
       arm_label: 'B',
-      benchmark_role: 'current_pack',
       battle_intent: 'competitor',
     })
-    expect(checkoutHero([current, hero])?.localId).toBe('own')
+    expect(checkoutHero([other, hero])?.localId).toBe('own')
   })
 
-  it('falls back to the first own design', () => {
+  it('falls back to the first design', () => {
     const first = arm({ localId: 'a', arm_label: 'A' })
     const second = arm({ localId: 'b', arm_label: 'B' })
     expect(checkoutHero([first, second])?.localId).toBe('a')
   })
 
   it('labels the hero by its place in the field, not the stored arm name', () => {
-    const current = arm({
-      localId: 'current',
-      arm_label: 'Current pack',
-      benchmark_role: 'current_pack',
+    const first = arm({
+      localId: 'first',
+      arm_label: 'Stored name',
+      battle_intent: 'competitor',
     })
     const hero = arm({ localId: 'own', arm_label: 'New design', display_name: 'Midnight' })
-    expect(checkoutHeroDesignLabel([current, hero])).toBe('Design B')
+    expect(checkoutHeroDesignLabel([first, hero])).toBe('Design B')
   })
 })

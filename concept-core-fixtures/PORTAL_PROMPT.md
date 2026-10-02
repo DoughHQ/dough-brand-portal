@@ -32,20 +32,18 @@ You are implementing the **flagged** single concept test in **dough-brand-portal
 - **success_bars:** one object; **each key** is absent (Dough default), `null` (bar off) or a value. Keys:
   - `h2h_min_win_share`: 0.50–0.90
   - `price_min_share_at_anchor`: 0.10–0.95
-  - `liking_mode`: `vs_current_pack | absolute | off`
-  - `liking_threshold`: vs pack −0.15..+0.30; absolute 0.10–0.95, required for absolute
+  - `liking_mode`: always send `off` for concept (no current pack). Absolute liking is out of scope until product asks for it.
 
-  Model each bar in state as `default | off | {value}`. Defaults come from `concept_verdict_dough_defaults()`. When the benchmark is a **competitor product**, `vs_current_pack` is unavailable (`LIKING_NEEDS_CURRENT_PACK`): default liking to `off`, or `absolute` with a required threshold.
+  Model h2h/price as `default | off | {value}`. Defaults come from `concept_verdict_dough_defaults()`.
 
-### Field model — `publish_args.json` is the truth
+### Field model — equal concepts vs the competitive set
 - Every design: `stimulus_type: "package"` and an **https `image_url`**. Server refuses otherwise (`CORE_REQUIRES_PACKAGE_STIMULUS`, `IMAGE_REQUIRED`).
 - Every competitor product: an **https `frozen_image_url`**, otherwise `IMAGE_REQUIRED`. Require the image in the picker.
-- **Current pack is a concept arm** with `battle_intent: "competitor"` and `benchmark_role: "current_pack"`. It is not a product row. New designs stay `battle_intent: "hero"`.
-- Exactly one `benchmark_role` in the field: `current_pack` on an own design **or** `competitor_to_beat` on a product. At least one design must not be the benchmark.
-- Today `draftToPublishPayload` hardcodes every concept as `hero`. Under the flag, stop that and emit `benchmark_role`.
+- **No current pack. No competitor to beat.** Every concept arm is equal (`battle_intent: "hero"`). Do **not** send `benchmark_role`. Competitors are equal seats in the field.
+- Success is which design wins and whether it beats the competitive set — not “beats what we sell today.”
 
 ### Respondents never see the brand's labels
-The server calls designs **"Design A", "Design B", …** to respondents (letter = position in `p_field.concepts`). The journey outline must use that letter, **never** "Current pack" or "New design". The brand's labels appear only in portal chrome and the report.
+The server calls designs **"Design A", "Design B", …** to respondents (letter = position in `p_field.concepts`). The journey outline must use that letter, **never** brand display names. The brand's labels appear only in portal chrome and the report.
 
 **CRITICAL (the one place this can go wrong while "following the JSON"):**
 - `journey.json` `subject.display_name` / `arm_label` are **brand-facing only**. The phone-preview mapper turns concept index → "Design A/B/…" (same rule as the server) and **never** renders `display_name`/`arm_label` inside the mock phone. Unit-test the mapper: given `journey.json`, the mock contains "Design A" and "Design B" and never "New design" or "Current pack".
@@ -66,18 +64,18 @@ The server calls designs **"Design A", "Design B", …** to respondents (letter 
 6. **Price:** expected retail (yours); show the bands from the journey.
 7. **Your questions:** 0–2 (→ review badge).
 8. **Open text:** locked, optional.
-9. **What does success look like?:** the three bars with "Dough default: X" beside any moved bar.
+9. **When do you win?:** head-to-head and price bars only (liking off — no current pack).
 
 Every card says "Dough method" or "Yours", one line on what it measures, and which report section it fills.
 
 - **Phone preview:** render `screens`, `counts`, `field_issues`, `needs_review`, `estimated_minutes` from `preview_concept_journey`.
 - **Length meter:** use `counts.total_min`–`total_max`. Never invent a formula.
-- **Show `field_issues` before publish:** `FIELD_TOO_SMALL`, `FIELD_TOO_LARGE`, `BENCHMARK_REQUIRED`, `TOO_MANY_BENCHMARKS`, `NOTHING_TO_TEST`.
+- **Show `field_issues` before publish:** `FIELD_TOO_SMALL`, `FIELD_TOO_LARGE`, `IMAGE_REQUIRED`. Legacy `BENCHMARK_*` codes should not appear once the server gate is lifted.
 
 ## Other UI (flag on)
 - **Section 0:** Packaging only (remove the Price card and the coming-soon list); always blind.
 - **Section 1:**
-  - Add the benchmark control ("This is our current pack" on designs, "Competitor to beat" on products): exactly one, and picking one deselects the other.
+  - No current-pack or mark-to-beat controls. Every design and competitor is equal.
   - An image is required on every arm.
   - **Stop writing `draft.floor` on arm rename.**
 - **Section 4 (modules):** hidden; never send `selectedModules`.
@@ -107,10 +105,10 @@ Every card says "Dough method" or "Yours", one line on what it measures, and whi
 - **Floors:** `TARGET_COMPLETIONS_TOO_LOW`, `CORE_REQUIRES_BLIND`, `PACK_SIZE_REQUIRED`, `ANCHOR_PRICE_REQUIRED`
 - **Images:** `IMAGE_REQUIRED`, `CORE_REQUIRES_PACKAGE_STIMULUS`
 - **Decoy:** `DECOY_REQUIRED`, `DECOY_IS_REAL_BRAND`, `DECOY_LABEL_MISMATCH`
-- **Benchmark:** `BENCHMARK_REQUIRED`, `TOO_MANY_BENCHMARKS`, `INVALID_BENCHMARK_ROLE`, `NOTHING_TO_TEST`
+- **Benchmark (retired):** `BENCHMARK_RETIRED` if any `benchmark_role` is sent. `DESIGN_REQUIRED` if there are zero designs.
 - **Battle prompt:** `BATTLE_PROMPT_CONFLICT`, `UNKNOWN_BATTLE_PROMPT`, `INVALID_BATTLE_PROMPT`
 - **Brand questions:** `TOO_MANY_BRAND_QUESTIONS`, `BRAND_QUESTION_OPTION_COUNT`, `DUPLICATE_BRAND_QUESTION_OPTION`, `INVALID_BRAND_QUESTION_PROMPT`, `INVALID_BRAND_QUESTION_OPTION`, `INVALID_BRAND_QUESTION_MAX_SELECT`
-- **Bars:** `H2H_BAR_OUT_OF_RANGE`, `PRICE_BAR_OUT_OF_RANGE`, `LIKING_NEEDS_CURRENT_PACK`, `LIKING_THRESHOLD_REQUIRED`, `LIKING_BAR_OUT_OF_RANGE`, `INVALID_SUCCESS_BARS`
+- **Bars:** `H2H_BAR_OUT_OF_RANGE`, `PRICE_BAR_OUT_OF_RANGE`, `LIKING_MODE_RETIRED`, `LIKING_BAR_OUT_OF_RANGE`, `INVALID_SUCCESS_BARS` (portal always sends `liking_mode: off`)
 - **Other:** `CONCEPT_CORE_EXCLUSIVE`, `UNKNOWN_MODULE`, `INVALID_TEMPLATE_VALUE`, `TOO_FEW_ENTITY_OPTIONS`
 
 ## Dead code — list in the PR, do not delete (see DEAD_CODE.md)

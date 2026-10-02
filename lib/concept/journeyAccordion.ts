@@ -308,13 +308,9 @@ function firstLookBlock(screens: ReadonlyArray<JourneyAskScreen> | null | undefi
   }
 }
 
-/** Draft order. The letter is the one shoppers and the report use, current pack included. */
+/** Draft order. Letters match shoppers and the report. */
 function rankStack(draft: ConceptStudyDraft): string[] {
-  const designs = draft.conceptArms.map((arm, index) => {
-    const letter = respondentDesignLabel(index)
-    if (arm.benchmark_role === 'current_pack') return `${letter}, your current pack`
-    return letter
-  })
+  const designs = draft.conceptArms.map((_, index) => respondentDesignLabel(index))
   const competitors = draft.products.flatMap((product) => {
     if (product.product_id == null) return []
     const name = product.frozen_display_name.trim() || product.frozen_brand_name.trim()
@@ -469,7 +465,7 @@ export function journeyClosedLine(
       bars.h2h.kind === 'custom' ||
       bars.price.kind === 'custom' ||
       bars.likingMode.kind === 'custom'
-    return { kind: 'status', text: custom ? 'Custom bars' : 'Dough defaults' }
+    return { kind: 'status', text: custom ? 'Your thresholds' : 'Dough defaults' }
   }
   if (id === 'brand_questions') {
     const questions = draft.brandQuestions ?? []
