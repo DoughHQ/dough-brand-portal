@@ -13,8 +13,10 @@ export const MAX_CONCEPT_FIELD_SIZE = 5
 
 /** Real competitors required before a study of this mode can publish. */
 export function competitorMinimum(mode: StimulusMode | null): number {
-  if (mode === 'price') return 1
-  if (mode === 'package') return 2
+  // Packaging and price both need at least one real product in the field so
+  // designs are measured against the shelf — not two. One competitor leaves
+  // room for four concepts in a five-seat field.
+  if (mode === 'price' || mode === 'package') return 1
   // Legacy, non-publishable modes make no competitor claim of their own.
   return 0
 }
