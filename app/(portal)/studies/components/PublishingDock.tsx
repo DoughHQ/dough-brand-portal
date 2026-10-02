@@ -26,6 +26,8 @@ type Props = {
   actionsLocked: boolean
   /** Replaces “Ready to publish” after the order exists. */
   holdLabel?: string
+  /** When ready — live study facts instead of a generic ready label. */
+  readyFacts?: string | null
   /** Publish stays quiet while the order is awaiting payment. */
   publishDisabled?: boolean
   publishMuted: boolean
@@ -55,6 +57,7 @@ export default function PublishingDock({
   publishing,
   actionsLocked,
   holdLabel,
+  readyFacts = null,
   publishDisabled = false,
   publishMuted,
   publishLabel,
@@ -107,7 +110,11 @@ export default function PublishingDock({
   const statusTone = holdLabel || ready ? 'ok' : 'warn'
   const statusLabel =
     holdLabel ??
-    (ready ? 'Ready to publish' : count === 1 ? '1 left' : `${count} left`)
+    (ready
+      ? readyFacts?.trim() || 'Ready to publish'
+      : count === 1
+        ? '1 left'
+        : `${count} left`)
 
   return (
     <div className="cb-sticky" ref={stickyRef}>

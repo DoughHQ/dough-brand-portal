@@ -22,14 +22,14 @@ import {
   listTaxonomySiblingsAction,
   type TaxonomyNodeInfo,
 } from './actions'
+import BuilderSectionChrome from './BuilderSectionChrome'
 import CategoryCombobox from './CategoryCombobox'
 import ConfirmDialog, { type ConfirmRequest } from './ConfirmDialog'
+import { summarizeSetup } from '@/lib/concept/builderSummaries'
 import {
   inputBase,
   labelSm,
-  sectionCard,
   sectionHelp,
-  sectionTitle,
 } from './conceptStyles'
 
 type Props = {
@@ -224,12 +224,17 @@ export default function StudyTypeSection({
   const showReadout = !!(categoryLabel || titleLabel)
 
   const runMeta = buildRunMeta(draft.targetCompletions)
+  const sectionDone = draft.taxonomyNodeId != null && !!draft.title.trim()
+  const setupSummary = summarizeSetup(draft)
 
   return (
-    <section style={sectionCard} id="concept-mode" className="cb-setup">
-      <h2 className="cb-section-title" style={sectionTitle}>
-        Setup
-      </h2>
+    <BuilderSectionChrome
+      id="concept-mode"
+      title="Setup"
+      summary={setupSummary}
+      done={sectionDone}
+      className="cb-setup"
+    >
       <p style={{ ...sectionHelp, marginBottom: 16 }}>
         Name the study, choose where it competes, and set how many responses you need.
       </p>
@@ -463,7 +468,7 @@ export default function StudyTypeSection({
       </div>
 
       <ConfirmDialog request={confirm} onCancel={() => setConfirm(null)} />
-    </section>
+    </BuilderSectionChrome>
   )
 }
 

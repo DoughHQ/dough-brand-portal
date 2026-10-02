@@ -8,7 +8,12 @@ import type { ConceptPublishSuccessMeta, ConceptStudyDraft } from '@/lib/concept
 import { createEmptyConceptDraft } from '@/lib/concept/defaults'
 import { normalizeDraft } from '@/lib/concept/normalizeDraft'
 import { deleteConceptDraft, saveConceptDraft } from '@/lib/concept/draftStore'
-import { evaluateFieldValidity, CONCEPT_ANCHORS, type ConceptPublishFailure } from '@/lib/concept/validity'
+import {
+  evaluateFieldValidity,
+  CONCEPT_ANCHORS,
+  type ConceptPublishFailure,
+} from '@/lib/concept/validity'
+import { summarizeDockReady } from '@/lib/concept/builderSummaries'
 import {
   createConceptCampaignAction,
   publishConceptStudyAction,
@@ -72,8 +77,19 @@ export default function ConceptStudyClient({
     const items = [...validity.outstanding, ...validity.softOutstanding]
     return items
   }, [validity.outstanding, validity.softOutstanding])
+  const readyFacts = useMemo(() => summarizeDockReady(draft), [draft])
   const rootRef = useRef<HTMLDivElement>(null)
   const stickyRef = useRef<HTMLDivElement>(null)
+
+  function scrollToAnchor(anchor: string) {
+    const target = document.getElementById(anchor)
+    const section = target?.closest('.cb-builder-section') ?? document.getElementById(anchor)
+    section?.dispatchEvent(new Event('cb-expand-section'))
+    window.setTimeout(() => {
+      const el = document.getElementById(anchor)
+      el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 40)
+  }
 
   const hydrateFromServer = useCallback(
     (draftJson: Record<string, unknown>, _serverId: string) => {
@@ -296,7 +312,7 @@ export default function ConceptStudyClient({
   const ready = validity.readyToPublish && validity.softOutstanding.length === 0
 
   function scrollTo(id: string) {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    scrollToAnchor(id)
   }
 
   return (
@@ -392,6 +408,7 @@ export default function ConceptStudyClient({
         onChange={persist}
         error={sectionErrors.questions ?? null}
         disabled={builderLocked}
+        sectionDone={questionsDone}
         canPreview={validity.readyToPublish}
         onPreview={() => {
           flushSaveNow(draft)
@@ -528,6 +545,7 @@ export default function ConceptStudyClient({
         stickyRef={stickyRef}
         ready={ready && canPublish}
         needs={stickyNeeds}
+        readyFacts={readyFacts}
         saveStatus={saveStatus}
         saving={saving}
         publishing={publishing}
