@@ -34,8 +34,12 @@ export async function rpcPublishConceptStudy(
   supabase: Client,
   args: PublishConceptStudyArgs
 ) {
+  // No end date is an omitted argument. publish_study types that as string | undefined,
+  // and Postgres treats the missing argument as null.
+  const { p_expires_at, ...rest } = args
   return supabase.rpc('publish_study', {
-    ...args,
+    ...rest,
+    ...(p_expires_at != null ? { p_expires_at } : {}),
     p_field: args.p_field as unknown as Json,
     p_module_config: args.p_module_config,
     p_audience_definition: args.p_audience_definition ?? undefined,
