@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import {
-  FIELDING_DAYS_MIN,
   fieldingDaysMessage,
   fieldingEndDateLabel,
 } from '@/lib/studies/fieldingWindow'
@@ -55,9 +54,10 @@ export default function FieldingLengthField({
         <label className={`cb-end-days${message ? ' is-invalid' : ''}`} htmlFor="field_expires_at_days">
           <input
             id="field_expires_at_days"
-            type="number"
-            min={FIELDING_DAYS_MIN}
+            type="text"
             inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="off"
             className="cb-input"
             aria-invalid={message ? true : undefined}
             aria-describedby="field_length_note"
@@ -72,13 +72,15 @@ export default function FieldingLengthField({
                 setText(String(fallback))
                 onChange(fallback)
               } else {
-                setText(String(days))
+                setText(String(Number(text)))
+                onChange(Number(text))
               }
             }}
             onChange={(e) => {
-              const raw = e.target.value.trim()
+              // Digits only — type freely, no spinner. Empty is fine while editing.
+              const raw = e.target.value.replace(/\D/g, '')
               setText(raw)
-              if (/^\d+$/.test(raw) && Number(raw) > 0) onChange(Number(raw))
+              if (raw !== '' && Number(raw) > 0) onChange(Number(raw))
             }}
             style={{ ...inputBase, paddingRight: 72 }}
           />

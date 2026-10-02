@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useId, useState } from 'react'
-import FieldingLengthField from './FieldingLengthField'
 import type { ConceptStudyDraft, StimulusMode } from '@/lib/concept/types'
 import { templateFieldAnchor } from '@/lib/concept/templateConfig'
 import { STIMULUS_MODE_OPTIONS } from '@/lib/concept/constants'
@@ -46,15 +45,11 @@ type Props = {
   minCompletions?: number
 }
 
-/** Required-and-empty marker. One token, one radius, every field. */
-function RequiredDot() {
-  return <span aria-hidden className="cb-required-dot" />
-}
-
-// Derived from the same constant the domain uses, so the roadmap can never
-// drift from the real mode definitions and no name is written twice.
 const LIVE_MODES = STIMULUS_MODE_OPTIONS.filter((o) => o.publishable)
 const COMING_SOON_MODES = STIMULUS_MODE_OPTIONS.filter((o) => !o.publishable)
+
+/** Common completion targets — Custom appears when the draft is off-preset. */
+const COMPLETION_PRESETS = [30, 50, 100] as const
 
 export default function StudyTypeSection({
   draft,
@@ -68,6 +63,10 @@ export default function StudyTypeSection({
   const [node, setNode] = useState<TaxonomyNodeInfo | null>(null)
   const [wordingOpen, setWordingOpen] = useState(false)
   const [confirm, setConfirm] = useState<ConfirmRequest | null>(null)
+  const [customCompletions, setCustomCompletions] = useState(
+    () => !COMPLETION_PRESETS.includes(draft.targetCompletions as (typeof COMPLETION_PRESETS)[number])
+  )
+  const [completionsText, setCompletionsText] = useState(String(draft.targetCompletions))
   const studyTypeLabelId = useId()
 
   // Single-test: mode is not a choice — lock packaging + blind without a picker.
@@ -81,6 +80,13 @@ export default function StudyTypeSection({
     onChange(next)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft.stimulusMode, draft.pricePosture])
+
+  // End dates are deferred — every concept study runs until the target is full.
+  useEffect(() => {
+    if (draft.fieldingDays == null) return
+    onChange({ ...draft, fieldingDays: null })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft.fieldingDays])
 
   useEffect(() => {
     if (draft.taxonomyNodeId == null) {
@@ -198,18 +204,42 @@ export default function StudyTypeSection({
     : LIVE_MODES
   const completionFloor = Math.max(1, minCompletions)
 
+  function setCompletions(n: number) {
+    const next = Math.max(completionFloor, n)
+    setCompletionsText(String(next))
+    onChange({
+      ...draft,
+      targetCompletions: next,
+      fieldingDays: null,
+    })
+  }
+
+  const onPreset = COMPLETION_PRESETS.includes(
+    draft.targetCompletions as (typeof COMPLETION_PRESETS)[number]
+  )
+  const showCustomCompletions = customCompletions || !onPreset
+
+  const categoryLabel = node?.node_name_display?.trim() || null
+  const titleLabel = draft.title.trim() || null
+  const showReadout = !!(categoryLabel || titleLabel)
+
+  const runMeta = buildRunMeta(draft.targetCompletions)
+
   return (
-    <section style={sectionCard} id="concept-mode">
+    <section style={sectionCard} id="concept-mode" className="cb-setup">
       <h2 className="cb-section-title" style={sectionTitle}>
         Setup
       </h2>
-      <p style={sectionHelp}>
-        Choose where it competes, and set how long it runs.
+      <p style={{ ...sectionHelp, marginBottom: 16 }}>
+        Name the study, choose where it competes, and set how many responses you need.
       </p>
 
-      {packagingOnly ? null : (
+      {packagingOnly ? (
+        <p className="cb-setup-identity" role="status">
+          Packaging concept · Blind · Design letters only
+        </p>
+      ) : (
         <>
-          {/* 2 — what are we testing */}
           <div id={studyTypeLabelId} style={{ ...labelSm, marginBottom: 12 }}>
             Study type
           </div>
@@ -238,8 +268,29 @@ export default function StudyTypeSection({
         </>
       )}
 
-      <div className="cb-setup-pair">
-        <div>
+      {/* Beat 2 — the decisions */}
+      <div className="cb-setup-decisions">
+        <div className="cb-setup-name">
+          <label style={labelSm} htmlFor="concept-study-name">
+            Name this study
+          </label>
+          <input
+            id="concept-study-name"
+            className="cb-input"
+            value={draft.title}
+            onChange={(e) => onChange({ ...draft, title: e.target.value })}
+            placeholder="e.g. Midnight Cocoa packaging"
+            style={inputBase}
+          />
+          <p className="cb-field-note">Respondents see this name.</p>
+          {showErrors && titleError ? (
+            <p role="alert" style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--cb-error)' }}>
+              {titleError}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="cb-setup-category">
           <CategoryCombobox
             selected={node}
             pendingNodeId={hasCategory && !node ? draft.taxonomyNodeId : null}
@@ -249,20 +300,12 @@ export default function StudyTypeSection({
             error={showErrors ? error : null}
           />
 
-          {packagingOnly ? (
-            <p className="cb-setup-caption">
-              Packaging concept test, always blind. They see design letters, never your product names.
-            </p>
-          ) : null}
-
           {hasCategory ? (
             // The template anchor lives on a wrapper that exists whenever a category
             // does. It used to sit on the wording editor, which meant the sticky
             // footer's "Category phrasing is empty" blocker resolved to nothing while
             // the editor was collapsed — a dead anchor.
             <div id={templateFieldAnchor('category_plural')}>
-              {/* Questionnaire wording is an override, not a form field. The derived
-                  value is correct by default, so it stays implicit until asked for. */}
               {wordingOpen ? (
                 <div className="cb-wording-editor">
                   <label style={labelSm} htmlFor="category_plural_s0">
@@ -285,8 +328,6 @@ export default function StudyTypeSection({
                     Used where a respondent question needs the category name in a sentence.
                   </p>
                   <div className="cb-wording-actions">
-                    {/* Edits land on the draft as they are typed, so this only
-                        collapses the editor. "Close" says that; "Done" implied a save. */}
                     <button type="button" className="cb-quiet-action" onClick={() => setWordingOpen(false)}>
                       Close
                     </button>
@@ -310,7 +351,6 @@ export default function StudyTypeSection({
                   Edit questionnaire wording
                 </button>
               ) : (
-                // A custom override is never hidden behind a bare link.
                 <p className="cb-wording-summary">
                   <span>
                     Questionnaire wording: <strong>{wording}</strong>
@@ -324,55 +364,110 @@ export default function StudyTypeSection({
           ) : null}
         </div>
 
-        <div>
-          <label style={labelSm} htmlFor="concept-study-name">
-            What shoppers see
-          </label>
-          <input
-            id="concept-study-name"
-            className="cb-input"
-            value={draft.title}
-            onChange={(e) => onChange({ ...draft, title: e.target.value })}
-            style={inputBase}
-          />
-          <p className="cb-field-note">Shoppers see this name.</p>
-          {showErrors && titleError ? (
-            <p role="alert" style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--cb-error)' }}>
-              {titleError}
+        {showReadout ? (
+          <p className="cb-setup-readout" role="status">
+            {[categoryLabel, titleLabel].filter(Boolean).join(' · ')}
+          </p>
+        ) : null}
+      </div>
+
+      {/* Beat 3 — how it runs (completions only; end dates deferred) */}
+      <div className="cb-setup-run">
+        <div className="cb-setup-run-head">
+          <div className="cb-setup-run-title">How it runs</div>
+          <p className="cb-setup-run-meta" role="status">
+            {runMeta}
+          </p>
+        </div>
+
+        <div className="cb-setup-run-body">
+          <div className="cb-setup-completions">
+            <div style={labelSm} id="field_target_completions_label">
+              Completions
+            </div>
+            <div
+              className="cb-setup-presets"
+              role="group"
+              aria-labelledby="field_target_completions_label"
+            >
+              {COMPLETION_PRESETS.filter((n) => n >= completionFloor).map((n) => {
+                const on = !showCustomCompletions && draft.targetCompletions === n
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    className={on ? 'cb-setup-preset is-on' : 'cb-setup-preset'}
+                    aria-pressed={on}
+                    onClick={() => {
+                      setCustomCompletions(false)
+                      setCompletions(n)
+                    }}
+                  >
+                    {n}
+                  </button>
+                )
+              })}
+              <button
+                type="button"
+                className={showCustomCompletions ? 'cb-setup-preset is-on' : 'cb-setup-preset'}
+                aria-pressed={showCustomCompletions}
+                onClick={() => setCustomCompletions(true)}
+              >
+                Custom
+              </button>
+            </div>
+            {showCustomCompletions ? (
+              <>
+                <input
+                  id="field_target_completions"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
+                  className="cb-input cb-setup-completions-input"
+                  aria-labelledby="field_target_completions_label"
+                  value={completionsText}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, '')
+                    setCompletionsText(raw)
+                    // Commit only once the typed count clears the floor, so
+                    // typing "100" is not yanked back to 30 mid-keystroke.
+                    if (raw !== '' && Number(raw) >= completionFloor) {
+                      onChange({ ...draft, targetCompletions: Number(raw), fieldingDays: null })
+                    }
+                  }}
+                  onBlur={() => {
+                    if (!/^\d+$/.test(completionsText) || Number(completionsText) < completionFloor) {
+                      setCompletions(Math.max(completionFloor, draft.targetCompletions || completionFloor))
+                    } else {
+                      setCompletions(Number(completionsText))
+                    }
+                  }}
+                  style={{ ...inputBase, marginTop: 10, maxWidth: 160 }}
+                />
+                <p className="cb-field-note">Minimum {completionFloor}. Type any count.</p>
+              </>
+            ) : (
+              <input
+                id="field_target_completions"
+                type="hidden"
+                value={draft.targetCompletions}
+                readOnly
+              />
+            )}
+            <p className="cb-setup-run-note">
+              No calendar end date — the study closes with the last response.
             </p>
-          ) : null}
+          </div>
         </div>
       </div>
 
-      <div className="cb-setup-pair">
-        <div>
-          <label style={labelSm} htmlFor="field_target_completions">
-            Target completions
-          </label>
-          <input
-            id="field_target_completions"
-            type="number"
-            min={completionFloor}
-            className="cb-input"
-            value={draft.targetCompletions}
-            onChange={(e) =>
-              onChange({
-                ...draft,
-                targetCompletions: Math.max(completionFloor, Number(e.target.value) || completionFloor),
-              })
-            }
-            style={inputBase}
-          />
-          <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--ink-50)' }}>
-            Minimum {completionFloor} completions.
-          </p>
-        </div>
-        <FieldingLengthField
-          days={draft.fieldingDays}
-          onChange={(fieldingDays) => onChange({ ...draft, fieldingDays })}
-        />
-      </div>
       <ConfirmDialog request={confirm} onCancel={() => setConfirm(null)} />
     </section>
   )
+}
+
+function buildRunMeta(completions: number): string {
+  const n = Math.max(0, completions)
+  return `${n} completion${n === 1 ? '' : 's'} · Runs until full`
 }
