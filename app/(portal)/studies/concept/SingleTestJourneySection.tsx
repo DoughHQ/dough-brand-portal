@@ -11,13 +11,18 @@ import {
   type BattlePromptCode,
   BRAND_QUESTION_STARTERS,
   type BrandQuestionDraft,
+  brandQuestionAnswerSource,
   brandQuestionKind,
   DEFAULT_DECOY_OPTION,
   defaultSuccessBarsDraft,
   emptyBrandQuestion,
+  fieldAnswerOptionSeats,
+  type FieldAnswerSeat,
   headToHeadWinSentence,
   priceWinSentence,
+  syncBrandQuestionFieldOptions,
   type SuccessBarsDraft,
+  withBrandQuestionAnswerSource,
   withBrandQuestionKind,
   withBrandQuestionOptions,
 } from '@/lib/concept/singleTest'
@@ -44,6 +49,9 @@ import {
 } from '@/lib/concept/journeyAccordion'
 import { ExpectedPriceCard, VerificationCard } from './conceptCards'
 import PackSizeField from './PackSizeField'
+import { DragHandle } from './fieldIcons'
+import { resolveStimuliPreviewUrl } from '@/lib/concept/stimuliStorage'
+import { createClient } from '@/lib/supabase'
 import {
   inputBase,
   labelSm,
@@ -255,13 +263,37 @@ export default function SingleTestJourneySection({
   const usingCustom = customPrompt.length > 0
   const customNote = customBattlePromptNote(draft.customBattlePrompt ?? '')
   const brandQuestions = draft.brandQuestions ?? []
+  const fieldSeats = useMemo(
+    () =>
+      fieldAnswerOptionSeats({
+        conceptArms: draft.conceptArms,
+        products: draft.products,
+      }),
+    [draft.conceptArms, draft.products]
+  )
+  const fieldOptions = useMemo(
+    () => fieldSeats.map((seat) => seat.label),
+    [fieldSeats]
+  )
+
+  // Keep Choose-from-field questions aligned with the live field seats.
+  useEffect(() => {
+    let changed = false
+    const next = brandQuestions.map((question) => {
+      const synced = syncBrandQuestionFieldOptions(question, fieldOptions)
+      if (synced !== question) changed = true
+      return synced
+    })
+    if (changed) onChange({ ...draft, brandQuestions: next })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when field seats change
+  }, [fieldOptions])
+
   const counts = journey?.counts ?? null
   const screens = journey?.screens
   const lineFor = (id: JourneyStepId) => journeyClosedLine(id, draft, screens)
   const askedFor = (id: JourneyStepId) => journeyAsked(id, draft, screens)
-  const screenerAsked = askedFor('screeners')
-  const howOften = screenerAsked[0]
-  const boughtLately = screenerAsked[1]
+  const howOften = askedFor('screeners')[0]
+  const boughtLately = askedFor('screeners')[1]
   const why = whyFollowupAsked(screens)
   const screenerCount = pairedScreenerCountLabel(counts)
   const brandStart = 9
@@ -531,7 +563,7 @@ export default function SingleTestJourneySection({
                 id={rowId}
                 index={String(brandStart + qi)}
                 title={
-                  brandQuestions.length > 1 ? `Your question ${qi + 1}` : 'Your question'
+                  brandQuestions.length > 1 ? `Custom question ${qi + 1}` : 'Custom question'
                 }
                 line={line}
                 countLabel={brandQuestionScreenLabel(brandQuestions.length, counts)}
@@ -541,6 +573,8 @@ export default function SingleTestJourneySection({
               >
                 <BrandQuestionEditor
                   question={question}
+                  fieldSeats={fieldSeats}
+                  fieldOptions={fieldOptions}
                   onChange={(next) => {
                     const list = [...brandQuestions]
                     list[qi] = next
@@ -679,17 +713,24 @@ function fieldIssueLabel(code: string): string {
 
 function BrandQuestionEditor({
   question,
+  fieldSeats,
+  fieldOptions,
   onChange,
   onRemove,
 }: {
   question: BrandQuestionDraft
+  fieldSeats: FieldAnswerSeat[]
+  fieldOptions: string[]
   onChange: (q: BrandQuestionDraft) => void
   onRemove: () => void
 }) {
   const several = brandQuestionKind(question) === 'pick_several'
+  const fromField = brandQuestionAnswerSource(question) === 'field'
   const filled = question.options.map((o) => o.trim()).filter(Boolean)
   const duplicate =
-    filled.length >= 2 && new Set(filled.map((o) => o.toLowerCase())).size < filled.length
+    !fromField &&
+    filled.length >= 2 &&
+    new Set(filled.map((o) => o.toLowerCase())).size < filled.length
   const promptLen = question.prompt.trim().length
   const promptHint =
     promptLen > 0 && promptLen < 8
@@ -697,13 +738,28 @@ function BrandQuestionEditor({
       : promptLen > 140
         ? 'Keep it under 140 characters.'
         : null
+  const [dragFrom, setDragFrom] = useState<number | null>(null)
 
   function setOptions(options: string[]) {
     onChange(withBrandQuestionOptions(question, options))
   }
 
+  function reorderOption(from: number, to: number) {
+    if (from === to || from < 0 || to < 0) return
+    const next = [...question.options]
+    const [item] = next.splice(from, 1)
+    next.splice(to, 0, item!)
+    setOptions(next)
+  }
+
+  function setAnswerSource(source: 'custom' | 'field') {
+    onChange(withBrandQuestionAnswerSource(question, source, fieldOptions))
+  }
+
   return (
     <div className="cb-bq">
+      <p className="cb-bq-lede">Add a question specific to your study.</p>
+
       <div className="cb-bq-block">
         <label style={labelSm} htmlFor={`bq-prompt-${question.localId}`}>
           Question
@@ -716,7 +772,8 @@ function BrandQuestionEditor({
           onChange={(e) => onChange({ ...question, prompt: e.target.value })}
           style={{ ...inputBase, marginTop: 8 }}
         />
-        <div className="cb-bq-starters" aria-label="Question starters">
+        <div className="cb-bq-starters" aria-label="Suggested prompts">
+          <span className="cb-bq-starters-label">Suggested prompts</span>
           {BRAND_QUESTION_STARTERS.map((starter) => {
             const active = question.prompt.trim() === starter
             return (
@@ -740,71 +797,190 @@ function BrandQuestionEditor({
       </div>
 
       <div className="cb-bq-block">
-        <div style={{ ...labelSm, marginBottom: 8 }}>Answers</div>
-        <div className="cb-bq-options">
-          {question.options.map((opt, i) => (
-            <div className="cb-bq-option" key={i}>
-              <span className="cb-bq-option-index" aria-hidden="true">
-                {i + 1}
-              </span>
-              <input
-                className="cb-input"
-                value={opt}
-                placeholder={`Answer ${i + 1}`}
-                aria-label={`Answer ${i + 1}`}
-                onChange={(e) => {
-                  const options = [...question.options]
-                  options[i] = e.target.value
-                  setOptions(options)
-                }}
-                style={inputBase}
-              />
-              {question.options.length > 2 ? (
-                <button
-                  type="button"
-                  className="cb-quiet-action"
-                  aria-label={`Remove answer ${i + 1}`}
-                  onClick={() => setOptions(question.options.filter((_, j) => j !== i))}
+        <div style={{ ...labelSm, marginBottom: 8 }}>Answer options</div>
+        <div
+          className="cb-bq-source"
+          role="group"
+          aria-label="Where answer options come from"
+        >
+          <button
+            type="button"
+            className={!fromField ? 'cb-bq-source-btn is-on' : 'cb-bq-source-btn'}
+            aria-pressed={!fromField}
+            onClick={() => setAnswerSource('custom')}
+          >
+            Write your own
+          </button>
+          <button
+            type="button"
+            className={fromField ? 'cb-bq-source-btn is-on' : 'cb-bq-source-btn'}
+            aria-pressed={fromField}
+            onClick={() => setAnswerSource('field')}
+          >
+            Choose from field
+          </button>
+        </div>
+
+        {fromField ? (
+          fieldSeats.length === 0 ? (
+            <p className="cb-bq-field-empty" role="status">
+              Add designs and competitors in Field first.
+            </p>
+          ) : (
+            <>
+              <ul className="cb-bq-field-options" aria-label="Field as answers">
+                {fieldSeats.map((seat) => (
+                  <li key={seat.label} className="cb-bq-field-option">
+                    <FieldOptionPhoto imageRef={seat.imageRef} src={seat.imageSrc} />
+                    <span
+                      className={`cb-bq-option-mark${several ? ' is-multi' : ''}`}
+                      aria-hidden="true"
+                    />
+                    <span className="cb-bq-field-option-label">{seat.label}</span>
+                  </li>
+                ))}
+              </ul>
+              {fieldSeats.length < 2 ? (
+                <p role="alert" className="cb-bq-hint is-error">
+                  Need at least two items in the field.
+                </p>
+              ) : (
+                <p className="cb-bq-hint">
+                  Updates automatically when you change the field.
+                </p>
+              )}
+            </>
+          )
+        ) : (
+          <>
+            <div className="cb-bq-options">
+              {question.options.map((opt, i) => (
+                <div
+                  className="cb-bq-option"
+                  key={i}
+                  draggable={question.options.length > 1}
+                  onDragStart={() => setDragFrom(i)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => {
+                    if (dragFrom != null) reorderOption(dragFrom, i)
+                    setDragFrom(null)
+                  }}
+                  onDragEnd={() => setDragFrom(null)}
                 >
-                  Remove
-                </button>
-              ) : null}
+                  <span className="cb-bq-option-handle" aria-hidden="true">
+                    <DragHandle />
+                  </span>
+                  <span
+                    className={`cb-bq-option-mark${several ? ' is-multi' : ''}`}
+                    aria-hidden="true"
+                  />
+                  <input
+                    className="cb-input"
+                    value={opt}
+                    placeholder={`Answer ${i + 1}`}
+                    aria-label={`Answer ${i + 1}`}
+                    onChange={(e) => {
+                      const options = [...question.options]
+                      options[i] = e.target.value
+                      setOptions(options)
+                    }}
+                    style={inputBase}
+                  />
+                  {question.options.length > 2 ? (
+                    <button
+                      type="button"
+                      className="cb-quiet-action"
+                      aria-label={`Remove answer ${i + 1}`}
+                      onClick={() => setOptions(question.options.filter((_, j) => j !== i))}
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
+              ))}
             </div>
-          ))}
+            {duplicate ? (
+              <p role="alert" className="cb-bq-hint is-error">
+                Each answer needs to be different.
+              </p>
+            ) : null}
+            {question.options.length < 8 ? (
+              <button
+                type="button"
+                className="cb-bq-add-option"
+                onClick={() => setOptions([...question.options, ''])}
+              >
+                + Add option
+              </button>
+            ) : null}
+          </>
+        )}
+      </div>
+
+      <div className="cb-bq-footer">
+        <div
+          className="cb-bq-kind"
+          role="group"
+          aria-label="How shoppers answer"
+        >
+          <button
+            type="button"
+            className={!several ? 'cb-bq-kind-btn is-on' : 'cb-bq-kind-btn'}
+            aria-pressed={!several}
+            onClick={() => onChange(withBrandQuestionKind(question, 'pick_one'))}
+          >
+            Single select
+          </button>
+          <button
+            type="button"
+            className={several ? 'cb-bq-kind-btn is-on' : 'cb-bq-kind-btn'}
+            aria-pressed={several}
+            onClick={() => onChange(withBrandQuestionKind(question, 'pick_several'))}
+          >
+            Multiple select
+          </button>
         </div>
-        {duplicate ? (
-          <p role="alert" className="cb-bq-hint is-error">
-            Each answer needs to be different.
-          </p>
-        ) : null}
-        {question.options.length < 8 ? (
-          <button
-            type="button"
-            className="cb-quiet-action cb-bq-add-answer"
-            onClick={() => setOptions([...question.options, ''])}
-          >
-            Add answer
-          </button>
-        ) : null}
-        <p className="cb-bq-select">
-          {several ? 'Shoppers can pick more than one.' : 'Shoppers pick one.'}{' '}
-          <button
-            type="button"
-            className="cb-quiet-action"
-            onClick={() =>
-              onChange(withBrandQuestionKind(question, several ? 'pick_one' : 'pick_several'))
-            }
-          >
-            {several ? 'Pick one instead' : 'Allow more than one'}
-          </button>
+        <p className="cb-bq-screen" role="status">
+          Respondents will see 1 screen.
         </p>
-        <div className="cb-bq-actions">
-          <button type="button" className="cb-quiet-action" onClick={onRemove}>
-            Remove question
-          </button>
-        </div>
+        <button type="button" className="cb-quiet-action cb-bq-remove" onClick={onRemove}>
+          Remove question
+        </button>
       </div>
     </div>
+  )
+}
+
+function FieldOptionPhoto({
+  imageRef,
+  src,
+}: {
+  imageRef?: string | null
+  src?: string | null
+}) {
+  const [url, setUrl] = useState<string | null>(src ?? null)
+  useEffect(() => {
+    if (src) {
+      setUrl(src)
+      return
+    }
+    if (!imageRef) {
+      setUrl(null)
+      return
+    }
+    let cancelled = false
+    const supabase = createClient()
+    void resolveStimuliPreviewUrl(supabase, imageRef).then((next) => {
+      if (!cancelled) setUrl(next)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [imageRef, src])
+  return (
+    <span className="cb-bq-field-photo">
+      {url ? <img src={url} alt="" /> : null}
+    </span>
   )
 }
 

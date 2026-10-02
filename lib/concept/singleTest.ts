@@ -3,6 +3,8 @@
  * Kept separate from PackagingTemplateConfig so flag-off paths stay clean.
  */
 
+import { respondentDesignLabel } from './designLetters'
+
 export const MODULE_CONCEPT_CORE_V1 = 'CONCEPT_CORE_V1' as const
 
 export const BATTLE_PROMPT_CODES = [
@@ -47,7 +49,17 @@ export type BrandQuestionDraft = {
   prompt: string
   options: string[]
   max_select: number
+  /**
+   * Where answer labels come from. Default / omitted = write your own.
+   * `field` locks options to the current concept + competitor seats.
+   */
+  answerSource?: BrandQuestionAnswerSource
+  /** Free-text answers parked while answerSource is `field`. */
+  customOptionsStash?: string[]
 }
+
+/** How answer options are authored. */
+export type BrandQuestionAnswerSource = 'custom' | 'field'
 
 /** How shoppers answer. Wire uses max_select: 1 vs all options. */
 export type BrandQuestionKind = 'pick_one' | 'pick_several'
@@ -57,6 +69,12 @@ export const BRAND_QUESTION_STARTERS = [
   'Which would you buy?',
   'Which feels most like your brand?',
 ] as const
+
+export function brandQuestionAnswerSource(
+  question: BrandQuestionDraft
+): BrandQuestionAnswerSource {
+  return question.answerSource === 'field' ? 'field' : 'custom'
+}
 
 export function brandQuestionKind(question: BrandQuestionDraft): BrandQuestionKind {
   return question.max_select > 1 ? 'pick_several' : 'pick_one'
@@ -82,6 +100,119 @@ export function withBrandQuestionOptions(
   const next = { ...question, options }
   if (brandQuestionKind(question) === 'pick_one') return next
   return { ...next, max_select: Math.max(2, options.length) }
+}
+
+/**
+ * Labels for Choose-from-field mode — same seat order as ranking:
+ * design letters (with operator name when set), then resolved competitors.
+ */
+export type FieldAnswerSeat = {
+  label: string
+  /** Concept stimuli storage path (signed at render). */
+  imageRef?: string | null
+  /** Competitor catalog image URL. */
+  imageSrc?: string | null
+}
+
+export function fieldAnswerOptionSeats(input: {
+  conceptArms: ReadonlyArray<{ display_name: string; image_url?: string | null }>
+  products: ReadonlyArray<{
+    product_id: number | null
+    frozen_display_name: string
+    frozen_brand_name: string
+    frozen_image_url?: string | null
+  }>
+}): FieldAnswerSeat[] {
+  const designs = input.conceptArms.map((arm, index) => {
+    const letter = respondentDesignLabel(index)
+    const name = arm.display_name.trim()
+    return {
+      label: name ? `${letter} — ${name}` : letter,
+      imageRef: arm.image_url ?? null,
+      imageSrc: null,
+    }
+  })
+  const competitors = input.products.flatMap((product) => {
+    if (product.product_id == null) return []
+    const name = product.frozen_display_name.trim()
+    const brand = product.frozen_brand_name.trim()
+    const label =
+      name && brand && brand.toLowerCase() !== name.toLowerCase()
+        ? `${brand} — ${name}`
+        : name || brand
+    if (!label) return []
+    return [
+      {
+        label,
+        imageRef: null,
+        imageSrc: product.frozen_image_url ?? null,
+      },
+    ]
+  })
+  return [...designs, ...competitors]
+}
+
+export function fieldAnswerOptionLabels(input: {
+  conceptArms: ReadonlyArray<{ display_name: string; image_url?: string | null }>
+  products: ReadonlyArray<{
+    product_id: number | null
+    frozen_display_name: string
+    frozen_brand_name: string
+    frozen_image_url?: string | null
+  }>
+}): string[] {
+  return fieldAnswerOptionSeats(input).map((seat) => seat.label)
+}
+
+function sameOptionList(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false
+  return a.every((value, i) => value === b[i])
+}
+
+/** Switch answer authoring mode; stash / restore free-text so the toggle is reversible. */
+export function withBrandQuestionAnswerSource(
+  question: BrandQuestionDraft,
+  source: BrandQuestionAnswerSource,
+  fieldOptions: string[]
+): BrandQuestionDraft {
+  const current = brandQuestionAnswerSource(question)
+  if (current === source) {
+    if (source === 'field' && !sameOptionList(question.options, fieldOptions)) {
+      return withBrandQuestionOptions(
+        { ...question, answerSource: 'field' },
+        fieldOptions
+      )
+    }
+    return question
+  }
+  if (source === 'field') {
+    return withBrandQuestionOptions(
+      {
+        ...question,
+        answerSource: 'field',
+        customOptionsStash: question.options,
+      },
+      fieldOptions
+    )
+  }
+  const restored = question.customOptionsStash
+  const options =
+    restored && restored.length >= 2 ? restored : ['', '']
+  const { customOptionsStash: _drop, ...rest } = question
+  return withBrandQuestionOptions(
+    { ...rest, answerSource: 'custom', customOptionsStash: undefined },
+    options
+  )
+}
+
+/** Keep field-mode options aligned with the live field. */
+export function syncBrandQuestionFieldOptions(
+  question: BrandQuestionDraft,
+  fieldOptions: string[]
+): BrandQuestionDraft {
+  if (brandQuestionAnswerSource(question) !== 'field') return question
+  if (sameOptionList(question.options, fieldOptions)) return question
+  return withBrandQuestionOptions(question, fieldOptions)
 }
 
 /** Per-bar UI state — wire: absent | null | value */
