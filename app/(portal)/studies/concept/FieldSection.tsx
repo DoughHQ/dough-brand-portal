@@ -30,8 +30,11 @@ import {
   canAddVariant,
   competitorProgressLabel,
 } from '@/lib/concept/fieldSize'
+import { respondentDesignLabel } from '@/lib/concept/designLetters'
 import { formatPriceLabel } from '@/lib/concept/price'
 import { uniquePairs } from '@/lib/concept/publish'
+import { resolveStimuliPreviewUrl } from '@/lib/concept/stimuliStorage'
+import { createClient } from '@/lib/supabase'
 import CompetitorsColumn from './CompetitorsColumn'
 import OwnProductColumn from './OwnProductColumn'
 import {
@@ -178,13 +181,12 @@ export default function FieldSection({
         Build the field
       </h2>
       <p style={{ ...sectionHelp, maxWidth: 720, marginBottom: battles > 0 ? 8 : 24 }}>
-        Choose the product you want feedback on, then add the real products it should be
-        judged against.
+        Add your concepts, then choose the real products shoppers would compare them against.
       </p>
       {battles > 0 ? (
         <p className="cb-field-battles">
-          This study will run {battles} battle{battles === 1 ? '' : 's'} per respondent — every
-          item vs every item.
+          {draft.conceptArms.length + draft.products.length} products → {battles}{' '}
+          {battles === 1 ? 'battle' : 'battles'} per respondent
         </p>
       ) : null}
 
@@ -284,6 +286,7 @@ export default function FieldSection({
             onClearBenchmark={singleTestMode ? clearProductBenchmark : undefined}
           />
         </div>
+        {singleTestMode ? <FieldMembership draft={draft} /> : null}
       </div>
 
       {!disabled && showCapacity ? (
@@ -310,6 +313,64 @@ export default function FieldSection({
         </p>
       ) : null}
     </section>
+  )
+}
+
+function FieldMembership({ draft }: { draft: ConceptStudyDraft }) {
+  const concepts = draft.conceptArms
+  const competitors = draft.products.filter((product) => product.product_id != null)
+  if (concepts.length === 0 && competitors.length === 0) return null
+  return (
+    <div className="cb-field-member">
+      <div className="cb-field-member-head">Your field</div>
+      <ul>
+        {concepts.map((arm, index) => (
+          <li key={arm.localId}>
+            <MemberPhoto imageRef={arm.image_url} />
+            <span>
+              <strong>{arm.display_name.trim() || 'Name this design'}</strong>
+              {respondentDesignLabel(index)}
+            </span>
+          </li>
+        ))}
+        {competitors.map((product) => (
+          <li key={product.localId}>
+            <MemberPhoto src={product.frozen_image_url} />
+            <span>
+              <strong>{product.frozen_display_name.trim() || 'Competitor'}</strong>
+              {product.frozen_brand_name.trim()}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function MemberPhoto({ imageRef, src }: { imageRef?: string | null; src?: string | null }) {
+  const [url, setUrl] = useState<string | null>(src ?? null)
+  useEffect(() => {
+    if (src) {
+      setUrl(src)
+      return
+    }
+    if (!imageRef) {
+      setUrl(null)
+      return
+    }
+    let cancelled = false
+    const supabase = createClient()
+    void resolveStimuliPreviewUrl(supabase, imageRef).then((next) => {
+      if (!cancelled) setUrl(next)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [imageRef, src])
+  return (
+    <span className="cb-field-member-photo">
+      {url ? <img src={url} alt="" /> : null}
+    </span>
   )
 }
 

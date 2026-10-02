@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent, type Ref } from 'react'
 import type { ConceptArmRow, PricePosture } from '@/lib/concept/types'
 import { armLabelForIndex, newConceptArm } from '@/lib/concept/defaults'
 import { isAllowedPriceInput } from '@/lib/concept/price'
@@ -131,11 +131,13 @@ export default function OwnProductColumn({
   return (
     <>
       <div className="cb-field-head-left">
-        <div className="cb-field-col-title">Your product</div>
+        <div className="cb-field-col-title">{singleTestMode ? 'Your concepts' : 'Your product'}</div>
         <div className="cb-field-col-meta">
-          {priceMode
-            ? 'The product or concept you want respondents to evaluate.'
-            : 'Add the product or concept variants you want respondents to evaluate.'}
+          {singleTestMode
+            ? 'The designs respondents will evaluate.'
+            : priceMode
+              ? 'The product or concept you want respondents to evaluate.'
+              : 'Add the product or concept variants you want respondents to evaluate.'}
         </div>
       </div>
 
@@ -198,12 +200,35 @@ export default function OwnProductColumn({
                     if (dragArmId) reorder(dragArmId, arm.localId)
                     setDragArmId(null)
                   }}
-                  style={{
-                    ...fieldCard,
-                    cursor: multi && !priceMode ? 'grab' : 'default',
-                  }}
+                  className={singleTestMode ? 'cb-concept-card' : undefined}
+                  style={
+                    singleTestMode
+                      ? { cursor: multi && !priceMode ? 'grab' : 'default' }
+                      : {
+                          ...fieldCard,
+                          cursor: multi && !priceMode ? 'grab' : 'default',
+                        }
+                  }
                 >
-                  {/* ownership + variant identity */}
+                  {singleTestMode ? (
+                    <ConceptCardBody
+                      arm={arm}
+                      index={index}
+                      isLast={isLast}
+                      multi={multi}
+                      nameFocusRef={isLast ? nameFocusRef : undefined}
+                      brandId={brandId}
+                      draftId={draftId}
+                      blindImageMode={blindImageMode}
+                      disabled={disabled}
+                      onPatch={(patch) => patchArm(arm.localId, patch)}
+                      onNameKeyDown={(e) => onNameKeyDown(e, isLast)}
+                      onRemove={multi ? () => removeVariant(arm.localId) : undefined}
+                      onSetCurrentPack={() => onSetCurrentPack?.(arm.localId)}
+                      onClearBenchmark={() => onClearBenchmark?.(arm.localId)}
+                    />
+                  ) : (
+                  <>
                   <div
                     style={{
                       display: 'flex',
@@ -351,6 +376,8 @@ export default function OwnProductColumn({
                       />
                     </div>
                   ) : null}
+                  </>
+                  )}
                 </div>
               )
             })
@@ -360,14 +387,14 @@ export default function OwnProductColumn({
           <>
             <button
               type="button"
-              className="cb-btn-outline"
+              className={singleTestMode ? 'cb-concept-add' : 'cb-btn-outline'}
               onClick={addVariant}
               disabled={disabled || !addVariantAvailability.allowed}
               aria-describedby={
                 addVariantAvailability.allowed ? undefined : 'cb-add-variant-reason'
               }
             >
-              + Add another variant
+              {singleTestMode ? '+ Add another concept' : '+ Add another variant'}
             </button>
             {!addVariantAvailability.allowed ? (
               <p
@@ -385,6 +412,83 @@ export default function OwnProductColumn({
           </>
         ) : null}
       </div>
+    </>
+  )
+}
+
+function ConceptCardBody({
+  arm,
+  index,
+  isLast,
+  multi,
+  nameFocusRef,
+  brandId,
+  draftId,
+  blindImageMode,
+  disabled,
+  onPatch,
+  onNameKeyDown,
+  onRemove,
+  onSetCurrentPack,
+  onClearBenchmark,
+}: {
+  arm: ConceptArmRow
+  index: number
+  isLast: boolean
+  multi: boolean
+  nameFocusRef?: Ref<HTMLInputElement>
+  brandId: number
+  draftId: string
+  blindImageMode: boolean
+  disabled?: boolean
+  onPatch: (patch: Partial<ConceptArmRow>) => void
+  onNameKeyDown: (e: KeyboardEvent) => void
+  onRemove?: () => void
+  onSetCurrentPack: () => void
+  onClearBenchmark: () => void
+}) {
+  const current = arm.benchmark_role === 'current_pack'
+  const letter = respondentDesignLabel(index)
+  return (
+    <>
+      <div className="cb-concept-card-top">
+        <span className="cb-concept-letter">{letter}</span>
+        {onRemove ? (
+          <button type="button" aria-label={`Remove ${letter}`} onClick={onRemove} style={trashBtn}>
+            <TrashIcon />
+          </button>
+        ) : null}
+      </div>
+      <ConceptArmImageUploader
+        brandId={brandId}
+        draftId={draftId}
+        armLabel={arm.arm_label}
+        imageUrl={arm.image_url}
+        imageFilename={arm.image_filename}
+        requiredHint={blindImageMode}
+        variant="hero"
+        disabled={disabled}
+        onChange={({ image_url, image_filename }) => onPatch({ image_url, image_filename })}
+      />
+      <input
+        id={`arm-name-${arm.localId}`}
+        className="cb-input cb-concept-name"
+        aria-label="Name this design"
+        ref={isLast ? nameFocusRef : undefined}
+        value={arm.display_name}
+        onChange={(e) => onPatch({ display_name: e.target.value })}
+        onKeyDown={onNameKeyDown}
+        placeholder="Name this design"
+        style={inputBase}
+      />
+      <button
+        type="button"
+        className={`cb-concept-current${current ? ' is-on' : ''}`}
+        aria-pressed={current}
+        onClick={() => (current ? onClearBenchmark() : onSetCurrentPack())}
+      >
+        {current ? 'Current pack' : 'Mark as current pack'}
+      </button>
     </>
   )
 }

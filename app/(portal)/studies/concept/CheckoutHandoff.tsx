@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { formatOrderMoney } from '@/lib/checkout/money'
-import { checkoutHero } from '@/lib/concept/checkoutHero'
+import { checkoutWindowFacts } from '@/lib/checkout/windowFacts'
+import { checkoutHero, checkoutHeroDesignLabel } from '@/lib/concept/checkoutHero'
 import { createClient } from '@/lib/supabase'
 import { resolveStimuliPreviewUrl } from '@/lib/concept/stimuliStorage'
 import type { ConceptPublishSuccessMeta, ConceptStudyDraft } from '@/lib/concept/types'
-import { fieldingDaysMessage, fieldingEndDateLabel } from '@/lib/studies/fieldingWindow'
 
 type Props = {
   draft: ConceptStudyDraft
@@ -20,16 +20,19 @@ export default function CheckoutHandoff({ draft, meta, onClose, onContinue }: Pr
   const continueRef = useRef<HTMLButtonElement>(null)
   const hero = checkoutHero(draft.conceptArms)
   const name = hero?.display_name.trim() || ''
-  const letter = hero?.arm_label.trim() || ''
-  const design = letter ? `Design ${letter}` : 'Your product'
+  const design = checkoutHeroDesignLabel(draft.conceptArms)
+  const mark = design?.replace(/^Design\s+/i, '') || 'A'
   const completions = meta.target_completions ?? draft.targetCompletions
   const amount =
     meta.order?.amount_cents != null && meta.order.currency
       ? formatOrderMoney(meta.order.amount_cents, meta.order.currency)
       : null
-  const days = fieldingDaysMessage(draft.fieldingDays) ? null : draft.fieldingDays
-  const endValue = days == null ? 'No end date' : fieldingEndDateLabel(days)
-  const endNote = days == null ? 'Until responses are in' : 'If paid today'
+  const facts = checkoutWindowFacts({
+    completions,
+    fieldingDays: draft.fieldingDays,
+    expiresAt: null,
+    settled: false,
+  })
 
   useEffect(() => {
     continueRef.current?.focus()
@@ -75,23 +78,30 @@ export default function CheckoutHandoff({ draft, meta, onClose, onContinue }: Pr
         <p className="cb-confirm-body">Nothing goes live until this is paid.</p>
         {hero ? (
           <div className="cb-handoff-hero">
-            <HeroPhoto imageRef={hero.image_url} letter={letter || 'A'} />
+            <HeroPhoto imageRef={hero.image_url} letter={mark} />
             <div>
-              <p className="cb-handoff-name">{name || design}</p>
-              {name ? <p className="cb-handoff-design">{design}</p> : null}
+              <p className="cb-handoff-name">{name || design || 'Your product'}</p>
+              {name && design ? <p className="cb-handoff-design">{design}</p> : null}
             </div>
           </div>
         ) : null}
         <dl className="cb-handoff-facts">
           <div>
             <dt>Completions</dt>
-            <dd>{completions.toLocaleString('en-US')}</dd>
+            <dd>{facts.responses}</dd>
+          </div>
+          <div>
+            <dt>Runs</dt>
+            <dd>
+              {facts.length}
+              <small>{facts.lengthNote}</small>
+            </dd>
           </div>
           <div>
             <dt>Ends</dt>
             <dd>
-              {endValue}
-              <small>{endNote}</small>
+              {facts.end}
+              <small>{facts.endNote}</small>
             </dd>
           </div>
           <div>
