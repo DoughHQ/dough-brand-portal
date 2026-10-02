@@ -374,6 +374,7 @@ function SelectedCompetitor({
 
   return (
     <div
+      id={`field-seat-product-${row.localId}`}
       className="cb-comp-row"
       style={{
         display: 'flex',

@@ -1,15 +1,6 @@
 'use client'
 
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type CSSProperties,
-  type KeyboardEvent,
-  type Ref,
-} from 'react'
+import { useEffect, useState } from 'react'
 import type {
   ConceptArmRow,
   ConceptStudyDraft,
@@ -124,6 +115,9 @@ export default function FieldSection({
           ? `${spots} · 1 spot left`
           : spots
 
+  // Single-test: the shelf owns capacity + matchup copy. Legacy modes keep the strip.
+  const shelfOwnsStatus = singleTestMode && showCapacity
+
   return (
     <section style={{ ...sectionCard, position: 'relative' }} id="concept-field">
       <h2
@@ -135,10 +129,10 @@ export default function FieldSection({
       >
         Build the field
       </h2>
-      <p style={{ ...sectionHelp, maxWidth: 720, marginBottom: battles > 0 ? 8 : 24 }}>
+      <p style={{ ...sectionHelp, maxWidth: 720, marginBottom: 24 }}>
         Add your concepts, then choose the real products shoppers would compare them against.
       </p>
-      {battles > 0 ? (
+      {!singleTestMode && battles > 0 ? (
         <p className="cb-field-battles">
           {draft.conceptArms.length + draft.products.length} products → {battles}{' '}
           {battles === 1 ? 'battle' : 'battles'} per respondent
@@ -237,10 +231,18 @@ export default function FieldSection({
             singleTestMode={singleTestMode}
           />
         </div>
-        {singleTestMode ? <FieldMembership draft={draft} /> : null}
+        {singleTestMode ? (
+          <FieldShelf
+            draft={draft}
+            battles={battles}
+            capacityText={capacityText}
+            fieldSizeOk={validity.fieldSizeOk}
+            remaining={Math.max(0, remaining)}
+          />
+        ) : null}
       </div>
 
-      {!disabled && showCapacity ? (
+      {!disabled && showCapacity && !shelfOwnsStatus ? (
         <div className="cb-field-status" role="status">
           {validity.fieldSizeOk ? (
             /* Plain text, not a pass: a full field is not the same as a valid study. */
@@ -267,35 +269,144 @@ export default function FieldSection({
   )
 }
 
-function FieldMembership({ draft }: { draft: ConceptStudyDraft }) {
-  const concepts = draft.conceptArms
-  const competitors = draft.products.filter((product) => product.product_id != null)
-  if (concepts.length === 0 && competitors.length === 0) return null
+type ShelfSeat =
+  | { kind: 'arm'; localId: string; index: number; name: string; imageRef: string | null }
+  | {
+      kind: 'product'
+      localId: string
+      name: string
+      brand: string
+      imageSrc: string | null
+    }
+  | { kind: 'empty'; key: string }
+
+function FieldShelf({
+  draft,
+  battles,
+  capacityText,
+  fieldSizeOk,
+  remaining,
+}: {
+  draft: ConceptStudyDraft
+  battles: number
+  capacityText: string
+  fieldSizeOk: boolean
+  remaining: number
+}) {
+  const filled: ShelfSeat[] = [
+    ...draft.conceptArms.map((arm, index) => ({
+      kind: 'arm' as const,
+      localId: arm.localId,
+      index,
+      name: arm.display_name.trim() || 'Name this design',
+      imageRef: arm.image_url,
+    })),
+    ...draft.products.map((product) => ({
+      kind: 'product' as const,
+      localId: product.localId,
+      name: product.frozen_display_name.trim() || 'Competitor',
+      brand: product.frozen_brand_name.trim(),
+      imageSrc: product.frozen_image_url,
+    })),
+  ]
+  if (filled.length === 0) return null
+
+  const emptyCount = Math.min(
+    remaining,
+    Math.max(0, MAX_CONCEPT_FIELD_SIZE - filled.length)
+  )
+  const seats: ShelfSeat[] = [
+    ...filled,
+    ...Array.from({ length: emptyCount }, (_, i) => ({
+      kind: 'empty' as const,
+      key: `empty-${i}`,
+    })),
+  ]
+
+  const n = filled.length
+  const productWord = n === 1 ? 'product' : 'products'
+  const matchupWord = battles === 1 ? 'matchup' : 'matchups'
+  const metaParts = [
+    `${n} ${productWord}`,
+    battles > 0 ? `${battles} ${matchupWord} per respondent` : null,
+    remaining > 0
+      ? remaining === 1
+        ? '1 spot left'
+        : `${remaining} spots left`
+      : 'field full',
+  ].filter(Boolean)
+
   return (
-    <div className="cb-field-member">
-      <div className="cb-field-member-head">Your field</div>
-      <ul>
-        {concepts.map((arm, index) => (
-          <li key={arm.localId}>
-            <MemberPhoto imageRef={arm.image_url} />
-            <span>
-              <strong>{arm.display_name.trim() || 'Name this design'}</strong>
-              {respondentDesignLabel(index)}
-            </span>
-          </li>
-        ))}
-        {competitors.map((product) => (
-          <li key={product.localId}>
-            <MemberPhoto src={product.frozen_image_url} />
-            <span>
-              <strong>{product.frozen_display_name.trim() || 'Competitor'}</strong>
-              {product.frozen_brand_name.trim()}
-            </span>
-          </li>
-        ))}
+    <div className="cb-field-shelf" data-testid="field-shelf">
+      <div className="cb-field-shelf-head">
+        <div className="cb-field-shelf-title">Your field</div>
+        <p
+          className="cb-field-shelf-meta"
+          role="status"
+          data-testid="field-capacity"
+          data-ok={fieldSizeOk ? 'true' : 'false'}
+        >
+          {!fieldSizeOk ? (
+            <StatusChip ok={false} tone="warn" label={capacityText} />
+          ) : (
+            metaParts.join(' · ')
+          )}
+        </p>
+      </div>
+      <ul className="cb-field-shelf-rail" aria-label="Products in the field">
+        {seats.map((seat) => {
+          if (seat.kind === 'empty') {
+            return (
+              <li key={seat.key} className="cb-field-shelf-tile is-empty" aria-hidden>
+                <span className="cb-field-shelf-photo" />
+                <span className="cb-field-shelf-copy">
+                  <strong>Open</strong>
+                  Spot
+                </span>
+              </li>
+            )
+          }
+          const focusId =
+            seat.kind === 'arm'
+              ? `field-seat-arm-${seat.localId}`
+              : `field-seat-product-${seat.localId}`
+          const subtitle =
+            seat.kind === 'arm' ? respondentDesignLabel(seat.index) : seat.brand || 'Competitor'
+          return (
+            <li key={`${seat.kind}-${seat.localId}`}>
+              <button
+                type="button"
+                className="cb-field-shelf-tile"
+                onClick={() => focusFieldSeat(focusId)}
+              >
+                {seat.kind === 'arm' ? (
+                  <MemberPhoto imageRef={seat.imageRef} />
+                ) : (
+                  <MemberPhoto src={seat.imageSrc} />
+                )}
+                <span className="cb-field-shelf-copy">
+                  <strong>{seat.name}</strong>
+                  {subtitle}
+                </span>
+              </button>
+            </li>
+          )
+        })}
       </ul>
     </div>
   )
+}
+
+function focusFieldSeat(elementId: string) {
+  const el = document.getElementById(elementId)
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  el.classList.add('is-shelf-focus')
+  window.setTimeout(() => el.classList.remove('is-shelf-focus'), 1200)
+  const focusable = el.querySelector<HTMLElement>(
+    'input:not([type="hidden"]), button.cb-concept-stage-replace, [data-shelf-focus]'
+  )
+  focusable?.focus({ preventScroll: true })
 }
 
 function MemberPhoto({ imageRef, src }: { imageRef?: string | null; src?: string | null }) {
@@ -319,7 +430,7 @@ function MemberPhoto({ imageRef, src }: { imageRef?: string | null; src?: string
     }
   }, [imageRef, src])
   return (
-    <span className="cb-field-member-photo">
+    <span className="cb-field-shelf-photo">
       {url ? <img src={url} alt="" /> : null}
     </span>
   )
@@ -352,33 +463,5 @@ function StatusChip({
       </span>
       {label}
     </span>
-  )
-}
-
-function LockIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-      <rect x="2.5" y="5.5" width="7" height="5" rx="1" stroke="currentColor" strokeWidth="1.2" />
-      <path
-        d="M4 5.5V4a2 2 0 114 0v1.5"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
-}
-
-function StimulusGlyph() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path
-        d="M5.2 2.5h5.6l1.7 3.2-4.5 7.3a.6.6 0 01-1 0L2.5 5.7l1.7-3.2z"
-        stroke="currentColor"
-        strokeWidth="1.25"
-        strokeLinejoin="round"
-      />
-      <circle cx="8" cy="6.2" r="1.1" fill="currentColor" />
-    </svg>
   )
 }

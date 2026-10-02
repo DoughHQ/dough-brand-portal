@@ -189,6 +189,7 @@ export default function OwnProductColumn({
               return (
                 <div
                   key={arm.localId}
+                  id={`field-seat-arm-${arm.localId}`}
                   draggable={multi && !priceMode}
                   onDragStart={() => setDragArmId(arm.localId)}
                   onDragOver={(e) => e.preventDefault()}
@@ -424,28 +425,30 @@ function ConceptCardBody({
           </button>
         ) : null}
       </div>
-      <ConceptArmImageUploader
-        brandId={brandId}
-        draftId={draftId}
-        armLabel={arm.arm_label}
-        imageUrl={arm.image_url}
-        imageFilename={arm.image_filename}
-        requiredHint={blindImageMode}
-        variant="hero"
-        disabled={disabled}
-        onChange={({ image_url, image_filename }) => onPatch({ image_url, image_filename })}
-      />
-      <input
-        id={`arm-name-${arm.localId}`}
-        className="cb-input cb-concept-name"
-        aria-label="Name this design"
-        ref={isLast ? nameFocusRef : undefined}
-        value={arm.display_name}
-        onChange={(e) => onPatch({ display_name: e.target.value })}
-        onKeyDown={onNameKeyDown}
-        placeholder="Name this design"
-        style={inputBase}
-      />
+      <div className="cb-concept-card-body">
+        <ConceptArmImageUploader
+          brandId={brandId}
+          draftId={draftId}
+          armLabel={arm.arm_label}
+          imageUrl={arm.image_url}
+          imageFilename={arm.image_filename}
+          requiredHint={blindImageMode}
+          variant="hero"
+          disabled={disabled}
+          onChange={({ image_url, image_filename }) => onPatch({ image_url, image_filename })}
+        />
+        <input
+          id={`arm-name-${arm.localId}`}
+          className="cb-input cb-concept-name"
+          aria-label="Name this design"
+          ref={isLast ? nameFocusRef : undefined}
+          value={arm.display_name}
+          onChange={(e) => onPatch({ display_name: e.target.value })}
+          onKeyDown={onNameKeyDown}
+          placeholder="Name this design"
+          style={inputBase}
+        />
+      </div>
     </>
   )
 }
