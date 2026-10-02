@@ -194,9 +194,13 @@ export default function CompetitorsColumn({
           }}
         >
           <div>
-            <div className="cb-field-col-title">Competitors</div>
+            <div className="cb-field-col-title">
+              {singleTestMode ? 'Competitive set' : 'Competitors'}
+            </div>
             <div className="cb-field-col-meta">
-              Add the real products shoppers would compare yours against.
+              {singleTestMode
+                ? 'The products they face.'
+                : 'Add the real products shoppers would compare yours against.'}
             </div>
           </div>
           {products.length > 0 || adding ? (
@@ -211,12 +215,14 @@ export default function CompetitorsColumn({
             </button>
           ) : null}
         </div>
-        <p
-          role="status"
-          style={{ margin: 0, fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}
-        >
-          {progressLabel}
-        </p>
+        {singleTestMode && /^\d+ competitors? added$/.test(progressLabel) ? null : (
+          <p
+            role="status"
+            style={{ margin: 0, fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}
+          >
+            {progressLabel}
+          </p>
+        )}
         {!addAvailability.allowed && (products.length > 0 || adding) ? (
           <p
             id="cb-add-competitor-reason"
@@ -381,7 +387,7 @@ function SelectedCompetitor({
       className="cb-comp-row"
       style={{
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         gap: 12,
         padding: 16,
         outline: error ? '1px solid var(--red)' : undefined,
@@ -418,27 +424,17 @@ function SelectedCompetitor({
           {row.frozen_brand_name}
         </div>
         {singleTestMode ? (
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              marginTop: 10,
-              fontSize: 12,
-              color: 'var(--ink-80)',
-              cursor: 'pointer',
+          <button
+            type="button"
+            className={`cb-concept-current${row.benchmark_role === 'competitor_to_beat' ? ' is-on' : ''}`}
+            aria-pressed={row.benchmark_role === 'competitor_to_beat'}
+            onClick={() => {
+              if (row.benchmark_role === 'competitor_to_beat') onClearBenchmark?.(row.localId)
+              else onSetCompetitorToBeat?.(row.localId)
             }}
           >
-            <input
-              type="checkbox"
-              checked={row.benchmark_role === 'competitor_to_beat'}
-              onChange={(e) => {
-                if (e.target.checked) onSetCompetitorToBeat?.(row.localId)
-                else onClearBenchmark?.(row.localId)
-              }}
-            />
-            Competitor to beat
-          </label>
+            {row.benchmark_role === 'competitor_to_beat' ? 'To beat' : 'Mark to beat'}
+          </button>
         ) : null}
         <div style={{ marginTop: 10 }}>
           {awaitingConfirm && row.upc ? (
@@ -481,11 +477,11 @@ function SelectedCompetitor({
               </div>
             </fieldset>
           ) : (
-            <div style={{ fontSize: 13, color: 'var(--ink-80)' }}>
+            <div className={singleTestMode ? 'cb-comp-upc' : undefined} style={singleTestMode ? undefined : { fontSize: 13, color: 'var(--ink-80)' }}>
               {row.upc ? `UPC ${row.upc}` : 'SKU not identified yet'}
             </div>
           )}
-          {!awaitingConfirm ? (
+          {!awaitingConfirm && !singleTestMode ? (
             <p style={{ margin: '6px 0 0', fontSize: 11, lineHeight: 1.45, color: 'var(--cb-secondary)' }}>
               {CONCEPT_UPC_IDENTITY_HELP}
             </p>
@@ -579,8 +575,8 @@ function SelectedCompetitor({
 }
 
 const thumbStyle = {
-  width: 64,
-  height: 64,
+  width: 88,
+  height: 88,
   flexShrink: 0,
   objectFit: 'contain' as const,
   display: 'block',

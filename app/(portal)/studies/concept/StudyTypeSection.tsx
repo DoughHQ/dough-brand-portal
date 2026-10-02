@@ -28,6 +28,8 @@ import {
   inputBase,
   labelSm,
   sectionCard,
+  sectionHelp,
+  sectionTitle,
 } from './conceptStyles'
 
 type Props = {
@@ -195,27 +197,12 @@ export default function StudyTypeSection({
 
   return (
     <section style={sectionCard} id="concept-mode">
-      <h2 className="cb-sr">Setup</h2>
-
-      {/* 1 — name it */}
-      <div style={{ marginBottom: 24 }}>
-        <label style={labelSm} htmlFor="concept-study-name">
-          Study name
-        </label>
-        <input
-          id="concept-study-name"
-          className="cb-input"
-          value={draft.title}
-          onChange={(e) => onChange({ ...draft, title: e.target.value })}
-          placeholder="e.g. Midnight snack concept — Q3"
-          style={inputBase}
-        />
-        {showErrors && titleError ? (
-          <p role="alert" style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--cb-error)' }}>
-            {titleError}
-          </p>
-        ) : null}
-      </div>
+      <h2 className="cb-section-title" style={sectionTitle}>
+        Setup
+      </h2>
+      <p style={sectionHelp}>
+        Name the study, choose where it competes, and set how long it runs.
+      </p>
 
       {packagingOnly ? null : (
         <>
@@ -248,28 +235,48 @@ export default function StudyTypeSection({
         </>
       )}
 
-      {/* 3 — where does it compete */}
-      <CategoryCombobox
-        selected={node}
-        pendingNodeId={hasCategory && !node ? draft.taxonomyNodeId : null}
-        required={!hasCategory}
-        onSelect={applyCategory}
-        onClear={clearCategory}
-        error={showErrors ? error : null}
-      />
+      <div className="cb-setup-pair">
+        <div>
+          <label style={labelSm} htmlFor="concept-study-name">
+            Study name
+          </label>
+          <input
+            id="concept-study-name"
+            className="cb-input"
+            value={draft.title}
+            onChange={(e) => onChange({ ...draft, title: e.target.value })}
+            placeholder="e.g. Midnight snack concept — Q3"
+            style={inputBase}
+          />
+          {showErrors && titleError ? (
+            <p role="alert" style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--cb-error)' }}>
+              {titleError}
+            </p>
+          ) : null}
+        </div>
 
-      {packagingOnly ? (
-        <p className="cb-setup-caption">
-          Packaging concept test, always blind. Respondents see Design A and Design B, never your product names.
-        </p>
-      ) : null}
+        <div>
+          <CategoryCombobox
+            selected={node}
+            pendingNodeId={hasCategory && !node ? draft.taxonomyNodeId : null}
+            required={!hasCategory}
+            onSelect={applyCategory}
+            onClear={clearCategory}
+            error={showErrors ? error : null}
+          />
 
-      {hasCategory ? (
-        // The template anchor lives on a wrapper that exists whenever a category
-        // does. It used to sit on the wording editor, which meant the sticky
-        // footer's "Category phrasing is empty" blocker resolved to nothing while
-        // the editor was collapsed — a dead anchor.
-        <div id={templateFieldAnchor('category_plural')}>
+          {packagingOnly ? (
+            <p className="cb-setup-caption">
+              Packaging concept test, always blind. They see design letters, never your product names.
+            </p>
+          ) : null}
+
+          {hasCategory ? (
+            // The template anchor lives on a wrapper that exists whenever a category
+            // does. It used to sit on the wording editor, which meant the sticky
+            // footer's "Category phrasing is empty" blocker resolved to nothing while
+            // the editor was collapsed — a dead anchor.
+            <div id={templateFieldAnchor('category_plural')}>
           {/* Questionnaire wording is an override, not a form field. The derived
               value is correct by default, so it stays implicit until asked for. */}
           {wordingOpen ? (
@@ -330,7 +337,9 @@ export default function StudyTypeSection({
             </p>
           )}
         </div>
-      ) : null}
+          ) : null}
+        </div>
+      </div>
 
       <div className="cb-setup-pair">
         <div>
@@ -355,11 +364,11 @@ export default function StudyTypeSection({
             Minimum {completionFloor} completions.
           </p>
         </div>
+        <FieldingLengthField
+          days={draft.fieldingDays}
+          onChange={(fieldingDays) => onChange({ ...draft, fieldingDays })}
+        />
       </div>
-      <FieldingLengthField
-        days={draft.fieldingDays}
-        onChange={(fieldingDays) => onChange({ ...draft, fieldingDays })}
-      />
       <ConfirmDialog request={confirm} onCancel={() => setConfirm(null)} />
     </section>
   )

@@ -29,7 +29,6 @@ import {
   journeyClosedLine,
   journeyStepCountLabel,
   journeyStepDone,
-  journeyStepOwned,
   pairedScreenerCountLabel,
   whyFollowupAsked,
   whyFollowupCountLabel,
@@ -111,9 +110,8 @@ function AccordionRow({
   title,
   line,
   countLabel,
-  done,
   open,
-  owned,
+  mark = false,
   measures,
   onToggle,
   rowRef,
@@ -124,9 +122,9 @@ function AccordionRow({
   title: string
   line: JourneyClosedLine
   countLabel: string | null
-  done: boolean
   open: boolean
-  owned: boolean
+  /** A setting the brand completes. Question rows leave this off. */
+  mark?: boolean
   measures?: string
   onToggle: () => void
   rowRef: (node: HTMLElement | null) => void
@@ -141,7 +139,7 @@ function AccordionRow({
       <h3 className="cb-acc-heading">
         <button
           type="button"
-          className="cb-acc-head"
+          className={`cb-acc-head${mark ? ' has-mark' : ''}`}
           aria-expanded={open}
           aria-controls={open ? `journey-step-panel-${id}` : undefined}
           onClick={onToggle}
@@ -152,7 +150,7 @@ function AccordionRow({
             {open && line.kind === 'question' ? null : <ClosedLine line={line} />}
           </span>
           <span className="cb-acc-count">{countLabel ?? ''}</span>
-          {owned && done ? (
+          {mark ? (
             <span className="cb-acc-check" aria-label="Done">
               <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
                 <path
@@ -165,9 +163,7 @@ function AccordionRow({
                 />
               </svg>
             </span>
-          ) : (
-            <span className="cb-acc-check is-blank" aria-hidden="true" />
-          )}
+          ) : null}
           <span className="cb-acc-chevron" aria-hidden="true" />
         </button>
       </h3>
@@ -286,7 +282,10 @@ export default function SingleTestJourneySection({
       <h2 className="cb-section-title" style={sectionTitle}>
         Questions
       </h2>
-      <p style={sectionHelp}>Shoppers answer these, in this order.</p>
+      <p style={sectionHelp}>
+        They qualify, react to each design, choose, and say why. Then they rank the field and
+        name a price. Your questions come after that.
+      </p>
 
       <div
         style={{
@@ -310,8 +309,6 @@ export default function SingleTestJourneySection({
                 : { kind: 'empty' }
             }
             countLabel={screenerCount}
-            done={false}
-            owned={false}
             open={openKey === 'how_often'}
             onToggle={() => toggleStep('how_often')}
             rowRef={() => {}}
@@ -325,8 +322,6 @@ export default function SingleTestJourneySection({
             title="Bought recently"
             line={lineFor('screeners')}
             countLabel={screenerCount}
-            done={journeyStepDone('screeners', draft)}
-            owned={journeyStepOwned('screeners')}
             open={openKey === 'screeners'}
             onToggle={() => toggleStep('screeners')}
             rowRef={bindRow('screeners')}
@@ -359,8 +354,6 @@ export default function SingleTestJourneySection({
             title="First look"
             line={lineFor('first_look')}
             countLabel={journeyStepCountLabel('first_look', counts)}
-            done={false}
-            owned={false}
             open={openKey === 'first_look'}
             onToggle={() => toggleStep('first_look')}
             rowRef={bindRow('first_look')}
@@ -374,8 +367,6 @@ export default function SingleTestJourneySection({
             title="Battles"
             line={lineFor('battles')}
             countLabel={journeyStepCountLabel('battles', counts)}
-            done={journeyStepDone('battles', draft)}
-            owned={journeyStepOwned('battles')}
             open={openKey === 'battles'}
             onToggle={() => toggleStep('battles')}
             rowRef={bindRow('battles')}
@@ -450,8 +441,6 @@ export default function SingleTestJourneySection({
             title={why.prompt}
             line={{ kind: 'empty' }}
             countLabel={whyFollowupCountLabel(counts)}
-            done={false}
-            owned={false}
             open={openKey === 'why'}
             onToggle={() => toggleStep('why')}
             rowRef={() => {}}
@@ -465,8 +454,6 @@ export default function SingleTestJourneySection({
             title="What matters"
             line={lineFor('what_matters')}
             countLabel={journeyStepCountLabel('what_matters', counts)}
-            done={false}
-            owned={false}
             open={openKey === 'what_matters'}
             onToggle={() => toggleStep('what_matters')}
             rowRef={bindRow('what_matters')}
@@ -480,8 +467,6 @@ export default function SingleTestJourneySection({
             title="Rank the field"
             line={lineFor('rank')}
             countLabel={journeyStepCountLabel('rank', counts)}
-            done={false}
-            owned={false}
             open={openKey === 'rank'}
             onToggle={() => toggleStep('rank')}
             rowRef={bindRow('rank')}
@@ -495,8 +480,6 @@ export default function SingleTestJourneySection({
             title="Price"
             line={lineFor('price')}
             countLabel={journeyStepCountLabel('price', counts)}
-            done={journeyStepDone('price', draft)}
-            owned={journeyStepOwned('price')}
             open={openKey === 'price'}
             onToggle={() => toggleStep('price')}
             rowRef={bindRow('price')}
@@ -523,8 +506,6 @@ export default function SingleTestJourneySection({
                 title="Your question"
                 line={line}
                 countLabel={brandQuestionScreenLabel(brandQuestions.length, counts)}
-                done={line.kind === 'question'}
-                owned
                 open={openKey === rowId}
                 onToggle={() => toggleStep(rowId)}
                 rowRef={() => {}}
@@ -560,8 +541,6 @@ export default function SingleTestJourneySection({
             title="Open text"
             line={lineFor('open_text')}
             countLabel={journeyStepCountLabel('open_text', counts)}
-            done={journeyStepDone('open_text', draft)}
-            owned={journeyStepOwned('open_text')}
             open={openKey === 'open_text'}
             onToggle={() => toggleStep('open_text')}
             rowRef={bindRow('open_text')}
@@ -584,8 +563,7 @@ export default function SingleTestJourneySection({
             title="What does success look like?"
             line={lineFor('success')}
             countLabel={null}
-            done={journeyStepDone('success', draft)}
-            owned={journeyStepOwned('success')}
+            mark={journeyStepDone('success', draft)}
             open={openKey === 'success'}
             measures="Clearing bars for head-to-head, liking, and price."
             onToggle={() => toggleStep('success')}

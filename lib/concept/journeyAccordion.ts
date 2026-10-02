@@ -294,6 +294,7 @@ function whyBlock(screens: ReadonlyArray<JourneyAskScreen> | null | undefined): 
   return {
     prompt: found?.prompt?.trim() || WHY_PROMPT,
     items: items.length > 0 ? items : WHY_ITEMS,
+    note: 'After each pick.',
   }
 }
 
@@ -307,13 +308,12 @@ function firstLookBlock(screens: ReadonlyArray<JourneyAskScreen> | null | undefi
   }
 }
 
+/** Draft order. The letter is the one shoppers and the report use, current pack included. */
 function rankStack(draft: ConceptStudyDraft): string[] {
-  let design = 0
-  const designs = draft.conceptArms.map((arm) => {
-    if (arm.benchmark_role === 'current_pack') return 'Current pack'
-    const label = respondentDesignLabel(design)
-    design += 1
-    return label
+  const designs = draft.conceptArms.map((arm, index) => {
+    const letter = respondentDesignLabel(index)
+    if (arm.benchmark_role === 'current_pack') return `${letter}, your current pack`
+    return letter
   })
   const competitors = draft.products.flatMap((product) => {
     if (product.product_id == null) return []

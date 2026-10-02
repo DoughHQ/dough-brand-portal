@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkoutHero } from '../checkoutHero'
+import { checkoutHero, checkoutHeroDesignLabel } from '../checkoutHero'
 import type { ConceptArmRow } from '../types'
 
 function arm(partial: Partial<ConceptArmRow> & Pick<ConceptArmRow, 'localId'>): ConceptArmRow {
@@ -31,5 +31,15 @@ describe('checkoutHero', () => {
     const first = arm({ localId: 'a', arm_label: 'A' })
     const second = arm({ localId: 'b', arm_label: 'B' })
     expect(checkoutHero([first, second])?.localId).toBe('a')
+  })
+
+  it('labels the hero by its place in the field, not the stored arm name', () => {
+    const current = arm({
+      localId: 'current',
+      arm_label: 'Current pack',
+      benchmark_role: 'current_pack',
+    })
+    const hero = arm({ localId: 'own', arm_label: 'New design', display_name: 'Midnight' })
+    expect(checkoutHeroDesignLabel([current, hero])).toBe('Design B')
   })
 })

@@ -185,6 +185,7 @@ describe('journey accordion', () => {
 
   it('asks why they picked it, and counts that follow-up as an upper bound', () => {
     expect(whyFollowupAsked(null).prompt).toBe('What made you pick this one?')
+    expect(whyFollowupAsked(null).note).toBe('After each pick.')
     expect(whyFollowupAsked(null).items).toContain('I know this brand')
     expect(whyFollowupCountLabel({ ...counts, why_followups_up_to: 3 })).toBe('Up to 3 screens')
     expect(whyFollowupCountLabel({ ...counts, why_followups_up_to: 1 })).toBe('Up to 1 screen')
@@ -202,7 +203,7 @@ describe('journey accordion', () => {
     })
     expect(journeyAsked('rank', draft, null)[0]).toEqual({
       prompt: 'Put them in order, your favorite at the top.',
-      items: ['Design A', 'Current pack', 'Design B'],
+      items: ['Design A', 'Design B, your current pack', 'Design C'],
     })
   })
 
@@ -224,8 +225,21 @@ describe('journey accordion', () => {
     })
     expect(journeyAsked('rank', draft, null)[0]?.items).toEqual([
       'Design A',
-      'Current pack',
+      'Design B, your current pack',
       "Ben & Jerry's Half Baked",
+    ])
+  })
+
+  it('keeps the current pack’s letter when it leads the field', () => {
+    const draft = createEmptyConceptDraft({
+      conceptArms: [
+        { ...newConceptArm(0), benchmark_role: 'current_pack' },
+        newConceptArm(1),
+      ],
+    })
+    expect(journeyAsked('rank', draft, null)[0]?.items).toEqual([
+      'Design A, your current pack',
+      'Design B',
     ])
   })
 

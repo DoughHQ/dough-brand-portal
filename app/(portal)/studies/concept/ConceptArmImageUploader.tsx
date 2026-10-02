@@ -122,9 +122,11 @@ export default function ConceptArmImageUploader({
   return (
     <div>
       <style>{`@keyframes concept-spin{to{transform:rotate(360deg)}}`}</style>
-      <div style={labelSm}>
-        Pack image{requiredHint ? ' · Required' : ''}
-      </div>
+      {hero ? null : (
+        <div style={labelSm}>
+          Pack image{requiredHint ? ' · Required' : ''}
+        </div>
+      )}
 
       <input
         ref={inputRef}
@@ -151,7 +153,7 @@ export default function ConceptArmImageUploader({
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 12,
-                  minHeight: 172,
+                  minHeight: 140,
                   boxSizing: 'border-box',
                   border: dragOver
                     ? '1px solid var(--cb-sage)'
@@ -215,6 +217,33 @@ export default function ConceptArmImageUploader({
           </div>
           {uploading && !hero ? <Spinner /> : null}
         </label>
+      ) : hero ? (
+        <div className="cb-concept-stage">
+          <div
+            className={`cb-concept-stage-frame${dragOver ? ' is-over' : ''}`}
+            onDrop={onDrop}
+            onDragEnter={onDragEnter}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+          >
+            {uploading || previewLoading ? (
+              <Spinner />
+            ) : previewUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- signed storage preview
+              <img src={previewUrl} alt="" onError={() => void loadPreview()} />
+            ) : (
+              <span className="cb-concept-stage-empty">Pack image</span>
+            )}
+            <button
+              type="button"
+              className="cb-concept-stage-replace"
+              disabled={disabled || uploading}
+              onClick={() => inputRef.current?.click()}
+            >
+              {uploading ? 'Replacing…' : 'Replace'}
+            </button>
+          </div>
+        </div>
       ) : (
         <div
           onDrop={onDrop}
