@@ -44,6 +44,7 @@ import {
 } from '@/lib/concept/journeyAccordion'
 import { ExpectedPriceCard, VerificationCard } from './conceptCards'
 import PackSizeField from './PackSizeField'
+import { DragHandle } from './fieldIcons'
 import {
   inputBase,
   labelSm,
@@ -531,7 +532,7 @@ export default function SingleTestJourneySection({
                 id={rowId}
                 index={String(brandStart + qi)}
                 title={
-                  brandQuestions.length > 1 ? `Your question ${qi + 1}` : 'Your question'
+                  brandQuestions.length > 1 ? `Custom question ${qi + 1}` : 'Custom question'
                 }
                 line={line}
                 countLabel={brandQuestionScreenLabel(brandQuestions.length, counts)}
@@ -697,13 +698,24 @@ function BrandQuestionEditor({
       : promptLen > 140
         ? 'Keep it under 140 characters.'
         : null
+  const [dragFrom, setDragFrom] = useState<number | null>(null)
 
   function setOptions(options: string[]) {
     onChange(withBrandQuestionOptions(question, options))
   }
 
+  function reorderOption(from: number, to: number) {
+    if (from === to || from < 0 || to < 0) return
+    const next = [...question.options]
+    const [item] = next.splice(from, 1)
+    next.splice(to, 0, item!)
+    setOptions(next)
+  }
+
   return (
     <div className="cb-bq">
+      <p className="cb-bq-lede">Add a question specific to your study.</p>
+
       <div className="cb-bq-block">
         <label style={labelSm} htmlFor={`bq-prompt-${question.localId}`}>
           Question
@@ -716,7 +728,8 @@ function BrandQuestionEditor({
           onChange={(e) => onChange({ ...question, prompt: e.target.value })}
           style={{ ...inputBase, marginTop: 8 }}
         />
-        <div className="cb-bq-starters" aria-label="Question starters">
+        <div className="cb-bq-starters" aria-label="Suggested prompts">
+          <span className="cb-bq-starters-label">Suggested prompts</span>
           {BRAND_QUESTION_STARTERS.map((starter) => {
             const active = question.prompt.trim() === starter
             return (
@@ -740,13 +753,28 @@ function BrandQuestionEditor({
       </div>
 
       <div className="cb-bq-block">
-        <div style={{ ...labelSm, marginBottom: 8 }}>Answers</div>
+        <div style={{ ...labelSm, marginBottom: 8 }}>Answer options</div>
         <div className="cb-bq-options">
           {question.options.map((opt, i) => (
-            <div className="cb-bq-option" key={i}>
-              <span className="cb-bq-option-index" aria-hidden="true">
-                {i + 1}
+            <div
+              className="cb-bq-option"
+              key={i}
+              draggable={question.options.length > 1}
+              onDragStart={() => setDragFrom(i)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => {
+                if (dragFrom != null) reorderOption(dragFrom, i)
+                setDragFrom(null)
+              }}
+              onDragEnd={() => setDragFrom(null)}
+            >
+              <span className="cb-bq-option-handle" aria-hidden="true">
+                <DragHandle />
               </span>
+              <span
+                className={`cb-bq-option-mark${several ? ' is-multi' : ''}`}
+                aria-hidden="true"
+              />
               <input
                 className="cb-input"
                 value={opt}
@@ -780,29 +808,43 @@ function BrandQuestionEditor({
         {question.options.length < 8 ? (
           <button
             type="button"
-            className="cb-quiet-action cb-bq-add-answer"
+            className="cb-bq-add-option"
             onClick={() => setOptions([...question.options, ''])}
           >
-            Add answer
+            + Add option
           </button>
         ) : null}
-        <p className="cb-bq-select">
-          {several ? 'Shoppers can pick more than one.' : 'Shoppers pick one.'}{' '}
+      </div>
+
+      <div className="cb-bq-footer">
+        <div
+          className="cb-bq-kind"
+          role="group"
+          aria-label="How shoppers answer"
+        >
           <button
             type="button"
-            className="cb-quiet-action"
-            onClick={() =>
-              onChange(withBrandQuestionKind(question, several ? 'pick_one' : 'pick_several'))
-            }
+            className={!several ? 'cb-bq-kind-btn is-on' : 'cb-bq-kind-btn'}
+            aria-pressed={!several}
+            onClick={() => onChange(withBrandQuestionKind(question, 'pick_one'))}
           >
-            {several ? 'Pick one instead' : 'Allow more than one'}
+            Single select
           </button>
-        </p>
-        <div className="cb-bq-actions">
-          <button type="button" className="cb-quiet-action" onClick={onRemove}>
-            Remove question
+          <button
+            type="button"
+            className={several ? 'cb-bq-kind-btn is-on' : 'cb-bq-kind-btn'}
+            aria-pressed={several}
+            onClick={() => onChange(withBrandQuestionKind(question, 'pick_several'))}
+          >
+            Multiple select
           </button>
         </div>
+        <p className="cb-bq-screen" role="status">
+          Respondents will see 1 screen.
+        </p>
+        <button type="button" className="cb-quiet-action cb-bq-remove" onClick={onRemove}>
+          Remove question
+        </button>
       </div>
     </div>
   )
