@@ -1,5 +1,5 @@
 /**
- * Section 2 — single-test journey cards + respondent outline (flag on only).
+ * Section 2 — single-test journey cards.
  */
 
 'use client'
@@ -9,16 +9,22 @@ import type { ConceptStudyDraft } from '@/lib/concept/types'
 import {
   BATTLE_PROMPT_OPTIONS,
   type BattlePromptCode,
+  BRAND_QUESTION_STARTERS,
   type BrandQuestionDraft,
+  brandQuestionKind,
   DEFAULT_DECOY_OPTION,
   defaultSuccessBarsDraft,
   emptyBrandQuestion,
+  headToHeadWinSentence,
+  priceWinSentence,
   type SuccessBarsDraft,
+  withBrandQuestionKind,
+  withBrandQuestionOptions,
 } from '@/lib/concept/singleTest'
+import { formatPriceDisplay, normalizeExpectedPrice } from '@/lib/concept/priceBands'
 import {
   type PhonePreviewJourney,
 } from '@/lib/concept/journey'
-import { respondentDesignLabel } from '@/lib/concept/designLetters'
 import { CONCEPT_ANCHORS } from '@/lib/concept/validity'
 import {
   brandQuestionClosedLine,
@@ -259,6 +265,7 @@ export default function SingleTestJourneySection({
   const why = whyFollowupAsked(screens)
   const screenerCount = pairedScreenerCountLabel(counts)
   const brandStart = 9
+  const lengthLabel = journeyLengthLabel(journey)
 
   function toggleStep(id: string) {
     setOpenKey((current) => (current === id ? null : id))
@@ -282,22 +289,42 @@ export default function SingleTestJourneySection({
       <h2 className="cb-section-title" style={sectionTitle}>
         Questions
       </h2>
-      <p style={sectionHelp}>
+      <p style={{ ...sectionHelp, marginBottom: 8 }}>
         They qualify, react to each design, choose, and say why. Then they rank the field and
         name a price. Your questions come after that.
       </p>
+      <p className="cb-questions-length">
+        {lengthLabel ?? (journeyError ? 'Length unavailable' : 'Building length…')}
+      </p>
+      {journey?.field_issues.length ? (
+        <ul className="cb-length-issues">
+          {journey.field_issues.map((c) => (
+            <li key={c}>{fieldIssueLabel(c)}</li>
+          ))}
+        </ul>
+      ) : null}
+      <div className="cb-questions-tools">
+        <button
+          type="button"
+          className="cb-quiet-action"
+          disabled={!canPreview}
+          onClick={onPreview}
+        >
+          Preview
+        </button>
+        {!canPreview ? (
+          <span className="cb-questions-tools-note">Opens when the study is ready to publish.</span>
+        ) : null}
+        {journeyError && journey ? (
+          <span className="cb-questions-tools-note">
+            Outline from fixture until live preview is ready.
+          </span>
+        ) : null}
+      </div>
 
       <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) minmax(260px, 320px)',
-          gap: 20,
-          alignItems: 'start',
-        }}
+        style={{ opacity: disabled ? 0.55 : 1, pointerEvents: disabled ? 'none' : 'auto' }}
       >
-        <div
-          style={{ opacity: disabled ? 0.55 : 1, pointerEvents: disabled ? 'none' : 'auto' }}
-        >
         <div className="cb-acc-list">
           <AccordionRow
             id="how_often"
@@ -503,7 +530,9 @@ export default function SingleTestJourneySection({
                 key={question.localId}
                 id={rowId}
                 index={String(brandStart + qi)}
-                title="Your question"
+                title={
+                  brandQuestions.length > 1 ? `Your question ${qi + 1}` : 'Your question'
+                }
                 line={line}
                 countLabel={brandQuestionScreenLabel(brandQuestions.length, counts)}
                 open={openKey === rowId}
@@ -560,35 +589,26 @@ export default function SingleTestJourneySection({
           <AccordionRow
             id="success"
             index={null}
-            title="What does success look like?"
+            title="When do you win?"
             line={lineFor('success')}
             countLabel={null}
             mark={journeyStepDone('success', draft)}
             open={openKey === 'success'}
-            measures="Clearing bars for head-to-head, liking, and price."
+            measures="Set the bar for the report. Shoppers never see these."
             onToggle={() => toggleStep('success')}
             rowRef={bindRow('success')}
           >
             <SuccessBarsEditor
               bars={bars}
-              hasCurrentPack={draft.conceptArms.some(
-                (a) => a.benchmark_role === 'current_pack'
-              )}
+              priceLabel={
+                formatPriceDisplay(
+                  normalizeExpectedPrice(config.expected_price) || config.price_display
+                ) || null
+              }
               onChange={patchBars}
             />
           </AccordionRow>
         </div>
-        </div>
-
-        <aside style={{ position: 'sticky', top: 88 }}>
-          <JourneyOutlinePanel
-            journey={journey}
-            journeyError={journeyError}
-            conceptArms={draft.conceptArms}
-            canPreview={canPreview}
-            onPreview={onPreview}
-          />
-        </aside>
       </div>
     </section>
   )
@@ -630,11 +650,8 @@ function journeyLengthLabel(journey: PhonePreviewJourney | null): string | null 
     total_min === total_max
       ? `${total_min} ${total_min === 1 ? 'screen' : 'screens'}`
       : `${total_min}–${total_max} screens`
-  const minutes = journey.estimated_minutes
-  if (!minutes) return screens
-  const minuteLabel =
-    minutes.min === minutes.max ? `~${minutes.min} min` : `~${minutes.min}–${minutes.max} min`
-  return `${screens} · ${minuteLabel}`
+  // Conservative shopper estimate — the live preview minutes run low.
+  return `${screens} · ~6 min`
 }
 
 function fieldIssueLabel(code: string): string {
@@ -644,11 +661,12 @@ function fieldIssueLabel(code: string): string {
     case 'FIELD_TOO_LARGE':
       return 'Field is too large'
     case 'BENCHMARK_REQUIRED':
-      return 'Mark a benchmark'
     case 'TOO_MANY_BENCHMARKS':
-      return 'Only one benchmark allowed'
+    case 'BENCHMARK_RETIRED':
+      return 'This study type no longer uses a benchmark'
     case 'NOTHING_TO_TEST':
-      return 'Add a design that isn’t the benchmark'
+    case 'DESIGN_REQUIRED':
+      return 'Add at least one design'
     case 'IMAGE_REQUIRED':
       return 'Every design and competitor needs an image.'
     default:
@@ -659,109 +677,6 @@ function fieldIssueLabel(code: string): string {
   }
 }
 
-/** Length and preview. The accordion is the order. */
-function JourneyOutlinePanel({
-  journey,
-  journeyError,
-  conceptArms,
-  canPreview,
-  onPreview,
-}: {
-  journey: PhonePreviewJourney | null
-  journeyError: string | null
-  conceptArms: ConceptStudyDraft['conceptArms']
-  canPreview: boolean
-  onPreview?: () => void
-}) {
-  const lengthLabel = journeyLengthLabel(journey)
-
-  return (
-    <div
-      style={{
-        border: '1px solid var(--ink-10)',
-        borderRadius: 'var(--r-md)',
-        padding: 16,
-        background: 'var(--surface-1)',
-      }}
-    >
-      <div style={{ ...labelSm, marginBottom: 8 }}>Length</div>
-      <p className="cb-length-line">
-        {lengthLabel ?? (journeyError ? 'Length unavailable' : 'Building length…')}
-      </p>
-
-      {journey?.field_issues.length ? (
-        <ul className="cb-length-issues">
-          {journey.field_issues.map((c) => (
-            <li key={c}>{fieldIssueLabel(c)}</li>
-          ))}
-        </ul>
-      ) : null}
-
-      <button
-        type="button"
-        className="cb-btn cb-btn-secondary"
-        style={{ width: '100%', marginTop: 14 }}
-        disabled={!canPreview}
-        onClick={onPreview}
-      >
-        Preview
-      </button>
-      {!canPreview ? (
-        <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--ink-50)', lineHeight: 1.4 }}>
-          Opens when the study is ready to publish.
-        </p>
-      ) : null}
-
-      {journeyError && journey ? (
-        <p style={{ margin: '12px 0 0', fontSize: 11, color: 'var(--ink-30)', lineHeight: 1.4 }}>
-          Outline from fixture until live preview is ready.
-        </p>
-      ) : null}
-
-      {conceptArms.length > 0 ? (
-        <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--ink-10)' }}>
-          <div style={{ ...labelSm, marginBottom: 6 }}>Respondents see</div>
-          <ul
-            style={{
-              margin: 0,
-              padding: 0,
-              listStyle: 'none',
-              fontSize: 12,
-              color: 'var(--ink-50)',
-            }}
-          >
-            {conceptArms.map((arm, i) => (
-              <li
-                key={arm.localId}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: 8,
-                  padding: '5px 0',
-                }}
-              >
-                <span
-                  style={{
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {arm.display_name.trim() || 'Untitled'}
-                </span>
-                <strong style={{ color: 'var(--ink-80)', flexShrink: 0 }}>
-                  {respondentDesignLabel(i)}
-                </strong>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
-
 function BrandQuestionEditor({
   question,
   onChange,
@@ -771,42 +686,123 @@ function BrandQuestionEditor({
   onChange: (q: BrandQuestionDraft) => void
   onRemove: () => void
 }) {
+  const several = brandQuestionKind(question) === 'pick_several'
+  const filled = question.options.map((o) => o.trim()).filter(Boolean)
+  const duplicate =
+    filled.length >= 2 && new Set(filled.map((o) => o.toLowerCase())).size < filled.length
+  const promptLen = question.prompt.trim().length
+  const promptHint =
+    promptLen > 0 && promptLen < 8
+      ? 'Use at least 8 characters.'
+      : promptLen > 140
+        ? 'Keep it under 140 characters.'
+        : null
+
+  function setOptions(options: string[]) {
+    onChange(withBrandQuestionOptions(question, options))
+  }
+
   return (
-    <div>
-      <input
-        className="cb-input"
-        value={question.prompt}
-        placeholder="Question prompt (8–140 characters)"
-        onChange={(e) => onChange({ ...question, prompt: e.target.value })}
-        style={{ ...inputBase, marginBottom: 8 }}
-      />
-      {question.options.map((opt, i) => (
+    <div className="cb-bq">
+      <div className="cb-bq-block">
+        <label style={labelSm} htmlFor={`bq-prompt-${question.localId}`}>
+          Question
+        </label>
         <input
-          key={i}
+          id={`bq-prompt-${question.localId}`}
           className="cb-input"
-          value={opt}
-          placeholder={`Option ${i + 1}`}
-          onChange={(e) => {
-            const options = [...question.options]
-            options[i] = e.target.value
-            onChange({ ...question, options })
-          }}
-          style={{ ...inputBase, marginBottom: 6 }}
+          value={question.prompt}
+          placeholder="Ask something shoppers can answer about the designs"
+          onChange={(e) => onChange({ ...question, prompt: e.target.value })}
+          style={{ ...inputBase, marginTop: 8 }}
         />
-      ))}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div className="cb-bq-starters" aria-label="Question starters">
+          {BRAND_QUESTION_STARTERS.map((starter) => {
+            const active = question.prompt.trim() === starter
+            return (
+              <button
+                key={starter}
+                type="button"
+                className={`cb-bq-starter${active ? ' is-active' : ''}`}
+                aria-pressed={active}
+                onClick={() => onChange({ ...question, prompt: starter })}
+              >
+                {starter}
+              </button>
+            )
+          })}
+        </div>
+        {promptHint ? (
+          <p role="alert" className="cb-bq-hint is-error">
+            {promptHint}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="cb-bq-block">
+        <div style={{ ...labelSm, marginBottom: 8 }}>Answers</div>
+        <div className="cb-bq-options">
+          {question.options.map((opt, i) => (
+            <div className="cb-bq-option" key={i}>
+              <span className="cb-bq-option-index" aria-hidden="true">
+                {i + 1}
+              </span>
+              <input
+                className="cb-input"
+                value={opt}
+                placeholder={`Answer ${i + 1}`}
+                aria-label={`Answer ${i + 1}`}
+                onChange={(e) => {
+                  const options = [...question.options]
+                  options[i] = e.target.value
+                  setOptions(options)
+                }}
+                style={inputBase}
+              />
+              {question.options.length > 2 ? (
+                <button
+                  type="button"
+                  className="cb-quiet-action"
+                  aria-label={`Remove answer ${i + 1}`}
+                  onClick={() => setOptions(question.options.filter((_, j) => j !== i))}
+                >
+                  Remove
+                </button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+        {duplicate ? (
+          <p role="alert" className="cb-bq-hint is-error">
+            Each answer needs to be different.
+          </p>
+        ) : null}
         {question.options.length < 8 ? (
           <button
             type="button"
-            className="cb-quiet-action"
-            onClick={() => onChange({ ...question, options: [...question.options, ''] })}
+            className="cb-quiet-action cb-bq-add-answer"
+            onClick={() => setOptions([...question.options, ''])}
           >
-            Add option
+            Add answer
           </button>
         ) : null}
-        <button type="button" className="cb-quiet-action" onClick={onRemove}>
-          Remove question
-        </button>
+        <p className="cb-bq-select">
+          {several ? 'Shoppers can pick more than one.' : 'Shoppers pick one.'}{' '}
+          <button
+            type="button"
+            className="cb-quiet-action"
+            onClick={() =>
+              onChange(withBrandQuestionKind(question, several ? 'pick_one' : 'pick_several'))
+            }
+          >
+            {several ? 'Pick one instead' : 'Allow more than one'}
+          </button>
+        </p>
+        <div className="cb-bq-actions">
+          <button type="button" className="cb-quiet-action" onClick={onRemove}>
+            Remove question
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -814,137 +810,79 @@ function BrandQuestionEditor({
 
 function SuccessBarsEditor({
   bars,
-  hasCurrentPack,
+  priceLabel,
   onChange,
 }: {
   bars: SuccessBarsDraft
-  hasCurrentPack: boolean
+  priceLabel: string | null
   onChange: (b: SuccessBarsDraft) => void
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div className="cb-win">
       <BarRow
-        label="Head-to-head win share"
+        sentence={headToHeadWinSentence(bars.h2h)}
         doughDefault="50%"
         state={bars.h2h}
         onDefault={() => onChange({ ...bars, h2h: { kind: 'default' } })}
         onOff={() => onChange({ ...bars, h2h: { kind: 'off' } })}
         onCustom={(v) => onChange({ ...bars, h2h: { kind: 'custom', value: v } })}
-        min={0}
-        max={1}
-        step={0.01}
       />
       <BarRow
-        label="Would pay at your price"
+        sentence={priceWinSentence(bars.price, priceLabel)}
         doughDefault="50%"
         state={bars.price}
         onDefault={() => onChange({ ...bars, price: { kind: 'default' } })}
         onOff={() => onChange({ ...bars, price: { kind: 'off' } })}
         onCustom={(v) => onChange({ ...bars, price: { kind: 'custom', value: v } })}
-        min={0}
-        max={1}
-        step={0.01}
       />
-      <div>
-        <div style={labelSm}>Liking</div>
-        <select
-          className="cb-input"
-          value={
-            bars.likingMode.kind === 'custom'
-              ? bars.likingMode.value
-              : bars.likingMode.kind === 'off'
-                ? 'off'
-                : 'default'
-          }
-          onChange={(e) => {
-            const v = e.target.value
-            if (v === 'default') {
-              onChange({ ...bars, likingMode: { kind: 'default' } })
-            } else if (v === 'off') {
-              onChange({ ...bars, likingMode: { kind: 'off' } })
-            } else if (v === 'vs_current_pack' && !hasCurrentPack) {
-              onChange({
-                ...bars,
-                likingMode: { kind: 'custom', value: 'absolute' },
-              })
-            } else {
-              onChange({
-                ...bars,
-                likingMode: {
-                  kind: 'custom',
-                  value: v as 'vs_current_pack' | 'absolute' | 'off',
-                },
-              })
-            }
-          }}
-          style={inputBase}
-        >
-          <option value="default">Dough default (vs current pack)</option>
-          <option value="vs_current_pack" disabled={!hasCurrentPack}>
-            vs current pack{!hasCurrentPack ? ' (needs current-pack benchmark)' : ''}
-          </option>
-          <option value="absolute">Absolute top-two</option>
-          <option value="off">Off</option>
-        </select>
-      </div>
     </div>
   )
 }
 
 function BarRow({
-  label,
+  sentence,
   doughDefault,
   state,
   onDefault,
   onOff,
   onCustom,
-  min,
-  max,
-  step,
 }: {
-  label: string
+  sentence: string
   doughDefault: string
   state: SuccessBarsDraft['h2h']
   onDefault: () => void
   onOff: () => void
   onCustom: (v: number) => void
-  min: number
-  max: number
-  step: number
 }) {
-  const value = state.kind === 'custom' ? state.value : (min + max) / 2
+  const value = state.kind === 'custom' ? state.value : 0.5
+  const shown =
+    state.kind === 'off'
+      ? 'Off'
+      : state.kind === 'default'
+        ? doughDefault
+        : `${Math.round(state.value * 100)}%`
+
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-        <span style={labelSm}>{label}</span>
-        {state.kind === 'custom' ? (
-          <span style={{ fontSize: 11, color: 'var(--ink-50)' }}>
-            Dough default: {doughDefault}
-          </span>
-        ) : null}
-      </div>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+    <div className="cb-win-bar">
+      <p className="cb-win-sentence">{sentence}</p>
+      <div className="cb-win-bar-controls">
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={value}
+          aria-label={sentence}
+          disabled={state.kind === 'off'}
+          onChange={(e) => onCustom(Number(e.target.value))}
+        />
+        <strong className="cb-win-bar-value">{shown}</strong>
         <button type="button" className="cb-quiet-action" onClick={onDefault}>
-          Default
+          Use {doughDefault}
         </button>
         <button type="button" className="cb-quiet-action" onClick={onOff}>
           Off
         </button>
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onCustom(Number(e.target.value))}
-        />
-        <span style={{ fontSize: 12 }}>
-          {state.kind === 'off'
-            ? 'Off'
-            : state.kind === 'default'
-              ? doughDefault
-              : `${Math.round(state.value * 100)}%`}
-        </span>
       </div>
     </div>
   )

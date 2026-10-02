@@ -265,9 +265,50 @@ export function isDerivedCategoryPlural(
   return v === categoryPluralFromNodeName(nodeNameDisplay)
 }
 
+const CONCEPT_TEST_SUFFIX = /\s*concept test$/i
+
+/**
+ * Shopper-facing study title from a category display name.
+ * Display casing is kept; wording for in-question copy stays lowercased separately.
+ */
+export function conceptStudyTitle(nodeNameDisplay: string | null | undefined): string {
+  const name = (nodeNameDisplay ?? '').trim()
+  if (!name) return ''
+  if (CONCEPT_TEST_SUFFIX.test(name)) return name
+  return `${name} concept test`
+}
+
+/**
+ * Empty, or equal to what that node would produce. A non-empty title with no
+ * node is the brand's — a slow taxonomy fetch must not wipe a saved name.
+ */
+export function isDerivedStudyTitle(
+  title: string,
+  nodeNameDisplay: string | null | undefined
+): boolean {
+  const v = title.trim()
+  if (!v) return true
+  if (!nodeNameDisplay?.trim()) return false
+  return v === conceptStudyTitle(nodeNameDisplay)
+}
+
+/**
+ * Next title after a category select or clear. Typed titles are never overwritten.
+ */
+export function titleAfterCategory(
+  title: string,
+  previousNodeName: string | null | undefined,
+  nextNodeName: string | null | undefined
+): string {
+  if (!isDerivedStudyTitle(title, previousNodeName)) return title
+  if (!nextNodeName?.trim()) return ''
+  return conceptStudyTitle(nextNodeName)
+}
+
 /**
  * Rehydrate category-derived state once the taxonomy node resolves. Returns the
  * same object identity when nothing changes, so callers can skip the write.
+ * Fills an empty title; leaves a typed title alone.
  */
 export function rehydrateCategoryDerived(
   draft: ConceptStudyDraft,
@@ -275,6 +316,9 @@ export function rehydrateCategoryDerived(
 ): ConceptStudyDraft {
   if (draft.taxonomyNodeId == null) return draft
   const config = withDerivedCategoryPlural(draft.templateConfig, nodeNameDisplay)
-  if (config === draft.templateConfig) return draft
-  return { ...draft, templateConfig: config }
+  const title = draft.title.trim()
+    ? draft.title
+    : conceptStudyTitle(nodeNameDisplay) || draft.title
+  if (config === draft.templateConfig && title === draft.title) return draft
+  return { ...draft, templateConfig: config, title }
 }

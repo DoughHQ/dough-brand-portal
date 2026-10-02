@@ -88,12 +88,9 @@ export type ConceptArmRow = {
   /** Draft-only display name for the uploader filled state. */
   image_filename: string | null
   stimulus_payload: Record<string, unknown>
-  /**
-   * Single-test only. Current pack is a concept arm with battle_intent competitor
-   * + benchmark_role current_pack. Default hero when unset (legacy).
-   */
+  /** Default hero. Concept treats every design as an equal field seat. */
   battle_intent?: BattleIntent
-  /** Single-test only — at most one across the whole field. */
+  /** Legacy — cleared on hydrate; never sent on publish. */
   benchmark_role?: 'current_pack' | null
 }
 
@@ -138,7 +135,7 @@ export type ProductCompetitorRow = {
    * Undefined on legacy drafts — treated as confirmed when upc is present.
    */
   identityConfirmed?: boolean
-  /** Single-test only — at most one across the whole field. */
+  /** Legacy — cleared on hydrate; never sent on publish. */
   benchmark_role?: 'competitor_to_beat' | null
 }
 
@@ -256,12 +253,12 @@ export type ConceptPublishConcept = {
   frozen_price: string | null
   stimulus_payload: Record<string, unknown>
   /**
-   * Usually hero. Single-test current pack is competitor + benchmark_role.
+   * Usually hero. Concept sends every design as an equal field seat.
    */
   battle_intent: 'hero' | 'competitor'
   /** Only for non-package escape hatch when p_questions is sent. Single-test always package. */
   stimulus_type?: StimulusMode
-  /** Single-test — current_pack on exactly one concept arm when used. */
+  /** Legacy — never sent on publish. */
   benchmark_role?: 'current_pack'
 }
 
@@ -276,7 +273,7 @@ export type ConceptPublishProduct = {
   market_reference_price: string | null
   battle_intent: 'competitor'
   upc: string
-  /** Single-test — competitor_to_beat on at most one product. */
+  /** Legacy — never sent on publish. */
   benchmark_role?: 'competitor_to_beat'
 }
 

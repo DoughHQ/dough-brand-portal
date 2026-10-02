@@ -193,26 +193,19 @@ describe('journey accordion', () => {
     expect(whyFollowupCountLabel(null)).toBeNull()
   })
 
-  it('ranks the field as design letters, with the current pack named', () => {
+  it('ranks the field as design letters only', () => {
     const draft = createEmptyConceptDraft({
-      conceptArms: [
-        newConceptArm(0),
-        { ...newConceptArm(1), benchmark_role: 'current_pack' },
-        newConceptArm(2),
-      ],
+      conceptArms: [newConceptArm(0), newConceptArm(1), newConceptArm(2)],
     })
     expect(journeyAsked('rank', draft, null)[0]).toEqual({
       prompt: 'Put them in order, your favorite at the top.',
-      items: ['Design A', 'Design B, your current pack', 'Design C'],
+      items: ['Design A', 'Design B', 'Design C'],
     })
   })
 
   it('ranks every chosen competitor with the designs', () => {
     const draft = createEmptyConceptDraft({
-      conceptArms: [
-        newConceptArm(0),
-        { ...newConceptArm(1), benchmark_role: 'current_pack' },
-      ],
+      conceptArms: [newConceptArm(0), newConceptArm(1)],
       products: [
         {
           ...newProductCompetitor(),
@@ -225,20 +218,17 @@ describe('journey accordion', () => {
     })
     expect(journeyAsked('rank', draft, null)[0]?.items).toEqual([
       'Design A',
-      'Design B, your current pack',
+      'Design B',
       "Ben & Jerry's Half Baked",
     ])
   })
 
-  it('keeps the current pack’s letter when it leads the field', () => {
+  it('keeps letter order when the field has two designs', () => {
     const draft = createEmptyConceptDraft({
-      conceptArms: [
-        { ...newConceptArm(0), benchmark_role: 'current_pack' },
-        newConceptArm(1),
-      ],
+      conceptArms: [newConceptArm(0), newConceptArm(1)],
     })
     expect(journeyAsked('rank', draft, null)[0]?.items).toEqual([
-      'Design A, your current pack',
+      'Design A',
       'Design B',
     ])
   })
@@ -289,6 +279,17 @@ describe('journey accordion', () => {
     expect(brandQuestionScreenLabel(2, { ...counts, brand_questions: 2 })).toBe('1 screen')
     expect(brandQuestionScreenLabel(2, { ...counts, brand_questions: 1 })).toBeNull()
     expect(brandQuestionScreenLabel(1, null)).toBeNull()
+
+    const several = {
+      ...emptyBrandQuestion(),
+      prompt: 'Which looks most premium?',
+      options: ['A', 'B'],
+      max_select: 2,
+    }
+    expect(brandQuestionClosedLine(several)).toEqual({
+      kind: 'question',
+      text: 'Which looks most premium?',
+    })
   })
 
   it('keeps the optional parenthetical on the open-text question respondents see', () => {

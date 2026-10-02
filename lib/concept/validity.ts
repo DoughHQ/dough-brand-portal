@@ -326,30 +326,6 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     })
   }
 
-  {
-    const armBench = draft.conceptArms.filter((a) => a.benchmark_role === 'current_pack')
-    const prodBench = draft.products.filter(
-      (p) => p.benchmark_role === 'competitor_to_beat'
-    )
-    const benchCount = armBench.length + prodBench.length
-    if (benchCount === 0) {
-      const msg = 'Mark exactly one benchmark (current pack or competitor to beat).'
-      reasons.push(msg)
-      outstanding.push({ message: msg, anchor: 'concept-field' })
-    } else if (benchCount > 1) {
-      const msg = 'Only one benchmark is allowed.'
-      reasons.push(msg)
-      outstanding.push({ message: msg, anchor: 'concept-field' })
-    } else if (armBench.length === 1) {
-      const nonBench = draft.conceptArms.filter((a) => a.benchmark_role !== 'current_pack')
-      if (nonBench.length < 1) {
-        const msg = 'Keep at least one of your designs that is not the benchmark.'
-        reasons.push(msg)
-        outstanding.push({ message: msg, anchor: 'concept-field' })
-      }
-    }
-  }
-
   const minCompletions = 30
   if (!draft.targetCompletions || draft.targetCompletions < minCompletions) {
     const msg = 'Set target completions to at least 30.'
@@ -443,13 +419,6 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     }
   }
 
-  const singleTestBenchCount =
-    draft.conceptArms.filter((a) => a.benchmark_role === 'current_pack').length +
-    draft.products.filter((p) => p.benchmark_role === 'competitor_to_beat').length
-  const singleTestNonBenchArm = draft.conceptArms.some(
-    (a) => a.benchmark_role !== 'current_pack'
-  )
-
   const readyToPublish =
     modeOk &&
     categoryOk &&
@@ -459,9 +428,7 @@ export function evaluateFieldValidity(draft: ConceptStudyDraft): FieldValidity {
     audienceOk &&
     draft.targetCompletions >= 30 &&
     fieldingDaysMessage(draft.fieldingDays) == null &&
-    hasVerificationScreener &&
-    singleTestBenchCount === 1 &&
-    singleTestNonBenchArm
+    hasVerificationScreener
 
   return {
     competitorCount: total,

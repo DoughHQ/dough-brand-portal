@@ -60,10 +60,14 @@ export const CONCEPT_PUBLISH_HINT_MESSAGES: Record<string, string> = {
   DECOY_REQUIRED: 'Add a fake brand name for the attention check.',
   DECOY_IS_REAL_BRAND: 'That decoy matches a real brand — pick a made-up name.',
   DECOY_LABEL_MISMATCH: 'Decoy label must match the decoy option.',
-  BENCHMARK_REQUIRED: 'Mark exactly one benchmark (current pack or competitor to beat).',
+  BENCHMARK_REQUIRED:
+    'This study type no longer uses a benchmark.',
+  BENCHMARK_RETIRED:
+    'This study type no longer uses a benchmark. Remove current pack / to-beat marks.',
   TOO_MANY_BENCHMARKS: 'Only one benchmark is allowed.',
   INVALID_BENCHMARK_ROLE: "That benchmark role isn't valid.",
-  NOTHING_TO_TEST: 'Keep at least one of your designs that is not the benchmark.',
+  NOTHING_TO_TEST: 'Add at least one design.',
+  DESIGN_REQUIRED: 'Add at least one design.',
   BATTLE_PROMPT_CONFLICT: 'Use a vetted prompt or write your own — not both.',
   UNKNOWN_BATTLE_PROMPT: "That battle prompt isn't recognized.",
   INVALID_BATTLE_PROMPT: 'Custom battle prompts must be 8–120 characters and end with ?.',
@@ -76,7 +80,9 @@ export const CONCEPT_PUBLISH_HINT_MESSAGES: Record<string, string> = {
   H2H_BAR_OUT_OF_RANGE: 'Head-to-head bar must be between 0% and 100%.',
   PRICE_BAR_OUT_OF_RANGE: 'Price bar must be between 0% and 100%.',
   LIKING_NEEDS_CURRENT_PACK:
-    'Liking vs current pack needs a current-pack benchmark.',
+    'Liking vs current pack is not used for concept studies.',
+  LIKING_MODE_RETIRED:
+    'Liking against a current pack is retired. Turn liking off, or use an absolute share.',
   LIKING_THRESHOLD_REQUIRED: 'Absolute liking needs a threshold.',
   LIKING_BAR_OUT_OF_RANGE: 'That liking threshold is out of range.',
   INVALID_SUCCESS_BARS: 'Check the success bars.',
@@ -245,9 +251,11 @@ function sectionForCode(code: string): ConceptErrorSection {
     code === 'INVALID_PRICE_POSTURE' ||
     code === 'CONCEPT_STIMULUS_MISMATCH' ||
     code === 'BENCHMARK_REQUIRED' ||
+    code === 'BENCHMARK_RETIRED' ||
     code === 'TOO_MANY_BENCHMARKS' ||
     code === 'INVALID_BENCHMARK_ROLE' ||
     code === 'NOTHING_TO_TEST' ||
+    code === 'DESIGN_REQUIRED' ||
     code === 'IMAGE_REQUIRED' ||
     code === 'CORE_REQUIRES_PACKAGE_STIMULUS' ||
     code === 'CORE_REQUIRES_BLIND'

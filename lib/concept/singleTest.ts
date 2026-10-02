@@ -49,6 +49,41 @@ export type BrandQuestionDraft = {
   max_select: number
 }
 
+/** How shoppers answer. Wire uses max_select: 1 vs all options. */
+export type BrandQuestionKind = 'pick_one' | 'pick_several'
+
+export const BRAND_QUESTION_STARTERS = [
+  'Which looks most premium?',
+  'Which would you buy?',
+  'Which feels most like your brand?',
+] as const
+
+export function brandQuestionKind(question: BrandQuestionDraft): BrandQuestionKind {
+  return question.max_select > 1 ? 'pick_several' : 'pick_one'
+}
+
+export function brandQuestionTypeLabel(question: BrandQuestionDraft): string {
+  return brandQuestionKind(question) === 'pick_several' ? 'Pick several' : 'Pick one'
+}
+
+export function withBrandQuestionKind(
+  question: BrandQuestionDraft,
+  kind: BrandQuestionKind
+): BrandQuestionDraft {
+  if (kind === 'pick_one') return { ...question, max_select: 1 }
+  return { ...question, max_select: Math.max(2, question.options.length) }
+}
+
+/** Keep pick-several max_select aligned with the answer list as options change. */
+export function withBrandQuestionOptions(
+  question: BrandQuestionDraft,
+  options: string[]
+): BrandQuestionDraft {
+  const next = { ...question, options }
+  if (brandQuestionKind(question) === 'pick_one') return next
+  return { ...next, max_select: Math.max(2, options.length) }
+}
+
 /** Per-bar UI state — wire: absent | null | value */
 export type SuccessBarState<T> =
   | { kind: 'default' }
@@ -69,7 +104,8 @@ export function defaultSuccessBarsDraft(): SuccessBarsDraft {
   return {
     h2h: { kind: 'default' },
     price: { kind: 'default' },
-    likingMode: { kind: 'default' },
+    // Concept has no current pack — liking stays off until absolute bars land.
+    likingMode: { kind: 'off' },
     likingThreshold: { kind: 'default' },
   }
 }
@@ -89,6 +125,50 @@ export function emptyBrandQuestion(): BrandQuestionDraft {
 /** Prefill decoy — not a real brand; check_concept_decoy still validates. */
 export const DEFAULT_DECOY_OPTION = 'Frostline'
 
+const DOUGH_SHARE_DEFAULT = 0.5
+
+/** Percent for a share bar. Null when the bar is off. */
+export function successSharePercent(
+  state: SuccessBarState<number>,
+  doughDefault = DOUGH_SHARE_DEFAULT
+): number | null {
+  if (state.kind === 'off') return null
+  if (state.kind === 'default') return Math.round(doughDefault * 100)
+  return Math.round(state.value * 100)
+}
+
+export function headToHeadWinSentence(state: SuccessBarState<number>): string {
+  const pct = successSharePercent(state)
+  if (pct == null) return 'Head-to-head is off for the verdict.'
+  return `You win the field when you take at least ${pct}% of head-to-heads.`
+}
+
+/**
+ * priceLabel is the formatted anchor ("$7.99") when the brand has set one.
+ */
+export function priceWinSentence(
+  state: SuccessBarState<number>,
+  priceLabel: string | null | undefined
+): string {
+  const pct = successSharePercent(state)
+  if (pct == null) return 'Price is off for the verdict.'
+  const price = (priceLabel ?? '').trim()
+  if (price) {
+    return `You win on price when at least ${pct}% say they would pay ${price} or more.`
+  }
+  return `You win on price when at least ${pct}% say they would pay your price or more.`
+}
+
+export function likingWinSentence(
+  likingMode: SuccessBarState<LikingMode>
+): string {
+  if (likingMode.kind === 'off') return 'Liking is off for the verdict.'
+  if (likingMode.kind === 'custom' && likingMode.value === 'absolute') {
+    return 'You win on liking when enough shoppers put it in the top two on first look.'
+  }
+  return 'Liking is off for the verdict.'
+}
+
 /**
  * Build success_bars wire object.
  * Each key: omitted (default), null (off), or value (custom).
@@ -106,28 +186,10 @@ export function successBarsToWire(
     out.price_min_share_at_anchor = bars.price.value
   }
 
-  if (bars.likingMode.kind === 'off') {
-    out.liking_mode = 'off'
-  } else if (bars.likingMode.kind === 'custom') {
-    out.liking_mode = bars.likingMode.value
-    if (bars.likingMode.value === 'absolute') {
-      if (bars.likingThreshold.kind === 'custom') {
-        out.liking_threshold = bars.likingThreshold.value
-      }
-    } else if (bars.likingMode.value === 'vs_current_pack') {
-      if (bars.likingThreshold.kind === 'custom') {
-        out.liking_threshold = bars.likingThreshold.value
-      } else if (bars.likingThreshold.kind === 'off') {
-        out.liking_threshold = null
-      }
-    }
-  } else if (bars.likingThreshold.kind === 'custom') {
-    out.liking_threshold = bars.likingThreshold.value
-  } else if (bars.likingThreshold.kind === 'off') {
-    out.liking_threshold = null
-  }
+  // Concept verdicts are field + price. Never send vs_current_pack.
+  out.liking_mode = 'off'
 
-  return Object.keys(out).length > 0 ? out : undefined
+  return out
 }
 
 export function brandQuestionsToWire(
@@ -137,8 +199,12 @@ export function brandQuestionsToWire(
     .map((q) => {
       const prompt = q.prompt.trim()
       const options = q.options.map((o) => o.trim()).filter(Boolean)
-      const max_select = Math.max(1, Math.min(options.length, q.max_select || 1))
-      return { prompt, options, ...(max_select > 1 ? { max_select } : {}) }
+      if (prompt.length < 8 || options.length < 2) return null
+      // Pick several → every answer is allowed. Pick one → omit max_select (defaults to 1).
+      if (brandQuestionKind(q) === 'pick_several') {
+        return { prompt, options, max_select: options.length }
+      }
+      return { prompt, options }
     })
-    .filter((q) => q.prompt.length >= 8 && q.options.length >= 2)
+    .filter((q): q is { prompt: string; options: string[]; max_select?: number } => q != null)
 }

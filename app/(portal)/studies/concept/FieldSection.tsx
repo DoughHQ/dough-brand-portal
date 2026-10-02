@@ -51,7 +51,7 @@ type Props = {
   publishFailure?: ConceptPublishFailure | null
   disabled?: boolean
   disabledReason?: string | null
-  /** Single concept test — benchmark controls, no floor rewrite. */
+  /** Single concept test — equal concepts and competitors; no hero rewrite. */
   singleTestMode?: boolean
 }
 
@@ -90,51 +90,6 @@ export default function FieldSection({
         }
       : draft.floor
     onChange({ ...draft, conceptArms: arms, floor })
-  }
-
-  function setCurrentPack(localId: string) {
-    const arms = draft.conceptArms.map((a) =>
-      a.localId === localId
-        ? {
-            ...a,
-            benchmark_role: 'current_pack' as const,
-            battle_intent: 'competitor' as const,
-          }
-        : { ...a, benchmark_role: null }
-    )
-    const products = draft.products.map((p) => ({ ...p, benchmark_role: null }))
-    onChange({ ...draft, conceptArms: arms, products })
-  }
-
-  function clearArmBenchmark(localId: string) {
-    const arms = draft.conceptArms.map((a) =>
-      a.localId === localId
-        ? { ...a, benchmark_role: null, battle_intent: 'hero' as const }
-        : a
-    )
-    onChange({ ...draft, conceptArms: arms })
-  }
-
-  function setCompetitorToBeat(localId: string) {
-    const products = draft.products.map((p) =>
-      p.localId === localId
-        ? { ...p, benchmark_role: 'competitor_to_beat' as const }
-        : { ...p, benchmark_role: null }
-    )
-    const arms = draft.conceptArms.map((a) => ({
-      ...a,
-      benchmark_role: null,
-      battle_intent:
-        a.benchmark_role === 'current_pack' ? ('hero' as const) : a.battle_intent,
-    }))
-    onChange({ ...draft, conceptArms: arms, products })
-  }
-
-  function clearProductBenchmark(localId: string) {
-    const products = draft.products.map((p) =>
-      p.localId === localId ? { ...p, benchmark_role: null } : p
-    )
-    onChange({ ...draft, products })
   }
 
   function updateProducts(products: ProductCompetitorRow[]) {
@@ -267,8 +222,6 @@ export default function FieldSection({
             addVariant={addVariantAvailability}
             disabled={disabled}
             singleTestMode={singleTestMode}
-            onSetCurrentPack={singleTestMode ? setCurrentPack : undefined}
-            onClearBenchmark={singleTestMode ? clearArmBenchmark : undefined}
           />
 
           <CompetitorsColumn
@@ -282,8 +235,6 @@ export default function FieldSection({
             disabled={disabled}
             rowErrors={conceptProductRowErrors(draft.products, publishFailure)}
             singleTestMode={singleTestMode}
-            onSetCompetitorToBeat={singleTestMode ? setCompetitorToBeat : undefined}
-            onClearBenchmark={singleTestMode ? clearProductBenchmark : undefined}
           />
         </div>
         {singleTestMode ? <FieldMembership draft={draft} /> : null}

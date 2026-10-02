@@ -16,6 +16,7 @@ import {
   modeSwitchConfirmTitle,
   planModeTransition,
   rehydrateCategoryDerived,
+  titleAfterCategory,
 } from '@/lib/concept/modeTransition'
 import {
   getTaxonomyNodeAction,
@@ -125,6 +126,7 @@ export default function StudyTypeSection({
     onChange({
       ...draft,
       taxonomyNodeId: n.taxonomy_node_id,
+      title: titleAfterCategory(draft.title, node?.node_name_display, n.node_name_display),
       templateConfig: {
         ...draft.templateConfig,
         category_plural: categoryPluralFromNodeName(n.node_name_display),
@@ -154,6 +156,7 @@ export default function StudyTypeSection({
     onChange({
       ...draft,
       taxonomyNodeId: null,
+      title: titleAfterCategory(draft.title, node?.node_name_display, null),
       templateConfig: {
         ...draft.templateConfig,
         category_plural: '',
@@ -201,7 +204,7 @@ export default function StudyTypeSection({
         Setup
       </h2>
       <p style={sectionHelp}>
-        Name the study, choose where it competes, and set how long it runs.
+        Choose where it competes, and set how long it runs.
       </p>
 
       {packagingOnly ? null : (
@@ -237,25 +240,6 @@ export default function StudyTypeSection({
 
       <div className="cb-setup-pair">
         <div>
-          <label style={labelSm} htmlFor="concept-study-name">
-            Study name
-          </label>
-          <input
-            id="concept-study-name"
-            className="cb-input"
-            value={draft.title}
-            onChange={(e) => onChange({ ...draft, title: e.target.value })}
-            placeholder="e.g. Midnight snack concept — Q3"
-            style={inputBase}
-          />
-          {showErrors && titleError ? (
-            <p role="alert" style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--cb-error)' }}>
-              {titleError}
-            </p>
-          ) : null}
-        </div>
-
-        <div>
           <CategoryCombobox
             selected={node}
             pendingNodeId={hasCategory && !node ? draft.taxonomyNodeId : null}
@@ -277,66 +261,85 @@ export default function StudyTypeSection({
             // footer's "Category phrasing is empty" blocker resolved to nothing while
             // the editor was collapsed — a dead anchor.
             <div id={templateFieldAnchor('category_plural')}>
-          {/* Questionnaire wording is an override, not a form field. The derived
-              value is correct by default, so it stays implicit until asked for. */}
-          {wordingOpen ? (
-            <div className="cb-wording-editor">
-              <label style={labelSm} htmlFor="category_plural_s0">
-                Questionnaire wording
-              </label>
-              <input
-                id="category_plural_s0"
-                className="cb-input"
-                value={wording}
-                onChange={(e) => setWording(e.target.value)}
-                onBlur={() => {
-                  if (!wording.trim() && node) {
-                    setWording(categoryPluralFromNodeName(node.node_name_display))
-                  }
-                }}
-                placeholder={node ? categoryPluralFromNodeName(node.node_name_display) : 'licorice'}
-                style={{ ...inputBase, maxWidth: 360 }}
-              />
-              <p className="cb-field-note">
-                Used where a respondent question needs the category name in a sentence.
-              </p>
-              <div className="cb-wording-actions">
-                {/* Edits land on the draft as they are typed, so this only
-                    collapses the editor. "Close" says that; "Done" implied a save. */}
-                <button type="button" className="cb-quiet-action" onClick={() => setWordingOpen(false)}>
-                  Close
+              {/* Questionnaire wording is an override, not a form field. The derived
+                  value is correct by default, so it stays implicit until asked for. */}
+              {wordingOpen ? (
+                <div className="cb-wording-editor">
+                  <label style={labelSm} htmlFor="category_plural_s0">
+                    Questionnaire wording
+                  </label>
+                  <input
+                    id="category_plural_s0"
+                    className="cb-input"
+                    value={wording}
+                    onChange={(e) => setWording(e.target.value)}
+                    onBlur={() => {
+                      if (!wording.trim() && node) {
+                        setWording(categoryPluralFromNodeName(node.node_name_display))
+                      }
+                    }}
+                    placeholder={node ? categoryPluralFromNodeName(node.node_name_display) : 'licorice'}
+                    style={{ ...inputBase, maxWidth: 360 }}
+                  />
+                  <p className="cb-field-note">
+                    Used where a respondent question needs the category name in a sentence.
+                  </p>
+                  <div className="cb-wording-actions">
+                    {/* Edits land on the draft as they are typed, so this only
+                        collapses the editor. "Close" says that; "Done" implied a save. */}
+                    <button type="button" className="cb-quiet-action" onClick={() => setWordingOpen(false)}>
+                      Close
+                    </button>
+                    {!isDefaultWording && node ? (
+                      <button
+                        type="button"
+                        className="cb-quiet-action"
+                        onClick={() => setWording(categoryPluralFromNodeName(node.node_name_display))}
+                      >
+                        Use default
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              ) : isDefaultWording ? (
+                <button
+                  type="button"
+                  className="cb-wording-trigger cb-quiet-action"
+                  onClick={() => setWordingOpen(true)}
+                >
+                  Edit questionnaire wording
                 </button>
-                {!isDefaultWording && node ? (
-                  <button
-                    type="button"
-                    className="cb-quiet-action"
-                    onClick={() => setWording(categoryPluralFromNodeName(node.node_name_display))}
-                  >
-                    Use default
+              ) : (
+                // A custom override is never hidden behind a bare link.
+                <p className="cb-wording-summary">
+                  <span>
+                    Questionnaire wording: <strong>{wording}</strong>
+                  </span>
+                  <button type="button" className="cb-quiet-action" onClick={() => setWordingOpen(true)}>
+                    Edit
                   </button>
-                ) : null}
-              </div>
+                </p>
+              )}
             </div>
-          ) : isDefaultWording ? (
-            <button
-              type="button"
-              className="cb-wording-trigger cb-quiet-action"
-              onClick={() => setWordingOpen(true)}
-            >
-              Edit questionnaire wording
-            </button>
-          ) : (
-            // A custom override is never hidden behind a bare link.
-            <p className="cb-wording-summary">
-              <span>
-                Questionnaire wording: <strong>{wording}</strong>
-              </span>
-              <button type="button" className="cb-quiet-action" onClick={() => setWordingOpen(true)}>
-                Edit
-              </button>
-            </p>
-          )}
+          ) : null}
         </div>
+
+        <div>
+          <label style={labelSm} htmlFor="concept-study-name">
+            What shoppers see
+          </label>
+          <input
+            id="concept-study-name"
+            className="cb-input"
+            value={draft.title}
+            onChange={(e) => onChange({ ...draft, title: e.target.value })}
+            style={inputBase}
+          />
+          <p className="cb-field-note">Shoppers see this name.</p>
+          {showErrors && titleError ? (
+            <p role="alert" style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--cb-error)' }}>
+              {titleError}
+            </p>
           ) : null}
         </div>
       </div>

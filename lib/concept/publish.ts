@@ -38,27 +38,18 @@ export function draftToPublishPayload(
   const singleTest = true
 
   const concepts: ConceptPublishConcept[] = draft.conceptArms.map((arm, i) => {
-    const intent =
-      singleTest && arm.benchmark_role === 'current_pack'
-        ? ('competitor' as const)
-        : singleTest && arm.battle_intent === 'competitor'
-          ? ('competitor' as const)
-          : ('hero' as const)
-
+    // Every concept is equal in the field — Design A/B/C. No current-pack seat.
     const base: ConceptPublishConcept = {
       arm_label: arm.arm_label || armLabelForIndex(i),
       display_name: arm.display_name.trim(),
       image_url: arm.image_url?.trim() || null,
       frozen_price: priceToWire(arm.frozen_price),
       stimulus_payload: arm.stimulus_payload ?? {},
-      battle_intent: intent,
+      battle_intent: 'hero',
     }
 
     if (singleTest) {
       base.stimulus_type = 'package'
-      if (arm.benchmark_role === 'current_pack') {
-        base.benchmark_role = 'current_pack'
-      }
     } else if (
       draft.stimulusMode &&
       draft.stimulusMode !== 'package' &&
@@ -93,22 +84,16 @@ export function draftToPublishPayload(
     }
   }
 
-  const products: ConceptPublishProduct[] = resolvedProducts.map((p) => {
-    const row: ConceptPublishProduct = {
-      product_id: p.product_id,
-      frozen_display_name: p.frozen_display_name.trim(),
-      frozen_brand_name: p.frozen_brand_name.trim(),
-      frozen_image_url: p.frozen_image_url,
-      frozen_price: priceToWire(p.frozen_price),
-      market_reference_price: priceToWire(p.market_reference_price),
-      battle_intent: 'competitor',
-      upc: p.upc!.trim(),
-    }
-    if (singleTest && p.benchmark_role === 'competitor_to_beat') {
-      row.benchmark_role = 'competitor_to_beat'
-    }
-    return row
-  })
+  const products: ConceptPublishProduct[] = resolvedProducts.map((p) => ({
+    product_id: p.product_id,
+    frozen_display_name: p.frozen_display_name.trim(),
+    frozen_brand_name: p.frozen_brand_name.trim(),
+    frozen_image_url: p.frozen_image_url,
+    frozen_price: priceToWire(p.frozen_price),
+    market_reference_price: priceToWire(p.market_reference_price),
+    battle_intent: 'competitor',
+    upc: p.upc!.trim(),
+  }))
 
   return { concepts, products }
 }

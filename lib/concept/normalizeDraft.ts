@@ -56,17 +56,20 @@ export function normalizeDraft(draft: ConceptStudyDraft): ConceptStudyDraft {
       image_filename: arm.image_filename ?? null,
       stimulus_payload: arm.stimulus_payload ?? {},
       battle_intent: arm.battle_intent,
-      benchmark_role: arm.benchmark_role ?? null,
+      benchmark_role: null,
     })),
     products: (draft.products ?? []).map((p) => ({
       ...p,
       frozen_price: null,
-      benchmark_role: p.benchmark_role ?? null,
+      benchmark_role: null,
     })),
     battlePromptCode: draft.battlePromptCode ?? 'CONCEPT_BATTLE_BUY',
     customBattlePrompt: draft.customBattlePrompt ?? null,
     brandQuestions: draft.brandQuestions ?? [],
-    successBars: draft.successBars ?? defaultSuccessBarsDraft(),
+    successBars: {
+      ...(draft.successBars ?? defaultSuccessBarsDraft()),
+      likingMode: { kind: 'off' },
+    },
     // Drop legacy questionnaire slots on hydrate
     screeners: [],
     diagnostics: [],
