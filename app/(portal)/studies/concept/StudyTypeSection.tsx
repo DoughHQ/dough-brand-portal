@@ -68,6 +68,7 @@ export default function StudyTypeSection({
   const [customCompletions, setCustomCompletions] = useState(
     () => !COMPLETION_PRESETS.includes(draft.targetCompletions as (typeof COMPLETION_PRESETS)[number])
   )
+  const [completionsText, setCompletionsText] = useState(String(draft.targetCompletions))
   const studyTypeLabelId = useId()
 
   // Single-test: mode is not a choice — lock packaging + blind without a picker.
@@ -199,9 +200,11 @@ export default function StudyTypeSection({
   const completionFloor = Math.max(1, minCompletions)
 
   function setCompletions(n: number) {
+    const next = Math.max(completionFloor, n)
+    setCompletionsText(String(next))
     onChange({
       ...draft,
-      targetCompletions: Math.max(completionFloor, n),
+      targetCompletions: next,
     })
   }
 
@@ -411,17 +414,32 @@ export default function StudyTypeSection({
               <>
                 <input
                   id="field_target_completions"
-                  type="number"
-                  min={completionFloor}
-                  className="cb-input"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
+                  className="cb-input cb-setup-completions-input"
                   aria-labelledby="field_target_completions_label"
-                  value={draft.targetCompletions}
-                  onChange={(e) =>
-                    setCompletions(Number(e.target.value) || completionFloor)
-                  }
+                  value={completionsText}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, '')
+                    setCompletionsText(raw)
+                    // Commit only once the typed count clears the floor, so
+                    // typing "100" is not yanked back to 30 mid-keystroke.
+                    if (raw !== '' && Number(raw) >= completionFloor) {
+                      onChange({ ...draft, targetCompletions: Number(raw) })
+                    }
+                  }}
+                  onBlur={() => {
+                    if (!/^\d+$/.test(completionsText) || Number(completionsText) < completionFloor) {
+                      setCompletions(Math.max(completionFloor, draft.targetCompletions || completionFloor))
+                    } else {
+                      setCompletions(Number(completionsText))
+                    }
+                  }}
                   style={{ ...inputBase, marginTop: 10, maxWidth: 160 }}
                 />
-                <p className="cb-field-note">Minimum {completionFloor}.</p>
+                <p className="cb-field-note">Minimum {completionFloor}. Type any count.</p>
               </>
             ) : (
               <input
