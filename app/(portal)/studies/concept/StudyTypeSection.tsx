@@ -455,6 +455,9 @@ export default function StudyTypeSection({
                 readOnly
               />
             )}
+            <p className="cb-setup-run-note">
+              No calendar end date — the study closes with the last response.
+            </p>
           </div>
         </div>
       </div>

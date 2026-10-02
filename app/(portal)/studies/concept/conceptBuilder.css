@@ -396,6 +396,13 @@
   margin: 0;
 }
 
+.concept-builder .cb-setup-run-note {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-50);
+}
+
 .concept-builder .cb-setup-pair {
   display: grid;
   grid-template-columns: 1fr 1fr;

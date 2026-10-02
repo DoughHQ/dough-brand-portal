@@ -210,7 +210,8 @@ export type ConceptStudyDraft = {
   targetCompletions: number
   /**
    * Days the study runs after payment, or null for no end date.
-   * The unpaid wait does not consume these days. A stored expiresAt is not the choice.
+   * Concept self-serve currently forces null (runs until the target is full);
+   * FieldingLengthField stays in the tree for when end dates return.
    */
   fieldingDays: number | null
   /** Legacy ISO timestamp. Ignored. The length is fieldingDays. */
