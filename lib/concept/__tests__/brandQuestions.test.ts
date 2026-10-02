@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   BRAND_QUESTION_STARTERS,
+  brandQuestionAnswerSource,
   brandQuestionKind,
   brandQuestionTypeLabel,
   brandQuestionsToWire,
   emptyBrandQuestion,
+  fieldAnswerOptionLabels,
+  syncBrandQuestionFieldOptions,
+  withBrandQuestionAnswerSource,
   withBrandQuestionKind,
   withBrandQuestionOptions,
 } from '../singleTest'
@@ -14,6 +18,7 @@ describe('brand question builder', () => {
     const q = emptyBrandQuestion()
     expect(brandQuestionKind(q)).toBe('pick_one')
     expect(brandQuestionTypeLabel(q)).toBe('Pick one')
+    expect(brandQuestionAnswerSource(q)).toBe('custom')
   })
 
   it('pick several wires max_select as the filled answer count', () => {
@@ -69,5 +74,54 @@ describe('brand question builder', () => {
       expect(starter.length).toBeGreaterThanOrEqual(8)
       expect(starter.length).toBeLessThanOrEqual(140)
     }
+  })
+
+  it('builds field answer labels from designs and resolved competitors', () => {
+    expect(
+      fieldAnswerOptionLabels({
+        conceptArms: [{ display_name: 'Midnight' }, { display_name: '' }],
+        products: [
+          {
+            product_id: 1,
+            frozen_display_name: 'Half Baked',
+            frozen_brand_name: "Ben & Jerry's",
+          },
+          {
+            product_id: null,
+            frozen_display_name: 'Unresolved',
+            frozen_brand_name: 'Skip',
+          },
+        ],
+      })
+    ).toEqual(['Design A — Midnight', 'Design B', "Ben & Jerry's — Half Baked"])
+  })
+
+  it('stashes custom answers when switching to field and restores them', () => {
+    const custom = {
+      ...emptyBrandQuestion(),
+      prompt: 'Which looks most premium?',
+      options: ['Matte', 'Gloss'],
+    }
+    const field = ['Design A — Midnight', "Ben & Jerry's — Half Baked"]
+    const asField = withBrandQuestionAnswerSource(custom, 'field', field)
+    expect(brandQuestionAnswerSource(asField)).toBe('field')
+    expect(asField.options).toEqual(field)
+    expect(asField.customOptionsStash).toEqual(['Matte', 'Gloss'])
+
+    const back = withBrandQuestionAnswerSource(asField, 'custom', field)
+    expect(brandQuestionAnswerSource(back)).toBe('custom')
+    expect(back.options).toEqual(['Matte', 'Gloss'])
+    expect(back.customOptionsStash).toBeUndefined()
+  })
+
+  it('resyncs field-mode options when the field changes', () => {
+    const q = withBrandQuestionAnswerSource(
+      { ...emptyBrandQuestion(), options: ['Old A', 'Old B'] },
+      'field',
+      ['Old A', 'Old B']
+    )
+    const synced = syncBrandQuestionFieldOptions(q, ['Design A', 'Design B', 'Comp'])
+    expect(synced.options).toEqual(['Design A', 'Design B', 'Comp'])
+    expect(syncBrandQuestionFieldOptions(synced, synced.options)).toBe(synced)
   })
 })

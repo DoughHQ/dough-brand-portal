@@ -11,13 +11,17 @@ import {
   type BattlePromptCode,
   BRAND_QUESTION_STARTERS,
   type BrandQuestionDraft,
+  brandQuestionAnswerSource,
   brandQuestionKind,
   DEFAULT_DECOY_OPTION,
   defaultSuccessBarsDraft,
   emptyBrandQuestion,
+  fieldAnswerOptionLabels,
   headToHeadWinSentence,
   priceWinSentence,
+  syncBrandQuestionFieldOptions,
   type SuccessBarsDraft,
+  withBrandQuestionAnswerSource,
   withBrandQuestionKind,
   withBrandQuestionOptions,
 } from '@/lib/concept/singleTest'
@@ -256,13 +260,33 @@ export default function SingleTestJourneySection({
   const usingCustom = customPrompt.length > 0
   const customNote = customBattlePromptNote(draft.customBattlePrompt ?? '')
   const brandQuestions = draft.brandQuestions ?? []
+  const fieldOptions = useMemo(
+    () =>
+      fieldAnswerOptionLabels({
+        conceptArms: draft.conceptArms,
+        products: draft.products,
+      }),
+    [draft.conceptArms, draft.products]
+  )
+
+  // Keep Choose-from-field questions aligned with the live field seats.
+  useEffect(() => {
+    let changed = false
+    const next = brandQuestions.map((question) => {
+      const synced = syncBrandQuestionFieldOptions(question, fieldOptions)
+      if (synced !== question) changed = true
+      return synced
+    })
+    if (changed) onChange({ ...draft, brandQuestions: next })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when field seats change
+  }, [fieldOptions])
+
   const counts = journey?.counts ?? null
   const screens = journey?.screens
   const lineFor = (id: JourneyStepId) => journeyClosedLine(id, draft, screens)
   const askedFor = (id: JourneyStepId) => journeyAsked(id, draft, screens)
-  const screenerAsked = askedFor('screeners')
-  const howOften = screenerAsked[0]
-  const boughtLately = screenerAsked[1]
+  const howOften = askedFor('screeners')[0]
+  const boughtLately = askedFor('screeners')[1]
   const why = whyFollowupAsked(screens)
   const screenerCount = pairedScreenerCountLabel(counts)
   const brandStart = 9
@@ -542,6 +566,7 @@ export default function SingleTestJourneySection({
               >
                 <BrandQuestionEditor
                   question={question}
+                  fieldOptions={fieldOptions}
                   onChange={(next) => {
                     const list = [...brandQuestions]
                     list[qi] = next
@@ -680,17 +705,22 @@ function fieldIssueLabel(code: string): string {
 
 function BrandQuestionEditor({
   question,
+  fieldOptions,
   onChange,
   onRemove,
 }: {
   question: BrandQuestionDraft
+  fieldOptions: string[]
   onChange: (q: BrandQuestionDraft) => void
   onRemove: () => void
 }) {
   const several = brandQuestionKind(question) === 'pick_several'
+  const fromField = brandQuestionAnswerSource(question) === 'field'
   const filled = question.options.map((o) => o.trim()).filter(Boolean)
   const duplicate =
-    filled.length >= 2 && new Set(filled.map((o) => o.toLowerCase())).size < filled.length
+    !fromField &&
+    filled.length >= 2 &&
+    new Set(filled.map((o) => o.toLowerCase())).size < filled.length
   const promptLen = question.prompt.trim().length
   const promptHint =
     promptLen > 0 && promptLen < 8
@@ -710,6 +740,10 @@ function BrandQuestionEditor({
     const [item] = next.splice(from, 1)
     next.splice(to, 0, item!)
     setOptions(next)
+  }
+
+  function setAnswerSource(source: 'custom' | 'field') {
+    onChange(withBrandQuestionAnswerSource(question, source, fieldOptions))
   }
 
   return (
@@ -754,66 +788,122 @@ function BrandQuestionEditor({
 
       <div className="cb-bq-block">
         <div style={{ ...labelSm, marginBottom: 8 }}>Answer options</div>
-        <div className="cb-bq-options">
-          {question.options.map((opt, i) => (
-            <div
-              className="cb-bq-option"
-              key={i}
-              draggable={question.options.length > 1}
-              onDragStart={() => setDragFrom(i)}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => {
-                if (dragFrom != null) reorderOption(dragFrom, i)
-                setDragFrom(null)
-              }}
-              onDragEnd={() => setDragFrom(null)}
-            >
-              <span className="cb-bq-option-handle" aria-hidden="true">
-                <DragHandle />
-              </span>
-              <span
-                className={`cb-bq-option-mark${several ? ' is-multi' : ''}`}
-                aria-hidden="true"
-              />
-              <input
-                className="cb-input"
-                value={opt}
-                placeholder={`Answer ${i + 1}`}
-                aria-label={`Answer ${i + 1}`}
-                onChange={(e) => {
-                  const options = [...question.options]
-                  options[i] = e.target.value
-                  setOptions(options)
-                }}
-                style={inputBase}
-              />
-              {question.options.length > 2 ? (
-                <button
-                  type="button"
-                  className="cb-quiet-action"
-                  aria-label={`Remove answer ${i + 1}`}
-                  onClick={() => setOptions(question.options.filter((_, j) => j !== i))}
-                >
-                  Remove
-                </button>
-              ) : null}
-            </div>
-          ))}
-        </div>
-        {duplicate ? (
-          <p role="alert" className="cb-bq-hint is-error">
-            Each answer needs to be different.
-          </p>
-        ) : null}
-        {question.options.length < 8 ? (
+        <div
+          className="cb-bq-source"
+          role="group"
+          aria-label="Where answer options come from"
+        >
           <button
             type="button"
-            className="cb-bq-add-option"
-            onClick={() => setOptions([...question.options, ''])}
+            className={!fromField ? 'cb-bq-source-btn is-on' : 'cb-bq-source-btn'}
+            aria-pressed={!fromField}
+            onClick={() => setAnswerSource('custom')}
           >
-            + Add option
+            Write your own
           </button>
-        ) : null}
+          <button
+            type="button"
+            className={fromField ? 'cb-bq-source-btn is-on' : 'cb-bq-source-btn'}
+            aria-pressed={fromField}
+            onClick={() => setAnswerSource('field')}
+          >
+            Choose from field
+          </button>
+        </div>
+
+        {fromField ? (
+          fieldOptions.length === 0 ? (
+            <p className="cb-bq-field-empty" role="status">
+              Add designs and competitors in Field first.
+            </p>
+          ) : (
+            <>
+              <ul className="cb-bq-field-options" aria-label="Field as answers">
+                {fieldOptions.map((label) => (
+                  <li key={label} className="cb-bq-field-option">
+                    <span
+                      className={`cb-bq-option-mark${several ? ' is-multi' : ''}`}
+                      aria-hidden="true"
+                    />
+                    <span className="cb-bq-field-option-label">{label}</span>
+                  </li>
+                ))}
+              </ul>
+              {fieldOptions.length < 2 ? (
+                <p role="alert" className="cb-bq-hint is-error">
+                  Need at least two items in the field.
+                </p>
+              ) : (
+                <p className="cb-bq-hint">
+                  Updates automatically when you change the field.
+                </p>
+              )}
+            </>
+          )
+        ) : (
+          <>
+            <div className="cb-bq-options">
+              {question.options.map((opt, i) => (
+                <div
+                  className="cb-bq-option"
+                  key={i}
+                  draggable={question.options.length > 1}
+                  onDragStart={() => setDragFrom(i)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => {
+                    if (dragFrom != null) reorderOption(dragFrom, i)
+                    setDragFrom(null)
+                  }}
+                  onDragEnd={() => setDragFrom(null)}
+                >
+                  <span className="cb-bq-option-handle" aria-hidden="true">
+                    <DragHandle />
+                  </span>
+                  <span
+                    className={`cb-bq-option-mark${several ? ' is-multi' : ''}`}
+                    aria-hidden="true"
+                  />
+                  <input
+                    className="cb-input"
+                    value={opt}
+                    placeholder={`Answer ${i + 1}`}
+                    aria-label={`Answer ${i + 1}`}
+                    onChange={(e) => {
+                      const options = [...question.options]
+                      options[i] = e.target.value
+                      setOptions(options)
+                    }}
+                    style={inputBase}
+                  />
+                  {question.options.length > 2 ? (
+                    <button
+                      type="button"
+                      className="cb-quiet-action"
+                      aria-label={`Remove answer ${i + 1}`}
+                      onClick={() => setOptions(question.options.filter((_, j) => j !== i))}
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+            {duplicate ? (
+              <p role="alert" className="cb-bq-hint is-error">
+                Each answer needs to be different.
+              </p>
+            ) : null}
+            {question.options.length < 8 ? (
+              <button
+                type="button"
+                className="cb-bq-add-option"
+                onClick={() => setOptions([...question.options, ''])}
+              >
+                + Add option
+              </button>
+            ) : null}
+          </>
+        )}
       </div>
 
       <div className="cb-bq-footer">
