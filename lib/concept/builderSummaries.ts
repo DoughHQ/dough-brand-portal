@@ -1,26 +1,24 @@
 import { getConceptFieldSize } from './fieldSize'
 import { uniquePairs } from './publish'
-import { brandQuestionAnswerSource } from './singleTest'
 import type { ConceptStudyDraft } from './types'
 
 function plural(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`
 }
 
-/** Setup card — category, name, run shape. */
+/** Setup card — study name and run shape (category lives in the open form). */
 export function summarizeSetup(draft: ConceptStudyDraft): string {
-  const category = draft.templateConfig.category_plural?.trim() || null
   const title = draft.title.trim() || null
   const n = Math.max(0, draft.targetCompletions)
   const run = `${plural(n, 'completion', 'completions')} · Runs until full`
 
-  if (!category && !title) {
+  if (!title) {
     return draft.taxonomyNodeId != null
-      ? `Category set · ${run}`
+      ? `Name your study · ${run}`
       : `Choose a category · ${run}`
   }
 
-  return [category, title, run].filter(Boolean).join(' · ')
+  return `${title} · ${run}`
 }
 
 /** Field card — seats and matchups. */
@@ -35,19 +33,6 @@ export function summarizeField(draft: ConceptStudyDraft): string {
     `${plural(designs, 'design', 'designs')} + ${plural(competitors, 'competitor', 'competitors')}`,
     plural(battles, 'matchup', 'matchups'),
   ].join(' · ')
-}
-
-/** Questionnaire card — custom questions only (journey is fixed). */
-export function summarizeQuestions(draft: ConceptStudyDraft): string {
-  const questions = draft.brandQuestions ?? []
-  if (questions.length === 0) return 'Standard journey · No custom questions'
-
-  const fieldBound = questions.filter((q) => brandQuestionAnswerSource(q) === 'field').length
-  const custom = questions.length - fieldBound
-  const parts: string[] = [plural(questions.length, 'custom question', 'custom questions')]
-  if (fieldBound > 0) parts.push(`${fieldBound} from field`)
-  if (custom > 0 && fieldBound > 0) parts.push(`${custom} written`)
-  return parts.join(' · ')
 }
 
 /** Sticky dock when the study can publish. */

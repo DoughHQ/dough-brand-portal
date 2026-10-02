@@ -2,13 +2,12 @@ import { describe, expect, it } from 'vitest'
 import {
   summarizeDockReady,
   summarizeField,
-  summarizeQuestions,
   summarizeSetup,
 } from '../builderSummaries'
 import { createEmptyConceptDraft, newConceptArm, newProductCompetitor } from '../defaults'
 
 describe('builderSummaries', () => {
-  it('summarizes setup with category, title, and run-until-full', () => {
+  it('summarizes setup with title and run-until-full (no category)', () => {
     const draft = {
       ...createEmptyConceptDraft(),
       taxonomyNodeId: 1,
@@ -21,7 +20,19 @@ describe('builderSummaries', () => {
       fieldingDays: null,
     }
     expect(summarizeSetup(draft)).toBe(
-      'ice cream · Midnight Cocoa · 100 completions · Runs until full'
+      'Midnight Cocoa · 100 completions · Runs until full'
+    )
+  })
+
+  it('prompts for a name when category is set but title is empty', () => {
+    const draft = {
+      ...createEmptyConceptDraft(),
+      taxonomyNodeId: 1,
+      title: '',
+      targetCompletions: 100,
+    }
+    expect(summarizeSetup(draft)).toBe(
+      'Name your study · 100 completions · Runs until full'
     )
   })
 
@@ -39,25 +50,6 @@ describe('builderSummaries', () => {
       ],
     }
     expect(summarizeField(draft)).toBe('3 designs + 2 competitors · 10 matchups')
-  })
-
-  it('summarizes custom questions', () => {
-    const empty = createEmptyConceptDraft()
-    expect(summarizeQuestions(empty)).toBe('Standard journey · No custom questions')
-    expect(
-      summarizeQuestions({
-        ...empty,
-        brandQuestions: [
-          {
-            localId: '1',
-            prompt: 'Which looks most premium?',
-            options: ['A', 'B'],
-            max_select: 1,
-            answerSource: 'field',
-          },
-        ],
-      })
-    ).toBe('1 custom question · 1 from field')
   })
 
   it('summarizes the ready dock line', () => {

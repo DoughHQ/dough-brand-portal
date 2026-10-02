@@ -51,7 +51,6 @@ import { ExpectedPriceCard, VerificationCard } from './conceptCards'
 import PackSizeField from './PackSizeField'
 import { DragHandle } from './fieldIcons'
 import BuilderSectionChrome from './BuilderSectionChrome'
-import { summarizeQuestions } from '@/lib/concept/builderSummaries'
 import { resolveStimuliPreviewUrl } from '@/lib/concept/stimuliStorage'
 import { createClient } from '@/lib/supabase'
 import {
@@ -323,7 +322,7 @@ export default function SingleTestJourneySection({
     <BuilderSectionChrome
       id={CONCEPT_ANCHORS.questions}
       title="Questions"
-      summary={[lengthLabel, summarizeQuestions(draft)].filter(Boolean).join(' · ')}
+      summary={lengthLabel ?? ''}
       done={sectionDone}
     >
       <p style={{ ...sectionHelp, marginBottom: 8 }}>
