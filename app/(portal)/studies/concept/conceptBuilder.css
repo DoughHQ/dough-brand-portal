@@ -1280,12 +1280,24 @@ button.cb-masthead-tile:disabled {
 /*
  * The competitive set reads as one list object, not a stack of cards:
  * one bordered surface, soft hairlines between members.
+ * overflow must stay visible — the add-competitor typeahead drops below the
+ * last row and was clipped when this used overflow: hidden for radius.
  */
 .concept-builder .cb-comp-list {
   background: var(--cb-surface);
   border: 1px solid var(--cb-border);
   border-radius: var(--cb-radius-card);
-  overflow: hidden;
+  overflow: visible;
+}
+
+.concept-builder .cb-comp-list > :first-child {
+  border-top-left-radius: var(--cb-radius-card);
+  border-top-right-radius: var(--cb-radius-card);
+}
+
+.concept-builder .cb-comp-list > :last-child {
+  border-bottom-left-radius: var(--cb-radius-card);
+  border-bottom-right-radius: var(--cb-radius-card);
 }
 
 .concept-builder .cb-comp-row + .cb-comp-row {
