@@ -9,22 +9,39 @@ type Props = {
   row: BoxFieldRow
   onSelectUpc: (upc: string) => void
   error?: string | null
+  /**
+   * Hero card: quieter confirmed state, help only when the barcode still needs work.
+   * Contents rows keep the default always-on help.
+   */
+  density?: 'default' | 'hero'
 }
 
 const IDENTIFY = 'Identify the barcode on this package.'
 
-export default function BoxUpcField({ row, onSelectUpc, error }: Props) {
+export default function BoxUpcField({
+  row,
+  onSelectUpc,
+  error,
+  density = 'default',
+}: Props) {
   const options = row.barcodeOptions ?? []
   const needsChoice = options.length > 1
   const [manual, setManual] = useState(row.upc ?? '')
+  const [editing, setEditing] = useState(false)
+  const hero = density === 'hero'
+  const confirmed = !!row.upc?.trim() && !needsChoice && !editing
 
   useEffect(() => {
     setManual(row.upc ?? '')
+    setEditing(false)
   }, [row.upc, row.localId])
 
   function commitManual() {
     const digits = barcodeDigits(manual)
-    if (looksLikeBarcode(digits)) onSelectUpc(digits)
+    if (looksLikeBarcode(digits)) {
+      onSelectUpc(digits)
+      setEditing(false)
+    }
   }
 
   function onManualKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -35,9 +52,10 @@ export default function BoxUpcField({ row, onSelectUpc, error }: Props) {
   }
 
   const showDuplicateIdentify = error === IDENTIFY && !row.upc && !needsChoice
+  const showHelp = !hero || !confirmed || !!error
 
   return (
-    <div style={{ marginTop: 8 }}>
+    <div className={hero ? 'cb-box-upc is-hero' : 'cb-box-upc'}>
       {needsChoice ? (
         <fieldset style={{ border: 'none', margin: 0, padding: 0 }}>
           <legend style={legendStyle}>Which barcode is on the package that ships?</legend>
@@ -87,12 +105,26 @@ export default function BoxUpcField({ row, onSelectUpc, error }: Props) {
             ))}
           </div>
         </fieldset>
-      ) : row.upc ? (
-        <div style={{ fontSize: 13, color: 'var(--ink-80)' }}>UPC {row.upc}</div>
+      ) : confirmed ? (
+        <div className="cb-box-upc-confirmed">
+          <span className="cb-box-upc-code">UPC {row.upc}</span>
+          {hero ? (
+            <button
+              type="button"
+              className="cb-quiet-action"
+              onClick={() => {
+                setEditing(true)
+                setManual(row.upc ?? '')
+              }}
+            >
+              Edit
+            </button>
+          ) : null}
+        </div>
       ) : (
         <div>
           <label style={{ ...legendStyle, display: 'block' }} htmlFor={`box-upc-manual-${row.localId}`}>
-            {IDENTIFY}
+            {hero ? 'Package barcode' : IDENTIFY}
           </label>
           <input
             id={`box-upc-manual-${row.localId}`}
@@ -107,7 +139,7 @@ export default function BoxUpcField({ row, onSelectUpc, error }: Props) {
             style={{
               width: '100%',
               boxSizing: 'border-box',
-              height: 40,
+              height: hero ? 44 : 40,
               marginTop: 6,
               border: '1px solid var(--ink-10)',
               borderRadius: 'var(--r-sm)',
@@ -116,11 +148,30 @@ export default function BoxUpcField({ row, onSelectUpc, error }: Props) {
               fontSize: 14,
             }}
           />
+          {hero && editing && row.upc ? (
+            <button
+              type="button"
+              className="cb-quiet-action"
+              style={{ marginTop: 8 }}
+              onClick={() => {
+                setEditing(false)
+                setManual(row.upc ?? '')
+              }}
+            >
+              Cancel
+            </button>
+          ) : null}
         </div>
       )}
-      <p style={{ margin: '6px 0 0', fontSize: 11, lineHeight: 1.45, color: 'var(--ink-50)' }}>
-        {BOX_UPC_SCAN_HELP}
-      </p>
+      {showHelp ? (
+        <p style={{ margin: '6px 0 0', fontSize: 11, lineHeight: 1.45, color: 'var(--ink-50)' }}>
+          {BOX_UPC_SCAN_HELP}
+        </p>
+      ) : hero ? (
+        <p style={{ margin: '6px 0 0', fontSize: 11, lineHeight: 1.45, color: 'var(--ink-50)' }}>
+          Respondents scan this package to prove they tried it.
+        </p>
+      ) : null}
       {error && !showDuplicateIdentify ? (
         <p role="alert" style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--red)' }}>
           {error}
