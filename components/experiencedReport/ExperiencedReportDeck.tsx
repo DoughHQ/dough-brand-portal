@@ -1097,12 +1097,47 @@ function DeckTrust({
 export function ExperiencedReportDeck({
   envelope,
   backHref = '/studies',
+  variant = 'full',
 }: {
   envelope: ExperiencedReportEnvelope
   backHref?: string
+  /** Marketing crop: cold open + exec strip + loyalty only. */
+  variant?: 'full' | 'preview'
 }) {
   const { report } = envelope
   const sectionNotes = collectMethodNotes(envelope)
+
+  if (variant === 'preview') {
+    return (
+      <div className="experienced-report-deck concept-report-deck">
+        {envelope.is_simulated === true ? <SimulatedDataBanner /> : null}
+        <div className="experienced-report-document" style={{ padding: '20px 24px 32px' }}>
+          <DeckColdOpen envelope={envelope} backHref={backHref} />
+          <ExecutiveSummaryStrip envelope={envelope} />
+          <div className="report-row report-row--full" style={{ marginTop: 20 }}>
+            <div className="report-span-12">
+              <DeckLoyalty data={report.repurchase_intent} notes={notesFor(sectionNotes, 5)} />
+            </div>
+          </div>
+          <p
+            className="no-print"
+            style={{
+              margin: '20px 0 0',
+              fontFamily: 'var(--font-sans)',
+              fontSize: 13,
+            }}
+          >
+            <a
+              href="/marketing/workspace/box-report"
+              style={{ color: 'var(--sage-dark)', fontWeight: 600, textDecoration: 'none' }}
+            >
+              Open full report preview →
+            </a>
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="experienced-report-deck concept-report-deck">
