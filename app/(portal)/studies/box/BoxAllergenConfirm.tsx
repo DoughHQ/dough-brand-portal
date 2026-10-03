@@ -16,12 +16,34 @@ type Props = {
   onChange: (next: BoxFieldRow) => void
 }
 
+function labelList(codes: Iterable<string>): string {
+  return [...codes]
+    .map((c) => ALLERGEN_LABELS[c as AllergenCode] ?? c)
+    .join(', ')
+}
+
+function summaryLine(contains: Set<string>, mayContain: Set<string>): string {
+  if (contains.size === 0 && mayContain.size === 0) return 'None declared'
+  const parts: string[] = []
+  if (contains.size > 0) parts.push(`Contains ${labelList(contains)}`)
+  if (mayContain.size > 0) parts.push(`May contain ${labelList(mayContain)}`)
+  return parts.join(' · ')
+}
+
 export default function BoxAllergenConfirm({ row, onChange }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
   const confirmed = isAllergenConfirmed(row)
   const contains = new Set(row.allergensContains ?? [])
   const mayContain = new Set(row.allergensMayContain ?? [])
+  const status = row.allergensCatalogStatus
+  const needsLabelCheck =
+    status === 'unknown' ||
+    status === 'incomplete' ||
+    status === 'varies_by_variant' ||
+    status == null
+  const showPicker = !confirmed && (editing || needsLabelCheck)
 
   useEffect(() => {
     if (row.product_id == null || !row.upc?.trim()) return
@@ -96,38 +118,26 @@ export default function BoxAllergenConfirm({ row, onChange }: Props) {
       allergensMayContain: row.allergensMayContain ?? [],
       allergensConfirmed: true,
     })
+    setEditing(false)
   }
 
-  function edit() {
+  function startEdit() {
     onChange({ ...row, allergensConfirmed: false })
+    setEditing(true)
   }
 
   if (row.product_id == null || !row.upc?.trim()) return null
 
-  const status = row.allergensCatalogStatus
-  const statusLabel =
+  const help =
     status === 'confident'
-      ? 'Catalog match — still confirm against the label'
-      : status === 'unknown' || status === 'incomplete' || status === 'varies_by_variant'
-        ? `Catalog ${status.replace(/_/g, ' ')} — confirm from the package`
-        : 'Confirm from the package label'
+      ? 'Catalog match — confirm it matches the package.'
+      : needsLabelCheck
+        ? 'Check the package label. Catalog data is incomplete or varies.'
+        : 'Confirm from the package label.'
 
-  return (
-    <div style={{ marginTop: 14, maxWidth: 520 }}>
-      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-70)', marginBottom: 6 }}>
-        Allergens on the package
-      </div>
-      <p style={{ fontSize: 12, color: 'var(--ink-50)', margin: '0 0 10px', lineHeight: 1.45 }}>
-        {statusLabel}. Empty lists mean declared none.
-      </p>
-      {loading ? (
-        <p style={{ fontSize: 12, color: 'var(--ink-40)', margin: 0 }}>Loading catalog allergens…</p>
-      ) : null}
-      {error ? (
-        <p style={{ fontSize: 12, color: 'var(--danger, #b42318)', margin: '0 0 8px' }}>{error}</p>
-      ) : null}
-
-      {confirmed ? (
+  if (confirmed) {
+    return (
+      <div style={{ marginTop: 12 }}>
         <div
           style={{
             display: 'flex',
@@ -140,70 +150,127 @@ export default function BoxAllergenConfirm({ row, onChange }: Props) {
             border: '1px solid var(--ink-10)',
           }}
         >
-          <div style={{ fontSize: 13, color: 'var(--ink-70)', lineHeight: 1.4 }}>
-            Confirmed
-            {contains.size === 0 && mayContain.size === 0
-              ? ' · none declared'
-              : null}
-            {contains.size > 0
-              ? ` · contains ${[...contains].map((c) => ALLERGEN_LABELS[c as AllergenCode] ?? c).join(', ')}`
-              : null}
-            {mayContain.size > 0
-              ? ` · may contain ${[...mayContain].map((c) => ALLERGEN_LABELS[c as AllergenCode] ?? c).join(', ')}`
-              : null}
+          <div style={{ fontSize: 13, color: 'var(--ink-70)', lineHeight: 1.4, minWidth: 0 }}>
+            <span style={{ fontWeight: 600 }}>Allergens confirmed</span>
+            <span style={{ color: 'var(--ink-50)' }}> · {summaryLine(contains, mayContain)}</span>
           </div>
-          <button type="button" className="cb-quiet-action" onClick={edit}>
+          <button type="button" className="cb-quiet-action" onClick={startEdit}>
             Edit
           </button>
         </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ marginTop: 12 }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-70)', marginBottom: 4 }}>
+        Allergens on the package
+      </div>
+      {loading ? (
+        <p style={{ fontSize: 12, color: 'var(--ink-40)', margin: 0 }}>Loading catalog allergens…</p>
       ) : (
         <>
-          <div style={{ display: 'grid', gap: 6, marginBottom: 10 }}>
-            {ALLERGEN_CODES.map((code) => (
-              <div
-                key={code}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  fontSize: 13,
-                  color: 'var(--ink-70)',
-                }}
-              >
-                <span style={{ flex: 1, minWidth: 0 }}>{ALLERGEN_LABELS[code]}</span>
-                <label style={chipLabel}>
-                  <input
-                    type="checkbox"
-                    checked={contains.has(code)}
-                    onChange={() => toggle(code, 'contains')}
-                  />
-                  Contains
-                </label>
-                <label style={chipLabel}>
-                  <input
-                    type="checkbox"
-                    checked={mayContain.has(code)}
-                    onChange={() => toggle(code, 'may')}
-                  />
-                  May contain
-                </label>
-              </div>
-            ))}
+          <div style={{ fontSize: 13, color: 'var(--ink-80)', lineHeight: 1.4 }}>
+            {summaryLine(contains, mayContain)}
           </div>
-          <button type="button" className="cb-btn cb-btn-secondary" onClick={confirm}>
-            Confirm allergens from label
-          </button>
+          <p style={{ margin: '6px 0 0', fontSize: 11, lineHeight: 1.45, color: 'var(--ink-50)' }}>
+            {help}
+          </p>
         </>
       )}
+      {error ? (
+        <p style={{ fontSize: 12, color: 'var(--danger, #b42318)', margin: '6px 0 0' }}>{error}</p>
+      ) : null}
+
+      {showPicker ? (
+        <div style={{ marginTop: 12 }}>
+          <ChipGroup
+            title="Contains"
+            selected={contains}
+            onToggle={(code) => toggle(code, 'contains')}
+          />
+          <ChipGroup
+            title="May contain"
+            selected={mayContain}
+            onToggle={(code) => toggle(code, 'may')}
+          />
+        </div>
+      ) : null}
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 10 }}>
+        <button
+          type="button"
+          className="cb-btn cb-btn-secondary"
+          onClick={confirm}
+          disabled={loading}
+        >
+          Confirm
+        </button>
+        {!showPicker ? (
+          <button type="button" className="cb-quiet-action" onClick={() => setEditing(true)}>
+            Edit list
+          </button>
+        ) : editing ? (
+          <button
+            type="button"
+            className="cb-quiet-action"
+            onClick={() => setEditing(false)}
+            disabled={needsLabelCheck}
+          >
+            Hide list
+          </button>
+        ) : null}
+      </div>
     </div>
   )
 }
 
-const chipLabel: CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 4,
-  fontSize: 11,
-  color: 'var(--ink-50)',
-  whiteSpace: 'nowrap',
+function ChipGroup({
+  title,
+  selected,
+  onToggle,
+}: {
+  title: string
+  selected: Set<string>
+  onToggle: (code: AllergenCode) => void
+}) {
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-50)', marginBottom: 6 }}>
+        {title}
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {ALLERGEN_CODES.map((code) => {
+          const on = selected.has(code)
+          return (
+            <button
+              key={`${title}-${code}`}
+              type="button"
+              onClick={() => onToggle(code)}
+              aria-pressed={on}
+              style={{
+                ...chip,
+                background: on ? 'var(--sage-soft)' : 'var(--white)',
+                borderColor: on ? 'var(--sage)' : 'var(--ink-10)',
+                color: on ? 'var(--ink-80)' : 'var(--ink-50)',
+                fontWeight: on ? 600 : 500,
+              }}
+            >
+              {ALLERGEN_LABELS[code]}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+const chip: CSSProperties = {
+  fontSize: 12,
+  lineHeight: 1.2,
+  padding: '6px 10px',
+  borderRadius: 'var(--cb-radius-pill)',
+  border: '1px solid',
+  cursor: 'pointer',
 }
