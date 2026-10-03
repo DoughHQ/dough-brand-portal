@@ -70,5 +70,9 @@ export function createEmptyBoxFieldRow(): BoxFieldRow {
     barcodeOptions: [],
     frozen_category: null,
     identityConfirmed: false,
+    allergensContains: null,
+    allergensMayContain: null,
+    allergensConfirmed: false,
+    allergensCatalogStatus: null,
   }
 }

@@ -82,6 +82,12 @@ export const BOX_PUBLISH_HINT_MESSAGES: Record<string, string> = {
     "The study window isn't open. Check the end date is in the future.",
   BOX_OPEN_FAILED: "Couldn't publish — check the box is complete.",
   BOX_OPEN_NOT_AUTHORIZED: "Couldn't publish — check the box is complete.",
+  BOX_OPEN_ALLERGENS_UNCONFIRMED:
+    'Confirm allergens from each package label before publishing.',
+  ALLERGENS_REQUIRED:
+    'Confirm allergens from each package label before publishing.',
+  DECLARATION_REQUIRED:
+    'Declare both what each product contains and may contain (empty means none).',
 }
 
 /** Ordered longest-first so e.g. CATEGORY_BAR_REQUIRES_NODE is never
@@ -131,6 +137,9 @@ export function sectionForBoxCode(code: string): BoxErrorSection {
     case 'UPC_PRODUCT_MISMATCH':
     case 'BOX_OPEN_FIELD_EMPTY':
     case 'BOX_OPEN_FIELD_TOO_SMALL':
+    case 'BOX_OPEN_ALLERGENS_UNCONFIRMED':
+    case 'ALLERGENS_REQUIRED':
+    case 'DECLARATION_REQUIRED':
       return 'field'
     case 'INVALID_ELIGIBILITY_TIER':
     case 'UNKNOWN_STATE':
