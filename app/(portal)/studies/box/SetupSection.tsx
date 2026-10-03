@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { BoxStudyDraft } from '@/lib/box/types'
 import type { AdminProductSearchResult } from '@/lib/queries'
 import { BOX_ANCHORS, boxFieldRowErrors, type BoxPublishFailure } from '@/lib/box/validity'
+import { summarizeBoxSetup } from '@/lib/box/builderSummaries'
 import { createEmptyBoxFieldRow } from '@/lib/box/defaults'
 import { hydrateBoxFieldRow } from '@/lib/box/hydrate'
 import { createClient } from '@/lib/supabase'
@@ -12,6 +13,7 @@ import {
   type TaxonomyNodeInfo,
 } from '../concept/actions'
 import CategoryCombobox from '../concept/CategoryCombobox'
+import BuilderSectionChrome from '../concept/BuilderSectionChrome'
 import BoxProductSearchSlot from './BoxProductSearchSlot'
 import BoxUpcField from './BoxUpcField'
 
@@ -20,6 +22,8 @@ type Props = {
   onChange: (next: BoxStudyDraft) => void
   error?: string | null
   publishFailure?: BoxPublishFailure | null
+  /** When true, the section collapses (parent owns validity.setupOk). */
+  sectionDone?: boolean
 }
 
 /** Focal snapshot lives on the first field row; also mirrored to focalProductId.
@@ -29,6 +33,7 @@ export default function SetupSection({
   onChange,
   error,
   publishFailure = null,
+  sectionDone = false,
 }: Props) {
   const [node, setNode] = useState<TaxonomyNodeInfo | null>(null)
   const [overrideOpen, setOverrideOpen] = useState(false)
@@ -129,21 +134,12 @@ export default function SetupSection({
   const focalUpcError = focalRow ? rowErrors[focalRow.localId] : undefined
 
   return (
-    <section
+    <BuilderSectionChrome
       id={BOX_ANCHORS.setup}
-      style={{
-        background: 'var(--white)',
-        border: '1px solid var(--ink-10)',
-        borderRadius: 'var(--r-lg)',
-        padding: 32,
-        marginBottom: 24,
-        boxShadow: 'var(--cb-shadow-card)',
-      }}
+      title="Setup"
+      summary={summarizeBoxSetup(draft)}
+      done={sectionDone}
     >
-      <div style={eyebrow}>Section 1 · Setup</div>
-      <h2 className="cb-section-title" style={titleStyle}>
-        Set up the box
-      </h2>
       <p style={helpStyle}>
         Name the study, then choose the hero product this box is about. Its category
         fills in automatically.
@@ -278,27 +274,10 @@ export default function SetupSection({
           {error}
         </p>
       ) : null}
-    </section>
+    </BuilderSectionChrome>
   )
 }
 
-const eyebrow = {
-  fontFamily: 'var(--font-sans)',
-  fontSize: 12,
-  fontWeight: 500,
-  letterSpacing: '0.1em',
-  textTransform: 'uppercase' as const,
-  color: 'var(--ink-50)',
-  marginBottom: 8,
-}
-const titleStyle = {
-  fontFamily: 'var(--font-serif)',
-  fontSize: 26,
-  fontWeight: 400,
-  letterSpacing: '-0.02em',
-  margin: '0 0 8px',
-  color: 'var(--ink-80)',
-}
 const helpStyle = {
   fontFamily: 'var(--font-sans)',
   fontSize: 14,

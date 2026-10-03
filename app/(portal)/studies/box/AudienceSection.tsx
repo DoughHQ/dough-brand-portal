@@ -24,9 +24,11 @@ import {
   type DietaryFlagDef,
 } from '@/lib/box/dietaryFlags'
 import { BOX_ANCHORS, eligibilityTierLabel, isOpenAudience } from '@/lib/box/validity'
+import { summarizeBoxAudience } from '@/lib/box/builderSummaries'
 import { createClient } from '@/lib/supabase'
 import { getTaxonomyNodeAction, type TaxonomyNodeInfo } from '../concept/actions'
 import CategoryCombobox from '../concept/CategoryCombobox'
+import BuilderSectionChrome from '../concept/BuilderSectionChrome'
 import StateMultiSelect from './StateMultiSelect'
 
 const QUALIFIER_DEBOUNCE_MS = 350
@@ -35,6 +37,7 @@ type Props = {
   draft: BoxStudyDraft
   onChange: (next: BoxStudyDraft) => void
   error?: string | null
+  sectionDone?: boolean
 }
 
 const V1_TIERS: BoxEligibilityTier[] = ['any', 'tried', 'not_tried']
@@ -48,7 +51,7 @@ function intFromInput(v: string): number | null {
   return Number.isSafeInteger(n) ? n : null
 }
 
-export default function AudienceSection({ draft, onChange, error }: Props) {
+export default function AudienceSection({ draft, onChange, error, sectionDone = false }: Props) {
   const e = draft.eligibility
   const [qualNode, setQualNode] = useState<TaxonomyNodeInfo | null>(null)
   const [barsOpen, setBarsOpen] = useState(e.qualifyingTaxonomyNodeId != null)
@@ -196,8 +199,12 @@ export default function AudienceSection({ draft, onChange, error }: Props) {
         : `~${n.toLocaleString()} people qualify`
 
   return (
-    <section id={BOX_ANCHORS.audience} style={card}>
-      <div style={eyebrow}>Section 4 · Audience</div>
+    <BuilderSectionChrome
+      id={BOX_ANCHORS.audience}
+      title="Audience"
+      summary={summarizeBoxAudience(draft)}
+      done={sectionDone}
+    >
       <div
         style={{
           display: 'flex',
@@ -208,9 +215,9 @@ export default function AudienceSection({ draft, onChange, error }: Props) {
           marginBottom: 8,
         }}
       >
-        <h2 className="cb-section-title" style={{ ...titleStyle, margin: 0 }}>
-          Who qualifies
-        </h2>
+        <p style={{ ...optionalAffordance, margin: 0 }}>
+          All filters are optional. Leave them blank to let anyone qualify.
+        </p>
         <div
           aria-live="polite"
           style={{
@@ -226,9 +233,6 @@ export default function AudienceSection({ draft, onChange, error }: Props) {
           {countHeadline}
         </div>
       </div>
-      <p style={optionalAffordance}>
-        All filters are optional. Leave them blank to let anyone qualify.
-      </p>
       {isOpenAudience(draft) ? (
         <div style={openPill}>Open to everyone — no restrictions</div>
       ) : summaryChips.length > 0 ? (
@@ -586,7 +590,7 @@ export default function AudienceSection({ draft, onChange, error }: Props) {
           {error}
         </p>
       ) : null}
-    </section>
+    </BuilderSectionChrome>
   )
 }
 

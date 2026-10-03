@@ -8,12 +8,14 @@ import {
   boxFieldRowErrors,
   type BoxPublishFailure,
 } from '@/lib/box/validity'
+import { summarizeBoxContents } from '@/lib/box/builderSummaries'
 import { createEmptyBoxFieldRow } from '@/lib/box/defaults'
 import { hydrateBoxFieldRow } from '@/lib/box/hydrate'
 import { BOX_UPC_SCAN_HELP } from '@/lib/box/constants'
 import { canAddBoxProduct, MAX_BOX_FIELD_SIZE } from '@/lib/box/fieldSize'
 import { categoryFromSearchResult, isIdentityConfirmed } from '@/lib/productEntryMode'
 import { createClient } from '@/lib/supabase'
+import BuilderSectionChrome from '../concept/BuilderSectionChrome'
 import BoxProductSearchSlot from './BoxProductSearchSlot'
 import BoxUpcField from './BoxUpcField'
 import ProductIdentityConfirm from '../ProductIdentityConfirm'
@@ -25,6 +27,7 @@ type Props = {
   focalL2NodeId?: number | null
   error?: string | null
   publishFailure?: BoxPublishFailure | null
+  sectionDone?: boolean
 }
 
 export default function ContentsSection({
@@ -33,6 +36,7 @@ export default function ContentsSection({
   focalL2NodeId = null,
   error,
   publishFailure = null,
+  sectionDone = false,
 }: Props) {
   const [adding, setAdding] = useState(false)
   const draftRef = useRef(draft)
@@ -110,21 +114,12 @@ export default function ContentsSection({
   const overBy = Math.max(0, rows.length - MAX_BOX_FIELD_SIZE)
 
   return (
-    <section
+    <BuilderSectionChrome
       id={BOX_ANCHORS.field}
-      style={{
-        background: 'var(--white)',
-        border: '1px solid var(--ink-10)',
-        borderRadius: 'var(--r-lg)',
-        padding: 32,
-        marginBottom: 24,
-        boxShadow: 'var(--cb-shadow-card)',
-      }}
+      title="Contents"
+      summary={summarizeBoxContents(draft)}
+      done={sectionDone}
     >
-      <div style={eyebrow}>Section 2 · Contents</div>
-      <h2 className="cb-section-title" style={titleStyle}>
-        Fill the box
-      </h2>
       <p style={helpStyle}>
         Everything that ships, hero included. They battle each other after tasting, so
         the field should be a real purchase decision — usually the same category.
@@ -326,27 +321,10 @@ export default function ContentsSection({
           {error}
         </p>
       ) : null}
-    </section>
+    </BuilderSectionChrome>
   )
 }
 
-const eyebrow = {
-  fontFamily: 'var(--font-sans)',
-  fontSize: 12,
-  fontWeight: 500,
-  letterSpacing: '0.1em',
-  textTransform: 'uppercase' as const,
-  color: 'var(--ink-50)',
-  marginBottom: 8,
-}
-const titleStyle = {
-  fontFamily: 'var(--font-serif)',
-  fontSize: 26,
-  fontWeight: 400,
-  letterSpacing: '-0.02em',
-  margin: '0 0 8px',
-  color: 'var(--ink-80)',
-}
 const helpStyle = {
   fontFamily: 'var(--font-sans)',
   fontSize: 14,
