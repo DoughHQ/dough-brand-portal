@@ -196,7 +196,6 @@ export default function SetupSection({
             <div className="cb-box-hero-barcode">
               <BoxUpcField
                 row={focalRow}
-                density="hero"
                 onSelectUpc={(upc) => {
                   const latest = draftRef.current
                   onChange({

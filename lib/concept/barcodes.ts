@@ -56,6 +56,25 @@ export function barcodeDigits(query: string): string {
   return query.replace(/\D/g, '')
 }
 
+/**
+ * Human-readable barcode for confirm UI.
+ * Zero-padded GTIN-14 → UPC-A (1-5-5-1). Otherwise continuous digits —
+ * not inventing pack typography that is not on the label.
+ */
+export function formatUpcDisplay(upc: string): string {
+  const d = barcodeDigits(upc)
+  let upcA: string | null = null
+  if (d.length === 12) upcA = d
+  else if (d.length === 13 && d.startsWith('0')) upcA = d.slice(1)
+  else if (d.length === 14 && d.startsWith('00')) upcA = d.slice(2)
+  else if (d.length === 14 && d.startsWith('0') && d[1] !== '0') upcA = d.slice(1, 13)
+
+  if (upcA && upcA.length === 12) {
+    return `${upcA[0]} ${upcA.slice(1, 6)} ${upcA.slice(6, 11)} ${upcA[11]}`
+  }
+  return d || upc.trim()
+}
+
 export function looksLikeBarcode(query: string): boolean {
   const n = barcodeDigits(query).length
   return n >= 8 && n <= 14

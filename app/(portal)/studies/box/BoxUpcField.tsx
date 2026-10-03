@@ -2,46 +2,35 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import type { BoxFieldRow } from '@/lib/box/types'
-import { BOX_UPC_SCAN_HELP } from '@/lib/box/constants'
-import { barcodeChoiceLabel, barcodeDigits, looksLikeBarcode } from '@/lib/concept/barcodes'
+import {
+  barcodeChoiceLabel,
+  barcodeDigits,
+  formatUpcDisplay,
+  looksLikeBarcode,
+} from '@/lib/concept/barcodes'
 
 type Props = {
   row: BoxFieldRow
   onSelectUpc: (upc: string) => void
   error?: string | null
-  /**
-   * Hero card: structured entry + quieter confirmed state.
-   * Contents rows keep the denser default treatment.
-   */
-  density?: 'default' | 'hero'
 }
 
 const IDENTIFY = 'Identify the barcode on this package.'
 
-function formatUpcDisplay(upc: string): string {
-  const d = barcodeDigits(upc)
-  if (d.length === 12) return `${d.slice(0, 1)} ${d.slice(1, 6)} ${d.slice(6, 11)} ${d.slice(11)}`
-  if (d.length === 13) return `${d.slice(0, 1)} ${d.slice(1, 7)} ${d.slice(7)}`
-  if (d.length === 14) return `${d.slice(0, 2)} ${d.slice(2, 8)} ${d.slice(8)}`
-  if (d.length > 8) return `${d.slice(0, d.length - 6)} ${d.slice(-6)}`
-  return d || upc
-}
-
-export default function BoxUpcField({
-  row,
-  onSelectUpc,
-  error,
-  density = 'default',
-}: Props) {
+/**
+ * Shared package-barcode control for Setup hero and Build the field rows.
+ */
+export default function BoxUpcField({ row, onSelectUpc, error }: Props) {
   const options = row.barcodeOptions ?? []
   const needsChoice = options.length > 1
   const [manual, setManual] = useState(row.upc ?? '')
   const [editing, setEditing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const hero = density === 'hero'
   const confirmed = !!row.upc?.trim() && !needsChoice && !editing
   const digits = barcodeDigits(manual)
   const canSave = looksLikeBarcode(digits)
+  const inputId = `box-upc-manual-${row.localId}`
+  const showDuplicateIdentify = error === IDENTIFY && !row.upc && !needsChoice
 
   useEffect(() => {
     setManual(row.upc ?? '')
@@ -49,8 +38,8 @@ export default function BoxUpcField({
   }, [row.upc, row.localId])
 
   useEffect(() => {
-    if (hero && editing) inputRef.current?.focus()
-  }, [hero, editing])
+    if (editing) inputRef.current?.focus()
+  }, [editing])
 
   function commitManual() {
     const next = barcodeDigits(manual)
@@ -69,51 +58,6 @@ export default function BoxUpcField({
       setEditing(false)
       setManual(row.upc)
     }
-  }
-
-  const showDuplicateIdentify = error === IDENTIFY && !row.upc && !needsChoice
-  const inputId = `box-upc-manual-${row.localId}`
-
-  if (!hero) {
-    return (
-      <div className="cb-box-upc" style={{ marginTop: 8 }}>
-        {needsChoice ? (
-          <ChoiceList
-            row={row}
-            options={options}
-            onSelectUpc={onSelectUpc}
-          />
-        ) : row.upc ? (
-          <div style={{ fontSize: 13, color: 'var(--ink-80)' }}>UPC {row.upc}</div>
-        ) : (
-          <div>
-            <label style={{ ...legendStyle, display: 'block' }} htmlFor={inputId}>
-              {IDENTIFY}
-            </label>
-            <input
-              id={inputId}
-              className="cb-input"
-              value={manual}
-              placeholder="Paste the barcode from the package"
-              inputMode="numeric"
-              autoComplete="off"
-              onChange={(e) => setManual(e.target.value)}
-              onBlur={commitManual}
-              onKeyDown={onManualKeyDown}
-              style={defaultInputStyle}
-            />
-          </div>
-        )}
-        <p style={{ margin: '6px 0 0', fontSize: 11, lineHeight: 1.45, color: 'var(--ink-50)' }}>
-          {BOX_UPC_SCAN_HELP}
-        </p>
-        {error && !showDuplicateIdentify ? (
-          <p role="alert" style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--red)' }}>
-            {error}
-          </p>
-        ) : null}
-      </div>
-    )
   }
 
   return (
@@ -291,16 +235,4 @@ const legendStyle = {
   fontWeight: 500,
   color: 'var(--ink-50)',
   marginBottom: 6,
-}
-
-const defaultInputStyle = {
-  width: '100%',
-  boxSizing: 'border-box' as const,
-  height: 40,
-  marginTop: 6,
-  border: '1px solid var(--ink-10)',
-  borderRadius: 'var(--r-sm)',
-  padding: '0 12px',
-  fontFamily: 'var(--font-sans)',
-  fontSize: 14,
 }
