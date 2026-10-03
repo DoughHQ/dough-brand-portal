@@ -43,7 +43,7 @@ describe('box builderSummaries', () => {
 
   it('summarizes contents and matchups', () => {
     const empty = createEmptyBoxDraft(1)
-    expect(summarizeBoxContents(empty)).toBe('Add products to the box')
+    expect(summarizeBoxContents(empty)).toBe('Add products to the field')
 
     const draft = {
       ...empty,

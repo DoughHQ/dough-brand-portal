@@ -116,7 +116,7 @@ export default function ContentsSection({
   return (
     <BuilderSectionChrome
       id={BOX_ANCHORS.field}
-      title="Contents"
+      title="Build the field"
       summary={summarizeBoxContents(draft)}
       done={sectionDone}
     >
@@ -170,34 +170,36 @@ export default function ContentsSection({
                     <img
                       src={r.frozen_image_url}
                       alt=""
-                      width={44}
-                      height={44}
+                      width={72}
+                      height={72}
                       style={{
-                        width: 44,
-                        height: 44,
+                        width: 72,
+                        height: 72,
                         objectFit: 'contain',
                         background: 'var(--surface-1)',
-                        borderRadius: 6,
+                        borderRadius: 10,
                         flexShrink: 0,
+                        border: '1px solid var(--ink-10)',
                       }}
                     />
                   ) : (
                     <span
                       aria-hidden
                       style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 6,
+                        width: 72,
+                        height: 72,
+                        borderRadius: 10,
                         background: 'var(--surface-1)',
+                        border: '1px solid var(--ink-10)',
                         flexShrink: 0,
                       }}
                     />
                   )}
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontWeight: 500, color: 'var(--ink)' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--ink-80)', fontSize: 15 }}>
                       {r.frozen_display_name || 'Unnamed product'}
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--ink-50)' }}>
+                    <div style={{ fontSize: 13, color: 'var(--ink-50)', marginTop: 2 }}>
                       {r.frozen_brand_name}
                     </div>
                     {awaitingConfirm && r.upc ? (
@@ -216,17 +218,19 @@ export default function ContentsSection({
                         }}
                       />
                     ) : r.product_id != null ? (
-                      <BoxUpcField
-                        row={r}
-                        onSelectUpc={(upc) =>
-                          patchRow(r.localId, {
-                            ...r,
-                            upc,
-                            identityConfirmed: isFocal,
-                          })
-                        }
-                        error={rowError}
-                      />
+                      <div style={{ marginTop: 12 }}>
+                        <BoxUpcField
+                          row={r}
+                          onSelectUpc={(upc) =>
+                            patchRow(r.localId, {
+                              ...r,
+                              upc,
+                              identityConfirmed: isFocal,
+                            })
+                          }
+                          error={rowError}
+                        />
+                      </div>
                     ) : null}
                   </div>
                   {differentCategory ? (

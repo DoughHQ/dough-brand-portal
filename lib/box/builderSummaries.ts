@@ -31,10 +31,10 @@ export function summarizeBoxSetup(draft: BoxStudyDraft): string {
   return `${title} · ${hero}`
 }
 
-/** Contents card — products in the box and matchups. */
+/** Field card — products in the box and matchups. */
 export function summarizeBoxContents(draft: BoxStudyDraft): string {
   const n = resolvedProducts(draft).length
-  if (n === 0) return 'Add products to the box'
+  if (n === 0) return 'Add products to the field'
   if (n < 2) return `${plural(n, 'product', 'products')} · need at least 2`
 
   const battles = uniquePairs(n)

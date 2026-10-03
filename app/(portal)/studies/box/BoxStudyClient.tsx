@@ -275,7 +275,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
           { id: BOX_ANCHORS.setup, label: 'Setup', done: validity.setupOk },
           {
             id: BOX_ANCHORS.field,
-            label: 'Contents',
+            label: 'Field',
             done: validity.setupOk && validity.fieldOk,
           },
           {

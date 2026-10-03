@@ -2,9 +2,26 @@ import { describe, expect, it } from 'vitest'
 import {
   barcodeChoiceLabel,
   barcodeLookupCandidates,
+  formatUpcDisplay,
   knownUpcFromBarcodeResolve,
   unwrapRpcJson,
 } from '../barcodes'
+
+describe('formatUpcDisplay', () => {
+  it('formats UPC-A as 1-5-5-1', () => {
+    expect(formatUpcDisplay('850052630171')).toBe('8 50052 63017 1')
+  })
+
+  it('strips GTIN-14 zero pad to UPC-A', () => {
+    // 00 + UPC-A — how catalog rows often store retail barcodes
+    expect(formatUpcDisplay('00850052630171')).toBe('8 50052 63017 1')
+  })
+
+  it('keeps non-UPC lengths as continuous digits', () => {
+    expect(formatUpcDisplay('12345678')).toBe('12345678')
+    expect(formatUpcDisplay('4006381333931')).toBe('4006381333931')
+  })
+})
 
 describe('barcodeChoiceLabel', () => {
   it('leads with the barcode, then size/UOM, then variant_name', () => {
