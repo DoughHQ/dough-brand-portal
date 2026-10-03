@@ -8,6 +8,7 @@ import { BOX_DEFAULT_BATTLE_QUESTION } from '@/lib/box/constants'
 import { createEmptyBoxDraft } from '@/lib/box/defaults'
 import { deleteBoxDraft, normalizeStoredBoxDraft, saveBoxDraft } from '@/lib/box/draftStore'
 import { BOX_ANCHORS, evaluateBoxValidity, type BoxPublishFailure } from '@/lib/box/validity'
+import { summarizeBoxDockReady } from '@/lib/box/builderSummaries'
 import { publishBoxStudyAction, createBoxCampaignAction } from './actions'
 import SetupSection from './SetupSection'
 import ContentsSection from './ContentsSection'
@@ -65,6 +66,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
     [validity.outstanding, validity.softOutstanding]
   )
   const ready = validity.readyToPublish && validity.softOutstanding.length === 0
+  const readyFacts = useMemo(() => summarizeBoxDockReady(draft), [draft])
 
   const rootRef = useRef<HTMLDivElement>(null)
   const stickyRef = useRef<HTMLDivElement>(null)
@@ -141,7 +143,12 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
   }, [toast])
 
   function scrollTo(id: string) {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const target = document.getElementById(id)
+    const section = target?.closest('.cb-builder-section') ?? document.getElementById(id)
+    section?.dispatchEvent(new Event('cb-expand-section'))
+    window.setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 40)
   }
 
   function saveDraft() {
@@ -288,7 +295,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
           {
             id: BOX_ANCHORS.logistics,
             label: 'Logistics',
-            done: validity.readyToPublish,
+            done: validity.setupOk && validity.fieldOk && validity.logisticsOk,
           },
         ]}
       />
@@ -315,6 +322,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
         onChange={persist}
         error={publishAttempted ? sectionErrors.setup : undefined}
         publishFailure={publishAttempted ? publishFailure : null}
+        sectionDone={validity.setupOk}
       />
 
       <ContentsSection
@@ -326,15 +334,21 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
         }
         error={publishAttempted ? sectionErrors.field : undefined}
         publishFailure={publishAttempted ? publishFailure : null}
+        sectionDone={validity.fieldOk}
       />
 
-      <BattleSection draft={draft} onChange={persist} />
+      <BattleSection
+        draft={draft}
+        onChange={persist}
+        sectionDone={validity.setupOk && validity.fieldOk}
+      />
 
       {STUDY_AUDIENCE_BUILDER_ENABLED ? (
         <AudienceSection
           draft={draft}
           onChange={persist}
           error={publishAttempted ? sectionErrors.audience : undefined}
+          sectionDone={validity.audienceOk}
         />
       ) : null}
 
@@ -342,7 +356,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
         draft={draft}
         onChange={persist}
         error={publishAttempted ? sectionErrors.logistics : undefined}
-        sectionNumber={STUDY_AUDIENCE_BUILDER_ENABLED ? 5 : 4}
+        sectionDone={validity.logisticsOk}
       />
 
       {sectionErrors.publish &&
@@ -587,6 +601,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
       <PublishingDock
         stickyRef={stickyRef}
         ready={ready}
+        readyFacts={readyFacts}
         needs={stickyNeeds}
         saveStatus={saveStatus}
         saving={saving}

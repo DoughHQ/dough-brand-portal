@@ -9,20 +9,24 @@ import {
   BOX_BATTLE_QUESTION_TITLE,
   BOX_DEFAULT_BATTLE_QUESTION,
 } from '@/lib/box/constants'
+import { summarizeBoxBattle } from '@/lib/box/builderSummaries'
 import { BOX_ANCHORS } from '@/lib/box/validity'
+import BuilderSectionChrome from '../concept/BuilderSectionChrome'
 
 type Props = {
   draft: BoxStudyDraft
   onChange: (next: BoxStudyDraft) => void
+  sectionDone?: boolean
 }
 
-export default function BattleSection({ draft, onChange }: Props) {
+export default function BattleSection({ draft, onChange, sectionDone = false }: Props) {
   return (
-    <section id={BOX_ANCHORS.battle} style={card}>
-      <div style={eyebrow}>Section 3 · The battle</div>
-      <h2 className="cb-section-title" style={titleStyle}>
-        The battle
-      </h2>
+    <BuilderSectionChrome
+      id={BOX_ANCHORS.battle}
+      title="The battle"
+      summary={summarizeBoxBattle(draft)}
+      done={sectionDone}
+    >
       <p style={helpStyle}>
         The forced-choice prompt respondents see when they compare two products
         in the box. This is what the ranking is built on.
@@ -54,7 +58,7 @@ export default function BattleSection({ draft, onChange }: Props) {
           Leave blank to use the default: &lsquo;{BOX_DEFAULT_BATTLE_QUESTION}&rsquo;
         </p>
       </div>
-    </section>
+    </BuilderSectionChrome>
   )
 }
 
@@ -160,31 +164,6 @@ function BattleQuestionInfoButton() {
   )
 }
 
-const card = {
-  background: 'var(--white)',
-  border: '1px solid var(--ink-10)',
-  borderRadius: 'var(--r-lg)',
-  padding: 32,
-  marginBottom: 24,
-  boxShadow: 'var(--cb-shadow-card)',
-}
-const eyebrow = {
-  fontFamily: 'var(--font-sans)',
-  fontSize: 12,
-  fontWeight: 500,
-  letterSpacing: '0.1em',
-  textTransform: 'uppercase' as const,
-  color: 'var(--ink-50)',
-  marginBottom: 8,
-}
-const titleStyle = {
-  fontFamily: 'var(--font-serif)',
-  fontSize: 26,
-  fontWeight: 400,
-  letterSpacing: '-0.02em',
-  margin: '0 0 8px',
-  color: 'var(--ink-80)',
-}
 const helpStyle = {
   fontFamily: 'var(--font-sans)',
   fontSize: 14,

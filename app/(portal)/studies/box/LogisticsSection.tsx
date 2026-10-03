@@ -1,6 +1,7 @@
 'use client'
 
 import type { BoxStudyDraft } from '@/lib/box/types'
+import { summarizeBoxLogistics } from '@/lib/box/builderSummaries'
 import { BOX_ANCHORS } from '@/lib/box/validity'
 import {
   MODULE_LOYALTY,
@@ -8,13 +9,13 @@ import {
   resolveBoxSelectedModules,
 } from '@/lib/study/modules'
 import ModulesPicker from '../ModulesPicker'
+import BuilderSectionChrome from '../concept/BuilderSectionChrome'
 
 type Props = {
   draft: BoxStudyDraft
   onChange: (next: BoxStudyDraft) => void
   error?: string | null
-  /** Visible section number. Audience is hidden, so this is 4 unless that section is on. */
-  sectionNumber?: number
+  sectionDone?: boolean
 }
 
 const DEFAULT_SESSION_INTERVAL_HOURS = 48
@@ -41,17 +42,18 @@ export default function LogisticsSection({
   draft,
   onChange,
   error,
-  sectionNumber = 4,
+  sectionDone = false,
 }: Props) {
   const selectedModules = resolveBoxSelectedModules(draft)
   const loyaltyOn = hasLoyaltyModule(selectedModules)
 
   return (
-    <section id={BOX_ANCHORS.logistics} style={card}>
-      <div style={eyebrow}>Section {sectionNumber} · Logistics</div>
-      <h2 className="cb-section-title" style={titleStyle}>
-        Shipping and sessions
-      </h2>
+    <BuilderSectionChrome
+      id={BOX_ANCHORS.logistics}
+      title="Logistics"
+      summary={summarizeBoxLogistics(draft)}
+      done={sectionDone}
+    >
       <p style={helpStyle}>
         How many boxes exist, how the tasting is paced, and when the study closes.
       </p>
@@ -202,35 +204,10 @@ export default function LogisticsSection({
           {error}
         </p>
       ) : null}
-    </section>
+    </BuilderSectionChrome>
   )
 }
 
-const card = {
-  background: 'var(--white)',
-  border: '1px solid var(--ink-10)',
-  borderRadius: 'var(--r-lg)',
-  padding: 32,
-  marginBottom: 24,
-  boxShadow: 'var(--cb-shadow-card)',
-}
-const eyebrow = {
-  fontFamily: 'var(--font-sans)',
-  fontSize: 12,
-  fontWeight: 500,
-  letterSpacing: '0.1em',
-  textTransform: 'uppercase' as const,
-  color: 'var(--ink-50)',
-  marginBottom: 8,
-}
-const titleStyle = {
-  fontFamily: 'var(--font-serif)',
-  fontSize: 26,
-  fontWeight: 400,
-  letterSpacing: '-0.02em',
-  margin: '0 0 8px',
-  color: 'var(--ink-80)',
-}
 const helpStyle = {
   fontFamily: 'var(--font-sans)',
   fontSize: 14,
