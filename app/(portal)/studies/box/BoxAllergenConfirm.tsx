@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, type CSSProperties } from 'react'
-import { createClient } from '@/lib/supabase-browser'
+import { createClient } from '@/lib/supabase'
 import type { BoxFieldRow } from '@/lib/box/types'
 import {
   ALLERGEN_CODES,
