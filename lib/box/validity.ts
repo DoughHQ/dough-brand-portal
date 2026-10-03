@@ -13,6 +13,7 @@ import { uniquePairs } from '@/lib/concept/publish'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
 import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 import { MAX_BOX_FIELD_SIZE } from './fieldSize'
+import { isAllergenConfirmed } from './allergens'
 
 export type BoxOutstandingItem = {
   message: string
@@ -189,6 +190,20 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
     })
   }
 
+  const allergenPending = resolved.filter(
+    (r) => r.upc?.trim() && isIdentityConfirmed(r) && !isAllergenConfirmed(r)
+  )
+  const allergensOk = allergenPending.length === 0
+  if (!allergensOk && confirmedOk && upcOk) {
+    outstanding.push({
+      message:
+        allergenPending.length === 1
+          ? 'Confirm allergens from the package label for one product.'
+          : `Confirm allergens from the package label for ${allergenPending.length} products.`,
+      anchor: BOX_ANCHORS.field,
+    })
+  }
+
   const upcs = resolved
     .map((r) => r.upc?.trim())
     .filter((u): u is string => !!u)
@@ -210,6 +225,7 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
     focalInField &&
     upcOk &&
     confirmedOk &&
+    allergensOk &&
     dupUpcOk
 
   // ---- audience --------------------------------------------------------

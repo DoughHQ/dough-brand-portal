@@ -18,6 +18,7 @@ import { createClient } from '@/lib/supabase'
 import BuilderSectionChrome from '../concept/BuilderSectionChrome'
 import BoxProductSearchSlot from './BoxProductSearchSlot'
 import BoxUpcField from './BoxUpcField'
+import BoxAllergenConfirm from './BoxAllergenConfirm'
 import ProductIdentityConfirm from '../ProductIdentityConfirm'
 
 type Props = {
@@ -210,7 +211,14 @@ export default function ContentsSection({
                         upc={r.upc}
                         help={BOX_UPC_SCAN_HELP}
                         onConfirm={() =>
-                          patchRow(r.localId, { ...r, identityConfirmed: true })
+                          patchRow(r.localId, {
+                            ...r,
+                            identityConfirmed: true,
+                            allergensContains: null,
+                            allergensMayContain: null,
+                            allergensConfirmed: false,
+                            allergensCatalogStatus: null,
+                          })
                         }
                         onChange={() => {
                           removeRow(r.localId, r.product_id)
@@ -226,10 +234,20 @@ export default function ContentsSection({
                               ...r,
                               upc,
                               identityConfirmed: isFocal,
+                              allergensContains: null,
+                              allergensMayContain: null,
+                              allergensConfirmed: false,
+                              allergensCatalogStatus: null,
                             })
                           }
                           error={rowError}
                         />
+                        {isIdentityConfirmed(r) && r.upc?.trim() ? (
+                          <BoxAllergenConfirm
+                            row={r}
+                            onChange={(next) => patchRow(r.localId, next)}
+                          />
+                        ) : null}
                       </div>
                     ) : null}
                   </div>

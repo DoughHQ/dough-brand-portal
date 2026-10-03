@@ -60,6 +60,15 @@ export type BoxFieldRow = {
    * Undefined on legacy drafts — treated as confirmed when upc is present.
    */
   identityConfirmed?: boolean
+  /**
+   * Brand-confirmed allergen lists from the physical label (P0b).
+   * Both arrays required when allergensConfirmed; empty = declared none.
+   */
+  allergensContains?: string[] | null
+  allergensMayContain?: string[] | null
+  allergensConfirmed?: boolean
+  /** Catalog status from get_product_allergen_prefill (display only). */
+  allergensCatalogStatus?: string | null
 }
 
 /**
