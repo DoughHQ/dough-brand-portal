@@ -2,7 +2,7 @@ import type { BrandHomeModel } from '@/lib/brandHome/selectHomeModel'
 
 /** Simulated brand home for public marketing embeds. No live brand data. */
 export const marketingHomeModel: BrandHomeModel = {
-  brandName: 'Keel Still',
+  brandName: 'Keel',
   hero: {
     kind: 'study_ready',
     eyebrow: 'Concept report ready',
@@ -20,7 +20,7 @@ export const marketingHomeModel: BrandHomeModel = {
   categories: [
     {
       l2NodeId: 101,
-      name: 'Still water',
+      name: 'Flavored water',
       status: 'active',
       detail: 'Standing available where shoppers have chosen',
       href: '#',
@@ -30,7 +30,7 @@ export const marketingHomeModel: BrandHomeModel = {
     },
     {
       l2NodeId: 102,
-      name: 'Sparkling water',
+      name: 'Still water',
       status: 'building',
       detail: 'More battles needed before a standing',
       href: '#',
@@ -42,8 +42,8 @@ export const marketingHomeModel: BrandHomeModel = {
   products: [
     {
       productId: 1,
-      name: 'Keel Still 1L',
-      category: 'Still water',
+      name: 'Keel Lemon Water',
+      category: 'Flavored water',
       chip: 'gaining',
       insight: 'Preference strength up over the last 30 days.',
       rankLabel: null,
@@ -51,8 +51,8 @@ export const marketingHomeModel: BrandHomeModel = {
     },
     {
       productId: 2,
-      name: 'Keel Still 500ml',
-      category: 'Still water',
+      name: 'Keel Lemon Water 12oz',
+      category: 'Flavored water',
       chip: 'stable',
       insight: '184 battles counted · holding steady.',
       rankLabel: null,
@@ -71,7 +71,7 @@ export const marketingHomeModel: BrandHomeModel = {
     },
     {
       missionId: 'marketing-box-1',
-      title: 'In-home box — Keel Still 1L',
+      title: 'In-home box — Keel Lemon Water',
       badge: 'Results ready',
       detail: '64 completed · box',
       progress: 1,

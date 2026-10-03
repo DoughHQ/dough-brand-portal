@@ -15,8 +15,8 @@ const MARKETING_BOX_REPORT_RAW = {
   report: {
     focal_product: {
       product_id: 1,
-      name: 'Keel Still 1L',
-      brand: 'Keel Still',
+      name: 'Keel Lemon Water',
+      brand: 'Keel',
     },
     participation: {
       n_users: 64,
