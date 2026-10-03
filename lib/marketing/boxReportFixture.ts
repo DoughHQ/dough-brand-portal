@@ -55,8 +55,8 @@ const MARKETING_BOX_REPORT_RAW = {
     per_opponent: [
       {
         opponent_product_id: 11,
-        opponent_name: 'Smartwater 1L',
-        opponent_brand: 'Glacéau',
+        opponent_name: 'Rivermark Citrus Still',
+        opponent_brand: 'Rivermark',
         reportable: true,
         value: 0.62,
         ci_low: 0.5,
@@ -67,8 +67,8 @@ const MARKETING_BOX_REPORT_RAW = {
       },
       {
         opponent_product_id: 12,
-        opponent_name: 'essentia 1L',
-        opponent_brand: 'essentia',
+        opponent_name: 'Northveil Lemon',
+        opponent_brand: 'Northveil',
         reportable: true,
         value: 0.54,
         ci_low: 0.42,
