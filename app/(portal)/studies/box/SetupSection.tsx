@@ -163,58 +163,54 @@ export default function SetupSection({
       {/* focal product */}
       <div id={BOX_ANCHORS.category} style={{ marginBottom: 8 }}>
         <div style={labelSm}>Hero product</div>
-        {focalName ? (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between',
-              gap: 16,
-              border: '1px solid var(--ink-10)',
-              borderRadius: 'var(--r-md)',
-              padding: 16,
-              background: 'var(--cream)',
-            }}
-          >
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontWeight: 600, color: 'var(--ink-80)' }}>{focalName}</div>
-              <div style={{ fontSize: 13, color: 'var(--ink-50)', marginTop: 2 }}>
-                {focalBrand}
+        {focalName && focalRow ? (
+          <div className="cb-box-hero">
+            <div className="cb-box-hero-top">
+              <div className="cb-box-hero-photo" aria-hidden={!focalRow.frozen_image_url}>
+                {focalRow.frozen_image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={focalRow.frozen_image_url} alt="" />
+                ) : (
+                  <span className="cb-box-hero-photo-fallback">
+                    {(focalName.trim().charAt(0) || '?').toUpperCase()}
+                  </span>
+                )}
               </div>
-              {breadcrumb ? (
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 11,
-                    color: 'var(--ink-30)',
-                    marginTop: 8,
-                    letterSpacing: '0.02em',
-                  }}
-                >
-                  {breadcrumb}
+              <div className="cb-box-hero-identity">
+                <div className="cb-box-hero-identity-head">
+                  <div className="cb-box-hero-names">
+                    <div className="cb-box-hero-name">{focalName}</div>
+                    {focalBrand ? (
+                      <div className="cb-box-hero-brand">{focalBrand}</div>
+                    ) : null}
+                  </div>
+                  <button type="button" className="cb-quiet-action" onClick={clearFocal}>
+                    Change
+                  </button>
                 </div>
-              ) : null}
-              {focalRow ? (
-                <BoxUpcField
-                  row={focalRow}
-                  onSelectUpc={(upc) => {
-                    const latest = draftRef.current
-                    onChange({
-                      ...latest,
-                      fieldProducts: latest.fieldProducts.map((r) =>
-                        r.localId === focalRow.localId
-                          ? { ...r, upc, identityConfirmed: true }
-                          : r
-                      ),
-                    })
-                  }}
-                  error={focalUpcError}
-                />
-              ) : null}
+                {breadcrumb ? (
+                  <div className="cb-box-hero-crumb">{breadcrumb}</div>
+                ) : null}
+              </div>
             </div>
-            <button type="button" className="cb-quiet-action" onClick={clearFocal}>
-              Change
-            </button>
+            <div className="cb-box-hero-barcode">
+              <BoxUpcField
+                row={focalRow}
+                density="hero"
+                onSelectUpc={(upc) => {
+                  const latest = draftRef.current
+                  onChange({
+                    ...latest,
+                    fieldProducts: latest.fieldProducts.map((r) =>
+                      r.localId === focalRow.localId
+                        ? { ...r, upc, identityConfirmed: true }
+                        : r
+                    ),
+                  })
+                }}
+                error={focalUpcError}
+              />
+            </div>
           </div>
         ) : (
           <BoxProductSearchSlot
