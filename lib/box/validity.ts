@@ -99,28 +99,27 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
     })
   }
 
-  const focalChosen = draft.focalProductId != null
-  if (!focalChosen) {
-    outstanding.push({
-      message: 'Choose the hero product this box is about.',
-      anchor: BOX_ANCHORS.field,
-    })
-  }
-
-  const setupOk = titleOk && categoryOk && focalChosen
+  const setupOk = titleOk && categoryOk
 
   // ---- field -----------------------------------------------------------
-  const resolved = draft.fieldProducts.filter((r) => r.product_id != null)
-  const fieldSize = resolved.length
+  const seats = draft.fieldProducts
+  const fieldSize = seats.length
+  const yoursCount = seats.filter((r) => r.role === 'yours').length
 
-  const unresolvedCount = draft.fieldProducts.length - resolved.length
-  const rowsResolvedOk = unresolvedCount === 0
+  const catalogSeats = seats.filter((r) => r.kind !== 'prototype')
+  const prototypeSeats = seats.filter((r) => r.kind === 'prototype')
+
+  const unresolvedCatalog = catalogSeats.filter((r) => r.product_id == null)
+  const unresolvedPrototype = prototypeSeats.filter((r) => !r.prototype_id)
+  const rowsResolvedOk =
+    unresolvedCatalog.length === 0 && unresolvedPrototype.length === 0
   if (!rowsResolvedOk) {
+    const n = unresolvedCatalog.length + unresolvedPrototype.length
     outstanding.push({
       message:
-        unresolvedCount === 1
-          ? 'Finish choosing a product for one box item.'
-          : `Finish choosing products for ${unresolvedCount} box items.`,
+        n === 1
+          ? 'Finish choosing a catalog product or ready prototype for one seat.'
+          : `Finish choosing identities for ${n} seats.`,
       anchor: BOX_ANCHORS.field,
     })
   }
@@ -128,7 +127,7 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
   const sizeOk = fieldSize >= 2
   if (!sizeOk && rowsResolvedOk) {
     outstanding.push({
-      message: 'A box needs at least two products to battle.',
+      message: 'A box needs at least two seats to battle.',
       anchor: BOX_ANCHORS.field,
     })
   }
@@ -139,72 +138,112 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
     outstanding.push({
       message:
         fieldOverBy === 1
-          ? `Remove 1 item — the box holds ${MAX_BOX_FIELD_SIZE} products.`
-          : `Remove ${fieldOverBy} items — the box holds ${MAX_BOX_FIELD_SIZE} products.`,
+          ? `Remove 1 seat — the box holds ${MAX_BOX_FIELD_SIZE}.`
+          : `Remove ${fieldOverBy} seats — the box holds ${MAX_BOX_FIELD_SIZE}.`,
       anchor: BOX_ANCHORS.field,
     })
   }
 
-  const ids = resolved.map((r) => r.product_id as number)
-  const dupes = ids.filter((id, i) => ids.indexOf(id) !== i)
+  const yoursOk = yoursCount >= 1
+  if (!yoursOk && rowsResolvedOk) {
+    outstanding.push({
+      message: 'Mark at least one seat as Yours.',
+      anchor: BOX_ANCHORS.field,
+    })
+  }
+
+  const productIds = catalogSeats
+    .map((r) => r.product_id)
+    .filter((id): id is number => id != null)
+  const dupes = productIds.filter((id, i) => productIds.indexOf(id) !== i)
   const dupesOk = dupes.length === 0
   if (!dupesOk) {
     outstanding.push({
-      message: `Remove duplicate product${new Set(dupes).size === 1 ? '' : 's'} — a repeated product would battle itself.`,
+      message: 'Remove duplicate catalog products — a repeated product would battle itself.',
       anchor: BOX_ANCHORS.field,
     })
   }
 
-  const focalInField =
-    draft.focalProductId == null || ids.includes(draft.focalProductId)
-  if (!focalInField) {
+  const prototypeIds = prototypeSeats
+    .map((r) => r.prototype_id)
+    .filter((id): id is string => !!id)
+  const dupProtos = prototypeIds.filter((id, i) => prototypeIds.indexOf(id) !== i)
+  const dupProtoOk = dupProtos.length === 0
+  if (!dupProtoOk) {
     outstanding.push({
-      message: 'The hero product must ship in the box. Add it to the contents.',
+      message: 'Remove duplicate prototypes — each ready sample can only appear once.',
       anchor: BOX_ANCHORS.field,
     })
   }
 
-  const missingUpc = resolved.filter((r) => !r.upc?.trim())
+  const missingUpc = catalogSeats.filter(
+    (r) => r.product_id != null && !r.upc?.trim()
+  )
   const upcOk = missingUpc.length === 0
   if (!upcOk && rowsResolvedOk && sizeOk) {
     outstanding.push({
       message:
         missingUpc.length === 1
-          ? 'Identify the barcode on one product in the box.'
-          : `Identify the barcode on ${missingUpc.length} products in the box.`,
+          ? 'Identify the barcode on one catalog product.'
+          : `Identify the barcode on ${missingUpc.length} catalog products.`,
       anchor: BOX_ANCHORS.field,
     })
   }
 
-  const unconfirmed = resolved.filter(
-    (r) => r.upc?.trim() && !isIdentityConfirmed(r)
+  const unconfirmed = catalogSeats.filter(
+    (r) => r.product_id != null && r.upc?.trim() && !isIdentityConfirmed(r)
   )
   const confirmedOk = unconfirmed.length === 0
   if (!confirmedOk && upcOk) {
     outstanding.push({
       message:
         unconfirmed.length === 1
-          ? 'Confirm the product in the box.'
-          : `Confirm ${unconfirmed.length} products in the box.`,
+          ? 'Confirm the catalog product in the box.'
+          : `Confirm ${unconfirmed.length} catalog products in the box.`,
       anchor: BOX_ANCHORS.field,
     })
   }
 
-  const allergenPending = resolved.filter(
-    (r) => r.upc?.trim() && isIdentityConfirmed(r) && !isAllergenConfirmed(r)
+  const allergenPending = catalogSeats.filter(
+    (r) =>
+      r.product_id != null &&
+      r.upc?.trim() &&
+      isIdentityConfirmed(r) &&
+      !isAllergenConfirmed(r)
   )
   const allergensOk = allergenPending.length === 0
   if (!allergensOk && confirmedOk && upcOk) {
     outstanding.push({
       message:
         allergenPending.length === 1
-          ? 'Confirm allergens from the package label for one product.'
-          : `Confirm allergens from the package label for ${allergenPending.length} products.`,
+          ? 'Confirm allergens from the package label for one catalog product.'
+          : `Confirm allergens from the package label for ${allergenPending.length} catalog products.`,
       anchor: BOX_ANCHORS.field,
     })
   }
 
-  const upcs = resolved
+  const notReadyProtos = prototypeSeats.filter((r) => {
+    const snap = r.prototypeSnapshot
+    if (!r.prototype_id) return true
+    if (!snap) return false
+    return (
+      snap.archived_at != null ||
+      snap.allergens_declared_at == null ||
+      !(snap.image_paths?.length > 0)
+    )
+  })
+  const prototypesReadyOk = notReadyProtos.length === 0
+  if (!prototypesReadyOk && rowsResolvedOk) {
+    outstanding.push({
+      message:
+        notReadyProtos.length === 1
+          ? 'One prototype still needs images and a declared allergen list.'
+          : `${notReadyProtos.length} prototypes still need images and declared allergens.`,
+      anchor: BOX_ANCHORS.field,
+    })
+  }
+
+  const upcs = catalogSeats
     .map((r) => r.upc?.trim())
     .filter((u): u is string => !!u)
   const dupUpcs = upcs.filter((u, i) => upcs.indexOf(u) !== i)
@@ -212,7 +251,26 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
   if (!dupUpcOk) {
     outstanding.push({
       message:
-        'The same barcode is on two products. Each package in the box needs its own UPC.',
+        'The same barcode is on two catalog products. Each package needs its own UPC.',
+      anchor: BOX_ANCHORS.field,
+    })
+  }
+
+  const tasteOnly = seats.some((r) => r.packaging === 'plain_sample')
+  if (tasteOnly) {
+    softOutstanding.push({
+      message:
+        'A plain sample makes this study taste-only — respondents will not see or judge shelf price.',
+      anchor: BOX_ANCHORS.field,
+    })
+  }
+  const priced = seats.every(
+    (r) => typeof r.price === 'number' && Number.isFinite(r.price) && r.price > 0
+  )
+  if (!tasteOnly && !priced && seats.length >= 2) {
+    softOutstanding.push({
+      message:
+        'Incomplete pricing disables price checks. Add a positive price on every seat to enable them.',
       anchor: BOX_ANCHORS.field,
     })
   }
@@ -221,14 +279,16 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
     rowsResolvedOk &&
     sizeOk &&
     fieldSizeCapOk &&
+    yoursOk &&
     dupesOk &&
-    focalInField &&
+    dupProtoOk &&
     upcOk &&
     confirmedOk &&
     allergensOk &&
+    prototypesReadyOk &&
     dupUpcOk
 
-  // ---- audience --------------------------------------------------------
+  // Keep focalProductId optional for legacy UI; v2 seats use role=yours instead.
   // V1: audience builder is off — every box is open. Skip client gates.
   let audienceOk = true
   let openAudience = true

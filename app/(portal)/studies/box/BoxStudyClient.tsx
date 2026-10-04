@@ -503,7 +503,56 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
             <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}>
               The study is open. Qualified users can claim it now — the field is
               frozen and the battle question is locked.
+              {publishMeta.taste_only
+                ? ' Plain samples made this study taste-only.'
+                : ''}
+              {!publishMeta.price_check_enabled
+                ? ' Price checks are off.'
+                : ''}
             </p>
+            {publishMeta.prototype_labels.length > 0 ? (
+              <div
+                style={{
+                  margin: '0 0 16px',
+                  padding: 12,
+                  border: '1px solid var(--ink-10)',
+                  borderRadius: 'var(--r-md)',
+                  background: 'var(--surface-1)',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'var(--ink-80)',
+                    marginBottom: 8,
+                  }}
+                >
+                  Printable study-sample labels (operators only)
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'var(--ink-70)' }}>
+                  {publishMeta.prototype_labels.map((label) => (
+                    <li key={`${label.prototype_id}-${label.code}`} style={{ marginBottom: 6 }}>
+                      <code style={{ fontSize: 12 }}>{label.code}</code>
+                      {' · '}
+                      {label.display_name}
+                      {label.internal_label ? (
+                        <span style={{ color: 'var(--ink-50)' }}>
+                          {' '}
+                          (internal: {label.internal_label})
+                        </span>
+                      ) : null}
+                      {' · '}
+                      {label.packaging === 'plain_sample' ? 'plain sample' : 'final packaging'}
+                    </li>
+                  ))}
+                </ul>
+                <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--ink-50)' }}>
+                  Respondents scanning these codes see only “Dough study sample.” Never print
+                  internal formula names on respondent-facing packaging.
+                </p>
+              </div>
+            ) : null}
             <dl
               style={{
                 margin: 0,

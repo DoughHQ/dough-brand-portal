@@ -42,6 +42,16 @@ export const BOX_PUBLISH_HINT_MESSAGES: Record<string, string> = {
     'The same barcode is on two products. Each package in the box needs its own UPC.',
   FIELD_TOO_SMALL: 'A box needs at least two products to battle.',
   FIELD_TOO_LARGE: 'A box can have at most 5 products to battle.',
+  FIELD_SIZE_INVALID: 'A box needs 2–5 seats.',
+  YOURS_SEAT_REQUIRED: 'Mark at least one seat as Yours.',
+  PROTOTYPE_REQUIRED: 'Choose a ready prototype for that seat.',
+  PRODUCT_REQUIRED: 'Choose a catalog product for that seat.',
+  PROTOTYPE_NOT_READY:
+    'That prototype still needs images and a declared allergen list.',
+  PROTOTYPE_AUDIENCE_MUST_BE_OPEN:
+    'Prototype studies must use an open audience.',
+  PROTOTYPE_CODE_EXHAUSTED:
+    'Could not allocate a free study-sample barcode. Try again.',
   FOCAL_NOT_IN_FIELD: 'The hero product must ship in the box. Add it to the contents.',
   UPC_REQUIRED:
     'Every product in the box needs a barcode. Identify the UPC on each package.',
