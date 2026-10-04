@@ -1,3 +1,5 @@
+'use server'
+
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import { parseBrandPrototype, sanitizeAllergenList } from '@/lib/prototypes/parse'
