@@ -1,45 +1,49 @@
 import { BOX_DEFAULT_BATTLE_QUESTION } from './constants'
 import { uniquePairs } from '@/lib/concept/publish'
+import { isResolvedBoxSeat } from './fieldSize'
 import type { BoxStudyDraft } from './types'
 
 function plural(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`
 }
 
-function resolvedProducts(draft: BoxStudyDraft) {
-  return draft.fieldProducts.filter((r) => r.product_id != null)
+function resolvedSeats(draft: BoxStudyDraft) {
+  return draft.fieldProducts.filter(isResolvedBoxSeat)
 }
 
-function focalName(draft: BoxStudyDraft): string | null {
-  const row = draft.fieldProducts.find((r) => r.product_id === draft.focalProductId)
-  const name = row?.frozen_display_name?.trim()
+function yoursLabel(draft: BoxStudyDraft): string | null {
+  const yours = draft.fieldProducts.find(
+    (r) => r.role === 'yours' && isResolvedBoxSeat(r)
+  )
+  const name = yours?.frozen_display_name?.trim()
   return name || null
 }
 
-/** Setup card — study name + hero (category lives on the hero). */
+/** Setup card — study name + category. */
 export function summarizeBoxSetup(draft: BoxStudyDraft): string {
   const title = draft.title.trim() || null
-  const hero = focalName(draft)
+  const hasCategory = draft.taxonomyNodeId != null
 
-  if (!title && !hero) {
-    return draft.taxonomyNodeId != null
-      ? 'Name the study · pick a hero'
-      : 'Name the study · choose a hero product'
-  }
-  if (!title) return `Name the study · ${hero}`
-  if (!hero) return `${title} · Choose a hero product`
-  return `${title} · ${hero}`
+  if (!title && !hasCategory) return 'Name the study · choose a category'
+  if (!title) return 'Name the study'
+  if (!hasCategory) return `${title} · Choose a category`
+  return title
 }
 
-/** Field card — products in the box and matchups. */
+/** Field card — seats in the box and matchups. */
 export function summarizeBoxContents(draft: BoxStudyDraft): string {
-  const n = resolvedProducts(draft).length
-  if (n === 0) return 'Add products to the field'
-  if (n < 2) return `${plural(n, 'product', 'products')} · need at least 2`
+  const n = resolvedSeats(draft).length
+  if (n === 0) return 'Add seats to the field'
+  if (n < 2) {
+    const yours = yoursLabel(draft)
+    return yours
+      ? `${yours} · add at least one more seat`
+      : `${plural(n, 'seat', 'seats')} · need at least 2`
+  }
 
   const battles = uniquePairs(n)
   return [
-    plural(n, 'product', 'products'),
+    plural(n, 'seat', 'seats'),
     plural(battles, 'matchup', 'matchups'),
   ].join(' · ')
 }
@@ -97,7 +101,7 @@ export function summarizeBoxLogistics(draft: BoxStudyDraft): string {
 
 /** Sticky dock when the box can publish. */
 export function summarizeBoxDockReady(draft: BoxStudyDraft): string {
-  const n = resolvedProducts(draft).length
+  const n = resolvedSeats(draft).length
   const battles = uniquePairs(n)
   const units = draft.physicalUnits ?? 0
   return [

@@ -50,16 +50,11 @@ export function normalizeStoredBoxDraft(
   })
   const focalId =
     typeof stored.focalProductId === 'number' ? stored.focalProductId : null
-  return {
-    ...base,
-    ...stored,
-    draftId: stored.draftId ?? base.draftId,
-    fieldProducts: Array.isArray(stored.fieldProducts)
-      ? stored.fieldProducts.map((r, index) => {
+  const fieldProducts = Array.isArray(stored.fieldProducts)
+    ? stored.fieldProducts
+        .map((r, index) => {
           const kind =
-            r.kind === 'prototype' || r.kind === 'product'
-              ? r.kind
-              : 'product'
+            r.kind === 'prototype' || r.kind === 'product' ? r.kind : 'product'
           const role =
             r.role === 'yours' || r.role === 'competitor'
               ? r.role
@@ -78,9 +73,7 @@ export function normalizeStoredBoxDraft(
                 ? r.packaging
                 : 'final_packaging',
             price:
-              typeof r.price === 'number' && Number.isFinite(r.price)
-                ? r.price
-                : null,
+              typeof r.price === 'number' && Number.isFinite(r.price) ? r.price : null,
             prototype_id:
               typeof r.prototype_id === 'string' && r.prototype_id
                 ? r.prototype_id
@@ -97,7 +90,16 @@ export function normalizeStoredBoxDraft(
                 : typeof r.upc === 'string' && r.upc.trim().length > 0,
           }
         })
-      : [],
+        // Concept rule: unresolved seats never persist. Kill Kind-toggle ghosts.
+        .filter((r) =>
+          r.kind === 'prototype' ? !!r.prototype_id : r.product_id != null
+        )
+    : []
+  return {
+    ...base,
+    ...stored,
+    draftId: stored.draftId ?? base.draftId,
+    fieldProducts,
     eligibility: {
       ...createEmptyBoxEligibility(),
       ...(stored.eligibility ?? {}),

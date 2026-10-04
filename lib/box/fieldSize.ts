@@ -14,11 +14,17 @@ export function getBoxFieldSize(draft: BoxStudyDraft): number {
 }
 
 export function getBoxResolvedCount(draft: BoxStudyDraft): number {
-  return draft.fieldProducts.filter(
-    (r) =>
-      (r.kind === 'prototype' && !!r.prototype_id) ||
-      (r.kind !== 'prototype' && r.product_id != null)
-  ).length
+  return draft.fieldProducts.filter(isResolvedBoxSeat).length
+}
+
+/** A seat only counts once catalog product_id or prototype_id is bound. */
+export function isResolvedBoxSeat(row: {
+  kind?: string | null
+  product_id?: number | null
+  prototype_id?: string | null
+}): boolean {
+  if (row.kind === 'prototype') return !!row.prototype_id
+  return row.product_id != null
 }
 
 export function getBoxRemainingSlots(draft: BoxStudyDraft): number {

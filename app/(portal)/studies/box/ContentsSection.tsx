@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
-import type { BoxFieldRow, BoxStudyDraft } from '@/lib/box/types'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { BoxFieldRow, BoxSeatRole, BoxStudyDraft } from '@/lib/box/types'
 import type { AdminProductSearchResult } from '@/lib/queries'
 import type { PrototypeListItem, PrototypePackaging } from '@/lib/prototypes/types'
 import {
@@ -13,13 +13,15 @@ import { summarizeBoxContents } from '@/lib/box/builderSummaries'
 import { createEmptyBoxFieldRow } from '@/lib/box/defaults'
 import {
   applyPrototypeToSeat,
-  clearCatalogFromSeat,
-  clearPrototypeFromSeat,
   createPrototypeSeatFromItem,
 } from '@/lib/box/applyPrototypeSeat'
 import { hydrateBoxFieldRow } from '@/lib/box/hydrate'
 import { BOX_UPC_SCAN_HELP } from '@/lib/box/constants'
-import { canAddBoxProduct, MAX_BOX_FIELD_SIZE } from '@/lib/box/fieldSize'
+import {
+  canAddBoxProduct,
+  isResolvedBoxSeat,
+  MAX_BOX_FIELD_SIZE,
+} from '@/lib/box/fieldSize'
 import { categoryFromSearchResult, isIdentityConfirmed } from '@/lib/productEntryMode'
 import { createClient } from '@/lib/supabase'
 import BuilderSectionChrome from '../concept/BuilderSectionChrome'
@@ -32,30 +34,78 @@ import ProductIdentityConfirm from '../ProductIdentityConfirm'
 type Props = {
   draft: BoxStudyDraft
   onChange: (next: BoxStudyDraft) => void
-  /** L2 node id of the focal, to encourage same-area picks. */
-  focalL2NodeId?: number | null
+  /** Prefer same-area catalog picks when set. */
+  preferL2NodeId?: number | null
   error?: string | null
   publishFailure?: BoxPublishFailure | null
   sectionDone?: boolean
 }
 
-type AddingMode = false | 'catalog' | 'prototype'
+/** Transient add/replace — never written into the draft until resolved. */
+type Composer =
+  | null
+  | {
+      intent: 'yours_catalog' | 'yours_prototype' | 'competitor_catalog'
+      replaceLocalId?: string
+      /** Snapshot so Change can cancel without data loss. */
+      previous?: BoxFieldRow
+    }
+
+function catalogSeatFromPick(
+  p: AdminProductSearchResult,
+  role: BoxSeatRole,
+  knownUpc?: string
+): BoxFieldRow {
+  return {
+    ...createEmptyBoxFieldRow(),
+    kind: 'product',
+    role,
+    product_id: p.product_id,
+    frozen_display_name: p.product_name_clean,
+    frozen_brand_name: p.brand_name,
+    frozen_image_url: p.image_url ?? null,
+    taxonomy_node_id: p.taxonomy_node_id ?? null,
+    l2_node_id: p.l2_node_id ?? null,
+    frozen_category: categoryFromSearchResult(p),
+    upc: knownUpc?.trim() || null,
+    identityConfirmed: false,
+  }
+}
 
 export default function ContentsSection({
   draft,
   onChange,
-  focalL2NodeId = null,
+  preferL2NodeId = null,
   error,
   publishFailure = null,
   sectionDone = false,
 }: Props) {
-  const [adding, setAdding] = useState<AddingMode>(false)
-  /** Seat localIds that are mid-pick after Kind → Prototype. */
-  const [pickingSeatIds, setPickingSeatIds] = useState<Set<string>>(() => new Set())
+  const [composer, setComposer] = useState<Composer>(null)
   const draftRef = useRef(draft)
   draftRef.current = draft
+  const prunedRef = useRef(false)
 
-  const rows = draft.fieldProducts
+  // Drop any unresolved seats left by older Kind-toggle drafts (concept rule:
+  // an open search box must never occupy a field seat).
+  useEffect(() => {
+    if (prunedRef.current) return
+    const dirty = draft.fieldProducts.some((r) => !isResolvedBoxSeat(r))
+    if (!dirty) {
+      prunedRef.current = true
+      return
+    }
+    prunedRef.current = true
+    onChange({
+      ...draft,
+      fieldProducts: draft.fieldProducts.filter(isResolvedBoxSeat),
+    })
+  }, [draft, onChange])
+
+  const rows = useMemo(
+    () => draft.fieldProducts.filter(isResolvedBoxSeat),
+    [draft.fieldProducts]
+  )
+
   const takenProducts = useMemo(
     () =>
       new Set(
@@ -67,12 +117,7 @@ export default function ContentsSection({
     [rows]
   )
   const takenPrototypes = useMemo(
-    () =>
-      new Set(
-        rows
-          .map((r) => r.prototype_id)
-          .filter((id): id is string => !!id)
-      ),
+    () => new Set(rows.map((r) => r.prototype_id).filter((id): id is string => !!id)),
     [rows]
   )
   const rowErrors = useMemo(
@@ -80,115 +125,8 @@ export default function ContentsSection({
     [draft, publishFailure]
   )
 
-  function patchRow(localId: string, next: BoxFieldRow) {
-    const current = draftRef.current
-    onChange({
-      ...current,
-      fieldProducts: current.fieldProducts.map((r) =>
-        r.localId === localId ? next : r
-      ),
-    })
-  }
-
-  function setSeatPicking(localId: string, on: boolean) {
-    setPickingSeatIds((prev) => {
-      const next = new Set(prev)
-      if (on) next.add(localId)
-      else next.delete(localId)
-      return next
-    })
-  }
-
-  function addProduct(p: AdminProductSearchResult, knownUpc?: string) {
-    if (!canAddBoxProduct(draftRef.current)) {
-      setAdding(false)
-      return
-    }
-    const row: BoxFieldRow = {
-      ...createEmptyBoxFieldRow(),
-      kind: 'product',
-      product_id: p.product_id,
-      frozen_display_name: p.product_name_clean,
-      frozen_brand_name: p.brand_name,
-      frozen_image_url: p.image_url ?? null,
-      taxonomy_node_id: p.taxonomy_node_id ?? null,
-      l2_node_id: p.l2_node_id ?? null,
-      frozen_category: categoryFromSearchResult(p),
-      upc: knownUpc?.trim() || null,
-      identityConfirmed: false,
-    }
-    const current = draftRef.current
-    onChange({ ...current, fieldProducts: [...current.fieldProducts, row] })
-    setAdding(false)
-    void hydrateBoxFieldRow(createClient(), row, p, knownUpc).then((hydrated) => {
-      if (draftRef.current.fieldProducts.some((r) => r.localId === row.localId)) {
-        patchRow(row.localId, hydrated)
-      }
-    })
-  }
-
-  function addPrototype(item: PrototypeListItem, imageUrl: string | null) {
-    if (!canAddBoxProduct(draftRef.current)) {
-      setAdding(false)
-      return
-    }
-    if (takenPrototypes.has(item.id)) return
-    const row = createPrototypeSeatFromItem(item, { imageUrl })
-    const current = draftRef.current
-    onChange({ ...current, fieldProducts: [...current.fieldProducts, row] })
-    setAdding(false)
-  }
-
-  function bindPrototypeToSeat(
-    localId: string,
-    item: PrototypeListItem,
-    imageUrl: string | null
-  ) {
-    const current = draftRef.current
-    const existing = current.fieldProducts.find((r) => r.localId === localId)
-    if (!existing) return
-    if (takenPrototypes.has(item.id) && existing.prototype_id !== item.id) return
-    patchRow(localId, applyPrototypeToSeat(existing, item, { imageUrl }))
-    setSeatPicking(localId, false)
-  }
-
-  function removeRow(localId: string, productId: number | null) {
-    if (productId != null && productId === draft.focalProductId) {
-      onChange({
-        ...draftRef.current,
-        focalProductId: null,
-        fieldProducts: draftRef.current.fieldProducts.filter(
-          (r) => r.localId !== localId
-        ),
-      })
-      return
-    }
-    onChange({
-      ...draftRef.current,
-      fieldProducts: draftRef.current.fieldProducts.filter((r) => r.localId !== localId),
-    })
-    setSeatPicking(localId, false)
-  }
-
-  function setKind(localId: string, kind: 'product' | 'prototype') {
-    const current = draftRef.current
-    const existing = current.fieldProducts.find((r) => r.localId === localId)
-    if (!existing || existing.kind === kind) return
-    if (kind === 'prototype') {
-      patchRow(localId, clearCatalogFromSeat(existing))
-      setSeatPicking(localId, true)
-      setAdding(false)
-      return
-    }
-    patchRow(localId, clearPrototypeFromSeat(existing))
-    setSeatPicking(localId, false)
-  }
-
-  const resolvedCount = rows.filter(
-    (r) =>
-      (r.kind === 'prototype' && !!r.prototype_id) ||
-      (r.kind !== 'prototype' && r.product_id != null)
-  ).length
+  const canAdd = canAddBoxProduct(draft)
+  const overBy = Math.max(0, rows.length - MAX_BOX_FIELD_SIZE)
   const missingUpcCount = rows.filter(
     (r) => r.kind !== 'prototype' && r.product_id != null && !r.upc?.trim()
   ).length
@@ -199,8 +137,229 @@ export default function ContentsSection({
       !!r.upc?.trim() &&
       !isIdentityConfirmed(r)
   ).length
-  const canAdd = canAddBoxProduct(draft)
-  const overBy = Math.max(0, rows.length - MAX_BOX_FIELD_SIZE)
+
+  function commitRows(nextRows: BoxFieldRow[], extra?: Partial<BoxStudyDraft>) {
+    const current = draftRef.current
+    let taxonomyNodeId = extra?.taxonomyNodeId ?? current.taxonomyNodeId
+    if (taxonomyNodeId == null) {
+      const seed = nextRows.find(
+        (r) => r.role === 'yours' && r.taxonomy_node_id != null
+      )
+      if (seed?.taxonomy_node_id != null) taxonomyNodeId = seed.taxonomy_node_id
+    }
+    const yoursCatalog = nextRows.find(
+      (r) => r.role === 'yours' && r.kind !== 'prototype' && r.product_id != null
+    )
+    onChange({
+      ...current,
+      ...extra,
+      taxonomyNodeId,
+      focalProductId: yoursCatalog?.product_id ?? current.focalProductId,
+      fieldProducts: nextRows,
+    })
+  }
+
+  function patchRow(localId: string, next: BoxFieldRow) {
+    commitRows(
+      draftRef.current.fieldProducts.map((r) => (r.localId === localId ? next : r))
+    )
+  }
+
+  function openComposer(
+    intent: NonNullable<Composer>['intent'],
+    replace?: BoxFieldRow
+  ) {
+    if (!replace && !canAddBoxProduct(draftRef.current)) return
+    setComposer({
+      intent,
+      replaceLocalId: replace?.localId,
+      previous: replace,
+    })
+  }
+
+  function cancelComposer() {
+    if (composer?.previous && composer.replaceLocalId) {
+      patchRow(composer.replaceLocalId, composer.previous)
+    }
+    setComposer(null)
+  }
+
+  function upsertResolved(row: BoxFieldRow) {
+    const current = draftRef.current
+    if (composer?.replaceLocalId) {
+      commitRows(
+        current.fieldProducts.map((r) =>
+          r.localId === composer.replaceLocalId
+            ? { ...row, localId: composer.replaceLocalId, role: row.role }
+            : r
+        )
+      )
+    } else {
+      commitRows([...current.fieldProducts.filter(isResolvedBoxSeat), row])
+    }
+    setComposer(null)
+  }
+
+  function addCatalog(p: AdminProductSearchResult, knownUpc?: string) {
+    if (!composer) return
+    const role: BoxSeatRole =
+      composer.intent === 'competitor_catalog' ? 'competitor' : 'yours'
+    const keepRole = composer.previous?.role
+    const row = catalogSeatFromPick(p, keepRole ?? role, knownUpc)
+    const provisionalLocalId = composer.replaceLocalId ?? row.localId
+    const withId = { ...row, localId: provisionalLocalId }
+    upsertResolved(withId)
+    void hydrateBoxFieldRow(createClient(), withId, p, knownUpc).then((hydrated) => {
+      if (draftRef.current.fieldProducts.some((r) => r.localId === provisionalLocalId)) {
+        patchRow(provisionalLocalId, {
+          ...hydrated,
+          localId: provisionalLocalId,
+          kind: 'product',
+          role: withId.role,
+        })
+      }
+    })
+  }
+
+  function addPrototype(item: PrototypeListItem, imageUrl: string | null) {
+    if (!composer) return
+    const role: BoxSeatRole = composer.previous?.role ?? 'yours'
+    const row =
+      composer.replaceLocalId && composer.previous
+        ? applyPrototypeToSeat(composer.previous, item, { imageUrl, role })
+        : createPrototypeSeatFromItem(item, { imageUrl, role })
+    if (composer.replaceLocalId) {
+      upsertResolved({ ...row, localId: composer.replaceLocalId })
+    } else {
+      upsertResolved(row)
+    }
+  }
+
+  function removeRow(localId: string) {
+    const current = draftRef.current
+    const removed = current.fieldProducts.find((r) => r.localId === localId)
+    const nextRows = current.fieldProducts.filter((r) => r.localId !== localId)
+    commitRows(nextRows, {
+      focalProductId:
+        removed?.product_id != null && removed.product_id === current.focalProductId
+          ? null
+          : current.focalProductId,
+    })
+    if (composer?.replaceLocalId === localId) setComposer(null)
+  }
+
+  const composerIsCatalog =
+    composer?.intent === 'yours_catalog' || composer?.intent === 'competitor_catalog'
+  const composerIsPrototype = composer?.intent === 'yours_prototype'
+  const isEmpty = rows.length === 0
+
+  function renderComposerPanel() {
+    if (!composer) return null
+    if (composerIsCatalog) {
+      return (
+        <div
+          style={{
+            border: '1px dashed var(--ink-10)',
+            borderRadius: 'var(--r-md)',
+            padding: 14,
+            background: isEmpty ? 'var(--white)' : 'var(--surface-1)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: 12,
+              marginBottom: 10,
+              alignItems: 'center',
+            }}
+          >
+            <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink-80)' }}>
+              {composer.replaceLocalId
+                ? 'Replace with a catalog product'
+                : composer.intent === 'competitor_catalog'
+                  ? 'Add a competitor product'
+                  : 'Add your catalog product'}
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {!composer.replaceLocalId ? (
+                <button
+                  type="button"
+                  className="cb-quiet-action"
+                  onClick={() => openComposer('yours_prototype')}
+                >
+                  Use a prototype instead
+                </button>
+              ) : null}
+              <button type="button" className="cb-quiet-action" onClick={cancelComposer}>
+                Cancel
+              </button>
+            </div>
+          </div>
+          <BoxProductSearchSlot
+            taken={takenProducts}
+            onPick={addCatalog}
+            onCancel={cancelComposer}
+            preferL2NodeId={preferL2NodeId}
+            entryModes
+            placeholder={
+              composer.intent === 'competitor_catalog'
+                ? 'Search competitors by name, brand, or barcode…'
+                : 'Search your product by name, brand, or barcode…'
+            }
+          />
+        </div>
+      )
+    }
+    if (composerIsPrototype) {
+      return (
+        <div
+          style={{
+            border: '1px dashed var(--ink-10)',
+            borderRadius: 'var(--r-md)',
+            padding: 14,
+            background: isEmpty ? 'var(--white)' : 'var(--surface-1)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: 12,
+              marginBottom: 10,
+              alignItems: 'center',
+            }}
+          >
+            <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink-80)' }}>
+              {composer.replaceLocalId
+                ? 'Replace with a prototype'
+                : 'Add your prototype'}
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {!composer.replaceLocalId ? (
+                <button
+                  type="button"
+                  className="cb-quiet-action"
+                  onClick={() => openComposer('yours_catalog')}
+                >
+                  Use a catalog product instead
+                </button>
+              ) : null}
+              <button type="button" className="cb-quiet-action" onClick={cancelComposer}>
+                Cancel
+              </button>
+            </div>
+          </div>
+          <BoxPrototypePickSlot
+            taken={takenPrototypes}
+            onPick={addPrototype}
+            onCancel={cancelComposer}
+          />
+        </div>
+      )
+    }
+    return null
+  }
 
   return (
     <BuilderSectionChrome
@@ -210,26 +369,91 @@ export default function ContentsSection({
       done={sectionDone}
     >
       <p style={helpStyle}>
-        Two to five seats. Mark at least one as Yours. Catalog products keep barcodes and
-        allergen confirms; prototypes use library packaging and server-issued labels.
+        Two to five seats that ship in the box and battle each other. Add your catalog
+        product, your prototype, or a competitor — then mark who is Yours.
       </p>
 
-      <>
+      {isEmpty && !composer ? (
+        <div
+          style={{
+            border: 'var(--cb-border-dashed)',
+            borderRadius: 'var(--r-lg)',
+            background: 'var(--cb-surface-muted)',
+            padding: '28px 24px',
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{
+              fontSize: 15,
+              fontWeight: 600,
+              color: 'var(--ink-80)',
+              marginBottom: 8,
+            }}
+          >
+            What goes in the box?
+          </div>
+          <p
+            style={{
+              margin: '0 auto 18px',
+              maxWidth: 360,
+              fontSize: 13,
+              color: 'var(--ink-50)',
+              lineHeight: 1.45,
+            }}
+          >
+            Start with your product or a ready prototype, then add the catalog
+            competitors shoppers would compare it against.
+          </p>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 8,
+              justifyContent: 'center',
+            }}
+          >
+            <button
+              type="button"
+              className="cb-btn cb-btn-secondary"
+              onClick={() => openComposer('yours_catalog')}
+            >
+              + Your catalog product
+            </button>
+            <button
+              type="button"
+              className="cb-btn cb-btn-secondary"
+              onClick={() => openComposer('yours_prototype')}
+            >
+              + Your prototype
+            </button>
+            <button
+              type="button"
+              className="cb-btn cb-btn-secondary"
+              onClick={() => openComposer('competitor_catalog')}
+            >
+              + Competitor product
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {isEmpty && composer ? <div style={{ marginTop: 4 }}>{renderComposerPanel()}</div> : null}
+
+      {!isEmpty ? (
+        <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {rows.map((r) => {
+              if (composer?.replaceLocalId === r.localId) return null
               const isYours = r.role === 'yours'
               const isPrototype = r.kind === 'prototype'
-              const needsPrototypePick =
-                isPrototype && (!r.prototype_id || pickingSeatIds.has(r.localId))
               const differentCategory =
                 r.taxonomy_node_id != null &&
                 draft.taxonomyNodeId != null &&
                 r.taxonomy_node_id !== draft.taxonomyNodeId
               const rowError = rowErrors[r.localId]
               const awaitingConfirm =
-                !isPrototype &&
-                !!r.upc?.trim() &&
-                !isIdentityConfirmed(r)
+                !isPrototype && !!r.upc?.trim() && !isIdentityConfirmed(r)
               return (
                 <div
                   key={r.localId}
@@ -279,30 +503,86 @@ export default function ContentsSection({
                         display: 'flex',
                         flexWrap: 'wrap',
                         gap: 8,
-                        marginBottom: 8,
+                        marginBottom: 6,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 600,
+                          letterSpacing: '0.04em',
+                          textTransform: 'uppercase',
+                          color: isYours ? 'var(--sage)' : 'var(--ink-50)',
+                          background: isYours ? 'var(--sage-soft)' : 'var(--surface-1)',
+                          borderRadius: 'var(--cb-radius-pill)',
+                          padding: '3px 8px',
+                        }}
+                      >
+                        {isYours ? 'Yours' : 'Competitor'}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 600,
+                          letterSpacing: '0.04em',
+                          textTransform: 'uppercase',
+                          color: 'var(--ink-50)',
+                          background: 'var(--surface-1)',
+                          borderRadius: 'var(--cb-radius-pill)',
+                          padding: '3px 8px',
+                        }}
+                      >
+                        {isPrototype ? 'Prototype' : 'Catalog'}
+                      </span>
+                      {differentCategory ? (
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 600,
+                            letterSpacing: '0.04em',
+                            textTransform: 'uppercase',
+                            color: 'var(--ink-50)',
+                            background: 'var(--surface-1)',
+                            borderRadius: 'var(--cb-radius-pill)',
+                            padding: '3px 8px',
+                          }}
+                        >
+                          Different category
+                        </span>
+                      ) : null}
+                    </div>
+                    <div style={{ fontWeight: 600, color: 'var(--ink-80)', fontSize: 15 }}>
+                      {r.frozen_display_name || 'Unnamed'}
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--ink-50)', marginTop: 2 }}>
+                      {isPrototype
+                        ? [
+                            r.packaging === 'plain_sample'
+                              ? 'Plain sample'
+                              : 'Final packaging',
+                            r.frozen_category,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')
+                        : r.frozen_brand_name}
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 10,
+                        marginTop: 10,
+                        alignItems: 'center',
                       }}
                     >
                       <label style={{ fontSize: 12, color: 'var(--ink-50)' }}>
-                        Kind{' '}
-                        <select
-                          value={isPrototype ? 'prototype' : 'product'}
-                          onChange={(e) =>
-                            setKind(
-                              r.localId,
-                              e.target.value === 'prototype' ? 'prototype' : 'product'
-                            )
-                          }
-                        >
-                          <option value="product">Catalog</option>
-                          <option value="prototype">Prototype</option>
-                        </select>
-                      </label>
-                      <label style={{ fontSize: 12, color: 'var(--ink-50)' }}>
                         Role{' '}
                         <select
-                          value={r.role === 'yours' ? 'yours' : 'competitor'}
+                          value={isYours ? 'yours' : 'competitor'}
                           onChange={(e) => {
-                            const role =
+                            const role: BoxSeatRole =
                               e.target.value === 'yours' ? 'yours' : 'competitor'
                             patchRow(r.localId, { ...r, role })
                           }}
@@ -311,38 +591,55 @@ export default function ContentsSection({
                           <option value="competitor">Competitor</option>
                         </select>
                       </label>
-                    </div>
-                    <div style={{ fontWeight: 600, color: 'var(--ink-80)', fontSize: 15 }}>
-                      {r.frozen_display_name ||
-                        (isPrototype ? 'Choose a prototype' : 'Unnamed product')}
-                    </div>
-                    <div style={{ fontSize: 13, color: 'var(--ink-50)', marginTop: 2 }}>
-                      {isPrototype
-                        ? r.prototype_id
-                          ? r.packaging === 'plain_sample'
-                            ? 'Plain sample'
-                            : 'Final packaging'
-                          : 'From your private library'
-                        : r.frozen_brand_name}
+                      <button
+                        type="button"
+                        className="cb-quiet-action"
+                        onClick={() =>
+                          openComposer(
+                            isPrototype
+                              ? 'yours_prototype'
+                              : isYours
+                                ? 'yours_catalog'
+                                : 'competitor_catalog',
+                            r
+                          )
+                        }
+                      >
+                        Change
+                      </button>
+                      {!isPrototype ? (
+                        <button
+                          type="button"
+                          className="cb-quiet-action"
+                          onClick={() => openComposer('yours_prototype', r)}
+                        >
+                          Use prototype instead
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="cb-quiet-action"
+                          onClick={() =>
+                            openComposer(
+                              isYours ? 'yours_catalog' : 'competitor_catalog',
+                              r
+                            )
+                          }
+                        >
+                          Use catalog instead
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="cb-quiet-action"
+                        onClick={() => removeRow(r.localId)}
+                        aria-label={`Remove ${r.frozen_display_name || 'seat'}`}
+                      >
+                        Remove
+                      </button>
                     </div>
 
-                    {needsPrototypePick ? (
-                      <div style={{ marginTop: 12 }}>
-                        <BoxPrototypePickSlot
-                          taken={takenPrototypes}
-                          onPick={(item, imageUrl) =>
-                            bindPrototypeToSeat(r.localId, item, imageUrl)
-                          }
-                          onCancel={
-                            r.prototype_id
-                              ? () => setSeatPicking(r.localId, false)
-                              : rows.length > 1
-                                ? () => removeRow(r.localId, r.product_id)
-                                : undefined
-                          }
-                        />
-                      </div>
-                    ) : isPrototype && r.prototype_id ? (
+                    {isPrototype ? (
                       <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
                         <label style={{ fontSize: 12, color: 'var(--ink-50)' }}>
                           Packaging{' '}
@@ -395,36 +692,33 @@ export default function ContentsSection({
                             }}
                           />
                         </label>
-                        <button
-                          type="button"
-                          className="cb-quiet-action"
-                          onClick={() => setSeatPicking(r.localId, true)}
-                        >
-                          Change prototype
-                        </button>
                       </div>
                     ) : awaitingConfirm && r.upc ? (
-                      <ProductIdentityConfirm
-                        name={r.frozen_display_name}
-                        brand={r.frozen_brand_name}
-                        category={r.frozen_category ?? null}
-                        upc={r.upc}
-                        help={BOX_UPC_SCAN_HELP}
-                        onConfirm={() =>
-                          patchRow(r.localId, {
-                            ...r,
-                            identityConfirmed: true,
-                            allergensContains: null,
-                            allergensMayContain: null,
-                            allergensConfirmed: false,
-                            allergensCatalogStatus: null,
-                          })
-                        }
-                        onChange={() => {
-                          removeRow(r.localId, r.product_id)
-                          setAdding('catalog')
-                        }}
-                      />
+                      <div style={{ marginTop: 12 }}>
+                        <ProductIdentityConfirm
+                          name={r.frozen_display_name}
+                          brand={r.frozen_brand_name}
+                          category={r.frozen_category ?? null}
+                          upc={r.upc}
+                          help={BOX_UPC_SCAN_HELP}
+                          onConfirm={() =>
+                            patchRow(r.localId, {
+                              ...r,
+                              identityConfirmed: true,
+                              allergensContains: null,
+                              allergensMayContain: null,
+                              allergensConfirmed: false,
+                              allergensCatalogStatus: null,
+                            })
+                          }
+                          onChange={() =>
+                            openComposer(
+                              isYours ? 'yours_catalog' : 'competitor_catalog',
+                              r
+                            )
+                          }
+                        />
+                      </div>
                     ) : r.product_id != null ? (
                       <div style={{ marginTop: 12 }}>
                         <BoxUpcField
@@ -451,106 +745,66 @@ export default function ContentsSection({
                       </div>
                     ) : null}
                   </div>
-                  {differentCategory ? (
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 600,
-                        letterSpacing: '0.04em',
-                        textTransform: 'uppercase',
-                        color: 'var(--ink-50)',
-                        background: 'var(--surface-1)',
-                        borderRadius: 'var(--cb-radius-pill)',
-                        padding: '3px 8px',
-                        flexShrink: 0,
-                      }}
-                    >
-                      Different category
-                    </span>
-                  ) : null}
-                  {isYours ? (
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 600,
-                        letterSpacing: '0.04em',
-                        textTransform: 'uppercase',
-                        color: 'var(--sage)',
-                        background: 'var(--sage-soft)',
-                        borderRadius: 'var(--cb-radius-pill)',
-                        padding: '3px 8px',
-                        flexShrink: 0,
-                      }}
-                    >
-                      Yours
-                    </span>
-                  ) : awaitingConfirm ? null : (
-                    <button
-                      type="button"
-                      className="cb-quiet-action"
-                      onClick={() => removeRow(r.localId, r.product_id)}
-                      aria-label={`Remove ${r.frozen_display_name || 'seat'}`}
-                    >
-                      Remove
-                    </button>
-                  )}
                 </div>
               )
             })}
+
+            {composer ? renderComposerPanel() : null}
           </div>
 
-          <div style={{ marginTop: 16 }}>
-            {adding === 'catalog' && canAdd ? (
-              <BoxProductSearchSlot
-                taken={takenProducts}
-                onPick={addProduct}
-                onCancel={() => setAdding(false)}
-                preferL2NodeId={focalL2NodeId}
-                entryModes
-                placeholder="Add another product by name, brand, or barcode…"
-              />
-            ) : adding === 'prototype' && canAdd ? (
-              <BoxPrototypePickSlot
-                taken={takenPrototypes}
-                onPick={addPrototype}
-                onCancel={() => setAdding(false)}
-              />
-            ) : canAdd ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                <button
-                  type="button"
-                  className="cb-btn cb-btn-secondary"
-                  onClick={() => setAdding('catalog')}
-                >
-                  + Add catalog product
-                </button>
-                <button
-                  type="button"
-                  className="cb-btn cb-btn-secondary"
-                  onClick={() => setAdding('prototype')}
-                >
-                  + Add prototype
-                </button>
-              </div>
-            ) : (
-              <p className="cb-field-note" style={{ margin: 0 }}>
-                Field full · {MAX_BOX_FIELD_SIZE} of {MAX_BOX_FIELD_SIZE}
-              </p>
-            )}
-          </div>
+          {!composer && canAdd ? (
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 8,
+                marginTop: 16,
+              }}
+            >
+              <button
+                type="button"
+                className="cb-btn cb-btn-secondary"
+                onClick={() => openComposer('yours_catalog')}
+              >
+                + Your catalog product
+              </button>
+              <button
+                type="button"
+                className="cb-btn cb-btn-secondary"
+                onClick={() => openComposer('yours_prototype')}
+              >
+                + Your prototype
+              </button>
+              <button
+                type="button"
+                className="cb-btn cb-btn-secondary"
+                onClick={() => openComposer('competitor_catalog')}
+              >
+                + Competitor product
+              </button>
+            </div>
+          ) : null}
+
+          {!composer && !canAdd ? (
+            <p className="cb-field-note" style={{ margin: '16px 0 0' }}>
+              Field full · {MAX_BOX_FIELD_SIZE} of {MAX_BOX_FIELD_SIZE}
+            </p>
+          ) : null}
 
           <p className="cb-field-note" style={{ marginTop: 12 }}>
-            {resolvedCount} of {MAX_BOX_FIELD_SIZE} seat{resolvedCount === 1 ? '' : 's'} in the box
-            {resolvedCount < 2 ? ' · at least 2 needed' : ''}
+            {rows.length} of {MAX_BOX_FIELD_SIZE} seat{rows.length === 1 ? '' : 's'} in the
+            box
+            {rows.length < 2 ? ' · at least 2 needed' : ''}
             {overBy > 0
               ? ` · remove ${overBy} to fit`
-              : !canAdd && resolvedCount >= 2
+              : !canAdd && rows.length >= 2
                 ? ' · full round-robin (10 battles)'
                 : ''}
             {missingUpcCount > 0 ? ' · UPC required per catalog product' : ''}
             {unconfirmedCount > 0 ? ' · confirm each catalog product' : ''}
           </p>
         </>
+      ) : null}
 
       {error ? (
         <p role="alert" style={{ margin: '12px 0 0', fontSize: 13, color: 'var(--red)' }}>
