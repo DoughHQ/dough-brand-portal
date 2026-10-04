@@ -12,6 +12,7 @@ import {
   type BoxErrorSection,
 } from '@/lib/box/errors'
 import { BOX_DEFAULT_BATTLE_QUESTION } from '@/lib/box/constants'
+import { isAllergenConfirmed } from '@/lib/box/allergens'
 import type { BoxPublishSuccessMeta, BoxStudyDraft } from '@/lib/box/types'
 
 export type BoxPublishResult =
@@ -155,6 +156,17 @@ export async function publishBoxStudyAction(
       hint: 'UPC_REQUIRED',
     }
   }
+  const allergenReady = draft.fieldProducts.filter(
+    (r) => r.product_id != null && r.upc?.trim()
+  )
+  if (allergenReady.some((r) => !isAllergenConfirmed(r))) {
+    return {
+      ok: false,
+      error: BOX_PUBLISH_HINT_MESSAGES.ALLERGENS_REQUIRED,
+      section: 'field',
+      hint: 'ALLERGENS_REQUIRED',
+    }
+  }
   const upcs = draft.fieldProducts
     .map((r) => r.upc?.trim())
     .filter((u): u is string => !!u)
@@ -182,10 +194,11 @@ export async function publishBoxStudyAction(
   const supabase = await createServerSupabaseClient()
 
   try {
+    // Publish closed, confirm allergens on combatants, then open — P0b gate.
     const args = draftToBoxPublishArgs(draft, {
       campaignId,
       createdBy: portalUser.auth_uid,
-      open: true,
+      open: false,
     })
     const { data, error } = await rpcPublishBoxStudy(supabase, args)
 
@@ -219,9 +232,52 @@ export async function publishBoxStudyAction(
       }
     }
 
-    const boxStatus = strOrNull(root?.box_status)
-    const publishedOpen = root?.published_open === true && boxStatus === 'open'
-    if (!publishedOpen) {
+    const resolvedRows = draft.fieldProducts.filter(
+      (r): r is typeof r & { product_id: number; upc: string } =>
+        r.product_id != null && !!r.upc?.trim() && isAllergenConfirmed(r)
+    )
+    for (let i = 0; i < resolvedRows.length; i++) {
+      const seat = resolvedRows[i]!
+      const { error: confirmError } = await supabase.rpc(
+        'confirm_mission_combatant_allergens' as never,
+        {
+          p_mission_id: missionId,
+          p_combatant_ref: i + 1,
+          p_contains: seat.allergensContains ?? [],
+          p_may_contain: seat.allergensMayContain ?? [],
+        } as never
+      )
+      if (confirmError) {
+        const resolved = resolveBoxPublishError({
+          thrown: {
+            message: confirmError.message,
+            hint: extractBoxHint(confirmError) ?? undefined,
+          },
+        })
+        return asFail(resolved)
+      }
+    }
+
+    const { data: openData, error: openError } = await supabase.rpc(
+      'advance_box_status',
+      {
+        p_box_id: boxId,
+        p_target: 'open',
+        p_reason: 'published live after allergen confirmation',
+      }
+    )
+    if (openError) {
+      const resolved = resolveBoxPublishError({
+        thrown: {
+          message: openError.message,
+          hint: extractBoxHint(openError) ?? undefined,
+        },
+      })
+      return asFail(resolved)
+    }
+    const openRoot = asRecord(openData)
+    const boxStatus = strOrNull(openRoot?.to_status) ?? 'open'
+    if (boxStatus !== 'open') {
       return {
         ok: false,
         error: "Couldn't publish — check the box is complete.",
@@ -243,7 +299,7 @@ export async function publishBoxStudyAction(
         session2_interval_hours: numOrNull(root?.session2_interval_hours),
         eligibility_applied: root?.eligibility_applied === true,
         box_status: boxStatus,
-        publishedOpen,
+        publishedOpen: true,
         battle_question:
           strOrNull(root?.battle_question) ??
           (draft.battleQuestion.trim() || BOX_DEFAULT_BATTLE_QUESTION),

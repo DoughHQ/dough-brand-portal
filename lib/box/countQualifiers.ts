@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/database.types'
+import { allergenSeatsForCount } from './allergens'
 import type { BoxStudyDraft } from './types'
 
 export type CountBoxQualifiersArgs = {
@@ -16,6 +17,8 @@ export type CountBoxQualifiersArgs = {
   p_min_category_battles?: number
   p_min_category_tries?: number
   p_min_category_level?: number
+  /** Draft allergen seats for count_box_qualifiers_with_allergens. */
+  p_allergen_seats?: Array<{ contains: string[]; may_contain: string[] }>
 }
 
 export type CountBoxQualifiersResult = {
@@ -23,13 +26,14 @@ export type CountBoxQualifiersResult = {
   total_users: number
   pass_experience: number
   pass_rules: number
+  pass_allergens?: number
   below_viable_floor: boolean
   warning: string | null
 }
 
 type CountClient = {
   rpc(
-    fn: 'count_box_qualifiers',
+    fn: 'count_box_qualifiers' | 'count_box_qualifiers_with_allergens',
     args: CountBoxQualifiersArgs
   ): PromiseLike<{ data: unknown; error: { message: string } | null }>
 }
@@ -73,6 +77,7 @@ export function parseCountBoxQualifiers(data: unknown): CountBoxQualifiersResult
     total_users: asFiniteNumber(row.total_users) ?? 0,
     pass_experience: asFiniteNumber(row.pass_experience) ?? 0,
     pass_rules: asFiniteNumber(row.pass_rules) ?? 0,
+    pass_allergens: asFiniteNumber(row.pass_allergens) ?? undefined,
     below_viable_floor: row.below_viable_floor === true,
     warning: typeof row.warning === 'string' && row.warning.trim() ? row.warning.trim() : null,
   }
@@ -123,6 +128,11 @@ export function boxDraftToQualifierArgs(
     }
   }
 
+  const seats = allergenSeatsForCount(draft.fieldProducts)
+  if (seats.length > 0) {
+    args.p_allergen_seats = seats
+  }
+
   return args
 }
 
@@ -130,12 +140,14 @@ export async function rpcCountBoxQualifiers(
   supabase: SupabaseClient<Database>,
   args: CountBoxQualifiersArgs
 ): Promise<CountBoxQualifiersResult> {
-  const { data, error } = await (supabase as unknown as CountClient).rpc(
-    'count_box_qualifiers',
-    args
-  )
+  const client = supabase as unknown as CountClient
+  const fn =
+    args.p_allergen_seats && args.p_allergen_seats.length > 0
+      ? 'count_box_qualifiers_with_allergens'
+      : 'count_box_qualifiers'
+  const { data, error } = await client.rpc(fn, args)
   if (error) throw new Error(error.message)
   const parsed = parseCountBoxQualifiers(data)
-  if (!parsed) throw new Error('count_box_qualifiers returned an empty payload')
+  if (!parsed) throw new Error(`${fn} returned an empty payload`)
   return parsed
 }

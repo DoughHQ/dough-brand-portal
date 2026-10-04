@@ -202,7 +202,15 @@ export default function SetupSection({
                     ...latest,
                     fieldProducts: latest.fieldProducts.map((r) =>
                       r.localId === focalRow.localId
-                        ? { ...r, upc, identityConfirmed: true }
+                        ? {
+                            ...r,
+                            upc,
+                            identityConfirmed: true,
+                            allergensContains: null,
+                            allergensMayContain: null,
+                            allergensConfirmed: false,
+                            allergensCatalogStatus: null,
+                          }
                         : r
                     ),
                   })

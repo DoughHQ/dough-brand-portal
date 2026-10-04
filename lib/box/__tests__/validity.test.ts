@@ -13,13 +13,17 @@ function fieldRow(
   upc: string | null,
   extra: Partial<BoxFieldRow> = {}
 ): BoxFieldRow {
+  const confirmed = extra.identityConfirmed ?? !!upc
   return {
     ...createEmptyBoxFieldRow(),
     product_id: productId,
     frozen_display_name: `Product ${productId}`,
     frozen_brand_name: 'Brand',
     upc,
-    identityConfirmed: extra.identityConfirmed ?? !!upc,
+    identityConfirmed: confirmed,
+    allergensContains: extra.allergensContains ?? (confirmed ? [] : null),
+    allergensMayContain: extra.allergensMayContain ?? (confirmed ? [] : null),
+    allergensConfirmed: extra.allergensConfirmed ?? confirmed,
     ...extra,
   }
 }
@@ -41,6 +45,23 @@ describe('evaluateBoxValidity UPC gate', () => {
   it('is ready when every resolved row has a UPC and the field has at least 2', () => {
     expect(evaluateBoxValidity(boxDraft()).readyToPublish).toBe(true)
     expect(evaluateBoxValidity(boxDraft()).fieldOk).toBe(true)
+  })
+
+  it('requires allergen confirmation once identity is locked', () => {
+    const v = evaluateBoxValidity(
+      boxDraft({
+        fieldProducts: [
+          fieldRow(1, '028400017688', {
+            allergensConfirmed: false,
+            allergensContains: [],
+            allergensMayContain: [],
+          }),
+          fieldRow(2, '028400017695'),
+        ],
+      })
+    )
+    expect(v.fieldOk).toBe(false)
+    expect(v.outstanding.some((o) => /allergen/i.test(o.message))).toBe(true)
   })
 
   it('keeps the min-2 field rule even when the lone product has a UPC', () => {
