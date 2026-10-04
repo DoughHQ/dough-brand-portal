@@ -34,6 +34,7 @@ type NavIcon =
   | 'boxes'
   | 'studies'
   | 'products'
+  | 'prototypes'
   | 'categories'
   | 'reports'
   | 'moon'
@@ -92,6 +93,12 @@ function NavGlyph({ name }: { name: NavIcon }) {
       ) : null}
       {name === 'studies' ? <path d="M8 4h8v16H8zM10 8h4" {...stroke} /> : null}
       {name === 'products' ? <path d="M4 7h16M4 12h16M4 17h10" {...stroke} /> : null}
+      {name === 'prototypes' ? (
+        <>
+          <path d="M7 4h7l3 3v13H7z" {...stroke} />
+          <path d="M14 4v3h3M10 12h4M10 16h3" {...stroke} />
+        </>
+      ) : null}
       {name === 'categories' ? <path d="M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z" {...stroke} /> : null}
       {name === 'reports' ? <path d="M5 19V9M10 19V5M15 19v-7M20 19V8" {...stroke} /> : null}
       {name === 'moon' ? <path d="M16 4.5A8 8 0 1110 20 6.5 6.5 0 0016 4.5z" {...stroke} /> : null}
@@ -179,6 +186,7 @@ export default function PortalLayoutClient({
         { label: 'Home', href: '/dashboard', icon: 'home' },
         { label: 'Categories', href: '/categories', icon: 'categories', prefetch: false },
         { label: 'Products', href: '/products', icon: 'products', prefetch: false },
+        { label: 'Prototypes', href: '/prototypes', icon: 'prototypes', prefetch: false },
         { label: 'Corrections', href: '/corrections', icon: 'corrections', prefetch: false },
         { label: 'Studies', href: '/studies', icon: 'studies', prefetch: false },
         { label: 'Reports', href: '/reports', icon: 'reports', prefetch: false },
