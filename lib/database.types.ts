@@ -463,6 +463,27 @@ export type Database = {
         }
         Relationships: []
       }
+      allergen_codes: {
+        Row: {
+          code: string
+          fda_major: boolean
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          code: string
+          fda_major: boolean
+          label: string
+          sort_order: number
+        }
+        Update: {
+          code?: string
+          fda_major?: boolean
+          label?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       answer_sets: {
         Row: {
           answer_set_code: string
@@ -2403,6 +2424,81 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
+          },
+        ]
+      }
+      brand_prototypes: {
+        Row: {
+          allergens_contains: string[] | null
+          allergens_declared_at: string | null
+          allergens_declared_by: string | null
+          allergens_may_contain: string[] | null
+          archived_at: string | null
+          archived_by: string | null
+          brand_id: number
+          created_at: string
+          created_by: string | null
+          id: string
+          image_paths: string[]
+          internal_label: string | null
+          name: string
+          packaging: string
+          planned_price: number | null
+          taxonomy_node_id: number
+          updated_at: string
+        }
+        Insert: {
+          allergens_contains?: string[] | null
+          allergens_declared_at?: string | null
+          allergens_declared_by?: string | null
+          allergens_may_contain?: string[] | null
+          archived_at?: string | null
+          archived_by?: string | null
+          brand_id: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_paths?: string[]
+          internal_label?: string | null
+          name: string
+          packaging?: string
+          planned_price?: number | null
+          taxonomy_node_id: number
+          updated_at?: string
+        }
+        Update: {
+          allergens_contains?: string[] | null
+          allergens_declared_at?: string | null
+          allergens_declared_by?: string | null
+          allergens_may_contain?: string[] | null
+          archived_at?: string | null
+          archived_by?: string | null
+          brand_id?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_paths?: string[]
+          internal_label?: string | null
+          name?: string
+          packaging?: string
+          planned_price?: number | null
+          taxonomy_node_id?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_prototypes_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_prototypes_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
           },
         ]
       }
@@ -44681,6 +44777,10 @@ export type Database = {
         Args: { p_requester_id: number; p_target_auth_id: string }
         Returns: Json
       }
+      archive_brand_prototype: {
+        Args: { p_prototype_id: string }
+        Returns: Json
+      }
       assert_caller_owns_campaign: {
         Args: { p_brand_campaign_id: string }
         Returns: number
@@ -45594,6 +45694,14 @@ export type Database = {
           p_sku_variant_id?: number
         }
         Returns: number
+      }
+      declare_prototype_allergens: {
+        Args: {
+          p_contains: string[]
+          p_may_contain: string[]
+          p_prototype_id: string
+        }
+        Returns: Json
       }
       declare_product_facet: {
         Args: {
@@ -48112,6 +48220,19 @@ export type Database = {
       run_nutrition_normalization_batch: {
         Args: { p_batch_size?: number }
         Returns: string
+      }
+      save_brand_prototype: {
+        Args: {
+          p_brand_id: number
+          p_image_paths?: string[]
+          p_internal_label?: string | null
+          p_name: string
+          p_packaging?: string
+          p_planned_price?: number | null
+          p_prototype_id?: string | null
+          p_taxonomy_node_id: number
+        }
+        Returns: Json
       }
       save_product_disclosure: {
         Args: {
