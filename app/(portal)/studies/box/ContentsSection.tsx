@@ -397,7 +397,6 @@ export default function ContentsSection({
             {unconfirmedCount > 0 ? ' · confirm each product' : ''}
           </p>
         </>
-      )}
 
       {error ? (
         <p role="alert" style={{ margin: '12px 0 0', fontSize: 13, color: 'var(--red)' }}>
