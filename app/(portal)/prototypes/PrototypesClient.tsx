@@ -80,7 +80,7 @@ export default function PrototypesClient({
           <h1 className="cat-title">Prototypes</h1>
           <p className="cat-lede">
             Unreleased products for {brandName}. Private library — never the public catalog.
-            Create here; seat them in a box when the IHUT engine ships.
+            Ready samples (photo + allergens) can be seated in an IHUT box study.
           </p>
         </div>
         <div className="prod-header-actions">

@@ -328,9 +328,12 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
       <ContentsSection
         draft={draft}
         onChange={persist}
-        focalL2NodeId={
+        preferL2NodeId={
+          draft.fieldProducts.find((r) => r.role === 'yours' && r.l2_node_id != null)
+            ?.l2_node_id ??
           draft.fieldProducts.find((r) => r.product_id === draft.focalProductId)
-            ?.l2_node_id ?? null
+            ?.l2_node_id ??
+          null
         }
         error={publishAttempted ? sectionErrors.field : undefined}
         publishFailure={publishAttempted ? publishFailure : null}

@@ -12,10 +12,12 @@ import { createEmptyBoxDraft, createEmptyBoxFieldRow } from '../defaults'
 function row(
   productId: number,
   name: string,
-  opts?: { upc?: string; confirmed?: boolean }
+  opts?: { upc?: string; confirmed?: boolean; role?: 'yours' | 'competitor' }
 ) {
   return {
     ...createEmptyBoxFieldRow(),
+    kind: 'product' as const,
+    role: opts?.role ?? 'competitor',
     product_id: productId,
     frozen_display_name: name,
     frozen_brand_name: 'Brand',
@@ -25,31 +27,33 @@ function row(
 }
 
 describe('box builderSummaries', () => {
-  it('summarizes setup with title and hero', () => {
+  it('summarizes setup with title and category', () => {
     const draft = {
       ...createEmptyBoxDraft(1),
       title: 'Gluten-free NYC',
       taxonomyNodeId: 9,
-      focalProductId: 10,
-      fieldProducts: [row(10, 'Seed Cracker')],
     }
-    expect(summarizeBoxSetup(draft)).toBe('Gluten-free NYC · Seed Cracker')
+    expect(summarizeBoxSetup(draft)).toBe('Gluten-free NYC')
   })
 
-  it('prompts for a hero when the title is set', () => {
+  it('prompts for a category when the title is set', () => {
     const draft = { ...createEmptyBoxDraft(1), title: 'Discovery box' }
-    expect(summarizeBoxSetup(draft)).toBe('Discovery box · Choose a hero product')
+    expect(summarizeBoxSetup(draft)).toBe('Discovery box · Choose a category')
   })
 
   it('summarizes contents and matchups', () => {
     const empty = createEmptyBoxDraft(1)
-    expect(summarizeBoxContents(empty)).toBe('Add products to the field')
+    expect(summarizeBoxContents(empty)).toBe('Add seats to the field')
 
     const draft = {
       ...empty,
-      fieldProducts: [row(1, 'A'), row(2, 'B'), row(3, 'C')],
+      fieldProducts: [
+        row(1, 'A', { role: 'yours' }),
+        row(2, 'B'),
+        row(3, 'C'),
+      ],
     }
-    expect(summarizeBoxContents(draft)).toBe('3 products · 3 matchups')
+    expect(summarizeBoxContents(draft)).toBe('3 seats · 3 matchups')
   })
 
   it('summarizes battle prompt default vs custom', () => {
@@ -80,9 +84,7 @@ describe('box builderSummaries', () => {
     const draft = {
       ...createEmptyBoxDraft(1),
       physicalUnits: 50,
-      abandonWindowDays: 14,
-      expiresAt: '2026-12-15T12:00:00.000Z',
-      fieldProducts: [row(1, 'A'), row(2, 'B')],
+      fieldProducts: [row(1, 'A', { role: 'yours' }), row(2, 'B')],
     }
     expect(summarizeBoxLogistics(draft)).toMatch(/^50 boxes · 14d abandon · Ends /)
     expect(summarizeBoxDockReady(draft)).toBe('2 in box · 1 matchup · 50 boxes')

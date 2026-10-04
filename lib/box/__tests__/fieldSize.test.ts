@@ -9,7 +9,7 @@ import { createEmptyBoxDraft, createEmptyBoxFieldRow } from '../defaults'
 import type { BoxStudyDraft } from '../types'
 
 function draftWith(n: number): BoxStudyDraft {
-  const d = createEmptyBoxDraft()
+  const d = createEmptyBoxDraft(1)
   return {
     ...d,
     fieldProducts: Array.from({ length: n }, (_, i) => ({

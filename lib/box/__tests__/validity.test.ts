@@ -16,6 +16,8 @@ function fieldRow(
   const confirmed = extra.identityConfirmed ?? !!upc
   return {
     ...createEmptyBoxFieldRow(),
+    kind: 'product',
+    role: 'competitor',
     product_id: productId,
     frozen_display_name: `Product ${productId}`,
     frozen_brand_name: 'Brand',
@@ -35,7 +37,10 @@ function boxDraft(overrides: Partial<BoxStudyDraft> = {}): BoxStudyDraft {
     title: 'NYC gluten-free box',
     taxonomyNodeId: 10,
     focalProductId: 1,
-    fieldProducts: [fieldRow(1, '028400017688'), fieldRow(2, '028400017695')],
+    fieldProducts: [
+      fieldRow(1, '028400017688', { role: 'yours' }),
+      fieldRow(2, '028400017695'),
+    ],
     physicalUnits: 50,
     ...overrides,
   }

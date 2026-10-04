@@ -80,16 +80,17 @@ export function fieldRowToSeatWire(row: BoxFieldRow): BoxSeatWire {
   if (!row.upc?.trim() || !isIdentityConfirmed(row)) throw new Error('UPC_REQUIRED')
   if (!isAllergenConfirmed(row)) throw new Error('ALLERGENS_REQUIRED')
 
-  return {
+  const seat: BoxSeatWire = {
     kind: 'product',
     role,
     product_id: row.product_id,
     upc: row.upc.trim(),
     packaging: packaging === 'plain_sample' ? 'final_packaging' : packaging,
-    price,
     allergens_contains: row.allergensContains ?? [],
     allergens_may_contain: row.allergensMayContain ?? [],
   }
+  if (price != null) seat.price = price
+  return seat
 }
 
 export function draftToBoxPublishArgs(
