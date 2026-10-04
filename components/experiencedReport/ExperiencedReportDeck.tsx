@@ -34,6 +34,7 @@ import { WithheldMetric } from './WithheldMetric'
 import { Chip, CoinFlipTrack, SectionShell, ShareBar, BipolarTrack } from './deckChrome'
 import { ReportSectionRail } from './ReportSectionRail'
 import { REPORT_SECTIONS, pushNote, type SectionMethodNotes } from './reportSections'
+import { ExecutiveSummaryStrip } from './ExecutiveSummaryStrip'
 import { IhutCoreReportView } from './IhutCoreReport'
 import { isIhutCoreReport } from '@/lib/experiencedReport/ihutCoreTypes'
 
