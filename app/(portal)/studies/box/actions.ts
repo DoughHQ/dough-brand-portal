@@ -11,7 +11,11 @@ import {
   type BoxErrorSection,
 } from '@/lib/box/errors'
 import { BOX_DEFAULT_BATTLE_QUESTION } from '@/lib/box/constants'
-import type { BoxPublishSuccessMeta, BoxStudyDraft } from '@/lib/box/types'
+import type {
+  BoxPrototypeLabel,
+  BoxPublishSuccessMeta,
+  BoxStudyDraft,
+} from '@/lib/box/types'
 
 export type BoxPublishResult =
   | { ok: true; meta: BoxPublishSuccessMeta }
@@ -207,13 +211,15 @@ export async function publishBoxStudyAction(
 
     const boxStatus = strOrNull(root?.box_status) ?? 'open'
     const labelsRaw = root?.prototype_labels
-    const prototype_labels = Array.isArray(labelsRaw)
+    const prototype_labels: BoxPrototypeLabel[] = Array.isArray(labelsRaw)
       ? labelsRaw.flatMap((row) => {
           const r = asRecord(row)
           if (!r) return []
           const code = strOrNull(r.code)
           const prototypeId = strOrNull(r.prototype_id)
           if (!code || !prototypeId) return []
+          const packaging: BoxPrototypeLabel['packaging'] =
+            r.packaging === 'plain_sample' ? 'plain_sample' : 'final_packaging'
           return [
             {
               combatant_ref: numOrNull(r.combatant_ref) ?? 0,
@@ -221,9 +227,8 @@ export async function publishBoxStudyAction(
               code,
               display_name: strOrNull(r.display_name) ?? 'Sample',
               internal_label: strOrNull(r.internal_label),
-              packaging:
-                r.packaging === 'plain_sample' ? 'plain_sample' : 'final_packaging',
-            },
+              packaging,
+            } satisfies BoxPrototypeLabel,
           ]
         })
       : []
