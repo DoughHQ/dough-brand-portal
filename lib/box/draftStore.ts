@@ -6,6 +6,12 @@
 import { MODULE_LOYALTY, resolveBoxSelectedModules } from '@/lib/study/modules'
 import type { BoxStudyDraft } from './types'
 import { createEmptyBoxDraft, createEmptyBoxEligibility, createEmptyBoxFieldRow } from './defaults'
+import {
+  sanitizeIhutAttributes,
+  sanitizeIhutSuccessBars,
+  emptyIhutBrandQuestion,
+  type IhutBrandQuestionDraft,
+} from './method'
 
 const KEY = 'dough.boxDrafts.v1'
 
@@ -46,8 +52,42 @@ export function normalizeStoredBoxDraft(
     loyaltyFollowUp:
       typeof stored.loyaltyFollowUp === 'boolean'
         ? stored.loyaltyFollowUp
-        : stored.sessionCount === 2,
-  })
+        : typeof stored.day2LiveWithIt === 'boolean'
+          ? stored.day2LiveWithIt
+          : stored.sessionCount === 2,
+  }).filter((m) => m === MODULE_LOYALTY)
+  const day2LiveWithIt =
+    typeof stored.day2LiveWithIt === 'boolean'
+      ? stored.day2LiveWithIt
+      : selectedModules.includes(MODULE_LOYALTY)
+
+  const brandQuestions: IhutBrandQuestionDraft[] = Array.isArray(stored.ihutBrandQuestions)
+    ? stored.ihutBrandQuestions
+        .filter((q) => q && typeof q === 'object')
+        .slice(0, 2)
+        .map((q) => ({
+          ...emptyIhutBrandQuestion(),
+          ...q,
+          prompt: typeof q.prompt === 'string' ? q.prompt : '',
+          options: Array.isArray(q.options)
+            ? q.options.filter((o): o is string => typeof o === 'string')
+            : ['', ''],
+          max_select: (() => {
+            const legacy = q as unknown as { maxSelect?: unknown; max_select?: unknown }
+            if (typeof legacy.max_select === 'number') return legacy.max_select
+            if (typeof legacy.maxSelect === 'number') return legacy.maxSelect
+            return 1
+          })(),
+          answerSource:
+            q.answerSource === 'field' || q.answerSource === 'custom'
+              ? q.answerSource
+              : undefined,
+          customOptionsStash: Array.isArray(q.customOptionsStash)
+            ? q.customOptionsStash.filter((o): o is string => typeof o === 'string')
+            : undefined,
+        }))
+    : []
+
   const focalId =
     typeof stored.focalProductId === 'number' ? stored.focalProductId : null
   const fieldProducts = Array.isArray(stored.fieldProducts)
@@ -105,9 +145,13 @@ export function normalizeStoredBoxDraft(
       ...(stored.eligibility ?? {}),
     },
     selectedModules,
-    loyaltyFollowUp: selectedModules.includes(MODULE_LOYALTY),
+    loyaltyFollowUp: day2LiveWithIt,
+    day2LiveWithIt,
     battleQuestion:
       typeof stored.battleQuestion === 'string' ? stored.battleQuestion : '',
+    ihutAttributes: sanitizeIhutAttributes(stored.ihutAttributes),
+    ihutBrandQuestions: brandQuestions,
+    ihutSuccessBars: sanitizeIhutSuccessBars(stored.ihutSuccessBars),
   }
 }
 

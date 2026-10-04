@@ -1,7 +1,7 @@
-import { BOX_DEFAULT_BATTLE_QUESTION } from './constants'
 import { uniquePairs } from '@/lib/concept/publish'
 import { isResolvedBoxSeat } from './fieldSize'
 import type { BoxStudyDraft } from './types'
+import { MODULE_LOYALTY } from '@/lib/study/modules'
 
 function plural(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`
@@ -48,12 +48,25 @@ export function summarizeBoxContents(draft: BoxStudyDraft): string {
   ].join(' · ')
 }
 
-/** Battle card — prompt respondents will see. */
+/** Battle / method card — locked Dough journey + Day 2. */
+export function summarizeBoxMethod(draft: BoxStudyDraft): string {
+  const attrs = draft.ihutAttributes?.length ?? 0
+  const bq = draft.ihutBrandQuestions?.length ?? 0
+  const day2 =
+    draft.day2LiveWithIt === true ||
+    draft.selectedModules?.includes(MODULE_LOYALTY)
+  const parts = [
+    'Shelf + taste',
+    attrs > 0 ? `${attrs} attribute${attrs === 1 ? '' : 's'}` : null,
+    bq > 0 ? `${bq} brand Q${bq === 1 ? '' : 's'}` : 'No brand Qs',
+    day2 ? 'Day 2 on' : null,
+  ].filter(Boolean)
+  return parts.join(' · ')
+}
+
+/** @deprecated Use summarizeBoxMethod. */
 export function summarizeBoxBattle(draft: BoxStudyDraft): string {
-  const custom = draft.battleQuestion.trim()
-  if (!custom) return `Dough default · “${BOX_DEFAULT_BATTLE_QUESTION}”`
-  const clipped = custom.length > 64 ? `${custom.slice(0, 61)}…` : custom
-  return `Your prompt · “${clipped}”`
+  return summarizeBoxMethod(draft)
 }
 
 /** Audience card — open vs restricted. */

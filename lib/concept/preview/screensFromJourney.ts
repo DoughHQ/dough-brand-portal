@@ -338,7 +338,10 @@ function subjectFor(
   const byLetter = letter
     ? concepts[letter[1]!.toUpperCase().charCodeAt(0) - 65]
     : undefined
-  const match = byImage ?? byLetter
+  const byName = combatants.find(
+    (c) => c.name.trim() === subject.respondent_label.trim()
+  )
+  const match = byImage ?? byLetter ?? byName
   const name = subject.respondent_label.trim() || match?.name || 'Design'
   if (!match) {
     return {

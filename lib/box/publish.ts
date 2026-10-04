@@ -13,11 +13,22 @@ import type {
 } from './types'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
 import {
-  hasLoyaltyModule,
   resolveBoxSelectedModules,
+  hasLoyaltyModule,
+  IHUT_CORE_V1_PUBLISH,
+  MODULE_IHUT_CORE_V1,
+  MODULE_IHUT_DAY2_V1,
+  MODULE_LOYALTY,
+  type StudyModuleCode,
 } from '@/lib/study/modules'
 import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 import { isAllergenConfirmed } from './allergens'
+import {
+  brandQuestionsWire,
+  sanitizeIhutAttributes,
+  successBarsWire,
+} from './method'
+import { isResolvedBoxSeat } from './fieldSize'
 
 export function boxEligibilityToWire(
   draft: BoxStudyDraft,
@@ -107,8 +118,33 @@ export function draftToBoxPublishArgs(
   }
 
   const seats = draft.fieldProducts.map(fieldRowToSeatWire)
-  const modules = resolveBoxSelectedModules(draft)
+  // CORE publish path: locked method pack (± Day 2). method_pack still rides
+  // in module_config so the server can upgrade even if a client lags.
+  const day2 =
+    draft.day2LiveWithIt === true ||
+    draft.loyaltyFollowUp === true ||
+    hasLoyaltyModule(draft.selectedModules)
+  const modules: StudyModuleCode[] = IHUT_CORE_V1_PUBLISH
+    ? day2
+      ? [MODULE_IHUT_CORE_V1, MODULE_IHUT_DAY2_V1]
+      : [MODULE_IHUT_CORE_V1]
+    : resolveBoxSelectedModules({
+        ...draft,
+        selectedModules: day2
+          ? ['MODULE_LOYALTY']
+          : draft.selectedModules.filter((m) => m === MODULE_LOYALTY),
+      })
+  const includeDay2 =
+    day2 ||
+    modules.includes(MODULE_LOYALTY) ||
+    modules.includes(MODULE_IHUT_DAY2_V1)
   const hasPrototype = seats.some((s) => s.kind === 'prototype')
+  const tasteOnly = draft.fieldProducts.some(
+    (r) => isResolvedBoxSeat(r) && r.packaging === 'plain_sample'
+  )
+  const priceCheckEnabled = draft.fieldProducts
+    .filter(isResolvedBoxSeat)
+    .every((r) => typeof r.price === 'number' && r.price > 0)
 
   const args: PublishBoxStudyArgs = {
     p_brand_campaign_id: ctx.campaignId,
@@ -117,10 +153,19 @@ export function draftToBoxPublishArgs(
     p_taxonomy_node_id: draft.taxonomyNodeId,
     p_seats: seats,
     p_modules: modules,
-    p_module_config: {},
+    p_module_config: {
+      attributes: sanitizeIhutAttributes(draft.ihutAttributes),
+      brand_questions: brandQuestionsWire(draft.ihutBrandQuestions ?? []),
+      success_bars: successBarsWire(draft.ihutSuccessBars),
+      taste_only: tasteOnly,
+      price_check_enabled: priceCheckEnabled,
+      include_day2: includeDay2,
+      method_pack: 'IHUT_CORE_V1',
+    },
     p_physical_units: draft.physicalUnits,
-    p_battle_prompt: draft.battleQuestion.trim(),
-    p_session2_interval_hours: hasLoyaltyModule(modules)
+    // Locked prompts — never send a brand-authored battle string.
+    p_battle_prompt: '',
+    p_session2_interval_hours: includeDay2
       ? draft.session2IntervalHours
       : null,
     p_eligibility: {},

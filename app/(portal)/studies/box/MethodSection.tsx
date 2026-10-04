@@ -1,0 +1,543 @@
+'use client'
+
+import { useMemo, useState, type CSSProperties } from 'react'
+import type { BoxStudyDraft } from '@/lib/box/types'
+import {
+  IHUT_BRAND_QUESTION_STARTERS,
+  IHUT_DAY1_JOURNEY,
+  IHUT_DAY2_JOURNEY,
+  IHUT_DEFAULT_ATTRIBUTES,
+  IHUT_GENERIC_ATTRIBUTES,
+  attributeLabels,
+  boxFieldAnswerSeats,
+  emptyIhutBrandQuestion,
+  type IhutAttributeCode,
+  type IhutBrandQuestionDraft,
+  type IhutSuccessBarsDraft,
+} from '@/lib/box/method'
+import BrandQuestionEditor from '@/components/studies/BrandQuestionEditor'
+import {
+  brandQuestionTypeLabel,
+  syncBrandQuestionFieldOptions,
+} from '@/lib/concept/singleTest'
+import { summarizeBoxMethod } from '@/lib/box/builderSummaries'
+import { BOX_ANCHORS } from '@/lib/box/validity'
+import { isResolvedBoxSeat } from '@/lib/box/fieldSize'
+import { MODULE_LOYALTY, hasLoyaltyModule, resolveBoxSelectedModules } from '@/lib/study/modules'
+import BuilderSectionChrome from '../concept/BuilderSectionChrome'
+
+type Props = {
+  draft: BoxStudyDraft
+  onChange: (next: BoxStudyDraft) => void
+  sectionDone?: boolean
+}
+
+function pct(n: number): string {
+  return `${Math.round(n * 100)}%`
+}
+
+export default function MethodSection({
+  draft,
+  onChange,
+  sectionDone = false,
+}: Props) {
+  const [openId, setOpenId] = useState<string | null>('try_each')
+  const [day2OpenId, setDay2OpenId] = useState<string | null>(null)
+  const seatCount = draft.fieldProducts.filter(isResolvedBoxSeat).length
+  const tasteOnly = draft.fieldProducts.some(
+    (r) => isResolvedBoxSeat(r) && r.packaging === 'plain_sample'
+  )
+  const day2On = draft.day2LiveWithIt ?? hasLoyaltyModule(resolveBoxSelectedModules(draft))
+
+  const attrs = draft.ihutAttributes?.length
+    ? draft.ihutAttributes
+    : IHUT_DEFAULT_ATTRIBUTES
+  const bars = draft.ihutSuccessBars
+  const brandQs = draft.ihutBrandQuestions ?? []
+  const fieldSeats = useMemo(
+    () => boxFieldAnswerSeats(draft.fieldProducts),
+    [draft.fieldProducts]
+  )
+  const fieldOptions = useMemo(
+    () => fieldSeats.map((s) => s.label),
+    [fieldSeats]
+  )
+
+  const day1Steps = useMemo(() => {
+    if (!tasteOnly) return IHUT_DAY1_JOURNEY
+    return IHUT_DAY1_JOURNEY.filter(
+      (s) => !['shelf_battles', 'expectation'].includes(s.id)
+    )
+  }, [tasteOnly])
+
+  function patch(partial: Partial<BoxStudyDraft>) {
+    onChange({ ...draft, ...partial })
+  }
+
+  function toggleAttr(code: IhutAttributeCode) {
+    const cur = [...attrs]
+    const i = cur.indexOf(code)
+    if (i >= 0) {
+      if (cur.length <= 1) return
+      cur.splice(i, 1)
+    } else {
+      if (cur.length >= 3) return
+      cur.push(code)
+    }
+    patch({ ihutAttributes: cur })
+  }
+
+  function setBrandQs(next: IhutBrandQuestionDraft[]) {
+    patch({ ihutBrandQuestions: next.slice(0, 2) })
+  }
+
+  function setBars(next: IhutSuccessBarsDraft) {
+    patch({ ihutSuccessBars: next })
+  }
+
+  return (
+    <BuilderSectionChrome
+      id={BOX_ANCHORS.method}
+      title="What we'll ask"
+      summary={summarizeBoxMethod(draft)}
+      done={sectionDone}
+    >
+      <p style={helpStyle}>
+        The Dough in-home method. Two battle tracks on the same scale — shelf
+        before opening, taste after — so the report can separate pack from
+        recipe. Prompts and order are locked; you pick attributes, optional
+        questions, and success bars.
+      </p>
+
+      {tasteOnly ? (
+        <p style={warnStyle} role="status">
+          This box will run taste-only — at least one seat is a plain sample, so
+          shelf battles, expectation, and ease of opening are skipped.
+        </p>
+      ) : null}
+
+      <div className="cb-acc-stack" style={{ marginTop: 8 }}>
+        {day1Steps.map((step, index) => {
+          const open = openId === step.id
+          let line = step.prompt ?? ''
+          if (step.id === 'try_each') line = attributeLabels(attrs)
+          if (step.id === 'brand_questions') {
+            line =
+              brandQs.length === 0
+                ? 'None yet'
+                : brandQs.map((q) => brandQuestionTypeLabel(q)).join(' · ')
+          }
+          if (step.id === 'success_bars') {
+            line = `Taste ${pct(bars.tasteWinShare)} · Liking ${pct(bars.likingShare)} · Buy ${pct(bars.buyAtPriceShare)}`
+          }
+          if (step.id === 'shelf_battles' && seatCount >= 2) {
+            const pairs =
+              seatCount <= 4
+                ? (seatCount * (seatCount - 1)) / 2
+                : 6
+            line = `${step.prompt} · ${pairs} matchup${pairs === 1 ? '' : 's'}`
+          }
+
+          return (
+            <section
+              key={step.id}
+              id={`ihut-step-${step.id}`}
+              className={`cb-acc${open ? ' is-open' : ''}`}
+            >
+              <h3 className="cb-acc-heading">
+                <button
+                  type="button"
+                  className={`cb-acc-head${step.editable ? ' has-mark' : ''}`}
+                  aria-expanded={open}
+                  onClick={() => setOpenId(open ? null : step.id)}
+                >
+                  <span className="cb-acc-index">{index + 1}</span>
+                  <span className="cb-acc-main">
+                    <span className="cb-acc-title">{step.title}</span>
+                    {!open ? <span className="cb-acc-summary">{line}</span> : null}
+                  </span>
+                  <span className="cb-acc-count">
+                    {step.editable ? 'Edit' : 'Locked'}
+                  </span>
+                  <span className="cb-acc-chevron" aria-hidden="true" />
+                </button>
+              </h3>
+              {open ? (
+                <div className="cb-acc-body" role="region">
+                  <p className="cb-acc-measures">{step.measures}</p>
+                  {step.prompt ? (
+                    <div className="cb-acc-asked">
+                      <p className="cb-acc-question">{step.prompt}</p>
+                      {step.options?.length ? (
+                        <ol className="cb-acc-options">
+                          {step.options.map((o) => (
+                            <li key={o}>{o}</li>
+                          ))}
+                        </ol>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {step.note ? <p className="cb-acc-note">{step.note}</p> : null}
+
+                  {step.editable === 'attributes' ? (
+                    <AttributeEditor selected={attrs} onToggle={toggleAttr} />
+                  ) : null}
+                  {step.editable === 'brand_questions' ? (
+                    <IhutBrandQuestionsEditor
+                      questions={brandQs}
+                      fieldSeats={fieldSeats}
+                      fieldOptions={fieldOptions}
+                      onChange={setBrandQs}
+                    />
+                  ) : null}
+                  {step.editable === 'success_bars' ? (
+                    <SuccessBarsEditor bars={bars} onChange={setBars} />
+                  ) : null}
+                </div>
+              ) : null}
+            </section>
+          )
+        })}
+      </div>
+
+      <div
+        id={BOX_ANCHORS.sessions}
+        style={{
+          marginTop: 28,
+          padding: '16px 18px',
+          border: day2On ? '1px solid var(--sage)' : '1px solid var(--ink-10)',
+          background: day2On ? 'var(--sage-soft)' : 'var(--white)',
+          borderRadius: 'var(--r-md)',
+          maxWidth: 640,
+        }}
+      >
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 12,
+            margin: 0,
+            cursor: 'pointer',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={day2On}
+            onChange={(e) => {
+              const on = e.target.checked
+              patch({
+                day2LiveWithIt: on,
+                loyaltyFollowUp: on,
+                selectedModules: on
+                  ? Array.from(
+                      new Set([
+                        ...draft.selectedModules.filter((m) => m !== MODULE_LOYALTY),
+                        MODULE_LOYALTY,
+                      ])
+                    )
+                  : draft.selectedModules.filter((m) => m !== MODULE_LOYALTY),
+              })
+            }}
+            style={{ marginTop: 3, accentColor: 'var(--sage)' }}
+          />
+          <span>
+            <span
+              style={{
+                display: 'block',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 14,
+                fontWeight: 600,
+                color: day2On ? 'var(--sage-dark)' : 'var(--ink-80)',
+              }}
+            >
+              Day 2: Live with it
+            </span>
+            <span
+              style={{
+                display: 'block',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 13,
+                color: 'var(--ink-50)',
+                marginTop: 3,
+                lineHeight: 1.4,
+              }}
+            >
+              See what they finished, and whether their favorite held. +40% of
+              the Day 1 household fee (shipping unchanged).
+            </span>
+          </span>
+        </label>
+
+        {day2On ? (
+          <div style={{ marginTop: 14 }}>
+            <div style={labelSm}>Hours between sessions</div>
+            <input
+              className="cb-input"
+              inputMode="numeric"
+              value={draft.session2IntervalHours}
+              onChange={(e) => {
+                const n = Number(e.target.value)
+                patch({
+                  session2IntervalHours: Number.isFinite(n) && n > 0 ? n : 48,
+                })
+              }}
+              style={{ ...inputBase, width: 140 }}
+            />
+            {draft.session2IntervalHours > 0 && draft.session2IntervalHours < 24 ? (
+              <p style={{ ...subHelp, marginTop: 6, color: 'var(--amber-warning)' }}>
+                Must be at least 24 hours.
+              </p>
+            ) : (
+              <p style={{ ...subHelp, marginTop: 6 }}>Default 48 hours.</p>
+            )}
+            <p style={{ ...subHelp, marginTop: 14, marginBottom: 8 }}>
+              Locked Day 2 screens — same two-scale story, after they&rsquo;ve lived
+              with the products.
+            </p>
+            <div className="cb-acc-stack">
+              {IHUT_DAY2_JOURNEY.filter(
+                (s) => !(tasteOnly && s.id === 'pack_after_use')
+              ).map((step, index) => {
+                const open = day2OpenId === step.id
+                return (
+                  <section
+                    key={step.id}
+                    className={`cb-acc${open ? ' is-open' : ''}`}
+                  >
+                    <h3 className="cb-acc-heading">
+                      <button
+                        type="button"
+                        className="cb-acc-head"
+                        aria-expanded={open}
+                        onClick={() => setDay2OpenId(open ? null : step.id)}
+                      >
+                        <span className="cb-acc-index">{index + 1}</span>
+                        <span className="cb-acc-main">
+                          <span className="cb-acc-title">{step.title}</span>
+                          {!open ? (
+                            <span className="cb-acc-summary">
+                              {step.prompt ?? step.measures}
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className="cb-acc-count">Locked</span>
+                        <span className="cb-acc-chevron" aria-hidden="true" />
+                      </button>
+                    </h3>
+                    {open ? (
+                      <div className="cb-acc-body" role="region">
+                        <p className="cb-acc-measures">{step.measures}</p>
+                        {step.prompt ? (
+                          <div className="cb-acc-asked">
+                            <p className="cb-acc-question">{step.prompt}</p>
+                            {step.options?.length ? (
+                              <ol className="cb-acc-options">
+                                {step.options.map((o) => (
+                                  <li key={o}>{o}</li>
+                                ))}
+                              </ol>
+                            ) : null}
+                          </div>
+                        ) : null}
+                        {step.note ? <p className="cb-acc-note">{step.note}</p> : null}
+                      </div>
+                    ) : null}
+                  </section>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </BuilderSectionChrome>
+  )
+}
+
+function AttributeEditor({
+  selected,
+  onToggle,
+}: {
+  selected: readonly IhutAttributeCode[]
+  onToggle: (code: IhutAttributeCode) => void
+}) {
+  return (
+    <div style={{ marginTop: 12 }}>
+      <p style={{ ...subHelp, marginBottom: 10 }}>
+        Pick up to 3. Defaults are Dough&rsquo;s generic set until the category
+        library lands.
+      </p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {IHUT_GENERIC_ATTRIBUTES.map((a) => {
+          const on = selected.includes(a.value)
+          return (
+            <button
+              key={a.value}
+              type="button"
+              onClick={() => onToggle(a.value)}
+              aria-pressed={on}
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: 13,
+                padding: '8px 12px',
+                borderRadius: 'var(--r-md)',
+                border: on ? '1px solid var(--sage)' : '1px solid var(--ink-10)',
+                background: on ? 'var(--sage-soft)' : 'var(--white)',
+                color: on ? 'var(--sage-dark)' : 'var(--ink-70)',
+                cursor: 'pointer',
+              }}
+            >
+              {a.label}
+            </button>
+          )
+        })}
+      </div>
+      <div className="cb-acc-asked" style={{ marginTop: 14 }}>
+        <p className="cb-acc-question">Is the … just right?</p>
+        <ol className="cb-acc-options">
+          <li>Too little</li>
+          <li>Just right</li>
+          <li>Too much</li>
+        </ol>
+      </div>
+    </div>
+  )
+}
+
+function IhutBrandQuestionsEditor({
+  questions,
+  fieldSeats,
+  fieldOptions,
+  onChange,
+}: {
+  questions: IhutBrandQuestionDraft[]
+  fieldSeats: ReturnType<typeof boxFieldAnswerSeats>
+  fieldOptions: string[]
+  onChange: (next: IhutBrandQuestionDraft[]) => void
+}) {
+  function patchAt(i: number, next: IhutBrandQuestionDraft) {
+    const list = [...questions]
+    list[i] = syncBrandQuestionFieldOptions(next, fieldOptions)
+    onChange(list)
+  }
+
+  return (
+    <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {questions.map((q, qi) => (
+        <BrandQuestionEditor
+          key={q.localId}
+          question={q}
+          fieldSeats={fieldSeats}
+          fieldOptions={fieldOptions}
+          onChange={(next) => patchAt(qi, next)}
+          onRemove={() => onChange(questions.filter((_, i) => i !== qi))}
+          starters={IHUT_BRAND_QUESTION_STARTERS}
+          promptPlaceholder="Ask a closed question about the products in the box"
+          fieldEmptyMessage="Add products to the field first."
+          lede="Same as concept — pick one or pick several, asked last so they can’t color the core."
+        />
+      ))}
+      {questions.length < 2 ? (
+        <button
+          type="button"
+          className="cb-text-btn"
+          onClick={() => onChange([...questions, emptyIhutBrandQuestion()])}
+        >
+          Add a question
+        </button>
+      ) : null}
+    </div>
+  )
+}
+
+function SuccessBarsEditor({
+  bars,
+  onChange,
+}: {
+  bars: IhutSuccessBarsDraft
+  onChange: (next: IhutSuccessBarsDraft) => void
+}) {
+  const rows: {
+    key: keyof IhutSuccessBarsDraft
+    label: string
+    help: string
+  }[] = [
+    {
+      key: 'tasteWinShare',
+      label: 'Taste win share',
+      help: 'Your product’s win rate in taste battles',
+    },
+    {
+      key: 'likingShare',
+      label: 'Liking share',
+      help: 'Share who rate your product in the top liking boxes',
+    },
+    {
+      key: 'buyAtPriceShare',
+      label: 'Buy at your price',
+      help: 'Share who’d buy your product at its shelf price',
+    },
+  ]
+
+  return (
+    <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {rows.map((row) => (
+        <label key={row.key} style={{ margin: 0 }}>
+          <div style={labelSm}>
+            {row.label} · {pct(bars[row.key])}
+          </div>
+          <input
+            type="range"
+            min={10}
+            max={95}
+            step={5}
+            value={Math.round(bars[row.key] * 100)}
+            onChange={(e) =>
+              onChange({ ...bars, [row.key]: Number(e.target.value) / 100 })
+            }
+            style={{ width: '100%', maxWidth: 360, accentColor: 'var(--sage)' }}
+          />
+          <p style={{ ...subHelp, marginTop: 4 }}>{row.help}</p>
+        </label>
+      ))}
+    </div>
+  )
+}
+
+const helpStyle: CSSProperties = {
+  fontFamily: 'var(--font-sans)',
+  fontSize: 14,
+  color: 'var(--ink-60)',
+  lineHeight: 1.45,
+  margin: '0 0 12px',
+  maxWidth: 640,
+}
+
+const warnStyle: CSSProperties = {
+  ...helpStyle,
+  color: 'var(--amber-warning)',
+  background: 'color-mix(in srgb, var(--amber-warning) 10%, transparent)',
+  padding: '10px 12px',
+  borderRadius: 'var(--r-md)',
+}
+
+const labelSm: CSSProperties = {
+  fontFamily: 'var(--font-sans)',
+  fontSize: 12,
+  fontWeight: 600,
+  color: 'var(--ink-60)',
+  letterSpacing: '0.02em',
+  textTransform: 'uppercase',
+}
+
+const subHelp: CSSProperties = {
+  fontFamily: 'var(--font-sans)',
+  fontSize: 13,
+  color: 'var(--ink-50)',
+  lineHeight: 1.4,
+  margin: 0,
+}
+
+const inputBase: CSSProperties = {
+  width: '100%',
+  maxWidth: 560,
+}

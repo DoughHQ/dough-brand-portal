@@ -3,12 +3,6 @@
 import type { BoxStudyDraft } from '@/lib/box/types'
 import { summarizeBoxLogistics } from '@/lib/box/builderSummaries'
 import { BOX_ANCHORS } from '@/lib/box/validity'
-import {
-  MODULE_LOYALTY,
-  hasLoyaltyModule,
-  resolveBoxSelectedModules,
-} from '@/lib/study/modules'
-import ModulesPicker from '../ModulesPicker'
 import BuilderSectionChrome from '../concept/BuilderSectionChrome'
 
 type Props = {
@@ -18,10 +12,8 @@ type Props = {
   sectionDone?: boolean
 }
 
-const DEFAULT_SESSION_INTERVAL_HOURS = 48
 const DEFAULT_ABANDON_WINDOW_DAYS = 14
 
-/** Integer-only. Decimals would 500 on the RPC's integer/smallint casts. */
 function intFromInput(v: string): number | null {
   const t = v.trim()
   if (!t) return null
@@ -30,7 +22,6 @@ function intFromInput(v: string): number | null {
   return Number.isSafeInteger(n) ? n : null
 }
 
-/** datetime-local wants "YYYY-MM-DDTHH:mm"; the draft stores full ISO. */
 function isoToLocalInput(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
@@ -44,9 +35,6 @@ export default function LogisticsSection({
   error,
   sectionDone = false,
 }: Props) {
-  const selectedModules = resolveBoxSelectedModules(draft)
-  const loyaltyOn = hasLoyaltyModule(selectedModules)
-
   return (
     <BuilderSectionChrome
       id={BOX_ANCHORS.logistics}
@@ -55,10 +43,10 @@ export default function LogisticsSection({
       done={sectionDone}
     >
       <p style={helpStyle}>
-        How many boxes exist, how the tasting is paced, and when the study closes.
+        How many boxes exist, how long claimants have after delivery, and when
+        the study closes. Day 2 lives under What we&rsquo;ll ask.
       </p>
 
-      {/* units */}
       <div id={BOX_ANCHORS.units} style={{ marginBottom: 28 }}>
         <div style={labelSm}>How many boxes will ship</div>
         <input
@@ -75,51 +63,6 @@ export default function LogisticsSection({
         </p>
       </div>
 
-      {/* modules + session 2 (loyalty lives in the picker) */}
-      <div id={BOX_ANCHORS.sessions} style={{ marginBottom: 28 }}>
-        <div style={labelSm}>Add-on modules</div>
-        <p style={{ ...subHelp, marginBottom: 12, maxWidth: 560 }}>
-          Optional analysis packs. Loyalty follow-up adds a second session —
-          set the wait below when it&rsquo;s selected.
-        </p>
-        <ModulesPicker
-          testType="ihut"
-          selected={selectedModules}
-          onChange={(next) =>
-            onChange({
-              ...draft,
-              selectedModules: next,
-              loyaltyFollowUp: next.includes(MODULE_LOYALTY),
-            })
-          }
-        />
-        {loyaltyOn ? (
-          <div style={{ marginTop: 16, maxWidth: 560 }}>
-            <div style={labelSm}>Hours between sessions</div>
-            <input
-              className="cb-input"
-              inputMode="numeric"
-              value={draft.session2IntervalHours}
-              onChange={(e) => {
-                const n = intFromInput(e.target.value)
-                onChange({
-                  ...draft,
-                  session2IntervalHours: n ?? DEFAULT_SESSION_INTERVAL_HOURS,
-                })
-              }}
-              placeholder="e.g. 48"
-              style={{ ...inputBase, width: 140 }}
-            />
-            {draft.session2IntervalHours > 0 && draft.session2IntervalHours < 24 ? (
-              <p style={{ ...subHelp, marginTop: 6, color: 'var(--amber-warning)' }}>
-                Must be at least 24 hours.
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
-
-      {/* abandon window */}
       <div style={{ marginBottom: 28 }}>
         <div style={labelSm}>Grace period after delivery (days)</div>
         <input
@@ -141,7 +84,6 @@ export default function LogisticsSection({
         </p>
       </div>
 
-      {/* expiry + target */}
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
         <div id={BOX_ANCHORS.expiry}>
           <div style={labelSm}>Study closes</div>
@@ -178,7 +120,6 @@ export default function LogisticsSection({
         </div>
       </div>
 
-      {/* blind sponsor */}
       <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--ink-10)' }}>
         <label style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer', maxWidth: 560 }}>
           <input

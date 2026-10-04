@@ -189,6 +189,8 @@ export type ExperiencedReportPayload = {
   attribute_importance: AttributeImportance | null
   repurchase_intent: RepurchaseIntent | null
   experience_lift_vs_baseline: ExperienceLift | null
+  /** Present when the mission used IHUT_CORE_V1 (from freeze). */
+  ihut_core?: import('./ihutCoreTypes').IhutCoreReport | null
 }
 
 export type ExperiencedReportEnvelope = {

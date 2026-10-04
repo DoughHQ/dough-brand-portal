@@ -30,6 +30,7 @@ export const BOX_ANCHORS = {
   audienceCategoryBars: 'box-aud-category-bars',
   audienceStates: 'box-aud-states',
   battle: 'box-battle',
+  method: 'box-method',
   logistics: 'box-logistics',
   units: 'box-log-units',
   sessions: 'box-log-sessions',

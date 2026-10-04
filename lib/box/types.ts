@@ -143,16 +143,18 @@ export type BoxStudyDraft = {
   /** How many boxes exist = the claim seat count. null until entered. */
   physicalUnits: number | null
   /**
-   * Extra pickable modules (value, field ranking, loyalty). Loyalty in this
-   * list makes the study 2-session.
+   * Extra pickable modules. Purchase drivers and field ranking are retired from
+   * IHUT; only Day 2 (MODULE_LOYALTY) remains until IHUT_CORE_V1 activates.
    */
   selectedModules: StudyModuleCode[]
   /**
-   * @deprecated Derived from selectedModules.includes(MODULE_LOYALTY).
-   * Kept so older localStorage drafts migrate; do not write from UI.
+   * @deprecated Derived from selectedModules.includes(MODULE_LOYALTY) /
+   * day2LiveWithIt. Kept so older localStorage drafts migrate.
    */
   loyaltyFollowUp: boolean
-  /** Hours between sessions. Only sent when loyalty is picked; server requires >= 24. */
+  /** Day 2: Live with it — the only IHUT add-on. */
+  day2LiveWithIt: boolean
+  /** Hours between sessions. Only sent when Day 2 is on; server requires >= 24. */
   session2IntervalHours: number
   eligibilityTier: BoxEligibilityTier
   eligibility: BoxEligibilityDraft
@@ -167,10 +169,16 @@ export type BoxStudyDraft = {
   expiresAt: string
   targetCompletions: number | null
   /**
-   * Forced-choice prompt for in-box battles. Empty uses the server default
-   * ("Which would you buy?"). Trimmed before it crosses the wire.
+   * @deprecated Battle prompts are locked on the Dough method. Kept for draft
+   * migrate; publish always sends an empty prompt for new studies.
    */
   battleQuestion: string
+  /** Up to 3 just-right attributes from the generic list. */
+  ihutAttributes: import('./method').IhutAttributeCode[]
+  /** 0–2 brand-written closed questions. */
+  ihutBrandQuestions: import('./method').IhutBrandQuestionDraft[]
+  /** Brand-set go / no-go thresholds for the report. */
+  ihutSuccessBars: import('./method').IhutSuccessBarsDraft
   updatedAt: string
 }
 
