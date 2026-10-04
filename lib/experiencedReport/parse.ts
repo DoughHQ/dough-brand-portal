@@ -20,6 +20,7 @@ import type {
   RepurchaseIntent,
   RepurchaseSessionMetric,
 } from './types'
+import { isIhutCoreReport } from './ihutCoreTypes'
 
 function asObject(raw: unknown): Record<string, unknown> | null {
   if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) return null
@@ -345,6 +346,7 @@ export function parseExperiencedReportPayload(raw: unknown): ExperiencedReportPa
     attribute_importance: parseAttributeImportance(o.attribute_importance),
     repurchase_intent: parseRepurchase(o.repurchase_intent),
     experience_lift_vs_baseline: parseLift(o.experience_lift_vs_baseline),
+    ihut_core: isIhutCoreReport(o.ihut_core) ? o.ihut_core : null,
   }
 }
 

@@ -56,13 +56,24 @@ describe('box builderSummaries', () => {
     expect(summarizeBoxContents(draft)).toBe('3 seats · 3 matchups')
   })
 
-  it('summarizes battle prompt default vs custom', () => {
+  it('summarizes the locked Dough method', () => {
     const empty = createEmptyBoxDraft(1)
-    expect(summarizeBoxBattle(empty)).toContain('Dough default')
-    expect(summarizeBoxBattle(empty)).toContain('Which would you buy?')
+    expect(summarizeBoxBattle(empty)).toContain('Shelf + taste')
+    expect(summarizeBoxBattle(empty)).toContain('No brand Qs')
     expect(
-      summarizeBoxBattle({ ...empty, battleQuestion: 'Which tastes better?' })
-    ).toBe('Your prompt · “Which tastes better?”')
+      summarizeBoxBattle({
+        ...empty,
+        day2LiveWithIt: true,
+        ihutBrandQuestions: [
+          {
+            localId: '1',
+            prompt: 'Would you recommend this?',
+            options: ['Yes', 'No'],
+            max_select: 1,
+          },
+        ],
+      })
+    ).toContain('Day 2 on')
   })
 
   it('summarizes open vs restricted audience', () => {

@@ -3,7 +3,8 @@ import { createEmptyBoxDraft, createEmptyBoxFieldRow } from '../defaults'
 import { draftToBoxPublishArgs } from '../publish'
 import {
   MODULE_FIELD_RANKING,
-  MODULE_LOYALTY,
+  MODULE_IHUT_CORE_V1,
+  MODULE_IHUT_DAY2_V1,
   MODULE_VALUE,
 } from '@/lib/study/modules'
 import type { BoxFieldRow, BoxStudyDraft } from '../types'
@@ -111,51 +112,63 @@ describe('draftToBoxPublishArgs seats wire', () => {
 })
 
 describe('draftToBoxPublishArgs battle prompt', () => {
-  it('sends an empty battle prompt when the field is blank', () => {
+  it('always sends an empty battle prompt — Dough locks shelf and taste copy', () => {
     expect(draftToBoxPublishArgs(boxDraft(), ctx).p_battle_prompt).toBe('')
     expect(
       draftToBoxPublishArgs(boxDraft({ battleQuestion: '   ' }), ctx).p_battle_prompt
     ).toBe('')
-  })
-
-  it('sends the trimmed custom question', () => {
     expect(
       draftToBoxPublishArgs(
         boxDraft({ battleQuestion: '  Which would you grab for lunch?  ' }),
         ctx
       ).p_battle_prompt
-    ).toBe('Which would you grab for lunch?')
+    ).toBe('')
+  })
+
+  it('ships method knobs in module_config for the CORE flip', () => {
+    const args = draftToBoxPublishArgs(
+      boxDraft({
+        day2LiveWithIt: true,
+        ihutAttributes: ['sweetness', 'texture'],
+      }),
+      ctx
+    )
+    expect(args.p_module_config.method_pack).toBe('IHUT_CORE_V1')
+    expect(args.p_module_config.attributes).toEqual(['sweetness', 'texture'])
+    expect(args.p_module_config.include_day2).toBe(true)
   })
 })
 
-describe('draftToBoxPublishArgs loyalty module / p_open', () => {
-  it('sends no modules or interval when nothing is picked', () => {
-    expect(draftToBoxPublishArgs(boxDraft(), ctx).p_modules).toEqual([])
+describe('draftToBoxPublishArgs CORE modules / p_open', () => {
+  it('always sends IHUT_CORE_V1 when CORE publish is on', () => {
+    expect(draftToBoxPublishArgs(boxDraft(), ctx).p_modules).toEqual([
+      MODULE_IHUT_CORE_V1,
+    ])
     expect(draftToBoxPublishArgs(boxDraft(), ctx).p_session2_interval_hours).toBeNull()
   })
 
-  it('sends loyalty + interval when MODULE_LOYALTY is picked', () => {
-    const withLoyalty = draftToBoxPublishArgs(
+  it('sends CORE + Day 2 when Day 2 is on', () => {
+    const withDay2 = draftToBoxPublishArgs(
       boxDraft({
-        selectedModules: [MODULE_LOYALTY],
+        day2LiveWithIt: true,
         session2IntervalHours: 48,
       }),
       ctx
     )
-    expect(withLoyalty.p_modules).toEqual([MODULE_LOYALTY])
-    expect(withLoyalty.p_session2_interval_hours).toBe(48)
+    expect(withDay2.p_modules).toEqual([MODULE_IHUT_CORE_V1, MODULE_IHUT_DAY2_V1])
+    expect(withDay2.p_session2_interval_hours).toBe(48)
   })
 
-  it('still honors a legacy loyaltyFollowUp boolean', () => {
-    const withLoyalty = draftToBoxPublishArgs(
+  it('still honors a legacy loyaltyFollowUp boolean as Day 2', () => {
+    const withDay2 = draftToBoxPublishArgs(
       boxDraft({ loyaltyFollowUp: true, session2IntervalHours: 48 }),
       ctx
     )
-    expect(withLoyalty.p_modules).toEqual([MODULE_LOYALTY])
-    expect(withLoyalty.p_session2_interval_hours).toBe(48)
+    expect(withDay2.p_modules).toEqual([MODULE_IHUT_CORE_V1, MODULE_IHUT_DAY2_V1])
+    expect(withDay2.p_session2_interval_hours).toBe(48)
   })
 
-  it('sends value/ranking without an interval when loyalty is off', () => {
+  it('drops retired purchase-driver / field-ranking modules', () => {
     const args = draftToBoxPublishArgs(
       boxDraft({
         selectedModules: [MODULE_VALUE, MODULE_FIELD_RANKING],
@@ -163,7 +176,7 @@ describe('draftToBoxPublishArgs loyalty module / p_open', () => {
       }),
       ctx
     )
-    expect(args.p_modules).toEqual([MODULE_VALUE, MODULE_FIELD_RANKING])
+    expect(args.p_modules).toEqual([MODULE_IHUT_CORE_V1])
     expect(args.p_session2_interval_hours).toBeNull()
   })
 

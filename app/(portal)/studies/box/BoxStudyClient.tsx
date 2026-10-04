@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import type { BoxPublishSuccessMeta, BoxStudyDraft } from '@/lib/box/types'
-import { BOX_DEFAULT_BATTLE_QUESTION } from '@/lib/box/constants'
 import { createEmptyBoxDraft } from '@/lib/box/defaults'
 import { deleteBoxDraft, normalizeStoredBoxDraft, saveBoxDraft } from '@/lib/box/draftStore'
 import { BOX_ANCHORS, evaluateBoxValidity, type BoxPublishFailure } from '@/lib/box/validity'
@@ -12,7 +11,7 @@ import { summarizeBoxDockReady } from '@/lib/box/builderSummaries'
 import { publishBoxStudyAction, createBoxCampaignAction } from './actions'
 import SetupSection from './SetupSection'
 import ContentsSection from './ContentsSection'
-import BattleSection from './BattleSection'
+import MethodSection from './MethodSection'
 import AudienceSection from './AudienceSection'
 import LogisticsSection from './LogisticsSection'
 import ResumeDraftBanner from '../components/ResumeDraftBanner'
@@ -279,8 +278,8 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
             done: validity.setupOk && validity.fieldOk,
           },
           {
-            id: BOX_ANCHORS.battle,
-            label: 'The battle',
+            id: BOX_ANCHORS.method,
+            label: "What we'll ask",
             done: validity.setupOk && validity.fieldOk,
           },
           ...(STUDY_AUDIENCE_BUILDER_ENABLED
@@ -340,7 +339,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
         sectionDone={validity.fieldOk}
       />
 
-      <BattleSection
+      <MethodSection
         draft={draft}
         onChange={persist}
         sectionDone={validity.setupOk && validity.fieldOk}
@@ -505,7 +504,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
             </h2>
             <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}>
               The study is open. Qualified users can claim it now — the field is
-              frozen and the battle question is locked.
+              frozen and the Dough method prompts are locked.
               {publishMeta.taste_only
                 ? ' Plain samples made this study taste-only.'
                 : ''}
@@ -606,20 +605,27 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
-                  Battle question
+                  Battle prompts
                 </dt>
-                <dd style={{ margin: 0, lineHeight: 1.4 }}>
-                  {publishMeta.battle_question ?? BOX_DEFAULT_BATTLE_QUESTION}
-                  {publishMeta.battle_question_is_custom ? (
-                    <span style={{ color: 'var(--ink-50)', fontWeight: 500 }}>
-                      {' '}
-                      · custom
-                    </span>
+                <dd style={{ margin: 0, lineHeight: 1.45 }}>
+                  {publishMeta.taste_only ? (
+                    <>
+                      Taste · Which did you enjoy more?
+                      <span style={{ color: 'var(--ink-50)', fontWeight: 500 }}>
+                        {' '}
+                        · taste-only (shelf skipped)
+                      </span>
+                    </>
                   ) : (
-                    <span style={{ color: 'var(--ink-50)', fontWeight: 500 }}>
-                      {' '}
-                      · default
-                    </span>
+                    <>
+                      Shelf · Which would you pick up?
+                      <br />
+                      Taste · Which did you enjoy more?
+                      <span style={{ color: 'var(--ink-50)', fontWeight: 500 }}>
+                        {' '}
+                        · locked
+                      </span>
+                    </>
                   )}
                 </dd>
               </div>
@@ -661,6 +667,10 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
         actionsLocked={pending || !!publishMeta}
         publishMuted={!validity.readyToPublish || publishing}
         publishLabel="Publish box"
+        showPreview
+        previewLabel="Preview"
+        canPreview={validity.setupOk && validity.fieldOk}
+        onPreview={() => router.push(`/studies/box/${draft.draftId}/preview`)}
         onSave={saveDraft}
         onPublish={() => requestPublish()}
         onScrollTo={scrollTo}

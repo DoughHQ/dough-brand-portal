@@ -16,6 +16,12 @@ import type {
   BoxPublishSuccessMeta,
   BoxStudyDraft,
 } from '@/lib/box/types'
+import { ihutModuleConfigFromDraft } from '@/lib/box/method'
+import { isResolvedBoxSeat } from '@/lib/box/fieldSize'
+import {
+  parseIhutPreviewJourney,
+  type IhutPreviewJourney,
+} from '@/lib/box/preview/screensFromIhutJourney'
 
 export type BoxPublishResult =
   | { ok: true; meta: BoxPublishSuccessMeta }
@@ -265,5 +271,57 @@ export async function publishBoxStudyAction(
       thrown: { message, hint: extractBoxHint({ message }) ?? undefined },
     })
     return asFail(resolved)
+  }
+}
+
+/**
+ * preview_ihut_journey — respondent walkthrough outline for the box builder.
+ */
+export async function previewIhutJourneyAction(
+  draft: BoxStudyDraft
+): Promise<
+  | { ok: true; preview: IhutPreviewJourney }
+  | { ok: false; error: string; preview: IhutPreviewJourney | null }
+> {
+  const portalUser = await getPortalUser()
+  if (!portalUser) {
+    return { ok: false, error: "You don't have access to that brand.", preview: null }
+  }
+
+  const seats = draft.fieldProducts.filter(isResolvedBoxSeat).length
+  const cfg = ihutModuleConfigFromDraft(draft)
+  const includeDay2 = cfg.include_day2 === true
+
+  try {
+    const supabase = await createServerSupabaseClient()
+    // Types lag the migration until portal DB types are regenerated.
+    const { data, error } = await (supabase as unknown as {
+      rpc: (
+        fn: string,
+        args: Record<string, unknown>
+      ) => Promise<{ data: unknown; error: { message?: string } | null }>
+    }).rpc('preview_ihut_journey', {
+      p_seat_count: seats,
+      p_module_config: cfg,
+      p_include_day2: includeDay2,
+    })
+    if (error) {
+      return {
+        ok: false,
+        error: error.message || 'Could not build the walkthrough.',
+        preview: null,
+      }
+    }
+    const preview = parseIhutPreviewJourney(data)
+    if (!preview) {
+      return { ok: false, error: 'Could not parse journey preview.', preview: null }
+    }
+    return { ok: true, preview }
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : 'Preview failed.',
+      preview: null,
+    }
   }
 }

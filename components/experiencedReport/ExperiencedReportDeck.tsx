@@ -35,7 +35,8 @@ import { Chip, CoinFlipTrack, SectionShell, ShareBar, BipolarTrack } from './dec
 import { ReportSectionRail } from './ReportSectionRail'
 import { REPORT_SECTIONS, pushNote, type SectionMethodNotes } from './reportSections'
 import { ExecutiveSummaryStrip } from './ExecutiveSummaryStrip'
-import './experiencedReport.css'
+import { IhutCoreReportView } from './IhutCoreReport'
+import { isIhutCoreReport } from '@/lib/experiencedReport/ihutCoreTypes'
 
 const PREFERENCE_METHOD_NOTE =
   'What was measured — not a launch recommendation. Experience splits are never pooled.'
@@ -1148,6 +1149,14 @@ export function ExperiencedReportDeck({
         <div className="experienced-report-document">
           <DeckColdOpen envelope={envelope} backHref={backHref} />
           <ExecutiveSummaryStrip envelope={envelope} />
+
+          {isIhutCoreReport(report.ihut_core) ? (
+            <div className="report-row report-row--full" style={{ marginTop: 8 }}>
+              <div className="report-span-12">
+                <IhutCoreReportView report={report.ihut_core} />
+              </div>
+            </div>
+          ) : null}
 
           <div className="report-row report-row--7-5">
             <div className="report-span-7">

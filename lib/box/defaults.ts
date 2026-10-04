@@ -1,4 +1,8 @@
 import type { BoxEligibilityDraft, BoxFieldRow, BoxStudyDraft } from './types'
+import {
+  IHUT_DEFAULT_ATTRIBUTES,
+  IHUT_DEFAULT_SUCCESS_BARS,
+} from './method'
 
 function newId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -43,6 +47,7 @@ export function createEmptyBoxDraft(brandId: number): BoxStudyDraft {
     physicalUnits: null,
     selectedModules: [],
     loyaltyFollowUp: false,
+    day2LiveWithIt: false,
     session2IntervalHours: 48,
     eligibilityTier: 'any',
     eligibility: createEmptyBoxEligibility(),
@@ -53,6 +58,9 @@ export function createEmptyBoxDraft(brandId: number): BoxStudyDraft {
     expiresAt: expires.toISOString(),
     targetCompletions: null,
     battleQuestion: '',
+    ihutAttributes: [...IHUT_DEFAULT_ATTRIBUTES],
+    ihutBrandQuestions: [],
+    ihutSuccessBars: { ...IHUT_DEFAULT_SUCCESS_BARS },
     updatedAt: now.toISOString(),
   }
 }

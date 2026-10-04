@@ -13,6 +13,15 @@ export const MODULE_VALUE = 'MODULE_VALUE'
 export const MODULE_FIELD_RANKING = 'MODULE_FIELD_RANKING'
 /** iHUT-only — selecting this makes the study 2-session. */
 export const MODULE_LOYALTY = 'MODULE_LOYALTY'
+/** Dough in-home method pack (locked journey). Day 2 is IHUT_DAY2_V1. */
+export const MODULE_IHUT_CORE_V1 = 'IHUT_CORE_V1'
+export const MODULE_IHUT_DAY2_V1 = 'IHUT_DAY2_V1'
+
+/**
+ * When true, box publish sends IHUT_CORE_V1 (± Day 2) instead of the legacy
+ * engine + MODULE_LOYALTY. Must stay true only while CORE templates are active.
+ */
+export const IHUT_CORE_V1_PUBLISH = true
 
 export type StudyModuleCode =
   | typeof MODULE_PACKAGING
@@ -20,6 +29,8 @@ export type StudyModuleCode =
   | typeof MODULE_VALUE
   | typeof MODULE_FIELD_RANKING
   | typeof MODULE_LOYALTY
+  | typeof MODULE_IHUT_CORE_V1
+  | typeof MODULE_IHUT_DAY2_V1
 
 export type StudyTestType = 'concept' | 'ihut'
 
@@ -36,24 +47,10 @@ export type PickableModuleDef = {
  */
 export const PICKABLE_MODULES: readonly PickableModuleDef[] = [
   {
-    code: MODULE_VALUE,
-    label: 'Purchase drivers',
-    description:
-      'MaxDiff — which attributes actually drive the buy, ranked by what people trade off.',
-    testTypes: ['concept', 'ihut'],
-  },
-  {
-    code: MODULE_FIELD_RANKING,
-    label: 'Field ranking',
-    description:
-      'Forced-rank every product in the field — a full order, not just pairwise battles.',
-    testTypes: ['concept', 'ihut'],
-  },
-  {
     code: MODULE_LOYALTY,
-    label: 'Loyalty follow-up',
+    label: 'Day 2: Live with it',
     description:
-      'A second session after they live with the product — did preference hold, or drift?',
+      'A second session after they live with the product — what they finished, and whether preference held.',
     testTypes: ['ihut'],
   },
 ]
