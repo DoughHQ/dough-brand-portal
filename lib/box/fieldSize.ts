@@ -14,7 +14,11 @@ export function getBoxFieldSize(draft: BoxStudyDraft): number {
 }
 
 export function getBoxResolvedCount(draft: BoxStudyDraft): number {
-  return draft.fieldProducts.filter((r) => r.product_id != null).length
+  return draft.fieldProducts.filter(
+    (r) =>
+      (r.kind === 'prototype' && !!r.prototype_id) ||
+      (r.kind !== 'prototype' && r.product_id != null)
+  ).length
 }
 
 export function getBoxRemainingSlots(draft: BoxStudyDraft): number {

@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from 'react'
 import type { BoxFieldRow, BoxStudyDraft } from '@/lib/box/types'
 import type { AdminProductSearchResult } from '@/lib/queries'
+import type { PrototypeListItem, PrototypePackaging } from '@/lib/prototypes/types'
 import {
   BOX_ANCHORS,
   boxFieldRowErrors,
@@ -10,6 +11,12 @@ import {
 } from '@/lib/box/validity'
 import { summarizeBoxContents } from '@/lib/box/builderSummaries'
 import { createEmptyBoxFieldRow } from '@/lib/box/defaults'
+import {
+  applyPrototypeToSeat,
+  clearCatalogFromSeat,
+  clearPrototypeFromSeat,
+  createPrototypeSeatFromItem,
+} from '@/lib/box/applyPrototypeSeat'
 import { hydrateBoxFieldRow } from '@/lib/box/hydrate'
 import { BOX_UPC_SCAN_HELP } from '@/lib/box/constants'
 import { canAddBoxProduct, MAX_BOX_FIELD_SIZE } from '@/lib/box/fieldSize'
@@ -17,6 +24,7 @@ import { categoryFromSearchResult, isIdentityConfirmed } from '@/lib/productEntr
 import { createClient } from '@/lib/supabase'
 import BuilderSectionChrome from '../concept/BuilderSectionChrome'
 import BoxProductSearchSlot from './BoxProductSearchSlot'
+import BoxPrototypePickSlot from './BoxPrototypePickSlot'
 import BoxUpcField from './BoxUpcField'
 import BoxAllergenConfirm from './BoxAllergenConfirm'
 import ProductIdentityConfirm from '../ProductIdentityConfirm'
@@ -31,6 +39,8 @@ type Props = {
   sectionDone?: boolean
 }
 
+type AddingMode = false | 'catalog' | 'prototype'
+
 export default function ContentsSection({
   draft,
   onChange,
@@ -39,18 +49,29 @@ export default function ContentsSection({
   publishFailure = null,
   sectionDone = false,
 }: Props) {
-  const [adding, setAdding] = useState(false)
+  const [adding, setAdding] = useState<AddingMode>(false)
+  /** Seat localIds that are mid-pick after Kind → Prototype. */
+  const [pickingSeatIds, setPickingSeatIds] = useState<Set<string>>(() => new Set())
   const draftRef = useRef(draft)
   draftRef.current = draft
 
   const rows = draft.fieldProducts
-  const taken = useMemo(
+  const takenProducts = useMemo(
     () =>
       new Set(
         rows
           .map((r) => r.product_id)
           .filter((id): id is number => id != null)
           .map(String)
+      ),
+    [rows]
+  )
+  const takenPrototypes = useMemo(
+    () =>
+      new Set(
+        rows
+          .map((r) => r.prototype_id)
+          .filter((id): id is string => !!id)
       ),
     [rows]
   )
@@ -69,6 +90,15 @@ export default function ContentsSection({
     })
   }
 
+  function setSeatPicking(localId: string, on: boolean) {
+    setPickingSeatIds((prev) => {
+      const next = new Set(prev)
+      if (on) next.add(localId)
+      else next.delete(localId)
+      return next
+    })
+  }
+
   function addProduct(p: AdminProductSearchResult, knownUpc?: string) {
     if (!canAddBoxProduct(draftRef.current)) {
       setAdding(false)
@@ -76,6 +106,7 @@ export default function ContentsSection({
     }
     const row: BoxFieldRow = {
       ...createEmptyBoxFieldRow(),
+      kind: 'product',
       product_id: p.product_id,
       frozen_display_name: p.product_name_clean,
       frozen_brand_name: p.brand_name,
@@ -96,9 +127,33 @@ export default function ContentsSection({
     })
   }
 
+  function addPrototype(item: PrototypeListItem, imageUrl: string | null) {
+    if (!canAddBoxProduct(draftRef.current)) {
+      setAdding(false)
+      return
+    }
+    if (takenPrototypes.has(item.id)) return
+    const row = createPrototypeSeatFromItem(item, { imageUrl })
+    const current = draftRef.current
+    onChange({ ...current, fieldProducts: [...current.fieldProducts, row] })
+    setAdding(false)
+  }
+
+  function bindPrototypeToSeat(
+    localId: string,
+    item: PrototypeListItem,
+    imageUrl: string | null
+  ) {
+    const current = draftRef.current
+    const existing = current.fieldProducts.find((r) => r.localId === localId)
+    if (!existing) return
+    if (takenPrototypes.has(item.id) && existing.prototype_id !== item.id) return
+    patchRow(localId, applyPrototypeToSeat(existing, item, { imageUrl }))
+    setSeatPicking(localId, false)
+  }
+
   function removeRow(localId: string, productId: number | null) {
     if (productId != null && productId === draft.focalProductId) {
-      // Keep legacy focal pointer in sync when the Yours catalog seat is removed.
       onChange({
         ...draftRef.current,
         focalProductId: null,
@@ -112,6 +167,21 @@ export default function ContentsSection({
       ...draftRef.current,
       fieldProducts: draftRef.current.fieldProducts.filter((r) => r.localId !== localId),
     })
+    setSeatPicking(localId, false)
+  }
+
+  function setKind(localId: string, kind: 'product' | 'prototype') {
+    const current = draftRef.current
+    const existing = current.fieldProducts.find((r) => r.localId === localId)
+    if (!existing || existing.kind === kind) return
+    if (kind === 'prototype') {
+      patchRow(localId, clearCatalogFromSeat(existing))
+      setSeatPicking(localId, true)
+      setAdding(false)
+      return
+    }
+    patchRow(localId, clearPrototypeFromSeat(existing))
+    setSeatPicking(localId, false)
   }
 
   const resolvedCount = rows.filter(
@@ -148,13 +218,16 @@ export default function ContentsSection({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {rows.map((r) => {
               const isYours = r.role === 'yours'
+              const isPrototype = r.kind === 'prototype'
+              const needsPrototypePick =
+                isPrototype && (!r.prototype_id || pickingSeatIds.has(r.localId))
               const differentCategory =
                 r.taxonomy_node_id != null &&
                 draft.taxonomyNodeId != null &&
                 r.taxonomy_node_id !== draft.taxonomyNodeId
               const rowError = rowErrors[r.localId]
               const awaitingConfirm =
-                r.kind !== 'prototype' &&
+                !isPrototype &&
                 !!r.upc?.trim() &&
                 !isIdentityConfirmed(r)
               return (
@@ -212,27 +285,13 @@ export default function ContentsSection({
                       <label style={{ fontSize: 12, color: 'var(--ink-50)' }}>
                         Kind{' '}
                         <select
-                          value={r.kind === 'prototype' ? 'prototype' : 'product'}
-                          onChange={(e) => {
-                            const kind =
+                          value={isPrototype ? 'prototype' : 'product'}
+                          onChange={(e) =>
+                            setKind(
+                              r.localId,
                               e.target.value === 'prototype' ? 'prototype' : 'product'
-                            patchRow(r.localId, {
-                              ...r,
-                              kind,
-                              product_id: kind === 'product' ? r.product_id : null,
-                              prototype_id:
-                                kind === 'prototype' ? r.prototype_id : null,
-                              packaging:
-                                kind === 'prototype'
-                                  ? (r.packaging ?? 'final_packaging')
-                                  : 'final_packaging',
-                              upc: kind === 'product' ? r.upc : null,
-                              identityConfirmed:
-                                kind === 'product' ? r.identityConfirmed : false,
-                              allergensConfirmed:
-                                kind === 'product' ? r.allergensConfirmed : false,
-                            })
-                          }}
+                            )
+                          }
                         >
                           <option value="product">Catalog</option>
                           <option value="prototype">Prototype</option>
@@ -255,16 +314,96 @@ export default function ContentsSection({
                     </div>
                     <div style={{ fontWeight: 600, color: 'var(--ink-80)', fontSize: 15 }}>
                       {r.frozen_display_name ||
-                        (r.kind === 'prototype' ? 'Ready prototype' : 'Unnamed product')}
+                        (isPrototype ? 'Choose a prototype' : 'Unnamed product')}
                     </div>
                     <div style={{ fontSize: 13, color: 'var(--ink-50)', marginTop: 2 }}>
-                      {r.kind === 'prototype'
-                        ? r.packaging === 'plain_sample'
-                          ? 'Plain sample'
-                          : 'Final packaging'
+                      {isPrototype
+                        ? r.prototype_id
+                          ? r.packaging === 'plain_sample'
+                            ? 'Plain sample'
+                            : 'Final packaging'
+                          : 'From your private library'
                         : r.frozen_brand_name}
                     </div>
-                    {awaitingConfirm && r.upc ? (
+
+                    {needsPrototypePick ? (
+                      <div style={{ marginTop: 12 }}>
+                        <BoxPrototypePickSlot
+                          taken={takenPrototypes}
+                          onPick={(item, imageUrl) =>
+                            bindPrototypeToSeat(r.localId, item, imageUrl)
+                          }
+                          onCancel={
+                            r.prototype_id
+                              ? () => setSeatPicking(r.localId, false)
+                              : rows.length > 1
+                                ? () => removeRow(r.localId, r.product_id)
+                                : undefined
+                          }
+                        />
+                      </div>
+                    ) : isPrototype && r.prototype_id ? (
+                      <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
+                        <label style={{ fontSize: 12, color: 'var(--ink-50)' }}>
+                          Packaging{' '}
+                          <select
+                            value={
+                              r.packaging === 'plain_sample'
+                                ? 'plain_sample'
+                                : 'final_packaging'
+                            }
+                            onChange={(e) => {
+                              const packaging: PrototypePackaging =
+                                e.target.value === 'plain_sample'
+                                  ? 'plain_sample'
+                                  : 'final_packaging'
+                              patchRow(r.localId, { ...r, packaging })
+                            }}
+                          >
+                            <option value="final_packaging">Final packaging</option>
+                            <option value="plain_sample">Plain sample</option>
+                          </select>
+                        </label>
+                        <label style={{ fontSize: 12, color: 'var(--ink-50)' }}>
+                          Shelf price (optional){' '}
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            inputMode="decimal"
+                            placeholder="e.g. 3.49"
+                            value={r.price ?? ''}
+                            onChange={(e) => {
+                              const raw = e.target.value.trim()
+                              if (!raw) {
+                                patchRow(r.localId, { ...r, price: null })
+                                return
+                              }
+                              const n = Number(raw)
+                              patchRow(r.localId, {
+                                ...r,
+                                price: Number.isFinite(n) && n > 0 ? n : null,
+                              })
+                            }}
+                            style={{
+                              marginLeft: 6,
+                              width: 96,
+                              fontSize: 13,
+                              padding: '4px 8px',
+                              border: '1px solid var(--ink-10)',
+                              borderRadius: 6,
+                            }}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          className="cb-quiet-action"
+                          onClick={() => setSeatPicking(r.localId, true)}
+                        >
+                          Change prototype
+                        </button>
+                      </div>
+                    ) : awaitingConfirm && r.upc ? (
                       <ProductIdentityConfirm
                         name={r.frozen_display_name}
                         brand={r.frozen_brand_name}
@@ -283,7 +422,7 @@ export default function ContentsSection({
                         }
                         onChange={() => {
                           removeRow(r.localId, r.product_id)
-                          setAdding(true)
+                          setAdding('catalog')
                         }}
                       />
                     ) : r.product_id != null ? (
@@ -350,7 +489,7 @@ export default function ContentsSection({
                       type="button"
                       className="cb-quiet-action"
                       onClick={() => removeRow(r.localId, r.product_id)}
-                      aria-label={`Remove ${r.frozen_display_name}`}
+                      aria-label={`Remove ${r.frozen_display_name || 'seat'}`}
                     >
                       Remove
                     </button>
@@ -361,23 +500,38 @@ export default function ContentsSection({
           </div>
 
           <div style={{ marginTop: 16 }}>
-            {adding && canAdd ? (
+            {adding === 'catalog' && canAdd ? (
               <BoxProductSearchSlot
-                taken={taken}
+                taken={takenProducts}
                 onPick={addProduct}
                 onCancel={() => setAdding(false)}
                 preferL2NodeId={focalL2NodeId}
                 entryModes
                 placeholder="Add another product by name, brand, or barcode…"
               />
+            ) : adding === 'prototype' && canAdd ? (
+              <BoxPrototypePickSlot
+                taken={takenPrototypes}
+                onPick={addPrototype}
+                onCancel={() => setAdding(false)}
+              />
             ) : canAdd ? (
-              <button
-                type="button"
-                className="cb-btn cb-btn-secondary"
-                onClick={() => setAdding(true)}
-              >
-                + Add product
-              </button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                <button
+                  type="button"
+                  className="cb-btn cb-btn-secondary"
+                  onClick={() => setAdding('catalog')}
+                >
+                  + Add catalog product
+                </button>
+                <button
+                  type="button"
+                  className="cb-btn cb-btn-secondary"
+                  onClick={() => setAdding('prototype')}
+                >
+                  + Add prototype
+                </button>
+              </div>
             ) : (
               <p className="cb-field-note" style={{ margin: 0 }}>
                 Field full · {MAX_BOX_FIELD_SIZE} of {MAX_BOX_FIELD_SIZE}
@@ -386,15 +540,15 @@ export default function ContentsSection({
           </div>
 
           <p className="cb-field-note" style={{ marginTop: 12 }}>
-            {resolvedCount} of {MAX_BOX_FIELD_SIZE} product{resolvedCount === 1 ? '' : 's'} in the box
+            {resolvedCount} of {MAX_BOX_FIELD_SIZE} seat{resolvedCount === 1 ? '' : 's'} in the box
             {resolvedCount < 2 ? ' · at least 2 needed' : ''}
             {overBy > 0
               ? ` · remove ${overBy} to fit`
               : !canAdd && resolvedCount >= 2
                 ? ' · full round-robin (10 battles)'
                 : ''}
-            {missingUpcCount > 0 ? ' · UPC required per product' : ''}
-            {unconfirmedCount > 0 ? ' · confirm each product' : ''}
+            {missingUpcCount > 0 ? ' · UPC required per catalog product' : ''}
+            {unconfirmedCount > 0 ? ' · confirm each catalog product' : ''}
           </p>
         </>
 
