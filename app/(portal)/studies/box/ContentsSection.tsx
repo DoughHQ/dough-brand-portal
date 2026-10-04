@@ -97,19 +97,37 @@ export default function ContentsSection({
   }
 
   function removeRow(localId: string, productId: number | null) {
-    if (productId != null && productId === draft.focalProductId) return // focal must ship
+    if (productId != null && productId === draft.focalProductId) {
+      // Keep legacy focal pointer in sync when the Yours catalog seat is removed.
+      onChange({
+        ...draftRef.current,
+        focalProductId: null,
+        fieldProducts: draftRef.current.fieldProducts.filter(
+          (r) => r.localId !== localId
+        ),
+      })
+      return
+    }
     onChange({
       ...draftRef.current,
       fieldProducts: draftRef.current.fieldProducts.filter((r) => r.localId !== localId),
     })
   }
 
-  const resolvedCount = rows.filter((r) => r.product_id != null).length
+  const resolvedCount = rows.filter(
+    (r) =>
+      (r.kind === 'prototype' && !!r.prototype_id) ||
+      (r.kind !== 'prototype' && r.product_id != null)
+  ).length
   const missingUpcCount = rows.filter(
-    (r) => r.product_id != null && !r.upc?.trim()
+    (r) => r.kind !== 'prototype' && r.product_id != null && !r.upc?.trim()
   ).length
   const unconfirmedCount = rows.filter(
-    (r) => r.product_id != null && !!r.upc?.trim() && !isIdentityConfirmed(r)
+    (r) =>
+      r.kind !== 'prototype' &&
+      r.product_id != null &&
+      !!r.upc?.trim() &&
+      !isIdentityConfirmed(r)
   ).length
   const canAdd = canAddBoxProduct(draft)
   const overBy = Math.max(0, rows.length - MAX_BOX_FIELD_SIZE)
@@ -122,37 +140,23 @@ export default function ContentsSection({
       done={sectionDone}
     >
       <p style={helpStyle}>
-        Everything that ships, hero included. They battle each other after tasting, so
-        the field should be a real purchase decision — usually the same category.
+        Two to five seats. Mark at least one as Yours. Catalog products keep barcodes and
+        allergen confirms; prototypes use library packaging and server-issued labels.
       </p>
 
-      {draft.focalProductId == null ? (
-        <div
-          className="cb-locked-panel"
-          role="status"
-          style={{
-            border: '1px dashed var(--ink-10)',
-            borderRadius: 'var(--r-md)',
-            padding: 20,
-            color: 'var(--ink-50)',
-            fontSize: 14,
-          }}
-        >
-          Choose a hero product in Setup to start filling the box.
-        </div>
-      ) : (
-        <>
+      <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {rows.map((r) => {
-              const isFocal =
-                r.product_id != null && r.product_id === draft.focalProductId
+              const isYours = r.role === 'yours'
               const differentCategory =
                 r.taxonomy_node_id != null &&
                 draft.taxonomyNodeId != null &&
                 r.taxonomy_node_id !== draft.taxonomyNodeId
               const rowError = rowErrors[r.localId]
               const awaitingConfirm =
-                !isFocal && !!r.upc?.trim() && !isIdentityConfirmed(r)
+                r.kind !== 'prototype' &&
+                !!r.upc?.trim() &&
+                !isIdentityConfirmed(r)
               return (
                 <div
                   key={r.localId}
@@ -163,7 +167,7 @@ export default function ContentsSection({
                     border: `1px solid ${rowError ? 'var(--red)' : 'var(--ink-10)'}`,
                     borderRadius: 'var(--r-md)',
                     padding: 14,
-                    background: isFocal ? 'var(--cream)' : 'var(--white)',
+                    background: isYours ? 'var(--cream)' : 'var(--white)',
                   }}
                 >
                   {r.frozen_image_url ? (
@@ -197,11 +201,68 @@ export default function ContentsSection({
                     />
                   )}
                   <div style={{ minWidth: 0, flex: 1 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 8,
+                        marginBottom: 8,
+                      }}
+                    >
+                      <label style={{ fontSize: 12, color: 'var(--ink-50)' }}>
+                        Kind{' '}
+                        <select
+                          value={r.kind === 'prototype' ? 'prototype' : 'product'}
+                          onChange={(e) => {
+                            const kind =
+                              e.target.value === 'prototype' ? 'prototype' : 'product'
+                            patchRow(r.localId, {
+                              ...r,
+                              kind,
+                              product_id: kind === 'product' ? r.product_id : null,
+                              prototype_id:
+                                kind === 'prototype' ? r.prototype_id : null,
+                              packaging:
+                                kind === 'prototype'
+                                  ? (r.packaging ?? 'final_packaging')
+                                  : 'final_packaging',
+                              upc: kind === 'product' ? r.upc : null,
+                              identityConfirmed:
+                                kind === 'product' ? r.identityConfirmed : false,
+                              allergensConfirmed:
+                                kind === 'product' ? r.allergensConfirmed : false,
+                            })
+                          }}
+                        >
+                          <option value="product">Catalog</option>
+                          <option value="prototype">Prototype</option>
+                        </select>
+                      </label>
+                      <label style={{ fontSize: 12, color: 'var(--ink-50)' }}>
+                        Role{' '}
+                        <select
+                          value={r.role === 'yours' ? 'yours' : 'competitor'}
+                          onChange={(e) => {
+                            const role =
+                              e.target.value === 'yours' ? 'yours' : 'competitor'
+                            patchRow(r.localId, { ...r, role })
+                          }}
+                        >
+                          <option value="yours">Yours</option>
+                          <option value="competitor">Competitor</option>
+                        </select>
+                      </label>
+                    </div>
                     <div style={{ fontWeight: 600, color: 'var(--ink-80)', fontSize: 15 }}>
-                      {r.frozen_display_name || 'Unnamed product'}
+                      {r.frozen_display_name ||
+                        (r.kind === 'prototype' ? 'Ready prototype' : 'Unnamed product')}
                     </div>
                     <div style={{ fontSize: 13, color: 'var(--ink-50)', marginTop: 2 }}>
-                      {r.frozen_brand_name}
+                      {r.kind === 'prototype'
+                        ? r.packaging === 'plain_sample'
+                          ? 'Plain sample'
+                          : 'Final packaging'
+                        : r.frozen_brand_name}
                     </div>
                     {awaitingConfirm && r.upc ? (
                       <ProductIdentityConfirm
@@ -233,7 +294,7 @@ export default function ContentsSection({
                             patchRow(r.localId, {
                               ...r,
                               upc,
-                              identityConfirmed: isFocal,
+                              identityConfirmed: isYours,
                               allergensContains: null,
                               allergensMayContain: null,
                               allergensConfirmed: false,
@@ -268,7 +329,7 @@ export default function ContentsSection({
                       Different category
                     </span>
                   ) : null}
-                  {isFocal ? (
+                  {isYours ? (
                     <span
                       style={{
                         fontSize: 10,
@@ -282,7 +343,7 @@ export default function ContentsSection({
                         flexShrink: 0,
                       }}
                     >
-                      Hero
+                      Yours
                     </span>
                   ) : awaitingConfirm ? null : (
                     <button
@@ -336,7 +397,6 @@ export default function ContentsSection({
             {unconfirmedCount > 0 ? ' · confirm each product' : ''}
           </p>
         </>
-      )}
 
       {error ? (
         <p role="alert" style={{ margin: '12px 0 0', fontSize: 13, color: 'var(--red)' }}>

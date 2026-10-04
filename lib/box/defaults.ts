@@ -60,7 +60,13 @@ export function createEmptyBoxDraft(brandId: number): BoxStudyDraft {
 export function createEmptyBoxFieldRow(): BoxFieldRow {
   return {
     localId: newId(),
+    kind: 'product',
+    role: 'competitor',
     product_id: null,
+    prototype_id: null,
+    packaging: 'final_packaging',
+    price: null,
+    prototypeSnapshot: null,
     frozen_display_name: '',
     frozen_brand_name: '',
     frozen_image_url: null,

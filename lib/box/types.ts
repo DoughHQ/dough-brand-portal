@@ -11,6 +11,7 @@
  */
 
 import type { ProductBarcodeOption } from '@/lib/concept/types'
+import type { PrototypeListItem, PrototypePackaging } from '@/lib/prototypes/types'
 import type { StudyModuleCode } from '@/lib/study/modules'
 
 /** Mirrors the mission_eligibility_tier values the RPC accepts.
@@ -29,6 +30,22 @@ export type BoxProductWire = {
   upc: string
 }
 
+export type BoxSeatKind = 'product' | 'prototype'
+export type BoxSeatRole = 'yours' | 'competitor'
+export type BoxSeatPackaging = PrototypePackaging
+
+export type BoxSeatWire = {
+  kind: BoxSeatKind
+  role: BoxSeatRole
+  product_id?: number
+  prototype_id?: string
+  upc?: string
+  packaging: BoxSeatPackaging
+  price?: number | null
+  allergens_contains?: string[]
+  allergens_may_contain?: string[]
+}
+
 /**
  * One physical product in the box. The frozen_* fields are picker display
  * only — the SERVER freezes name/brand by value at publish from the live
@@ -41,7 +58,16 @@ export type BoxProductWire = {
  */
 export type BoxFieldRow = {
   localId: string
+  /** Missing on v1 local drafts; normalization migrates those rows to product seats. */
+  kind: BoxSeatKind
+  role: BoxSeatRole
   product_id: number | null
+  prototype_id: string | null
+  packaging: BoxSeatPackaging
+  /** Shelf price in dollars. Missing prices disable the study price check. */
+  price: number | null
+  /** Library snapshot used for display/readiness until publish freezes the live row. */
+  prototypeSnapshot: PrototypeListItem | null
   frozen_display_name: string
   frozen_brand_name: string
   frozen_image_url: string | null
@@ -148,40 +174,41 @@ export type BoxStudyDraft = {
   updatedAt: string
 }
 
-/** Wire args for public.publish_study (ihut branch). */
+/** Wire args for public.publish_ihut_study_v2. */
 export type PublishBoxStudyArgs = {
-  p_test_type: 'ihut'
   p_brand_campaign_id: string
   p_brand_id: number
   p_title: string
   p_taxonomy_node_id: number
-  p_field: {
-    box_products: BoxProductWire[]
-    focal_product_id: number
-  }
+  p_seats: BoxSeatWire[]
   p_modules: StudyModuleCode[]
-  p_module_config?: Record<string, unknown>
+  p_module_config: Record<string, unknown>
   p_physical_units: number
-  p_session2_interval_hours?: number
-  p_eligibility?: Record<string, unknown>
-  p_eligibility_tier?: string
-  p_blind_sponsor?: boolean
-  p_abandon_window_days?: number
-  p_unit_cost_cents?: number
-  p_sourcing_notes?: string
-  p_expires_at?: string
-  p_target_completions?: number
-  p_created_by?: string
-  /** Omitted when blank — server falls back to "Which would you buy?" */
-  p_battle_prompt?: string
-  /**
-   * Publish box always sends true. false creates a server draft without
-   * opening the claim window. Save draft never reaches this RPC.
-   */
-  p_open: boolean
+  p_battle_prompt: string
+  p_session2_interval_hours: number | null
+  p_eligibility: Record<string, unknown>
+  p_eligibility_tier: string
+  p_blind_sponsor: boolean
+  p_abandon_window_days: number
+  p_unit_cost_cents: number | null
+  p_sourcing_notes: string
+  p_starts_at: string
+  p_expires_at: string
+  p_target_completions: number | null
+  p_created_by: string
+  p_open: true
 }
 
-/** Parsed success payload from publish_study (ihut).
+export type BoxPrototypeLabel = {
+  combatant_ref: number
+  prototype_id: string
+  code: string
+  display_name: string
+  internal_label: string | null
+  packaging: BoxSeatPackaging
+}
+
+/** Parsed success payload from publish_ihut_study_v2.
  *  campaignId is NOT in the RPC return — Batch 2 fills it from the draft. */
 export type BoxPublishSuccessMeta = {
   missionId: string
@@ -200,4 +227,7 @@ export type BoxPublishSuccessMeta = {
   /** Resolved prompt respondents will see (custom or server default). */
   battle_question: string | null
   battle_question_is_custom: boolean
+  taste_only: boolean
+  price_check_enabled: boolean
+  prototype_labels: BoxPrototypeLabel[]
 }

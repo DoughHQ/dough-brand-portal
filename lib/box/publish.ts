@@ -1,25 +1,23 @@
 /**
- * Draft → wire mapping for publish_study (p_test_type = 'ihut').
+ * Draft → wire mapping for publish_ihut_study_v2.
  *
- * Wire discipline that matters:
- * - p_field.box_products is `{ product_id, upc }[]`. Every row that ships, hero
- *   included, must have a resolved barcode. Incomplete rows are NEVER dropped
- *   on the wire — publish is blocked instead (a silent drop would fail
- *   FOCAL_NOT_IN_FIELD / FIELD_TOO_SMALL). frozen_* and barcodeOptions stay
- *   draft-only.
- * - Unset eligibility keys are OMITTED, not sent as null. The RPC treats a
- *   PRESENT key as "this rule participates" — a present-but-null key would
- *   create an empty mission_eligibility_rules row.
- * - Session count is derived from MODULE_LOYALTY: when that module is in
- *   selectedModules, p_session2_interval_hours must be >= 24.
+ * Seats are a discriminated catalog/prototype union. Prototypes never send
+ * caller UPC or allergen arrays — the server freezes both from the library.
+ * Catalog seats still require confirmed identity + allergens on the wire.
  */
-import type { BoxStudyDraft, PublishBoxStudyArgs } from './types'
+import type {
+  BoxFieldRow,
+  BoxSeatWire,
+  BoxStudyDraft,
+  PublishBoxStudyArgs,
+} from './types'
 import { isIdentityConfirmed } from '@/lib/productEntryMode'
 import {
   hasLoyaltyModule,
   resolveBoxSelectedModules,
 } from '@/lib/study/modules'
 import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
+import { isAllergenConfirmed } from './allergens'
 
 export function boxEligibilityToWire(
   draft: BoxStudyDraft,
@@ -54,66 +52,94 @@ export function boxEligibilityToWire(
   return Object.keys(wire).length > 0 ? wire : null
 }
 
+function seatRole(row: BoxFieldRow): 'yours' | 'competitor' {
+  return row.role === 'yours' ? 'yours' : 'competitor'
+}
+
+export function fieldRowToSeatWire(row: BoxFieldRow): BoxSeatWire {
+  const packaging = row.packaging ?? 'final_packaging'
+  const role = seatRole(row)
+  const price =
+    typeof row.price === 'number' && Number.isFinite(row.price) && row.price > 0
+      ? row.price
+      : null
+
+  if (row.kind === 'prototype') {
+    if (!row.prototype_id) throw new Error('PROTOTYPE_REQUIRED')
+    const seat: BoxSeatWire = {
+      kind: 'prototype',
+      role,
+      prototype_id: row.prototype_id,
+      packaging,
+    }
+    if (price != null) seat.price = price
+    return seat
+  }
+
+  if (row.product_id == null) throw new Error('PRODUCT_REQUIRED')
+  if (!row.upc?.trim() || !isIdentityConfirmed(row)) throw new Error('UPC_REQUIRED')
+  if (!isAllergenConfirmed(row)) throw new Error('ALLERGENS_REQUIRED')
+
+  return {
+    kind: 'product',
+    role,
+    product_id: row.product_id,
+    upc: row.upc.trim(),
+    packaging: packaging === 'plain_sample' ? 'final_packaging' : packaging,
+    price,
+    allergens_contains: row.allergensContains ?? [],
+    allergens_may_contain: row.allergensMayContain ?? [],
+  }
+}
+
 export function draftToBoxPublishArgs(
   draft: BoxStudyDraft,
   ctx: { campaignId: string; createdBy: string; open?: boolean }
 ): PublishBoxStudyArgs {
   if (draft.taxonomyNodeId == null) throw new Error('CATEGORY_REQUIRED')
-  if (draft.focalProductId == null) throw new Error('FOCAL_REQUIRED')
   if (draft.physicalUnits == null) throw new Error('INVALID_UNITS')
-
-  const resolved = draft.fieldProducts.filter(
-    (r): r is typeof r & { product_id: number } => r.product_id != null
-  )
-  if (resolved.some((r) => !r.upc?.trim() || !isIdentityConfirmed(r))) {
-    throw new Error('UPC_REQUIRED')
+  if (draft.fieldProducts.length < 2 || draft.fieldProducts.length > 5) {
+    throw new Error('FIELD_SIZE_INVALID')
   }
-  const upcs = resolved.map((r) => r.upc!.trim())
-  if (new Set(upcs).size !== upcs.length) {
-    throw new Error('DUPLICATE_FIELD_UPC')
+  if (!draft.fieldProducts.some((r) => r.role === 'yours')) {
+    throw new Error('YOURS_SEAT_REQUIRED')
   }
 
+  const seats = draft.fieldProducts.map(fieldRowToSeatWire)
   const modules = resolveBoxSelectedModules(draft)
+  const hasPrototype = seats.some((s) => s.kind === 'prototype')
 
   const args: PublishBoxStudyArgs = {
-    p_test_type: 'ihut',
     p_brand_campaign_id: ctx.campaignId,
     p_brand_id: draft.brandId,
     p_title: draft.title.trim(),
     p_taxonomy_node_id: draft.taxonomyNodeId,
-    p_field: {
-      box_products: resolved.map((r) => ({
-        product_id: r.product_id,
-        upc: r.upc!.trim(),
-      })),
-      focal_product_id: draft.focalProductId,
-    },
+    p_seats: seats,
     p_modules: modules,
+    p_module_config: {},
     p_physical_units: draft.physicalUnits,
-    p_eligibility_tier: STUDY_AUDIENCE_BUILDER_ENABLED
-      ? draft.eligibilityTier
-      : 'any',
+    p_battle_prompt: draft.battleQuestion.trim(),
+    p_session2_interval_hours: hasLoyaltyModule(modules)
+      ? draft.session2IntervalHours
+      : null,
+    p_eligibility: {},
+    p_eligibility_tier:
+      hasPrototype || !STUDY_AUDIENCE_BUILDER_ENABLED
+        ? 'any'
+        : draft.eligibilityTier,
     p_blind_sponsor: draft.blindSponsor,
     p_abandon_window_days: draft.abandonWindowDays,
+    p_unit_cost_cents: draft.unitCostCents,
+    p_sourcing_notes: draft.sourcingNotes.trim(),
+    p_starts_at: new Date().toISOString(),
     p_expires_at: draft.expiresAt,
+    p_target_completions: draft.targetCompletions,
     p_created_by: ctx.createdBy,
-    p_open: ctx.open === true,
-  }
-
-  if (hasLoyaltyModule(modules)) {
-    args.p_session2_interval_hours = draft.session2IntervalHours
+    p_open: true,
   }
 
   const eligibility = boxEligibilityToWire(draft)
   if (eligibility) args.p_eligibility = eligibility
-
-  if (draft.unitCostCents != null) args.p_unit_cost_cents = draft.unitCostCents
-  if (draft.sourcingNotes.trim()) args.p_sourcing_notes = draft.sourcingNotes.trim()
-  if (draft.targetCompletions != null) {
-    args.p_target_completions = draft.targetCompletions
-  }
-  const battlePrompt = draft.battleQuestion.trim()
-  if (battlePrompt) args.p_battle_prompt = battlePrompt
 
   return args
 }

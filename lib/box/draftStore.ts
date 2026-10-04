@@ -5,7 +5,7 @@
  */
 import { MODULE_LOYALTY, resolveBoxSelectedModules } from '@/lib/study/modules'
 import type { BoxStudyDraft } from './types'
-import { createEmptyBoxDraft, createEmptyBoxEligibility } from './defaults'
+import { createEmptyBoxDraft, createEmptyBoxEligibility, createEmptyBoxFieldRow } from './defaults'
 
 const KEY = 'dough.boxDrafts.v1'
 
@@ -48,23 +48,55 @@ export function normalizeStoredBoxDraft(
         ? stored.loyaltyFollowUp
         : stored.sessionCount === 2,
   })
+  const focalId =
+    typeof stored.focalProductId === 'number' ? stored.focalProductId : null
   return {
     ...base,
     ...stored,
     draftId: stored.draftId ?? base.draftId,
-        fieldProducts: Array.isArray(stored.fieldProducts)
-      ? stored.fieldProducts.map((r) => ({
-          ...r,
-          taxonomy_node_id: r.taxonomy_node_id ?? null,
-          l2_node_id: r.l2_node_id ?? null,
-          upc: typeof r.upc === 'string' && r.upc.trim() ? r.upc.trim() : null,
-          barcodeOptions: Array.isArray(r.barcodeOptions) ? r.barcodeOptions : [],
-          frozen_category: r.frozen_category ?? null,
-          identityConfirmed:
-            typeof r.identityConfirmed === 'boolean'
-              ? r.identityConfirmed
-              : typeof r.upc === 'string' && r.upc.trim().length > 0,
-        }))
+    fieldProducts: Array.isArray(stored.fieldProducts)
+      ? stored.fieldProducts.map((r, index) => {
+          const kind =
+            r.kind === 'prototype' || r.kind === 'product'
+              ? r.kind
+              : 'product'
+          const role =
+            r.role === 'yours' || r.role === 'competitor'
+              ? r.role
+              : focalId != null && r.product_id === focalId
+                ? 'yours'
+                : index === 0 && focalId == null
+                  ? 'yours'
+                  : 'competitor'
+          return {
+            ...createEmptyBoxFieldRow(),
+            ...r,
+            kind,
+            role,
+            packaging:
+              r.packaging === 'plain_sample' || r.packaging === 'final_packaging'
+                ? r.packaging
+                : 'final_packaging',
+            price:
+              typeof r.price === 'number' && Number.isFinite(r.price)
+                ? r.price
+                : null,
+            prototype_id:
+              typeof r.prototype_id === 'string' && r.prototype_id
+                ? r.prototype_id
+                : null,
+            prototypeSnapshot: r.prototypeSnapshot ?? null,
+            taxonomy_node_id: r.taxonomy_node_id ?? null,
+            l2_node_id: r.l2_node_id ?? null,
+            upc: typeof r.upc === 'string' && r.upc.trim() ? r.upc.trim() : null,
+            barcodeOptions: Array.isArray(r.barcodeOptions) ? r.barcodeOptions : [],
+            frozen_category: r.frozen_category ?? null,
+            identityConfirmed:
+              typeof r.identityConfirmed === 'boolean'
+                ? r.identityConfirmed
+                : typeof r.upc === 'string' && r.upc.trim().length > 0,
+          }
+        })
       : [],
     eligibility: {
       ...createEmptyBoxEligibility(),

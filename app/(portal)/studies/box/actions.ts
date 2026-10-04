@@ -6,14 +6,16 @@ import { parseCreateCampaignDraftResult } from '@/lib/studies/parseCampaignDraft
 import { draftToBoxPublishArgs } from '@/lib/box/publish'
 import { rpcPublishBoxStudy } from '@/lib/box/rpc'
 import {
-  BOX_PUBLISH_HINT_MESSAGES,
   extractBoxHint,
   resolveBoxPublishError,
   type BoxErrorSection,
 } from '@/lib/box/errors'
 import { BOX_DEFAULT_BATTLE_QUESTION } from '@/lib/box/constants'
-import { isAllergenConfirmed } from '@/lib/box/allergens'
-import type { BoxPublishSuccessMeta, BoxStudyDraft } from '@/lib/box/types'
+import type {
+  BoxPrototypeLabel,
+  BoxPublishSuccessMeta,
+  BoxStudyDraft,
+} from '@/lib/box/types'
 
 export type BoxPublishResult =
   | { ok: true; meta: BoxPublishSuccessMeta }
@@ -130,14 +132,6 @@ export async function publishBoxStudyAction(
       hint: 'CATEGORY_REQUIRED',
     }
   }
-  if (draft.focalProductId == null) {
-    return {
-      ok: false,
-      error: 'Choose the hero product this box is about.',
-      section: 'setup',
-      hint: 'FOCAL_REQUIRED',
-    }
-  }
   if (draft.physicalUnits == null || draft.physicalUnits < 1) {
     return {
       ok: false,
@@ -146,36 +140,20 @@ export async function publishBoxStudyAction(
       hint: 'INVALID_UNITS',
     }
   }
-  if (
-    draft.fieldProducts.some((r) => r.product_id != null && !r.upc?.trim())
-  ) {
+  if (draft.fieldProducts.length < 2 || draft.fieldProducts.length > 5) {
     return {
       ok: false,
-      error: BOX_PUBLISH_HINT_MESSAGES.UPC_REQUIRED,
+      error: 'A box needs 2–5 seats.',
       section: 'field',
-      hint: 'UPC_REQUIRED',
+      hint: 'FIELD_SIZE_INVALID',
     }
   }
-  const allergenReady = draft.fieldProducts.filter(
-    (r) => r.product_id != null && r.upc?.trim()
-  )
-  if (allergenReady.some((r) => !isAllergenConfirmed(r))) {
+  if (!draft.fieldProducts.some((r) => r.role === 'yours')) {
     return {
       ok: false,
-      error: BOX_PUBLISH_HINT_MESSAGES.ALLERGENS_REQUIRED,
+      error: 'Mark at least one seat as Yours.',
       section: 'field',
-      hint: 'ALLERGENS_REQUIRED',
-    }
-  }
-  const upcs = draft.fieldProducts
-    .map((r) => r.upc?.trim())
-    .filter((u): u is string => !!u)
-  if (new Set(upcs).size !== upcs.length) {
-    return {
-      ok: false,
-      error: BOX_PUBLISH_HINT_MESSAGES.DUPLICATE_FIELD_UPC,
-      section: 'field',
-      hint: 'DUPLICATE_FIELD_UPC',
+      hint: 'YOURS_SEAT_REQUIRED',
     }
   }
 
@@ -194,11 +172,10 @@ export async function publishBoxStudyAction(
   const supabase = await createServerSupabaseClient()
 
   try {
-    // Publish closed, confirm allergens on combatants, then open — P0b gate.
     const args = draftToBoxPublishArgs(draft, {
       campaignId,
       createdBy: portalUser.auth_uid,
-      open: false,
+      open: true,
     })
     const { data, error } = await rpcPublishBoxStudy(supabase, args)
 
@@ -232,59 +209,29 @@ export async function publishBoxStudyAction(
       }
     }
 
-    const resolvedRows = draft.fieldProducts.filter(
-      (r): r is typeof r & { product_id: number; upc: string } =>
-        r.product_id != null && !!r.upc?.trim() && isAllergenConfirmed(r)
-    )
-    for (let i = 0; i < resolvedRows.length; i++) {
-      const seat = resolvedRows[i]!
-      const { error: confirmError } = await supabase.rpc(
-        'confirm_mission_combatant_allergens' as never,
-        {
-          p_mission_id: missionId,
-          p_combatant_ref: i + 1,
-          p_contains: seat.allergensContains ?? [],
-          p_may_contain: seat.allergensMayContain ?? [],
-        } as never
-      )
-      if (confirmError) {
-        const resolved = resolveBoxPublishError({
-          thrown: {
-            message: confirmError.message,
-            hint: extractBoxHint(confirmError) ?? undefined,
-          },
+    const boxStatus = strOrNull(root?.box_status) ?? 'open'
+    const labelsRaw = root?.prototype_labels
+    const prototype_labels: BoxPrototypeLabel[] = Array.isArray(labelsRaw)
+      ? labelsRaw.flatMap((row) => {
+          const r = asRecord(row)
+          if (!r) return []
+          const code = strOrNull(r.code)
+          const prototypeId = strOrNull(r.prototype_id)
+          if (!code || !prototypeId) return []
+          const packaging: BoxPrototypeLabel['packaging'] =
+            r.packaging === 'plain_sample' ? 'plain_sample' : 'final_packaging'
+          return [
+            {
+              combatant_ref: numOrNull(r.combatant_ref) ?? 0,
+              prototype_id: prototypeId,
+              code,
+              display_name: strOrNull(r.display_name) ?? 'Sample',
+              internal_label: strOrNull(r.internal_label),
+              packaging,
+            } satisfies BoxPrototypeLabel,
+          ]
         })
-        return asFail(resolved)
-      }
-    }
-
-    const { data: openData, error: openError } = await supabase.rpc(
-      'advance_box_status',
-      {
-        p_box_id: boxId,
-        p_target: 'open',
-        p_reason: 'published live after allergen confirmation',
-      }
-    )
-    if (openError) {
-      const resolved = resolveBoxPublishError({
-        thrown: {
-          message: openError.message,
-          hint: extractBoxHint(openError) ?? undefined,
-        },
-      })
-      return asFail(resolved)
-    }
-    const openRoot = asRecord(openData)
-    const boxStatus = strOrNull(openRoot?.to_status) ?? 'open'
-    if (boxStatus !== 'open') {
-      return {
-        ok: false,
-        error: "Couldn't publish — check the box is complete.",
-        section: 'publish',
-        hint: 'BOX_OPEN_FAILED',
-      }
-    }
+      : []
 
     return {
       ok: true,
@@ -299,7 +246,7 @@ export async function publishBoxStudyAction(
         session2_interval_hours: numOrNull(root?.session2_interval_hours),
         eligibility_applied: root?.eligibility_applied === true,
         box_status: boxStatus,
-        publishedOpen: true,
+        publishedOpen: root?.published_open === true || boxStatus === 'open',
         battle_question:
           strOrNull(root?.battle_question) ??
           (draft.battleQuestion.trim() || BOX_DEFAULT_BATTLE_QUESTION),
@@ -307,6 +254,9 @@ export async function publishBoxStudyAction(
           typeof root?.battle_question_is_custom === 'boolean'
             ? root.battle_question_is_custom
             : draft.battleQuestion.trim().length > 0,
+        taste_only: root?.taste_only === true,
+        price_check_enabled: root?.price_check_enabled === true,
+        prototype_labels,
       },
     }
   } catch (err) {
