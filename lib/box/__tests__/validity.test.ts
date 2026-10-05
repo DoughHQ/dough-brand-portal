@@ -50,6 +50,13 @@ describe('evaluateBoxValidity UPC gate', () => {
   it('is ready when every resolved row has a UPC and the field has at least 2', () => {
     expect(evaluateBoxValidity(boxDraft()).readyToPublish).toBe(true)
     expect(evaluateBoxValidity(boxDraft()).fieldOk).toBe(true)
+    expect(evaluateBoxValidity(boxDraft()).setupOk).toBe(true)
+  })
+
+  it('keeps Setup incomplete until box count is set', () => {
+    const v = evaluateBoxValidity(boxDraft({ physicalUnits: null }))
+    expect(v.setupOk).toBe(false)
+    expect(v.outstanding.map((o) => o.message).join(' ')).toMatch(/how many boxes/i)
   })
 
   it('requires allergen confirmation once identity is locked', () => {

@@ -27,13 +27,15 @@ function row(
 }
 
 describe('box builderSummaries', () => {
-  it('summarizes setup with title and category', () => {
+  it('summarizes setup with title, boxes, and end date', () => {
     const draft = {
       ...createEmptyBoxDraft(1),
       title: 'Gluten-free NYC',
       taxonomyNodeId: 9,
+      physicalUnits: 50,
+      expiresAt: '2030-06-15T12:00:00.000Z',
     }
-    expect(summarizeBoxSetup(draft)).toBe('Gluten-free NYC')
+    expect(summarizeBoxSetup(draft)).toMatch(/^Gluten-free NYC · 50 boxes · Ends /)
   })
 
   it('prompts for a category when the title is set', () => {

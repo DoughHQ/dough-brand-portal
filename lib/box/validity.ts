@@ -86,7 +86,7 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
   const outstanding: BoxOutstandingItem[] = []
   const softOutstanding: BoxOutstandingItem[] = []
 
-  // ---- setup -----------------------------------------------------------
+  // ---- setup (identity + run scale) ------------------------------------
   const titleOk = draft.title.trim().length > 0
   if (!titleOk) {
     outstanding.push({ message: 'Give the box study a name.', anchor: BOX_ANCHORS.name })
@@ -100,7 +100,33 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
     })
   }
 
-  const setupOk = titleOk && categoryOk
+  const unitsOk = isPos(draft.physicalUnits)
+  if (!unitsOk) {
+    outstanding.push({
+      message: 'Set how many boxes will ship.',
+      anchor: BOX_ANCHORS.units,
+    })
+  }
+
+  const expiresMs = Date.parse(draft.expiresAt)
+  const expiryOk = Number.isFinite(expiresMs) && expiresMs > Date.now()
+  if (!expiryOk) {
+    outstanding.push({
+      message: 'Set an end date in the future.',
+      anchor: BOX_ANCHORS.expiry,
+    })
+  }
+
+  const targetOk = draft.targetCompletions == null || draft.targetCompletions >= 1
+  if (!targetOk) {
+    outstanding.push({
+      message: 'Target completions must be a positive number.',
+      anchor: BOX_ANCHORS.units,
+    })
+  }
+
+  const setupScaleOk = unitsOk && expiryOk && targetOk
+  const setupOk = titleOk && categoryOk && setupScaleOk
 
   // ---- field -----------------------------------------------------------
   const seats = draft.fieldProducts
@@ -361,15 +387,8 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
     }
   }
 
-  // ---- logistics -------------------------------------------------------
-  const unitsOk = isPos(draft.physicalUnits)
-  if (!unitsOk) {
-    outstanding.push({
-      message: 'Set how many boxes will ship.',
-      anchor: BOX_ANCHORS.units,
-    })
-  }
-
+  // ---- run constraints that live outside Setup chrome ------------------
+  // Day 2 interval is edited under Questions; still required for publish.
   const sessionsOk =
     !hasLoyaltyModule(resolveBoxSelectedModules(draft)) ||
     draft.session2IntervalHours >= 24
@@ -380,24 +399,7 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
     })
   }
 
-  const expiresMs = Date.parse(draft.expiresAt)
-  const expiryOk = Number.isFinite(expiresMs) && expiresMs > Date.now()
-  if (!expiryOk) {
-    outstanding.push({
-      message: 'Set an end date in the future.',
-      anchor: BOX_ANCHORS.expiry,
-    })
-  }
-
-  const targetOk = draft.targetCompletions == null || draft.targetCompletions >= 1
-  if (!targetOk) {
-    outstanding.push({
-      message: 'Target completions must be a positive number.',
-      anchor: BOX_ANCHORS.logistics,
-    })
-  }
-
-  const logisticsOk = unitsOk && sessionsOk && expiryOk && targetOk
+  const logisticsOk = setupScaleOk && sessionsOk
 
   const e = draft.eligibility
   const hasAnyEligibility =
