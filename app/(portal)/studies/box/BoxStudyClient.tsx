@@ -279,7 +279,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
           },
           {
             id: BOX_ANCHORS.method,
-            label: "What we'll ask",
+            label: 'Questions',
             done: validity.setupOk && validity.fieldOk,
           },
           ...(STUDY_AUDIENCE_BUILDER_ENABLED

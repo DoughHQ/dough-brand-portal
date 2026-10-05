@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   combatantsFromBoxDraft,
+  ihutJourneyLengthLabel,
   normalizeIhutPreviewJourney,
   parseIhutPreviewJourney,
   screensFromIhutJourney,
@@ -71,5 +72,32 @@ describe('IHUT preview walkthrough mapping', () => {
       )
     ).toBe(true)
     expect(walked.screens.length).toBeGreaterThan(8)
+  })
+
+  it('formats Questions chrome length like concept (screens · minutes)', () => {
+    expect(ihutJourneyLengthLabel(null)).toBeNull()
+    expect(
+      ihutJourneyLengthLabel({
+        screens: [],
+        counts: { total_min: 24, total_max: 26 },
+        field_issues: [],
+        estimated_minutes: { min: 18.4, max: 21.2 },
+      })
+    ).toBe('24–26 screens · ~18–21 min')
+    expect(
+      ihutJourneyLengthLabel({
+        screens: [],
+        counts: { total_min: 12, total_max: 12 },
+        field_issues: [],
+        estimated_minutes: { min: 20, max: 20 },
+      })
+    ).toBe('12 screens · ~20 min')
+    expect(
+      ihutJourneyLengthLabel({
+        screens: [],
+        counts: { total_min: 10, total_max: 10 },
+        field_issues: [],
+      })
+    ).toBe('10 screens · ~20 min')
   })
 })

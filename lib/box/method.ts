@@ -70,7 +70,7 @@ export type IhutJourneyStep = {
 export const IHUT_DAY1_JOURNEY: readonly IhutJourneyStep[] = [
   {
     id: 'shelf_battles',
-    title: 'Shelf battles',
+    title: 'Battles',
     prompt: IHUT_SHELF_BATTLE_PROMPT,
     measures: 'Packaging — pack strength',
     note: 'Unopened packs in hand. Every pair at ≤4 products; 6 rotated pairs at 5.',
@@ -245,6 +245,13 @@ export function sanitizeIhutSuccessBars(raw: unknown): IhutSuccessBarsDraft {
 export function attributeLabels(codes: readonly IhutAttributeCode[]): string {
   const map = new Map(IHUT_GENERIC_ATTRIBUTES.map((a) => [a.value, a.label]))
   return codes.map((c) => map.get(c) ?? c).join(' · ')
+}
+
+/** Pairwise matchups the engines run for a given seat count. */
+export function ihutBattlePairCount(seatCount: number): number {
+  if (seatCount < 2) return 0
+  if (seatCount <= 4) return (seatCount * (seatCount - 1)) / 2
+  return 6
 }
 
 export function successBarsWire(bars: IhutSuccessBarsDraft): Record<string, number> {

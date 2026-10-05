@@ -9,6 +9,7 @@ import {
   attributeLabels,
   brandQuestionsWire,
   emptyIhutBrandQuestion,
+  ihutBattlePairCount,
   sanitizeIhutAttributes,
   sanitizeIhutSuccessBars,
   successBarsWire,
@@ -19,6 +20,23 @@ describe('IHUT method pack (portal mirror)', () => {
     expect(IHUT_SHELF_BATTLE_PROMPT).toBe('Which would you pick up?')
     expect(IHUT_TASTE_BATTLE_PROMPT).toBe('Which did you enjoy more?')
     expect(IHUT_BUY_ORDER_PROMPT).toBe("Put them in the order you'd buy them")
+  })
+
+  it('names the shelf track Battles (not Shelf battles) for concept chrome parity', () => {
+    expect(IHUT_DAY1_JOURNEY.find((s) => s.id === 'shelf_battles')?.title).toBe(
+      'Battles'
+    )
+    expect(IHUT_DAY1_JOURNEY.find((s) => s.id === 'taste_battles')?.title).toBe(
+      'Taste battles'
+    )
+  })
+
+  it('counts pairwise matchups like the engines', () => {
+    expect(ihutBattlePairCount(1)).toBe(0)
+    expect(ihutBattlePairCount(2)).toBe(1)
+    expect(ihutBattlePairCount(3)).toBe(3)
+    expect(ihutBattlePairCount(4)).toBe(6)
+    expect(ihutBattlePairCount(5)).toBe(6)
   })
 
   it('exposes Day 1 + Day 2 journey rows with exactly three brand-editable seats', () => {
