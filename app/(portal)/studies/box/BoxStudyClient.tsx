@@ -66,7 +66,6 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
   )
   const ready = validity.readyToPublish && validity.softOutstanding.length === 0
   const readyFacts = useMemo(() => summarizeBoxDockReady(draft), [draft])
-
   const rootRef = useRef<HTMLDivElement>(null)
   const stickyRef = useRef<HTMLDivElement>(null)
 
@@ -404,8 +403,9 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
               Publish with an open audience?
             </h2>
             <p style={{ margin: '0 0 24px', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}>
-              No audience requirements are set — any user can claim a box, first come,
-              first served, up to the unit count. Publishing opens the study immediately.
+              No audience requirements are set — any eligible user can claim a box,
+              first come, first served. Recruitment stops at the completion target;
+              respondents already shipped a box can still finish.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
               <button
@@ -563,6 +563,27 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
                   Products in box
                 </dt>
                 <dd style={{ margin: 0 }}>{publishMeta.field_size ?? '—'}</dd>
+              </div>
+              <div>
+                <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
+                  Completed field
+                </dt>
+                <dd style={{ margin: 0 }}>
+                  {publishMeta.target_completions != null
+                    ? `${publishMeta.target_completions} respondents`
+                    : '—'}
+                </dd>
+              </div>
+              <div>
+                <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
+                  Boxes to prepare
+                </dt>
+                <dd style={{ margin: 0 }}>
+                  {publishMeta.physical_units != null &&
+                  publishMeta.completion_overage_units != null
+                    ? `${publishMeta.physical_units} · ${publishMeta.completion_overage_units} overage`
+                    : '—'}
+                </dd>
               </div>
               <div>
                 <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>

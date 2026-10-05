@@ -210,8 +210,8 @@ export type ConceptStudyDraft = {
   targetCompletions: number
   /**
    * Days the study runs after payment, or null for no end date.
-   * Concept self-serve currently forces null (runs until the target is full);
-   * FieldingLengthField stays in the tree for when end dates return.
+   * Concept self-serve forces null and runs until the target is full.
+   * Retained only for wire compatibility with older stored drafts.
    */
   fieldingDays: number | null
   /** Legacy ISO timestamp. Ignored. The length is fieldingDays. */

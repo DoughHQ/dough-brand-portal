@@ -140,7 +140,7 @@ export type BoxStudyDraft = {
   focalProductId: number | null
   /** Everything that ships in the box, focal included. Min 2 resolved rows. */
   fieldProducts: BoxFieldRow[]
-  /** How many boxes exist = the claim seat count. null until entered. */
+  /** Derived claim capacity: target completions + Dough's frozen overage policy. */
   physicalUnits: number | null
   /**
    * Extra pickable modules. Purchase drivers and field ranking are retired from
@@ -160,13 +160,13 @@ export type BoxStudyDraft = {
   eligibility: BoxEligibilityDraft
   /** Hide the sponsoring brand from respondents (research-heavy posture). */
   blindSponsor: boolean
-  /** Days after delivery (or after session-2 unlock) before a no-show is
-   *  sweepable as abandoned. Server default 14. */
+  /** Internal Dough policy, not brand input. Defaults to 14; server floor is 7. */
   abandonWindowDays: number
   unitCostCents: number | null
   sourcingNotes: string
-  /** ISO timestamp. Mission + claim window end. */
+  /** Hidden operational backstop. Respondent deadlines are delivery-relative. */
   expiresAt: string
+  /** The result the brand buys. Required before publish. */
   targetCompletions: number | null
   /**
    * @deprecated Battle prompts are locked on the Dough method. Kept for draft
@@ -227,6 +227,9 @@ export type BoxPublishSuccessMeta = {
   unique_pairs: number | null
   session_count: number | null
   session2_interval_hours: number | null
+  target_completions: number | null
+  physical_units: number | null
+  completion_overage_units: number | null
   eligibility_applied: boolean
   /** Real sampling_boxes.status — 'open' after a successful Publish box. */
   box_status: string | null

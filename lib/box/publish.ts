@@ -29,6 +29,11 @@ import {
   successBarsWire,
 } from './method'
 import { isResolvedBoxSeat } from './fieldSize'
+import {
+  IHUT_RESPONDENT_WINDOW_DAYS,
+  ihutHiddenBackstopAt,
+  ihutInventoryPlan,
+} from './completionContract'
 
 export function boxEligibilityToWire(
   draft: BoxStudyDraft,
@@ -109,7 +114,8 @@ export function draftToBoxPublishArgs(
   ctx: { campaignId: string; createdBy: string; open?: boolean }
 ): PublishBoxStudyArgs {
   if (draft.taxonomyNodeId == null) throw new Error('CATEGORY_REQUIRED')
-  if (draft.physicalUnits == null) throw new Error('INVALID_UNITS')
+  const inventory = ihutInventoryPlan(draft.targetCompletions)
+  if (!inventory) throw new Error('TARGET_COMPLETIONS_REQUIRED')
   if (draft.fieldProducts.length < 2 || draft.fieldProducts.length > 5) {
     throw new Error('FIELD_SIZE_INVALID')
   }
@@ -162,7 +168,7 @@ export function draftToBoxPublishArgs(
       include_day2: includeDay2,
       method_pack: 'IHUT_CORE_V1',
     },
-    p_physical_units: draft.physicalUnits,
+    p_physical_units: inventory.physicalUnits,
     // Locked prompts — never send a brand-authored battle string.
     p_battle_prompt: '',
     p_session2_interval_hours: includeDay2
@@ -174,12 +180,12 @@ export function draftToBoxPublishArgs(
         ? 'any'
         : draft.eligibilityTier,
     p_blind_sponsor: draft.blindSponsor,
-    p_abandon_window_days: draft.abandonWindowDays,
+    p_abandon_window_days: IHUT_RESPONDENT_WINDOW_DAYS,
     p_unit_cost_cents: draft.unitCostCents,
     p_sourcing_notes: draft.sourcingNotes.trim(),
     p_starts_at: new Date().toISOString(),
-    p_expires_at: draft.expiresAt,
-    p_target_completions: draft.targetCompletions,
+    p_expires_at: ihutHiddenBackstopAt(),
+    p_target_completions: inventory.targetCompletions,
     p_created_by: ctx.createdBy,
     p_open: true,
   }

@@ -42,7 +42,8 @@ function boxDraft(overrides: Partial<BoxStudyDraft> = {}): BoxStudyDraft {
       fieldRow(30012404, '028400017688', { role: 'yours' }),
       fieldRow(30012405, '028400017695'),
     ],
-    physicalUnits: 50,
+    targetCompletions: 50,
+    physicalUnits: 55,
     ...overrides,
   }
 }
@@ -52,6 +53,9 @@ const ctx = { campaignId: 'camp-1', createdBy: 'user-1' }
 describe('draftToBoxPublishArgs seats wire', () => {
   it('sends discriminated catalog seats under p_seats for publish_ihut_study_v2', () => {
     const args = draftToBoxPublishArgs(boxDraft(), ctx)
+    expect(args.p_target_completions).toBe(50)
+    expect(args.p_physical_units).toBe(55)
+    expect(args.p_abandon_window_days).toBe(14)
     expect(args.p_seats).toEqual([
       {
         kind: 'product',
@@ -84,6 +88,15 @@ describe('draftToBoxPublishArgs seats wire', () => {
       ],
     })
     expect(() => draftToBoxPublishArgs(draft, ctx)).toThrow('UPC_REQUIRED')
+  })
+
+  it('requires completed respondents instead of caller-authored inventory', () => {
+    expect(() =>
+      draftToBoxPublishArgs(
+        boxDraft({ targetCompletions: null, physicalUnits: 500 }),
+        ctx
+      )
+    ).toThrow('TARGET_COMPLETIONS_REQUIRED')
   })
 
   it('throws UPC_REQUIRED when a product has a UPC that is not yet confirmed', () => {

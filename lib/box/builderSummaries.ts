@@ -2,6 +2,7 @@ import { uniquePairs } from '@/lib/concept/publish'
 import { isResolvedBoxSeat } from './fieldSize'
 import type { BoxStudyDraft } from './types'
 import { MODULE_LOYALTY } from '@/lib/study/modules'
+import { ihutInventoryPlan } from './completionContract'
 
 function plural(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`
@@ -19,7 +20,7 @@ function yoursLabel(draft: BoxStudyDraft): string | null {
   return name || null
 }
 
-/** Setup card — identity + run scale (boxes, grace, close). */
+/** Setup card — identity + the completion result the brand buys. */
 export function summarizeBoxSetup(draft: BoxStudyDraft): string {
   const title = draft.title.trim() || null
   const hasCategory = draft.taxonomyNodeId != null
@@ -28,19 +29,12 @@ export function summarizeBoxSetup(draft: BoxStudyDraft): string {
   if (!title) return 'Name the study'
   if (!hasCategory) return `${title} · Choose a category`
 
-  const units =
-    draft.physicalUnits != null && draft.physicalUnits > 0
-      ? plural(draft.physicalUnits, 'box', 'boxes')
-      : null
-  const expiresMs = Date.parse(draft.expiresAt)
-  const end = Number.isFinite(expiresMs)
-    ? `Ends ${new Date(expiresMs).toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-      })}`
-    : null
+  const inventory = ihutInventoryPlan(draft.targetCompletions)
+  const run = inventory
+    ? `${plural(inventory.targetCompletions, 'completion', 'completions')} · Prepare ${inventory.physicalUnits} boxes`
+    : 'Set completed respondents'
 
-  const parts = [title, units, end].filter(Boolean)
+  const parts = [title, run].filter(Boolean)
   return parts.join(' · ')
 }
 
@@ -109,31 +103,24 @@ export function summarizeBoxAudience(draft: BoxStudyDraft): string {
   return parts.slice(0, 3).join(' · ')
 }
 
-/** @deprecated Prefer summarizeBoxSetup — logistics lives in Setup. */
+/** @deprecated Prefer summarizeBoxSetup — logistics is Dough-managed. */
 export function summarizeBoxLogistics(draft: BoxStudyDraft): string {
-  const units =
-    draft.physicalUnits != null && draft.physicalUnits > 0
-      ? plural(draft.physicalUnits, 'box', 'boxes')
-      : 'Set box count'
-  const abandon = `${draft.abandonWindowDays}d abandon`
-  const expiresMs = Date.parse(draft.expiresAt)
-  const end = Number.isFinite(expiresMs)
-    ? `Ends ${new Date(expiresMs).toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-      })}`
-    : 'Set end date'
-  return [units, abandon, end].join(' · ')
+  const inventory = ihutInventoryPlan(draft.targetCompletions)
+  if (!inventory) return 'Set completed respondents'
+  return `${plural(inventory.targetCompletions, 'completion', 'completions')} · ${plural(inventory.physicalUnits, 'box', 'boxes')} prepared · Runs until full`
 }
 
 /** Sticky dock when the box can publish. */
 export function summarizeBoxDockReady(draft: BoxStudyDraft): string {
   const n = resolvedSeats(draft).length
   const battles = uniquePairs(n)
-  const units = draft.physicalUnits ?? 0
+  const inventory = ihutInventoryPlan(draft.targetCompletions)
   return [
     `${n} in box`,
     plural(battles, 'matchup', 'matchups'),
-    plural(Math.max(0, units), 'box', 'boxes'),
-  ].join(' · ')
+    inventory
+      ? plural(inventory.targetCompletions, 'completion', 'completions')
+      : 'Set completions',
+    inventory ? `Prepare ${inventory.physicalUnits} boxes` : null,
+  ].filter(Boolean).join(' · ')
 }
