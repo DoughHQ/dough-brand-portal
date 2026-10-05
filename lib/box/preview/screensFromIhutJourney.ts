@@ -140,6 +140,36 @@ export function screensFromIhutJourney(args: {
   })
 }
 
+/**
+ * Chrome summary for Questions — mirrors concept's screens · minutes line.
+ * Prefers RPC estimated_minutes; falls back to the ~20 min tasting-inclusive brief.
+ */
+export function ihutJourneyLengthLabel(
+  journey: IhutPreviewJourney | null
+): string | null {
+  if (!journey) return null
+  const totalMin = Number(journey.counts.total_min) || 0
+  const totalMax = Number(journey.counts.total_max) || totalMin
+  if (totalMin < 1) return null
+  const screens =
+    totalMin === totalMax
+      ? `${totalMin} ${totalMin === 1 ? 'screen' : 'screens'}`
+      : `${totalMin}–${totalMax} screens`
+  const em = journey.estimated_minutes
+  if (
+    em &&
+    Number.isFinite(em.min) &&
+    Number.isFinite(em.max) &&
+    em.min > 0
+  ) {
+    const lo = Math.max(1, Math.round(em.min))
+    const hi = Math.max(lo, Math.round(em.max))
+    if (lo === hi) return `${screens} · ~${lo} min`
+    return `${screens} · ~${lo}–${hi} min`
+  }
+  return `${screens} · ~20 min`
+}
+
 export function parseIhutPreviewJourney(raw: unknown): IhutPreviewJourney | null {
   if (!raw || typeof raw !== 'object') return null
   const o = raw as Record<string, unknown>

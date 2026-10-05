@@ -2,7 +2,7 @@
 
 /**
  * @deprecated Free battle prompt UI retired for IHUT_CORE_V1.
- * Box builder mounts MethodSection ("What we'll ask") with locked dual-track prompts.
+ * Box builder mounts MethodSection ("Questions") with locked dual-track prompts.
  * Do not remount this component.
  */
 

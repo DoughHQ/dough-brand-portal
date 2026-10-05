@@ -58,7 +58,7 @@ describe('box builderSummaries', () => {
 
   it('summarizes the locked Dough method', () => {
     const empty = createEmptyBoxDraft(1)
-    expect(summarizeBoxBattle(empty)).toContain('Shelf + taste')
+    expect(summarizeBoxBattle(empty)).toContain('Battles + taste')
     expect(summarizeBoxBattle(empty)).toContain('No brand Qs')
     expect(
       summarizeBoxBattle({

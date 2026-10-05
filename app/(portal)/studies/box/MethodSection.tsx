@@ -1,6 +1,12 @@
 'use client'
 
-import { useMemo, useState, type CSSProperties } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from 'react'
 import type { BoxStudyDraft } from '@/lib/box/types'
 import {
   IHUT_BRAND_QUESTION_STARTERS,
@@ -11,6 +17,7 @@ import {
   attributeLabels,
   boxFieldAnswerSeats,
   emptyIhutBrandQuestion,
+  ihutBattlePairCount,
   type IhutAttributeCode,
   type IhutBrandQuestionDraft,
   type IhutSuccessBarsDraft,
@@ -20,7 +27,11 @@ import {
   brandQuestionTypeLabel,
   syncBrandQuestionFieldOptions,
 } from '@/lib/concept/singleTest'
-import { summarizeBoxMethod } from '@/lib/box/builderSummaries'
+import {
+  ihutJourneyLengthLabel,
+  type IhutPreviewJourney,
+} from '@/lib/box/preview/screensFromIhutJourney'
+import { previewIhutJourneyAction } from '@/app/(portal)/studies/box/actions'
 import { BOX_ANCHORS } from '@/lib/box/validity'
 import { isResolvedBoxSeat } from '@/lib/box/fieldSize'
 import { MODULE_LOYALTY, hasLoyaltyModule, resolveBoxSelectedModules } from '@/lib/study/modules'
@@ -36,23 +47,36 @@ function pct(n: number): string {
   return `${Math.round(n * 100)}%`
 }
 
+function isBattleStep(id: string): boolean {
+  return id === 'shelf_battles' || id === 'taste_battles'
+}
+
 export default function MethodSection({
   draft,
   onChange,
   sectionDone = false,
 }: Props) {
-  const [openId, setOpenId] = useState<string | null>('try_each')
-  const [day2OpenId, setDay2OpenId] = useState<string | null>(null)
-  const seatCount = draft.fieldProducts.filter(isResolvedBoxSeat).length
   const tasteOnly = draft.fieldProducts.some(
     (r) => isResolvedBoxSeat(r) && r.packaging === 'plain_sample'
   )
+  const [openId, setOpenId] = useState<string | null>(() =>
+    tasteOnly ? 'taste_battles' : 'shelf_battles'
+  )
+  const [day2OpenId, setDay2OpenId] = useState<string | null>(null)
+  const [journey, setJourney] = useState<IhutPreviewJourney | null>(null)
+  const [journeyError, setJourneyError] = useState<string | null>(null)
+
+  const seatCount = draft.fieldProducts.filter(isResolvedBoxSeat).length
   const day2On = draft.day2LiveWithIt ?? hasLoyaltyModule(resolveBoxSelectedModules(draft))
 
   const attrs = draft.ihutAttributes?.length
     ? draft.ihutAttributes
     : IHUT_DEFAULT_ATTRIBUTES
-  const bars = draft.ihutSuccessBars
+  const bars = draft.ihutSuccessBars ?? {
+    tasteWinShare: 0.5,
+    likingShare: 0.5,
+    buyAtPriceShare: 0.5,
+  }
   const brandQs = draft.ihutBrandQuestions ?? []
   const fieldSeats = useMemo(
     () => boxFieldAnswerSeats(draft.fieldProducts),
@@ -62,6 +86,7 @@ export default function MethodSection({
     () => fieldSeats.map((s) => s.label),
     [fieldSeats]
   )
+  const battlePairs = ihutBattlePairCount(seatCount)
 
   const day1Steps = useMemo(() => {
     if (!tasteOnly) return IHUT_DAY1_JOURNEY
@@ -70,8 +95,54 @@ export default function MethodSection({
     )
   }, [tasteOnly])
 
+  const loadJourney = useCallback(async () => {
+    if (seatCount < 2) {
+      setJourney(null)
+      setJourneyError(null)
+      return
+    }
+    const result = await previewIhutJourneyAction(draft)
+    if (result.preview) {
+      setJourney(result.preview)
+      setJourneyError(result.ok ? null : result.error)
+      return
+    }
+    setJourney(null)
+    setJourneyError(result.ok ? null : result.error)
+  }, [draft, seatCount])
+
+  useEffect(() => {
+    void loadJourney()
+  }, [
+    seatCount,
+    draft.ihutAttributes,
+    draft.ihutBrandQuestions,
+    draft.ihutSuccessBars,
+    draft.day2LiveWithIt,
+    draft.fieldProducts,
+    loadJourney,
+  ])
+
+  // Keep Choose-from-field brand questions aligned with live seats.
+  useEffect(() => {
+    let changed = false
+    const next = brandQs.map((question) => {
+      const synced = syncBrandQuestionFieldOptions(question, fieldOptions)
+      if (synced !== question) changed = true
+      return synced
+    })
+    if (changed) patchBrandQs(next)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when field seats change
+  }, [fieldOptions])
+
+  const lengthLabel = ihutJourneyLengthLabel(journey)
+
   function patch(partial: Partial<BoxStudyDraft>) {
     onChange({ ...draft, ...partial })
+  }
+
+  function patchBrandQs(next: IhutBrandQuestionDraft[]) {
+    patch({ ihutBrandQuestions: next.slice(0, 2) })
   }
 
   function toggleAttr(code: IhutAttributeCode) {
@@ -88,18 +159,31 @@ export default function MethodSection({
   }
 
   function setBrandQs(next: IhutBrandQuestionDraft[]) {
-    patch({ ihutBrandQuestions: next.slice(0, 2) })
+    patchBrandQs(next)
   }
 
   function setBars(next: IhutSuccessBarsDraft) {
     patch({ ihutSuccessBars: next })
   }
 
+  function countLabelFor(stepId: string, editable?: string): string {
+    if (editable) return 'Edit'
+    if (isBattleStep(stepId) && battlePairs > 0) {
+      const fromJourney =
+        stepId === 'shelf_battles'
+          ? Number(journey?.counts && (journey.counts as { shelf_battles?: number }).shelf_battles)
+          : Number(journey?.counts && (journey.counts as { taste_battles?: number }).taste_battles)
+      const n = Number.isFinite(fromJourney) && fromJourney > 0 ? fromJourney : battlePairs
+      return `${n} matchup${n === 1 ? '' : 's'}`
+    }
+    return 'Locked'
+  }
+
   return (
     <BuilderSectionChrome
       id={BOX_ANCHORS.method}
-      title="What we'll ask"
-      summary={summarizeBoxMethod(draft)}
+      title="Questions"
+      summary={lengthLabel ?? ''}
       done={sectionDone}
     >
       <p style={helpStyle}>
@@ -109,10 +193,20 @@ export default function MethodSection({
         questions, and success bars.
       </p>
 
+      {!lengthLabel ? (
+        <p className="cb-questions-length">
+          {seatCount < 2
+            ? 'Add at least 2 products to see length'
+            : journeyError
+              ? 'Length unavailable'
+              : 'Building length…'}
+        </p>
+      ) : null}
+
       {tasteOnly ? (
         <p style={warnStyle} role="status">
           This box will run taste-only — at least one seat is a plain sample, so
-          shelf battles, expectation, and ease of opening are skipped.
+          Battles, expectation, and ease of opening are skipped.
         </p>
       ) : null}
 
@@ -130,13 +224,11 @@ export default function MethodSection({
           if (step.id === 'success_bars') {
             line = `Taste ${pct(bars.tasteWinShare)} · Liking ${pct(bars.likingShare)} · Buy ${pct(bars.buyAtPriceShare)}`
           }
-          if (step.id === 'shelf_battles' && seatCount >= 2) {
-            const pairs =
-              seatCount <= 4
-                ? (seatCount * (seatCount - 1)) / 2
-                : 6
-            line = `${step.prompt} · ${pairs} matchup${pairs === 1 ? '' : 's'}`
+          if (isBattleStep(step.id) && seatCount >= 2) {
+            line = `${step.prompt} · ${battlePairs} matchup${battlePairs === 1 ? '' : 's'}`
           }
+
+          const showFieldAsOptions = isBattleStep(step.id)
 
           return (
             <section
@@ -157,7 +249,7 @@ export default function MethodSection({
                     {!open ? <span className="cb-acc-summary">{line}</span> : null}
                   </span>
                   <span className="cb-acc-count">
-                    {step.editable ? 'Edit' : 'Locked'}
+                    {countLabelFor(step.id, step.editable)}
                   </span>
                   <span className="cb-acc-chevron" aria-hidden="true" />
                 </button>
@@ -168,7 +260,19 @@ export default function MethodSection({
                   {step.prompt ? (
                     <div className="cb-acc-asked">
                       <p className="cb-acc-question">{step.prompt}</p>
-                      {step.options?.length ? (
+                      {showFieldAsOptions ? (
+                        fieldOptions.length >= 2 ? (
+                          <ol className="cb-acc-options">
+                            {fieldOptions.map((o) => (
+                              <li key={o}>{o}</li>
+                            ))}
+                          </ol>
+                        ) : (
+                          <p className="cb-acc-note">
+                            Add products to the field to see who battles.
+                          </p>
+                        )
+                      ) : step.options?.length ? (
                         <ol className="cb-acc-options">
                           {step.options.map((o) => (
                             <li key={o}>{o}</li>
@@ -339,7 +443,9 @@ export default function MethodSection({
                             ) : null}
                           </div>
                         ) : null}
-                        {step.note ? <p className="cb-acc-note">{step.note}</p> : null}
+                        {step.note ? (
+                          <p className="cb-acc-note">{step.note}</p>
+                        ) : null}
                       </div>
                     ) : null}
                   </section>
@@ -362,9 +468,8 @@ function AttributeEditor({
 }) {
   return (
     <div style={{ marginTop: 12 }}>
-      <p style={{ ...subHelp, marginBottom: 10 }}>
-        Pick up to 3. Defaults are Dough&rsquo;s generic set until the category
-        library lands.
+      <p className="cb-acc-note" style={{ marginBottom: 10 }}>
+        Pick 1–3 just-right checks. Dough defaults are preselected.
       </p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {IHUT_GENERIC_ATTRIBUTES.map((a) => {
@@ -373,16 +478,16 @@ function AttributeEditor({
             <button
               key={a.value}
               type="button"
-              onClick={() => onToggle(a.value)}
               aria-pressed={on}
+              onClick={() => onToggle(a.value)}
               style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 13,
                 padding: '8px 12px',
-                borderRadius: 'var(--r-md)',
-                border: on ? '1px solid var(--sage)' : '1px solid var(--ink-10)',
+                borderRadius: 'var(--r-sm)',
+                border: `1px solid ${on ? 'var(--sage)' : 'var(--ink-10)'}`,
                 background: on ? 'var(--sage-soft)' : 'var(--white)',
-                color: on ? 'var(--sage-dark)' : 'var(--ink-70)',
+                fontSize: 13,
+                fontWeight: on ? 600 : 500,
+                color: on ? 'var(--sage-dark)' : 'var(--ink-80)',
                 cursor: 'pointer',
               }}
             >
@@ -390,14 +495,6 @@ function AttributeEditor({
             </button>
           )
         })}
-      </div>
-      <div className="cb-acc-asked" style={{ marginTop: 14 }}>
-        <p className="cb-acc-question">Is the … just right?</p>
-        <ol className="cb-acc-options">
-          <li>Too little</li>
-          <li>Just right</li>
-          <li>Too much</li>
-        </ol>
       </div>
     </div>
   )
@@ -421,25 +518,23 @@ function IhutBrandQuestionsEditor({
   }
 
   return (
-    <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {questions.map((q, qi) => (
+    <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {questions.map((q, i) => (
         <BrandQuestionEditor
           key={q.localId}
           question={q}
           fieldSeats={fieldSeats}
           fieldOptions={fieldOptions}
-          onChange={(next) => patchAt(qi, next)}
-          onRemove={() => onChange(questions.filter((_, i) => i !== qi))}
           starters={IHUT_BRAND_QUESTION_STARTERS}
           promptPlaceholder="Ask a closed question about the products in the box"
-          fieldEmptyMessage="Add products to the field first."
-          lede="Same as concept — pick one or pick several, asked last so they can’t color the core."
+          onChange={(next) => patchAt(i, next)}
+          onRemove={() => onChange(questions.filter((_, j) => j !== i))}
         />
       ))}
       {questions.length < 2 ? (
         <button
           type="button"
-          className="cb-text-btn"
+          className="cb-quiet-action cb-add-question"
           onClick={() => onChange([...questions, emptyIhutBrandQuestion()])}
         >
           Add a question
@@ -468,35 +563,38 @@ function SuccessBarsEditor({
     },
     {
       key: 'likingShare',
-      label: 'Liking share',
+      label: 'Top-box liking',
       help: 'Share who rate your product in the top liking boxes',
     },
     {
       key: 'buyAtPriceShare',
-      label: 'Buy at your price',
-      help: 'Share who’d buy your product at its shelf price',
+      label: 'Buy at shelf price',
+      help: 'Share who’d buy your product at the listed price',
     },
   ]
 
   return (
     <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
       {rows.map((row) => (
-        <label key={row.key} style={{ margin: 0 }}>
-          <div style={labelSm}>
+        <label key={row.key} style={{ display: 'block', margin: 0 }}>
+          <span style={{ ...labelSm, display: 'block' }}>
             {row.label} · {pct(bars[row.key])}
-          </div>
+          </span>
           <input
             type="range"
             min={10}
             max={95}
-            step={5}
+            step={1}
             value={Math.round(bars[row.key] * 100)}
             onChange={(e) =>
-              onChange({ ...bars, [row.key]: Number(e.target.value) / 100 })
+              onChange({
+                ...bars,
+                [row.key]: Number(e.target.value) / 100,
+              })
             }
             style={{ width: '100%', maxWidth: 360, accentColor: 'var(--sage)' }}
           />
-          <p style={{ ...subHelp, marginTop: 4 }}>{row.help}</p>
+          <span style={{ ...subHelp, display: 'block', marginTop: 2 }}>{row.help}</span>
         </label>
       ))}
     </div>
@@ -504,40 +602,43 @@ function SuccessBarsEditor({
 }
 
 const helpStyle: CSSProperties = {
+  margin: '0 0 12px',
   fontFamily: 'var(--font-sans)',
   fontSize: 14,
-  color: 'var(--ink-60)',
   lineHeight: 1.45,
-  margin: '0 0 12px',
+  color: 'var(--ink-50)',
   maxWidth: 640,
 }
 
 const warnStyle: CSSProperties = {
-  ...helpStyle,
-  color: 'var(--amber-warning)',
-  background: 'color-mix(in srgb, var(--amber-warning) 10%, transparent)',
+  margin: '0 0 12px',
   padding: '10px 12px',
-  borderRadius: 'var(--r-md)',
+  borderRadius: 'var(--r-sm)',
+  background: 'var(--amber-soft, #fbf3e3)',
+  border: '1px solid rgba(180, 120, 40, 0.25)',
+  fontFamily: 'var(--font-sans)',
+  fontSize: 13,
+  lineHeight: 1.4,
+  color: 'var(--ink-80)',
+  maxWidth: 640,
 }
 
 const labelSm: CSSProperties = {
   fontFamily: 'var(--font-sans)',
   fontSize: 12,
   fontWeight: 600,
-  color: 'var(--ink-60)',
-  letterSpacing: '0.02em',
-  textTransform: 'uppercase',
+  color: 'var(--ink-50)',
+  marginBottom: 6,
 }
 
 const subHelp: CSSProperties = {
   fontFamily: 'var(--font-sans)',
-  fontSize: 13,
+  fontSize: 12,
   color: 'var(--ink-50)',
   lineHeight: 1.4,
-  margin: 0,
 }
 
 const inputBase: CSSProperties = {
-  width: '100%',
-  maxWidth: 560,
+  fontFamily: 'var(--font-sans)',
+  fontSize: 14,
 }

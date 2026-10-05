@@ -48,7 +48,7 @@ export function summarizeBoxContents(draft: BoxStudyDraft): string {
   ].join(' · ')
 }
 
-/** Battle / method card — locked Dough journey + Day 2. */
+/** Method card fallback — Questions chrome prefers live journey length. */
 export function summarizeBoxMethod(draft: BoxStudyDraft): string {
   const attrs = draft.ihutAttributes?.length ?? 0
   const bq = draft.ihutBrandQuestions?.length ?? 0
@@ -56,7 +56,7 @@ export function summarizeBoxMethod(draft: BoxStudyDraft): string {
     draft.day2LiveWithIt === true ||
     draft.selectedModules?.includes(MODULE_LOYALTY)
   const parts = [
-    'Shelf + taste',
+    'Battles + taste',
     attrs > 0 ? `${attrs} attribute${attrs === 1 ? '' : 's'}` : null,
     bq > 0 ? `${bq} brand Q${bq === 1 ? '' : 's'}` : 'No brand Qs',
     day2 ? 'Day 2 on' : null,
