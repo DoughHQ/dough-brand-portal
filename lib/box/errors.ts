@@ -70,11 +70,15 @@ export const BOX_PUBLISH_HINT_MESSAGES: Record<string, string> = {
 
   // Logistics
   INVALID_UNITS: 'Set how many boxes will ship (at least 1).',
+  TARGET_COMPLETIONS_REQUIRED:
+    'Set the completed respondents this study needs.',
   SESSION_COUNT_INVALID: 'Sessions must be 1 or 2.',
   SESSION_INTERVAL_INVALID:
     'Loyalty follow-up needs at least 24 hours between sessions; without it, leave the interval unset.',
   INVALID_WINDOW: 'The end date must be in the future, after the start.',
   INVALID_TARGET_COMPLETIONS: 'Target completions must be a positive number.',
+  INVALID_ABANDON_WINDOW:
+    'Every respondent needs at least 7 days after delivery.',
   INVALID_TEST_TYPE: 'Internal error: invalid study type.',
   UNKNOWN_MODULE: 'One of the selected modules is not recognized.',
   NOT_A_MODULE: 'That pack is not a selectable module.',
@@ -159,10 +163,12 @@ export function sectionForBoxCode(code: string): BoxErrorSection {
     case 'CATEGORY_BAR_INVALID':
       return 'audience'
     case 'INVALID_UNITS':
+    case 'TARGET_COMPLETIONS_REQUIRED':
     case 'SESSION_COUNT_INVALID':
     case 'SESSION_INTERVAL_INVALID':
     case 'INVALID_WINDOW':
     case 'INVALID_TARGET_COMPLETIONS':
+    case 'INVALID_ABANDON_WINDOW':
     case 'BOX_OPEN_OUTSIDE_WINDOW':
       return 'logistics'
     default:

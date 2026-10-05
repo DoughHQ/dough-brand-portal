@@ -41,7 +41,8 @@ function boxDraft(overrides: Partial<BoxStudyDraft> = {}): BoxStudyDraft {
       fieldRow(1, '028400017688', { role: 'yours' }),
       fieldRow(2, '028400017695'),
     ],
-    physicalUnits: 50,
+    targetCompletions: 50,
+    physicalUnits: 55,
     ...overrides,
   }
 }
@@ -53,10 +54,14 @@ describe('evaluateBoxValidity UPC gate', () => {
     expect(evaluateBoxValidity(boxDraft()).setupOk).toBe(true)
   })
 
-  it('keeps Setup incomplete until box count is set', () => {
-    const v = evaluateBoxValidity(boxDraft({ physicalUnits: null }))
+  it('keeps Setup incomplete until completed respondents are set', () => {
+    const v = evaluateBoxValidity(
+      boxDraft({ targetCompletions: null, physicalUnits: null })
+    )
     expect(v.setupOk).toBe(false)
-    expect(v.outstanding.map((o) => o.message).join(' ')).toMatch(/how many boxes/i)
+    expect(v.outstanding.map((o) => o.message).join(' ')).toMatch(
+      /completed respondents/i
+    )
   })
 
   it('requires allergen confirmation once identity is locked', () => {

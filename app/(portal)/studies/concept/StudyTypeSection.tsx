@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { ConceptStudyDraft, StimulusMode } from '@/lib/concept/types'
 import { templateFieldAnchor } from '@/lib/concept/templateConfig'
 import { STIMULUS_MODE_OPTIONS } from '@/lib/concept/constants'
@@ -67,6 +67,7 @@ export default function StudyTypeSection({
     () => !COMPLETION_PRESETS.includes(draft.targetCompletions as (typeof COMPLETION_PRESETS)[number])
   )
   const [completionsText, setCompletionsText] = useState(String(draft.targetCompletions))
+  const completionsFocused = useRef(false)
   const studyTypeLabelId = useId()
 
   // Single-test: mode is not a choice — lock packaging + blind without a picker.
@@ -87,6 +88,17 @@ export default function StudyTypeSection({
     onChange({ ...draft, fieldingDays: null })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft.fieldingDays])
+
+  // Resume can replace the parent draft after this section has mounted.
+  useEffect(() => {
+    if (completionsFocused.current) return
+    setCompletionsText(String(draft.targetCompletions))
+    setCustomCompletions(
+      !COMPLETION_PRESETS.includes(
+        draft.targetCompletions as (typeof COMPLETION_PRESETS)[number]
+      )
+    )
+  }, [draft.targetCompletions])
 
   useEffect(() => {
     if (draft.taxonomyNodeId == null) {
@@ -432,6 +444,9 @@ export default function StudyTypeSection({
                   className="cb-input cb-setup-completions-input"
                   aria-labelledby="field_target_completions_label"
                   value={completionsText}
+                  onFocus={() => {
+                    completionsFocused.current = true
+                  }}
                   onChange={(e) => {
                     const raw = e.target.value.replace(/\D/g, '')
                     setCompletionsText(raw)
@@ -442,6 +457,7 @@ export default function StudyTypeSection({
                     }
                   }}
                   onBlur={() => {
+                    completionsFocused.current = false
                     if (!/^\d+$/.test(completionsText) || Number(completionsText) < completionFloor) {
                       setCompletions(Math.max(completionFloor, draft.targetCompletions || completionFloor))
                     } else {

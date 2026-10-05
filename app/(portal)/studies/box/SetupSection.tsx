@@ -10,6 +10,11 @@ import {
 } from '../concept/actions'
 import CategoryCombobox from '../concept/CategoryCombobox'
 import BuilderSectionChrome from '../concept/BuilderSectionChrome'
+import {
+  IHUT_COMPLETION_OVERAGE_PERCENT,
+  IHUT_RESPONDENT_WINDOW_DAYS,
+  ihutInventoryPlan,
+} from '@/lib/box/completionContract'
 
 type Props = {
   draft: BoxStudyDraft
@@ -20,8 +25,6 @@ type Props = {
   sectionDone?: boolean
 }
 
-const DEFAULT_ABANDON_WINDOW_DAYS = 14
-
 function intFromInput(v: string): number | null {
   const t = v.trim()
   if (!t) return null
@@ -30,17 +33,9 @@ function intFromInput(v: string): number | null {
   return Number.isSafeInteger(n) ? n : null
 }
 
-function isoToLocalInput(iso: string): string {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
 /**
- * Setup mirrors concept: identity (name + category) plus run scale
- * (boxes, grace, close date). Field / Questions / Audience stay separate.
- * Shipping checkout stays for later — not here.
+ * Setup mirrors concept: identity plus the result the brand buys. Dough owns
+ * inventory overage, respondent-relative timing, and the hidden safety window.
  */
 export default function SetupSection({
   draft,
@@ -49,6 +44,7 @@ export default function SetupSection({
   sectionDone = false,
 }: Props) {
   const [node, setNode] = useState<TaxonomyNodeInfo | null>(null)
+  const inventory = ihutInventoryPlan(draft.targetCompletions)
 
   useEffect(() => {
     if (draft.taxonomyNodeId == null) {
@@ -72,8 +68,8 @@ export default function SetupSection({
       done={sectionDone}
     >
       <p style={helpStyle}>
-        Name the study, pick the category, and set how many boxes ship. Then
-        build who goes in the box below.
+        Name the study, pick the category, and choose the completed responses
+        your report needs. Dough handles inventory and timing.
       </p>
 
       <div style={{ marginBottom: 24, maxWidth: 480 }}>
@@ -115,84 +111,53 @@ export default function SetupSection({
           borderTop: '1px solid var(--ink-10)',
         }}
       >
-        <p style={{ ...runLede, marginBottom: 16 }}>How the study runs</p>
+        <p style={{ ...runLede, marginBottom: 16 }}>How it runs</p>
 
-        <div id={BOX_ANCHORS.units} style={{ marginBottom: 24 }}>
-          <div style={labelSm}>How many boxes will ship</div>
+        <div id={BOX_ANCHORS.units} style={{ marginBottom: 20 }}>
+          <div style={labelSm}>Completed respondents</div>
           <input
             className="cb-input"
             inputMode="numeric"
-            value={draft.physicalUnits ?? ''}
-            onChange={(e) =>
-              onChange({ ...draft, physicalUnits: intFromInput(e.target.value) })
-            }
-            placeholder="e.g. 50"
-            style={{ ...inputBase, width: 140 }}
-          />
-          <p style={{ ...subHelp, marginTop: 6, maxWidth: 480 }}>
-            Claim seats for the box. When they&rsquo;re gone, claims stop.
-          </p>
-        </div>
-
-        <div style={{ marginBottom: 24 }}>
-          <div style={labelSm}>Grace period after delivery (days)</div>
-          <input
-            className="cb-input"
-            inputMode="numeric"
-            value={draft.abandonWindowDays}
+            value={draft.targetCompletions ?? ''}
             onChange={(e) => {
-              const n = intFromInput(e.target.value)
+              const targetCompletions = intFromInput(e.target.value)
+              const nextInventory = ihutInventoryPlan(targetCompletions)
               onChange({
                 ...draft,
-                abandonWindowDays: n ?? DEFAULT_ABANDON_WINDOW_DAYS,
+                targetCompletions,
+                physicalUnits: nextInventory?.physicalUnits ?? null,
               })
             }}
-            style={{ ...inputBase, width: 140 }}
+            placeholder="e.g. 100"
+            aria-describedby="box-completion-help"
+            style={{ ...inputBase, width: 180 }}
           />
-          <p style={{ ...subHelp, marginTop: 6, maxWidth: 520 }}>
-            How long a claimant has after the box arrives before the seat is
-            released. Default 14.
+          <p id="box-completion-help" style={{ ...subHelp, marginTop: 6, maxWidth: 480 }}>
+            The completed responses the final report is built on.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginBottom: 24 }}>
-          <div id={BOX_ANCHORS.expiry}>
-            <div style={labelSm}>Study closes</div>
-            <input
-              type="datetime-local"
-              className="cb-input"
-              value={isoToLocalInput(draft.expiresAt)}
-              onChange={(e) => {
-                const v = e.target.value
-                if (!v) return
-                const d = new Date(v)
-                if (!Number.isNaN(d.getTime())) {
-                  onChange({ ...draft, expiresAt: d.toISOString() })
-                }
-              }}
-              style={{ ...inputBase, width: 240 }}
-            />
-          </div>
-          <div>
-            <div style={labelSm}>Target completions (optional)</div>
-            <input
-              className="cb-input"
-              inputMode="numeric"
-              value={draft.targetCompletions ?? ''}
-              onChange={(e) =>
-                onChange({
-                  ...draft,
-                  targetCompletions: intFromInput(e.target.value),
-                })
-              }
-              placeholder="e.g. 40"
-              style={{ ...inputBase, width: 160 }}
-            />
-            <p style={{ ...subHelp, marginTop: 6, maxWidth: 220 }}>
-              Closes early once this many finish.
+        {inventory ? (
+          <div className="box-completion-contract" role="status">
+            <div className="box-completion-contract__eyebrow">Dough fielding plan</div>
+            <div className="box-completion-contract__headline">
+              Prepare {inventory.physicalUnits} boxes
+            </div>
+            <p>
+              {inventory.targetCompletions} for the completed field, plus{' '}
+              {inventory.overageUnits} ({IHUT_COMPLETION_OVERAGE_PERCENT}%) for expected
+              non-completion.
+            </p>
+            <p>
+              Each respondent gets {IHUT_RESPONDENT_WINDOW_DAYS} days after delivery.
+              Recruitment stops at the target; anyone already shipped can still finish.
             </p>
           </div>
-        </div>
+        ) : (
+          <div className="box-completion-contract is-empty">
+            Enter a target to see the box plan.
+          </div>
+        )}
 
         <label
           style={{
@@ -201,7 +166,7 @@ export default function SetupSection({
             gap: 12,
             cursor: 'pointer',
             maxWidth: 560,
-            margin: 0,
+            margin: '24px 0 0',
           }}
         >
           <input

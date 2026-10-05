@@ -12,6 +12,10 @@ import {
   emptyIhutBrandQuestion,
   type IhutBrandQuestionDraft,
 } from './method'
+import {
+  IHUT_RESPONDENT_WINDOW_DAYS,
+  ihutInventoryPlan,
+} from './completionContract'
 
 const KEY = 'dough.boxDrafts.v1'
 
@@ -90,6 +94,13 @@ export function normalizeStoredBoxDraft(
 
   const focalId =
     typeof stored.focalProductId === 'number' ? stored.focalProductId : null
+  const targetCompletions =
+    typeof stored.targetCompletions === 'number' &&
+    Number.isSafeInteger(stored.targetCompletions) &&
+    stored.targetCompletions > 0
+      ? stored.targetCompletions
+      : null
+  const inventory = ihutInventoryPlan(targetCompletions)
   const fieldProducts = Array.isArray(stored.fieldProducts)
     ? stored.fieldProducts
         .map((r, index) => {
@@ -140,6 +151,10 @@ export function normalizeStoredBoxDraft(
     ...stored,
     draftId: stored.draftId ?? base.draftId,
     fieldProducts,
+    targetCompletions,
+    physicalUnits: inventory?.physicalUnits ?? null,
+    abandonWindowDays: IHUT_RESPONDENT_WINDOW_DAYS,
+    expiresAt: base.expiresAt,
     eligibility: {
       ...createEmptyBoxEligibility(),
       ...(stored.eligibility ?? {}),

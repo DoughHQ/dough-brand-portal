@@ -3,6 +3,10 @@ import {
   IHUT_DEFAULT_ATTRIBUTES,
   IHUT_DEFAULT_SUCCESS_BARS,
 } from './method'
+import {
+  IHUT_RESPONDENT_WINDOW_DAYS,
+  ihutHiddenBackstopAt,
+} from './completionContract'
 
 function newId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -35,7 +39,6 @@ export function createEmptyBoxEligibility(): BoxEligibilityDraft {
  */
 export function createEmptyBoxDraft(brandId: number): BoxStudyDraft {
   const now = new Date()
-  const expires = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000)
   return {
     draftId: newId(),
     title: '',
@@ -52,10 +55,10 @@ export function createEmptyBoxDraft(brandId: number): BoxStudyDraft {
     eligibilityTier: 'any',
     eligibility: createEmptyBoxEligibility(),
     blindSponsor: false,
-    abandonWindowDays: 14,
+    abandonWindowDays: IHUT_RESPONDENT_WINDOW_DAYS,
     unitCostCents: null,
     sourcingNotes: '',
-    expiresAt: expires.toISOString(),
+    expiresAt: ihutHiddenBackstopAt(now),
     targetCompletions: null,
     battleQuestion: '',
     ihutAttributes: [...IHUT_DEFAULT_ATTRIBUTES],

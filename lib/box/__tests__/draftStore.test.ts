@@ -27,3 +27,24 @@ describe('normalizeStoredBoxDraft modules migrate', () => {
     expect(next.day2LiveWithIt).toBe(true)
   })
 })
+
+describe('normalizeStoredBoxDraft completion contract', () => {
+  it('derives inventory and restores Dough-managed timing', () => {
+    const next = normalizeStoredBoxDraft(
+      {
+        draftId: 'd3',
+        brandId: 1,
+        targetCompletions: 31,
+        physicalUnits: 999,
+        abandonWindowDays: 2,
+        expiresAt: '2000-01-01T00:00:00.000Z',
+      },
+      1
+    )
+
+    expect(next.targetCompletions).toBe(31)
+    expect(next.physicalUnits).toBe(35)
+    expect(next.abandonWindowDays).toBe(14)
+    expect(Date.parse(next.expiresAt)).toBeGreaterThan(Date.now())
+  })
+})

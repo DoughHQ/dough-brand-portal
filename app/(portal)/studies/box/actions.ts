@@ -22,6 +22,7 @@ import {
   parseIhutPreviewJourney,
   type IhutPreviewJourney,
 } from '@/lib/box/preview/screensFromIhutJourney'
+import { IHUT_MAX_TARGET_COMPLETIONS } from '@/lib/box/completionContract'
 
 export type BoxPublishResult =
   | { ok: true; meta: BoxPublishSuccessMeta }
@@ -138,12 +139,17 @@ export async function publishBoxStudyAction(
       hint: 'CATEGORY_REQUIRED',
     }
   }
-  if (draft.physicalUnits == null || draft.physicalUnits < 1) {
+  if (
+    draft.targetCompletions == null ||
+    !Number.isSafeInteger(draft.targetCompletions) ||
+    draft.targetCompletions < 1 ||
+    draft.targetCompletions > IHUT_MAX_TARGET_COMPLETIONS
+  ) {
     return {
       ok: false,
-      error: 'Set how many boxes will ship.',
+      error: `Completed respondents must be between 1 and ${IHUT_MAX_TARGET_COMPLETIONS.toLocaleString('en-US')}.`,
       section: 'logistics',
-      hint: 'INVALID_UNITS',
+      hint: 'TARGET_COMPLETIONS_REQUIRED',
     }
   }
   if (draft.fieldProducts.length < 2 || draft.fieldProducts.length > 5) {
@@ -215,6 +221,31 @@ export async function publishBoxStudyAction(
       }
     }
 
+    // Read the committed contract back from the database. The insert trigger,
+    // not the browser payload, is authoritative for physical inventory.
+    const [boxContractResult, missionContractResult] = await Promise.all([
+      supabase
+        .from('sampling_boxes')
+        .select('physical_units')
+        .eq('id', boxId)
+        .maybeSingle(),
+      supabase
+        .from('missions')
+        .select('target_completions')
+        .eq('id', missionId)
+        .maybeSingle(),
+    ])
+    const persistedPhysicalUnits = numOrNull(
+      boxContractResult.data?.physical_units
+    )
+    const persistedTargetCompletions = numOrNull(
+      missionContractResult.data?.target_completions
+    )
+    const persistedOverageUnits =
+      persistedPhysicalUnits != null && persistedTargetCompletions != null
+        ? persistedPhysicalUnits - persistedTargetCompletions
+        : null
+
     const boxStatus = strOrNull(root?.box_status) ?? 'open'
     const labelsRaw = root?.prototype_labels
     const prototype_labels: BoxPrototypeLabel[] = Array.isArray(labelsRaw)
@@ -250,6 +281,9 @@ export async function publishBoxStudyAction(
         unique_pairs: numOrNull(root?.unique_pairs),
         session_count: numOrNull(root?.session_count),
         session2_interval_hours: numOrNull(root?.session2_interval_hours),
+        target_completions: persistedTargetCompletions,
+        physical_units: persistedPhysicalUnits,
+        completion_overage_units: persistedOverageUnits,
         eligibility_applied: root?.eligibility_applied === true,
         box_status: boxStatus,
         publishedOpen: root?.published_open === true || boxStatus === 'open',

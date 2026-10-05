@@ -14,6 +14,7 @@ import { isIdentityConfirmed } from '@/lib/productEntryMode'
 import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 import { MAX_BOX_FIELD_SIZE } from './fieldSize'
 import { isAllergenConfirmed } from './allergens'
+import { ihutInventoryPlan } from './completionContract'
 
 export type BoxOutstandingItem = {
   message: string
@@ -52,10 +53,6 @@ export type BoxValidity = {
   outstanding: BoxOutstandingItem[]
   /** Shown in the dock, never blocks publish. */
   softOutstanding: BoxOutstandingItem[]
-}
-
-function isPos(n: number | null): n is number {
-  return typeof n === 'number' && Number.isFinite(n) && n > 0
 }
 
 function eligibilityBarsSet(draft: BoxStudyDraft): boolean {
@@ -100,32 +97,16 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
     })
   }
 
-  const unitsOk = isPos(draft.physicalUnits)
-  if (!unitsOk) {
-    outstanding.push({
-      message: 'Set how many boxes will ship.',
-      anchor: BOX_ANCHORS.units,
-    })
-  }
-
-  const expiresMs = Date.parse(draft.expiresAt)
-  const expiryOk = Number.isFinite(expiresMs) && expiresMs > Date.now()
-  if (!expiryOk) {
-    outstanding.push({
-      message: 'Set an end date in the future.',
-      anchor: BOX_ANCHORS.expiry,
-    })
-  }
-
-  const targetOk = draft.targetCompletions == null || draft.targetCompletions >= 1
+  const inventory = ihutInventoryPlan(draft.targetCompletions)
+  const targetOk = inventory != null
   if (!targetOk) {
     outstanding.push({
-      message: 'Target completions must be a positive number.',
+      message: 'Set the completed respondents this study needs.',
       anchor: BOX_ANCHORS.units,
     })
   }
 
-  const setupScaleOk = unitsOk && expiryOk && targetOk
+  const setupScaleOk = targetOk
   const setupOk = titleOk && categoryOk && setupScaleOk
 
   // ---- field -----------------------------------------------------------
