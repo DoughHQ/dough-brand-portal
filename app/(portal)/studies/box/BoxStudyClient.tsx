@@ -13,7 +13,6 @@ import SetupSection from './SetupSection'
 import ContentsSection from './ContentsSection'
 import MethodSection from './MethodSection'
 import AudienceSection from './AudienceSection'
-import LogisticsSection from './LogisticsSection'
 import ResumeDraftBanner from '../components/ResumeDraftBanner'
 import PublishingDock from '../components/PublishingDock'
 import {
@@ -42,8 +41,9 @@ const SECTION_ANCHOR: Record<keyof SectionErrors, string> = {
   setup: BOX_ANCHORS.setup,
   field: BOX_ANCHORS.field,
   audience: BOX_ANCHORS.audience,
-  logistics: BOX_ANCHORS.logistics,
-  publish: BOX_ANCHORS.logistics,
+  /** Scale fields live in Setup; Day 2 interval scrolls to Questions. */
+  logistics: BOX_ANCHORS.setup,
+  publish: BOX_ANCHORS.setup,
 }
 
 export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: Props) {
@@ -193,7 +193,9 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
           ? 'field'
           : !validity.audienceOk
             ? 'audience'
-            : 'logistics'
+            : first?.anchor === BOX_ANCHORS.sessions
+              ? 'publish'
+              : 'logistics'
       setSectionErrors({ [section]: msg, publish: msg })
       scrollTo(first?.anchor ?? SECTION_ANCHOR[section])
       return
@@ -291,11 +293,6 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
                 },
               ]
             : []),
-          {
-            id: BOX_ANCHORS.logistics,
-            label: 'Logistics',
-            done: validity.setupOk && validity.fieldOk && validity.logisticsOk,
-          },
         ]}
       />
 
@@ -319,7 +316,11 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
       <SetupSection
         draft={draft}
         onChange={persist}
-        error={publishAttempted ? sectionErrors.setup : undefined}
+        error={
+          publishAttempted
+            ? sectionErrors.setup ?? sectionErrors.logistics
+            : undefined
+        }
         publishFailure={publishAttempted ? publishFailure : null}
         sectionDone={validity.setupOk}
       />
@@ -353,13 +354,6 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
           sectionDone={validity.audienceOk}
         />
       ) : null}
-
-      <LogisticsSection
-        draft={draft}
-        onChange={persist}
-        error={publishAttempted ? sectionErrors.logistics : undefined}
-        sectionDone={validity.logisticsOk}
-      />
 
       {sectionErrors.publish &&
       !sectionErrors.setup &&

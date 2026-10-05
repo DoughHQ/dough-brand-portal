@@ -19,7 +19,7 @@ function yoursLabel(draft: BoxStudyDraft): string | null {
   return name || null
 }
 
-/** Setup card — study name + category. */
+/** Setup card — identity + run scale (boxes, grace, close). */
 export function summarizeBoxSetup(draft: BoxStudyDraft): string {
   const title = draft.title.trim() || null
   const hasCategory = draft.taxonomyNodeId != null
@@ -27,7 +27,21 @@ export function summarizeBoxSetup(draft: BoxStudyDraft): string {
   if (!title && !hasCategory) return 'Name the study · choose a category'
   if (!title) return 'Name the study'
   if (!hasCategory) return `${title} · Choose a category`
-  return title
+
+  const units =
+    draft.physicalUnits != null && draft.physicalUnits > 0
+      ? plural(draft.physicalUnits, 'box', 'boxes')
+      : null
+  const expiresMs = Date.parse(draft.expiresAt)
+  const end = Number.isFinite(expiresMs)
+    ? `Ends ${new Date(expiresMs).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+      })}`
+    : null
+
+  const parts = [title, units, end].filter(Boolean)
+  return parts.join(' · ')
 }
 
 /** Field card — seats in the box and matchups. */
@@ -95,7 +109,7 @@ export function summarizeBoxAudience(draft: BoxStudyDraft): string {
   return parts.slice(0, 3).join(' · ')
 }
 
-/** Logistics card — boxes, pacing, end. */
+/** @deprecated Prefer summarizeBoxSetup — logistics lives in Setup. */
 export function summarizeBoxLogistics(draft: BoxStudyDraft): string {
   const units =
     draft.physicalUnits != null && draft.physicalUnits > 0
