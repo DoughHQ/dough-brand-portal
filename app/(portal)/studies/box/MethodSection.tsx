@@ -523,7 +523,6 @@ function IhutBrandQuestionsEditor({
         <BrandQuestionEditor
           key={q.localId}
           question={q}
-          index={i}
           fieldSeats={fieldSeats}
           fieldOptions={fieldOptions}
           starters={IHUT_BRAND_QUESTION_STARTERS}
