@@ -85,6 +85,23 @@ export function PreferenceIntervalBar({
  * The permanent Bottom Line layer — first viewport answers the decision.
  * ANSWER → three proof tiles → price caveat. Screenshot-ready for email.
  */
+function emphasizeShare(text: string, shareLabel: string): ReactNode {
+  if (!shareLabel || shareLabel === '—' || !text.includes(shareLabel)) {
+    return text
+  }
+  const parts = text.split(shareLabel)
+  return parts.map((part, index) =>
+    index === 0 ? (
+      part
+    ) : (
+      <span key={`${shareLabel}-${index}`}>
+        <span className={styles.ledeEm}>{shareLabel}</span>
+        {part}
+      </span>
+    ),
+  )
+}
+
 export function OverviewBottomLine({
   overview,
   eyebrow,
@@ -107,10 +124,15 @@ export function OverviewBottomLine({
         <div className={styles.bottomLineCopy}>
           <p className={styles.bottomLineKicker}>The bottom line</p>
           <h1 className={styles.headline}>{overview.bottomLine}</h1>
-          <p className={styles.lede}>{overview.explanation}</p>
+          <p className={styles.lede}>
+            {emphasizeShare(overview.explanation, overview.preferencePct)}
+          </p>
           <p className={styles.interpretation}>{overview.interpretation}</p>
           <a href="#performance" className={styles.jumpLink}>
-            See the proof ↓
+            See the proof
+            <span className={styles.jumpArrow} aria-hidden="true">
+              ↓
+            </span>
           </a>
         </div>
 
@@ -127,7 +149,9 @@ export function OverviewBottomLine({
               <span>Likely range</span>
             </div>
             <div>
-              <strong>{overview.nDecisiveLabel.replace(/ decisive choices/, '')}</strong>
+              <strong>
+                {overview.nDecisiveLabel.replace(/ decisive choices/, '')}
+              </strong>
               <span>Decisive choices</span>
             </div>
             <div>
@@ -154,7 +178,9 @@ export function OverviewBottomLine({
 
       <div className={styles.metaRow}>
         {metadata.map((item) => (
-          <span key={item}>{item}</span>
+          <span className={styles.metaItem} key={item}>
+            {item}
+          </span>
         ))}
       </div>
     </header>
