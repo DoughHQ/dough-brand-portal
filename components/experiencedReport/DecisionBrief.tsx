@@ -211,10 +211,11 @@ export function OverviewBottomLine({
           <div className={styles.heroMetric}>
             <div className={styles.heroNumber}>{overview.preferencePct}</div>
             <div className={styles.heroLabel}>chosen after use</div>
-            <PreferenceIntervalBar
-              brief={overview.preference}
-              productName={overview.productName}
-            />
+          <PreferenceIntervalBar
+            brief={overview.preference}
+            productName={overview.productName}
+            dark={false}
+          />
             <div className={styles.heroFacts}>
               <div>
                 <strong>{overview.rangeLabel}</strong>
