@@ -29,13 +29,26 @@ import {
 import { CombatantPortrait } from '@/components/conceptReport/CombatantPortrait'
 import { SimulatedDataBanner } from '@/components/conceptReport/SimulatedDataBanner'
 import { ExportReportButton } from '@/components/conceptReport/ExportReportButton'
-import { ExperienceSplitLabel, experienceSplitLabel } from './ExperienceSplitLabel'
+import {
+  ExperienceSplitLabel,
+  experienceSplitLabel,
+} from './ExperienceSplitLabel'
 import { WithheldMetric } from './WithheldMetric'
-import { Chip, CoinFlipTrack, SectionShell, ShareBar, BipolarTrack } from './deckChrome'
+import {
+  Chip,
+  CoinFlipTrack,
+  SectionShell,
+  ShareBar,
+  BipolarTrack,
+} from './deckChrome'
 import { ReportSectionRail } from './ReportSectionRail'
-import { REPORT_SECTIONS, pushNote, type SectionMethodNotes } from './reportSections'
+import {
+  REPORT_SECTIONS,
+  pushNote,
+  type SectionMethodNotes,
+} from './reportSections'
 import { ExecutiveSummaryStrip } from './ExecutiveSummaryStrip'
-import { IhutCoreReportView } from './IhutCoreReport'
+import { IhutStoryReport } from './IhutStoryReport'
 import { isIhutCoreReport } from '@/lib/experiencedReport/ihutCoreTypes'
 
 const PREFERENCE_METHOD_NOTE =
@@ -63,7 +76,9 @@ function uniqueSplitDetails(rows: OpponentRow[], focalName: string): string[] {
   return details
 }
 
-function collectMethodNotes(envelope: ExperiencedReportEnvelope): SectionMethodNotes[] {
+function collectMethodNotes(
+  envelope: ExperiencedReportEnvelope,
+): SectionMethodNotes[] {
   const { report } = envelope
   const bucket: SectionMethodNotes[] = []
   const s = REPORT_SECTIONS
@@ -81,10 +96,20 @@ function collectMethodNotes(envelope: ExperiencedReportEnvelope): SectionMethodN
 
   pushNote(bucket, 4, s[3].title, report.attribute_importance?.estimator_note)
   pushNote(bucket, 4, s[3].title, report.attribute_importance?.variance_note)
-  pushNote(bucket, 4, s[3].title, report.attribute_importance?.presentation_control)
+  pushNote(
+    bucket,
+    4,
+    s[3].title,
+    report.attribute_importance?.presentation_control,
+  )
 
   pushNote(bucket, 5, s[4].title, report.repurchase_intent?.timing_note)
-  pushNote(bucket, 5, s[4].title, report.repurchase_intent?.presentation_control)
+  pushNote(
+    bucket,
+    5,
+    s[4].title,
+    report.repurchase_intent?.presentation_control,
+  )
 
   pushNote(bucket, 6, s[5].title, report.rank_validation?.undetermined_note)
 
@@ -109,7 +134,14 @@ function CiCaption({ lo, hi }: { lo: number | null; hi: number | null }) {
 }
 
 function QuietNote({ children }: { children: ReactNode }) {
-  return <p className="report-footnote" style={{ margin: '12px 0 0', fontStyle: 'italic' }}>{children}</p>
+  return (
+    <p
+      className="report-footnote"
+      style={{ margin: '12px 0 0', fontStyle: 'italic' }}
+    >
+      {children}
+    </p>
+  )
 }
 
 function SectionEmpty({ reason }: { reason?: string | null }) {
@@ -117,7 +149,8 @@ function SectionEmpty({ reason }: { reason?: string | null }) {
     <WithheldMetric
       metric={{
         reportable: false,
-        withheld_reason: reason?.trim() || 'Not enough responses yet to report this',
+        withheld_reason:
+          reason?.trim() || 'Not enough responses yet to report this',
       }}
     />
   )
@@ -161,7 +194,11 @@ function DeckColdOpen({
       </div>
 
       <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-        <CombatantPortrait name={focal.name} battleIntent="own_concept_arm" size={56} />
+        <CombatantPortrait
+          name={focal.name}
+          battleIntent="own_concept_arm"
+          size={56}
+        />
         <div style={{ minWidth: 0, flex: 1 }}>
           {focal.brand ? (
             <p
@@ -182,9 +219,14 @@ function DeckColdOpen({
             <h1 className="deck-enter-title">{focal.name}</h1>
             <Chip tone="neutral">{stageChipLabel(stage)}</Chip>
             <Chip tone={status.tone}>{status.label}</Chip>
-            {formatSnapshotDate(envelope.snapshot_date ?? envelope.computed_at) ? (
+            {formatSnapshotDate(
+              envelope.snapshot_date ?? envelope.computed_at,
+            ) ? (
               <Chip>
-                Snapshot {formatSnapshotDate(envelope.snapshot_date ?? envelope.computed_at)}
+                Snapshot{' '}
+                {formatSnapshotDate(
+                  envelope.snapshot_date ?? envelope.computed_at,
+                )}
               </Chip>
             ) : null}
             <Chip>Frozen · reproducible</Chip>
@@ -207,7 +249,10 @@ function HeadlineClaim({
 }) {
   return (
     <div style={{ marginBottom: 28 }}>
-      <ExperienceSplitLabel split={row.experience_split} focalName={focalName} />
+      <ExperienceSplitLabel
+        split={row.experience_split}
+        focalName={focalName}
+      />
       <WithheldMetric metric={row}>
         <div className="deck-enter-verdict">
           <div className="report-headline-figure">
@@ -295,7 +340,11 @@ function DeckField({
     return a.opponent_name.localeCompare(b.opponent_name)
   })
   const splitKeys = [
-    ...new Set(ranked.map((r) => r.experience_split).filter((s): s is string => Boolean(s))),
+    ...new Set(
+      ranked
+        .map((r) => r.experience_split)
+        .filter((s): s is string => Boolean(s)),
+    ),
   ]
   const mixedSplits = splitKeys.length > 1
   const hoistedDetails = uniqueSplitDetails(ranked, focalName)
@@ -518,7 +567,10 @@ function DeckAttributeImportance({
       id={REPORT_SECTIONS[3].id}
       number={4}
       title={REPORT_SECTIONS[3].title}
-      sub={data?.interpretation ?? 'Best-minus-worst importance — compelling vs objectionable.'}
+      sub={
+        data?.interpretation ??
+        'Best-minus-worst importance — compelling vs objectionable.'
+      }
       notes={notes}
     >
       {attrs.length === 0 ? (
@@ -545,16 +597,17 @@ function DeckAttributeImportance({
                     marginBottom: 6,
                   }}
                 >
-                  <span style={{ fontWeight: 500, color: 'var(--ink)' }}>{a.attribute}</span>
+                  <span style={{ fontWeight: 500, color: 'var(--ink)' }}>
+                    {a.attribute}
+                  </span>
                   {a.reportable && score != null ? (
                     <span
                       style={{
-                        color:
-                          nearZero
-                            ? 'var(--ink-muted)'
-                            : score < 0
-                              ? 'var(--clay)'
-                              : 'var(--sage-dark)',
+                        color: nearZero
+                          ? 'var(--ink-muted)'
+                          : score < 0
+                            ? 'var(--clay)'
+                            : 'var(--sage-dark)',
                         fontVariantNumeric: 'tabular-nums',
                       }}
                     >
@@ -594,7 +647,13 @@ function repurchaseMetricLabel(metric: string): string {
   }
 }
 
-function DeckLoyalty({ data, notes }: { data: RepurchaseIntent | null; notes: string[] }) {
+function DeckLoyalty({
+  data,
+  notes,
+}: {
+  data: RepurchaseIntent | null
+  notes: string[]
+}) {
   const bySession = new Map<number, RepurchaseSessionMetric[]>()
   for (const row of data?.by_session ?? []) {
     const list = bySession.get(row.session_number) ?? []
@@ -620,12 +679,18 @@ function DeckLoyalty({ data, notes }: { data: RepurchaseIntent | null; notes: st
         sessions.map((session) => {
           const rows = bySession.get(session) ?? []
           const ordered = [...rows].sort((a, b) => {
-            const ia = REPURCHASE_ORDER.indexOf(a.metric as (typeof REPURCHASE_ORDER)[number])
-            const ib = REPURCHASE_ORDER.indexOf(b.metric as (typeof REPURCHASE_ORDER)[number])
+            const ia = REPURCHASE_ORDER.indexOf(
+              a.metric as (typeof REPURCHASE_ORDER)[number],
+            )
+            const ib = REPURCHASE_ORDER.indexOf(
+              b.metric as (typeof REPURCHASE_ORDER)[number],
+            )
             return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
           })
           const set =
-            ordered.length === 1 && ordered[0]?.metric === 'top_two_box' ? ordered : ordered
+            ordered.length === 1 && ordered[0]?.metric === 'top_two_box'
+              ? ordered
+              : ordered
 
           return (
             <div key={session} style={{ marginBottom: 24 }}>
@@ -690,8 +755,12 @@ function DeckLoyalty({ data, notes }: { data: RepurchaseIntent | null; notes: st
                         {row.rate != null ? formatPct01(row.rate) : '—'}
                       </div>
                       {row.ci_low != null && row.ci_high != null ? (
-                        <p className="report-footnote" style={{ margin: '8px 0 0' }}>
-                          Likely {formatPct01(row.ci_low)}–{formatPct01(row.ci_high)}
+                        <p
+                          className="report-footnote"
+                          style={{ margin: '8px 0 0' }}
+                        >
+                          Likely {formatPct01(row.ci_low)}–
+                          {formatPct01(row.ci_high)}
                         </p>
                       ) : null}
                     </WithheldMetric>
@@ -706,8 +775,15 @@ function DeckLoyalty({ data, notes }: { data: RepurchaseIntent | null; notes: st
   )
 }
 
-function DeckLift({ lift, notes }: { lift: ExperienceLift | null; notes: string[] }) {
-  const sub = 'Organic preference drift after claiming — associational, not causal.'
+function DeckLift({
+  lift,
+  notes,
+}: {
+  lift: ExperienceLift | null
+  notes: string[]
+}) {
+  const sub =
+    'Organic preference drift after claiming — associational, not causal.'
 
   if (lift == null) {
     return (
@@ -740,8 +816,8 @@ function DeckLift({ lift, notes }: { lift: ExperienceLift | null; notes: string[
           <SectionEmpty reason={lift.withheld_reason} />
           {lift.n_users_no_baseline != null && lift.n_users_no_baseline > 0 ? (
             <p className="report-body" style={{ margin: '8px 0 0' }}>
-              {lift.n_users_no_baseline} respondents had no prior baseline preference history to
-              measure drift against
+              {lift.n_users_no_baseline} respondents had no prior baseline
+              preference history to measure drift against
               {lift.n_users_with_baseline != null
                 ? ` · ${lift.n_users_with_baseline} with baseline`
                 : ''}
@@ -752,58 +828,60 @@ function DeckLift({ lift, notes }: { lift: ExperienceLift | null; notes: string[
         </div>
       ) : (
         <>
-      <div
-        role="note"
-        style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: 13,
-          lineHeight: 1.55,
-          color: 'var(--text-warning)',
-          background: 'var(--bg-warning)',
-          borderRadius: 8,
-          padding: '12px 14px',
-          marginBottom: 16,
-          border: '1px solid rgba(138, 75, 15, 0.2)',
-        }}
-      >
-        {warning}
-      </div>
-        <div>
           <div
-            className={
-              lift.mean_elo_delta == null || lift.mean_elo_delta === 0
-                ? 'lift-numeral--neutral'
-                : lift.mean_elo_delta > 0
-                  ? 'lift-numeral--own'
-                  : 'lift-numeral--against'
-            }
+            role="note"
             style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 48,
-              lineHeight: 1,
-              fontVariantNumeric: 'tabular-nums',
+              fontFamily: 'var(--font-sans)',
+              fontSize: 13,
+              lineHeight: 1.55,
+              color: 'var(--text-warning)',
+              background: 'var(--bg-warning)',
+              borderRadius: 8,
+              padding: '12px 14px',
+              marginBottom: 16,
+              border: '1px solid rgba(138, 75, 15, 0.2)',
             }}
           >
-            {lift.mean_elo_delta != null
-              ? `${lift.mean_elo_delta > 0 ? '+' : ''}${lift.mean_elo_delta.toFixed(1)}`
-              : '—'}
+            {warning}
           </div>
-          <p className="report-body" style={{ margin: '10px 0 0' }}>
-            Mean Elo delta
-            {lift.ci_low != null && lift.ci_high != null
-              ? ` · likely ${lift.ci_low.toFixed(1)} to ${lift.ci_high.toFixed(1)}`
-              : ''}
-          </p>
-          <p className="report-footnote" style={{ margin: '8px 0 0' }}>
-            {[
-              lift.n_moved_up != null ? `${lift.n_moved_up} up` : null,
-              lift.n_moved_down != null ? `${lift.n_moved_down} down` : null,
-              lift.n_unchanged != null ? `${lift.n_unchanged} unchanged` : null,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          </p>
-        </div>
+          <div>
+            <div
+              className={
+                lift.mean_elo_delta == null || lift.mean_elo_delta === 0
+                  ? 'lift-numeral--neutral'
+                  : lift.mean_elo_delta > 0
+                    ? 'lift-numeral--own'
+                    : 'lift-numeral--against'
+              }
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 48,
+                lineHeight: 1,
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {lift.mean_elo_delta != null
+                ? `${lift.mean_elo_delta > 0 ? '+' : ''}${lift.mean_elo_delta.toFixed(1)}`
+                : '—'}
+            </div>
+            <p className="report-body" style={{ margin: '10px 0 0' }}>
+              Mean Elo delta
+              {lift.ci_low != null && lift.ci_high != null
+                ? ` · likely ${lift.ci_low.toFixed(1)} to ${lift.ci_high.toFixed(1)}`
+                : ''}
+            </p>
+            <p className="report-footnote" style={{ margin: '8px 0 0' }}>
+              {[
+                lift.n_moved_up != null ? `${lift.n_moved_up} up` : null,
+                lift.n_moved_down != null ? `${lift.n_moved_down} down` : null,
+                lift.n_unchanged != null
+                  ? `${lift.n_unchanged} unchanged`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
+          </div>
         </>
       )}
     </SectionShell>
@@ -819,7 +897,7 @@ function DeckRankValidation({
 }) {
   const order = (c: string) => (c === 'battled' ? 0 : c === 'inferred' ? 1 : 2)
   const rows = [...(data?.by_pair_class ?? [])].sort(
-    (a, b) => order(String(a.pair_class)) - order(String(b.pair_class))
+    (a, b) => order(String(a.pair_class)) - order(String(b.pair_class)),
   )
 
   return (
@@ -865,7 +943,9 @@ function DeckRankValidation({
                       fontVariantNumeric: 'tabular-nums',
                     }}
                   >
-                    {row.agreement_rate != null ? formatPct01(row.agreement_rate) : '—'}
+                    {row.agreement_rate != null
+                      ? formatPct01(row.agreement_rate)
+                      : '—'}
                     <span
                       style={{
                         fontFamily: 'var(--font-sans)',
@@ -879,14 +959,20 @@ function DeckRankValidation({
                     </span>
                   </div>
                   {row.ci_low != null && row.ci_high != null ? (
-                    <p className="report-footnote" style={{ margin: '8px 0 0' }}>
-                      Likely {formatPct01(row.ci_low)}–{formatPct01(row.ci_high)}
+                    <p
+                      className="report-footnote"
+                      style={{ margin: '8px 0 0' }}
+                    >
+                      Likely {formatPct01(row.ci_low)}–
+                      {formatPct01(row.ci_high)}
                     </p>
                   ) : null}
                   <p className="report-footnote" style={{ margin: '6px 0 0' }}>
                     {[
                       row.n_agree != null ? `${row.n_agree} agree` : null,
-                      row.n_disagree != null ? `${row.n_disagree} disagree` : null,
+                      row.n_disagree != null
+                        ? `${row.n_disagree} disagree`
+                        : null,
                       row.n_undetermined != null
                         ? `${row.n_undetermined} undetermined`
                         : null,
@@ -904,7 +990,9 @@ function DeckRankValidation({
   )
 }
 
-function methodologyProse(m: Record<string, unknown> | null | undefined): string[] {
+function methodologyProse(
+  m: Record<string, unknown> | null | undefined,
+): string[] {
   if (!m) return []
   const keys = [
     'estimand',
@@ -939,9 +1027,9 @@ function DeckTrust({
   const rel = report.reliability
   const evidence = report.evidence_composition
   const already = new Set(sectionNotes.flatMap((n) => n.texts))
-  const prose = methodologyProse(report.methodology as Record<string, unknown> | null).filter(
-    (p) => !already.has(p)
-  )
+  const prose = methodologyProse(
+    report.methodology as Record<string, unknown> | null,
+  ).filter((p) => !already.has(p))
 
   return (
     <section
@@ -963,7 +1051,14 @@ function DeckTrust({
           Methodology & exclusions
         </summary>
 
-        <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div
+          style={{
+            marginTop: 20,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 24,
+          }}
+        >
           {sectionNotes.length > 0 ? (
             <div className="report-appendix-notes">
               {sectionNotes.map((block) => (
@@ -992,9 +1087,14 @@ function DeckTrust({
             <div>
               <h3>Test–retest reliability</h3>
               <WithheldMetric metric={rel}>
-                <p className="report-body" style={{ color: 'var(--ink)', margin: 0 }}>
+                <p
+                  className="report-body"
+                  style={{ color: 'var(--ink)', margin: 0 }}
+                >
                   Consistency{' '}
-                  {rel.consistency_rate != null ? formatPct01(rel.consistency_rate) : '—'}
+                  {rel.consistency_rate != null
+                    ? formatPct01(rel.consistency_rate)
+                    : '—'}
                   {rel.n_users_with_repeats != null
                     ? ` among ${rel.n_users_with_repeats} people with repeats`
                     : ''}
@@ -1008,7 +1108,9 @@ function DeckTrust({
           {evidence ? (
             <div>
               <h3>How we know they consumed it</h3>
-              {evidence.receipt_note ? <QuietNote>{evidence.receipt_note}</QuietNote> : null}
+              {evidence.receipt_note ? (
+                <QuietNote>{evidence.receipt_note}</QuietNote>
+              ) : null}
               <ul
                 style={{
                   listStyle: 'none',
@@ -1022,21 +1124,32 @@ function DeckTrust({
                 {evidence.by_grade.map((g, i) => {
                   const key = g.evidence_split ?? `grade-${i}`
                   const semantics =
-                    (g.evidence_split && evidence.grade_semantics[g.evidence_split]) || undefined
+                    (g.evidence_split &&
+                      evidence.grade_semantics[g.evidence_split]) ||
+                    undefined
                   return (
-                    <li key={key} className="report-body" style={{ color: 'var(--ink)' }}>
+                    <li
+                      key={key}
+                      className="report-body"
+                      style={{ color: 'var(--ink)' }}
+                    >
                       <strong style={{ textTransform: 'capitalize' }}>
                         {(g.evidence_split ?? 'grade').replace(/_/g, ' ')}
                       </strong>
                       {semantics ? (
-                        <span style={{ color: 'var(--ink-muted)' }}> — {semantics}</span>
+                        <span style={{ color: 'var(--ink-muted)' }}>
+                          {' '}
+                          — {semantics}
+                        </span>
                       ) : null}
                       <div style={{ marginTop: 6 }}>
                         <WithheldMetric metric={g}>
                           <span style={{ color: 'var(--ink-muted)' }}>
                             {g.value != null ? formatPct01(g.value) : '—'}
                             {g.n_users != null ? ` · ${g.n_users} people` : ''}
-                            {g.n_decisive != null ? ` · ${g.n_decisive} decisive` : ''}
+                            {g.n_decisive != null
+                              ? ` · ${g.n_decisive} decisive`
+                              : ''}
                           </span>
                         </WithheldMetric>
                       </div>
@@ -1061,7 +1174,11 @@ function DeckTrust({
                 }}
               >
                 {prose.map((p) => (
-                  <li key={p.slice(0, 48)} className="report-footnote" style={{ fontStyle: 'italic' }}>
+                  <li
+                    key={p.slice(0, 48)}
+                    className="report-footnote"
+                    style={{ fontStyle: 'italic' }}
+                  >
                     {p}
                   </li>
                 ))}
@@ -1084,9 +1201,14 @@ function DeckTrust({
         }}
       >
         <div className="report-footnote" style={{ textAlign: 'right' }}>
-          {formatSnapshotDate(envelope.snapshot_date ?? envelope.computed_at) ? (
+          {formatSnapshotDate(
+            envelope.snapshot_date ?? envelope.computed_at,
+          ) ? (
             <div>
-              Snapshot {formatSnapshotDate(envelope.snapshot_date ?? envelope.computed_at)}
+              Snapshot{' '}
+              {formatSnapshotDate(
+                envelope.snapshot_date ?? envelope.computed_at,
+              )}
             </div>
           ) : null}
         </div>
@@ -1106,18 +1228,39 @@ export function ExperiencedReportDeck({
   variant?: 'full' | 'preview'
 }) {
   const { report } = envelope
+
+  if (isIhutCoreReport(report.ihut_core)) {
+    return (
+      <IhutStoryReport
+        envelope={envelope}
+        report={report.ihut_core}
+        backHref={backHref}
+        variant={variant}
+      />
+    )
+  }
+
   const sectionNotes = collectMethodNotes(envelope)
 
   if (variant === 'preview') {
     return (
       <div className="experienced-report-deck concept-report-deck">
         {envelope.is_simulated === true ? <SimulatedDataBanner /> : null}
-        <div className="experienced-report-document" style={{ padding: '20px 24px 32px' }}>
+        <div
+          className="experienced-report-document"
+          style={{ padding: '20px 24px 32px' }}
+        >
           <DeckColdOpen envelope={envelope} backHref={backHref} />
           <ExecutiveSummaryStrip envelope={envelope} />
-          <div className="report-row report-row--full" style={{ marginTop: 20 }}>
+          <div
+            className="report-row report-row--full"
+            style={{ marginTop: 20 }}
+          >
             <div className="report-span-12">
-              <DeckLoyalty data={report.repurchase_intent} notes={notesFor(sectionNotes, 5)} />
+              <DeckLoyalty
+                data={report.repurchase_intent}
+                notes={notesFor(sectionNotes, 5)}
+              />
             </div>
           </div>
           <p
@@ -1130,7 +1273,11 @@ export function ExperiencedReportDeck({
           >
             <a
               href="/marketing/workspace/box-report"
-              style={{ color: 'var(--sage-dark)', fontWeight: 600, textDecoration: 'none' }}
+              style={{
+                color: 'var(--sage-dark)',
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}
             >
               Open full report preview →
             </a>
@@ -1150,20 +1297,18 @@ export function ExperiencedReportDeck({
           <DeckColdOpen envelope={envelope} backHref={backHref} />
           <ExecutiveSummaryStrip envelope={envelope} />
 
-          {isIhutCoreReport(report.ihut_core) ? (
-            <div className="report-row report-row--full" style={{ marginTop: 8 }}>
-              <div className="report-span-12">
-                <IhutCoreReportView report={report.ihut_core} />
-              </div>
-            </div>
-          ) : null}
-
           <div className="report-row report-row--7-5">
             <div className="report-span-7">
-              <DeckVerdict envelope={envelope} notes={notesFor(sectionNotes, 1)} />
+              <DeckVerdict
+                envelope={envelope}
+                notes={notesFor(sectionNotes, 1)}
+              />
             </div>
             <div className="report-span-5">
-              <DeckDrivers drivers={report.choice_drivers} notes={notesFor(sectionNotes, 2)} />
+              <DeckDrivers
+                drivers={report.choice_drivers}
+                notes={notesFor(sectionNotes, 2)}
+              />
             </div>
           </div>
 
@@ -1185,16 +1330,25 @@ export function ExperiencedReportDeck({
 
           <div className="report-row report-row--2up">
             <div className="report-span-6">
-              <DeckLoyalty data={report.repurchase_intent} notes={notesFor(sectionNotes, 5)} />
+              <DeckLoyalty
+                data={report.repurchase_intent}
+                notes={notesFor(sectionNotes, 5)}
+              />
             </div>
             <div className="report-span-6">
-              <DeckRankValidation data={report.rank_validation} notes={notesFor(sectionNotes, 6)} />
+              <DeckRankValidation
+                data={report.rank_validation}
+                notes={notesFor(sectionNotes, 6)}
+              />
             </div>
           </div>
 
           <div className="report-row report-row--full">
             <div className="report-span-12">
-              <DeckLift lift={report.experience_lift_vs_baseline} notes={notesFor(sectionNotes, 7)} />
+              <DeckLift
+                lift={report.experience_lift_vs_baseline}
+                notes={notesFor(sectionNotes, 7)}
+              />
             </div>
           </div>
 

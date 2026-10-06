@@ -46,6 +46,16 @@ export type ConceptTestVerdict = {
   }
 }
 
+export type ConceptWhatMattersItem = {
+  value: string
+  label: string
+  utility: number | null
+  std_error: number | null
+  rank: number | null
+  times_best: number | null
+  times_worst: number | null
+}
+
 export type ConceptTestReport = {
   flow: string
   sample: {
@@ -69,7 +79,10 @@ export type ConceptTestReport = {
   what_matters: {
     note?: string
     detail?: string
-    items: unknown[]
+    n_respondents?: number
+    method?: string
+    fallback_reason?: string
+    items: ConceptWhatMattersItem[]
   } | null
   stated_vs_chosen: {
     n_rankings: number
@@ -129,7 +142,9 @@ export function isConceptTestReportPayload(payload: unknown): boolean {
   return false
 }
 
-export function parseConceptTestReport(payload: unknown): ConceptTestReport | null {
+export function parseConceptTestReport(
+  payload: unknown,
+): ConceptTestReport | null {
   const r = asRecord(payload)
   if (!r || !Array.isArray(r.verdict)) return null
 
@@ -160,7 +175,10 @@ export function parseConceptTestReport(payload: unknown): ConceptTestReport | nu
       return {
         ref: num(v.ref),
         name: str(v.name),
-        overall: str(v.overall, 'too_close_to_call') as ConceptTestVerdictResult,
+        overall: str(
+          v.overall,
+          'too_close_to_call',
+        ) as ConceptTestVerdictResult,
         head_to_head: {
           lo: num(h2h.lo),
           hi: num(h2h.hi),
@@ -171,9 +189,7 @@ export function parseConceptTestReport(payload: unknown): ConceptTestReport | nu
           losses: num(h2h.losses),
           neither: num(h2h.neither),
           win_share: num(h2h.win_share),
-          n_respondents: num(
-            h2h.n_respondents ?? h2h.n_decisive
-          ),
+          n_respondents: num(h2h.n_respondents ?? h2h.n_decisive),
           basis: typeof h2h.basis === 'string' ? h2h.basis : undefined,
           n_decisive:
             typeof h2h.n_decisive === 'number' ? h2h.n_decisive : undefined,
@@ -185,7 +201,8 @@ export function parseConceptTestReport(payload: unknown): ConceptTestReport | nu
           result: str(liking.result) as ConceptTestVerdictResult,
           dough_default: num(liking.dough_default),
           mode: str(liking.mode),
-          n_paired: typeof liking.n_paired === 'number' ? liking.n_paired : undefined,
+          n_paired:
+            typeof liking.n_paired === 'number' ? liking.n_paired : undefined,
           difference_top_two:
             typeof liking.difference_top_two === 'number'
               ? liking.difference_top_two
@@ -241,17 +258,47 @@ export function parseConceptTestReport(payload: unknown): ConceptTestReport | nu
       ? {
           note: str(asRecord(r.what_matters)!.note) || undefined,
           detail: str(asRecord(r.what_matters)!.detail) || undefined,
+          n_respondents:
+            typeof asRecord(r.what_matters)!.n_respondents === 'number'
+              ? num(asRecord(r.what_matters)!.n_respondents)
+              : undefined,
+          method: str(asRecord(r.what_matters)!.method) || undefined,
+          fallback_reason:
+            str(asRecord(r.what_matters)!.fallback_reason) || undefined,
           items: Array.isArray(asRecord(r.what_matters)!.items)
-            ? (asRecord(r.what_matters)!.items as unknown[])
+            ? (asRecord(r.what_matters)!.items as unknown[]).map((item) => {
+                const x = asRecord(item) ?? {}
+                return {
+                  value: str(x.value),
+                  label: str(x.label, str(x.value)),
+                  utility:
+                    typeof x.utility === 'number' ? num(x.utility) : null,
+                  std_error:
+                    typeof x.std_error === 'number' ? num(x.std_error) : null,
+                  rank: typeof x.rank === 'number' ? num(x.rank) : null,
+                  times_best:
+                    typeof x.times_best === 'number' ? num(x.times_best) : null,
+                  times_worst:
+                    typeof x.times_worst === 'number'
+                      ? num(x.times_worst)
+                      : null,
+                }
+              })
             : [],
         }
       : null,
     stated_vs_chosen: asRecord(r.stated_vs_chosen)
       ? {
           n_rankings: num(asRecord(r.stated_vs_chosen)!.n_rankings),
-          top_pick_agreement: num(asRecord(r.stated_vs_chosen)!.top_pick_agreement),
-          mean_pair_agreement: num(asRecord(r.stated_vs_chosen)!.mean_pair_agreement),
-          n_top_pick_comparable: num(asRecord(r.stated_vs_chosen)!.n_top_pick_comparable),
+          top_pick_agreement: num(
+            asRecord(r.stated_vs_chosen)!.top_pick_agreement,
+          ),
+          mean_pair_agreement: num(
+            asRecord(r.stated_vs_chosen)!.mean_pair_agreement,
+          ),
+          n_top_pick_comparable: num(
+            asRecord(r.stated_vs_chosen)!.n_top_pick_comparable,
+          ),
         }
       : null,
     price: Array.isArray(r.price)
@@ -275,8 +322,13 @@ export function parseConceptTestReport(payload: unknown): ConceptTestReport | nu
                   })
                 : undefined,
               rejection_rate:
-                typeof report.rejection_rate === 'number' ? report.rejection_rate : undefined,
-              n_answers: typeof report.n_answers === 'number' ? report.n_answers : undefined,
+                typeof report.rejection_rate === 'number'
+                  ? report.rejection_rate
+                  : undefined,
+              n_answers:
+                typeof report.n_answers === 'number'
+                  ? report.n_answers
+                  : undefined,
               presentation_rule: str(report.presentation_rule) || undefined,
               below_reporting_floor: report.below_reporting_floor === true,
             },
@@ -307,7 +359,9 @@ export function parseConceptTestReport(payload: unknown): ConceptTestReport | nu
                 const x = asRecord(a) ?? {}
                 return {
                   text: str(x.text),
-                  first_look: asRecord(x.first_look) as Record<string, string> | undefined,
+                  first_look: asRecord(x.first_look) as
+                    | Record<string, string>
+                    | undefined,
                 }
               })
             : [],
@@ -316,4 +370,25 @@ export function parseConceptTestReport(payload: unknown): ConceptTestReport | nu
       : null,
     method: asRecord(r.method) as Record<string, string> | null,
   }
+}
+
+/**
+ * The production RPC wraps CONCEPT_CORE_V1 under `concept_test`; previews and
+ * older snapshots may expose it directly or under `report` / `data`.
+ */
+export function parseConceptTestEnvelope(
+  payload: unknown,
+): ConceptTestReport | null {
+  const outer = asRecord(payload)
+  const candidates = [payload, outer?.concept_test, outer?.report, outer?.data]
+  for (const candidate of candidates) {
+    if (isConceptTestReportPayload(candidate)) {
+      return parseConceptTestReport(candidate)
+    }
+    const nested = asRecord(candidate)
+    if (isConceptTestReportPayload(nested?.concept_test)) {
+      return parseConceptTestReport(nested?.concept_test)
+    }
+  }
+  return null
 }

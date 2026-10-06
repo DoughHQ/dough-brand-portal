@@ -15,9 +15,13 @@ export default function MarketingWorkspaceReportPage() {
   return (
     <>
       <div className="mw-banner">
-        Simulated concept report — real portal renderer, fixture data. Not a client study.
+        Simulated concept report — real portal renderer, fixture data. Not a
+        client study.
       </div>
-      <ConceptTestReportDeck report={report} backHref="/marketing/workspace/home" />
+      <ConceptTestReportDeck
+        report={report}
+        backHref="/marketing/workspace/home"
+      />
     </>
   )
 }
