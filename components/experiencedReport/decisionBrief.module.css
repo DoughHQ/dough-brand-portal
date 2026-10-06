@@ -761,11 +761,11 @@
 }
 
 .h2hVerdict .h2hCallout {
-  padding: 22px 24px;
+  padding: 16px 18px;
 }
 
 .h2hVerdict .h2hCallout strong {
-  font-size: clamp(24px, 3vw, 30px);
+  font-size: 18px;
 }
 
 .tableToggle {
