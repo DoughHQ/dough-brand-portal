@@ -22,3 +22,9 @@ export {
   participationLine,
   STRIP_CONFIDENCE_NOTE,
 } from './executiveSummary'
+export { deriveDecisionStory } from './decisionStory'
+export type {
+  DecisionStory,
+  DecisionClaim,
+  DecisionChapterId,
+} from './decisionStory'

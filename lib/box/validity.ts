@@ -278,7 +278,7 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
   if (!tasteOnly && !priced && seats.length >= 2) {
     softOutstanding.push({
       message:
-        'Incomplete pricing disables price checks. Add a positive price on every seat to enable them.',
+        'Incomplete pricing · price checks off. Add a positive shelf price on every packaged seat to enable tested-offer intent and the buy-at-price decision bar.',
       anchor: BOX_ANCHORS.field,
     })
   }

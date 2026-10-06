@@ -72,6 +72,62 @@ function catalogSeatFromPick(
   }
 }
 
+function ShelfPriceInput({
+  value,
+  onChange,
+}: {
+  value: number | null
+  onChange: (price: number | null) => void
+}) {
+  return (
+    <label style={{ fontSize: 12, color: 'var(--ink-50)' }}>
+      Shelf price{' '}
+      <input
+        type="number"
+        min={0}
+        step="0.01"
+        inputMode="decimal"
+        placeholder="e.g. 3.49"
+        value={value ?? ''}
+        onChange={(e) => {
+          const raw = e.target.value.trim()
+          if (!raw) {
+            onChange(null)
+            return
+          }
+          const n = Number(raw)
+          onChange(Number.isFinite(n) && n > 0 ? n : null)
+        }}
+        style={{
+          marginLeft: 6,
+          width: 96,
+          fontSize: 13,
+          padding: '4px 8px',
+          border: '1px solid var(--ink-10)',
+          borderRadius: 6,
+        }}
+      />
+      <span style={{ display: 'block', marginTop: 4, color: 'var(--ink-40)' }}>
+        Required on every packaged seat to enable tested-offer price checks.
+      </span>
+    </label>
+  )
+}
+
+function priceReadinessLabel(draft: BoxStudyDraft): string | null {
+  const seats = draft.fieldProducts.filter(isResolvedBoxSeat)
+  if (seats.length < 2) return null
+  if (seats.some((r) => r.packaging === 'plain_sample')) {
+    return 'Taste-only box — price checks off'
+  }
+  const priced = seats.every(
+    (r) => typeof r.price === 'number' && Number.isFinite(r.price) && r.price > 0
+  )
+  return priced
+    ? 'All seats priced · price checks on'
+    : 'Incomplete pricing · price checks off'
+}
+
 export default function ContentsSection({
   draft,
   onChange,
@@ -373,6 +429,24 @@ export default function ContentsSection({
         product, your prototype, or a competitor — then mark who is Yours.
       </p>
 
+      {priceReadinessLabel(draft) ? (
+        <p
+          role="status"
+          style={{
+            margin: '0 0 16px',
+            padding: '8px 12px',
+            borderRadius: 'var(--r-sm)',
+            border: '1px solid var(--ink-10)',
+            background: 'var(--surface-1)',
+            fontSize: 12,
+            color: 'var(--ink-70)',
+            maxWidth: 640,
+          }}
+        >
+          {priceReadinessLabel(draft)}
+        </p>
+      ) : null}
+
       {isEmpty && !composer ? (
         <div
           style={{
@@ -661,37 +735,16 @@ export default function ContentsSection({
                             <option value="plain_sample">Plain sample</option>
                           </select>
                         </label>
-                        <label style={{ fontSize: 12, color: 'var(--ink-50)' }}>
-                          Shelf price (optional){' '}
-                          <input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            inputMode="decimal"
-                            placeholder="e.g. 3.49"
-                            value={r.price ?? ''}
-                            onChange={(e) => {
-                              const raw = e.target.value.trim()
-                              if (!raw) {
-                                patchRow(r.localId, { ...r, price: null })
-                                return
-                              }
-                              const n = Number(raw)
-                              patchRow(r.localId, {
-                                ...r,
-                                price: Number.isFinite(n) && n > 0 ? n : null,
-                              })
-                            }}
-                            style={{
-                              marginLeft: 6,
-                              width: 96,
-                              fontSize: 13,
-                              padding: '4px 8px',
-                              border: '1px solid var(--ink-10)',
-                              borderRadius: 6,
-                            }}
+                        {r.packaging === 'plain_sample' ? (
+                          <p style={{ margin: 0, fontSize: 12, color: 'var(--ink-50)' }}>
+                            Plain samples run taste-only — shelf price checks are skipped for the whole box.
+                          </p>
+                        ) : (
+                          <ShelfPriceInput
+                            value={r.price}
+                            onChange={(price) => patchRow(r.localId, { ...r, price })}
                           />
-                        </label>
+                        )}
                       </div>
                     ) : awaitingConfirm && r.upc ? (
                       <div style={{ marginTop: 12 }}>
@@ -720,7 +773,7 @@ export default function ContentsSection({
                         />
                       </div>
                     ) : r.product_id != null ? (
-                      <div style={{ marginTop: 12 }}>
+                      <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
                         <BoxUpcField
                           row={r}
                           onSelectUpc={(upc) =>
@@ -742,6 +795,10 @@ export default function ContentsSection({
                             onChange={(next) => patchRow(r.localId, next)}
                           />
                         ) : null}
+                        <ShelfPriceInput
+                          value={r.price}
+                          onChange={(price) => patchRow(r.localId, { ...r, price })}
+                        />
                       </div>
                     ) : null}
                   </div>

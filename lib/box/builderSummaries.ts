@@ -50,9 +50,20 @@ export function summarizeBoxContents(draft: BoxStudyDraft): string {
   }
 
   const battles = uniquePairs(n)
+  const seats = resolvedSeats(draft)
+  const tasteOnly = seats.some((r) => r.packaging === 'plain_sample')
+  const priced = seats.every(
+    (r) => typeof r.price === 'number' && Number.isFinite(r.price) && r.price > 0
+  )
+  const priceNote = tasteOnly
+    ? 'taste-only'
+    : priced
+      ? 'prices ready'
+      : 'prices incomplete'
   return [
     plural(n, 'seat', 'seats'),
     plural(battles, 'matchup', 'matchups'),
+    priceNote,
   ].join(' · ')
 }
 
@@ -112,12 +123,23 @@ export function summarizeBoxLogistics(draft: BoxStudyDraft): string {
 
 /** Sticky dock when the box can publish. */
 export function summarizeBoxDockReady(draft: BoxStudyDraft): string {
-  const n = resolvedSeats(draft).length
+  const seats = resolvedSeats(draft)
+  const n = seats.length
   const battles = uniquePairs(n)
   const inventory = ihutInventoryPlan(draft.targetCompletions)
+  const tasteOnly = seats.some((r) => r.packaging === 'plain_sample')
+  const priced = seats.every(
+    (r) => typeof r.price === 'number' && Number.isFinite(r.price) && r.price > 0
+  )
+  const priceNote = tasteOnly
+    ? 'taste-only'
+    : priced
+      ? 'prices ready'
+      : 'prices incomplete'
   return [
     `${n} in box`,
     plural(battles, 'matchup', 'matchups'),
+    priceNote,
     inventory
       ? plural(inventory.targetCompletions, 'completion', 'completions')
       : 'Set completions',

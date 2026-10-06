@@ -57,7 +57,17 @@ describe('box builderSummaries', () => {
         row(3, 'C'),
       ],
     }
-    expect(summarizeBoxContents(draft)).toBe('3 seats · 3 matchups')
+    expect(summarizeBoxContents(draft)).toBe(
+      '3 seats · 3 matchups · prices incomplete'
+    )
+
+    const priced = {
+      ...draft,
+      fieldProducts: draft.fieldProducts.map((r) => ({ ...r, price: 3.49 })),
+    }
+    expect(summarizeBoxContents(priced)).toBe(
+      '3 seats · 3 matchups · prices ready'
+    )
   })
 
   it('summarizes the locked Dough method', () => {
@@ -106,7 +116,14 @@ describe('box builderSummaries', () => {
       '50 completions · 55 boxes prepared · Runs until full'
     )
     expect(summarizeBoxDockReady(draft)).toBe(
-      '2 in box · 1 matchup · 50 completions · Prepare 55 boxes'
+      '2 in box · 1 matchup · prices incomplete · 50 completions · Prepare 55 boxes'
+    )
+    const pricedDock = {
+      ...draft,
+      fieldProducts: draft.fieldProducts.map((r) => ({ ...r, price: 2.99 })),
+    }
+    expect(summarizeBoxDockReady(pricedDock)).toBe(
+      '2 in box · 1 matchup · prices ready · 50 completions · Prepare 55 boxes'
     )
   })
 })

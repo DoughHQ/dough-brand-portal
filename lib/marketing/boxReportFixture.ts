@@ -312,10 +312,168 @@ const MARKETING_BOX_REPORT_RAW = {
         { ref: 12, name: 'Northveil Lemon', n: 64, top_two_share: 0.58 },
       ],
       price_check: [
-        { ref: 1, name: 'Keel Lemon Water', n: 64, yes_share: 0.61 },
-        { ref: 11, name: 'Rivermark Citrus Still', n: 64, yes_share: 0.66 },
-        { ref: 12, name: 'Northveil Lemon', n: 64, yes_share: 0.63 },
+        {
+          ref: 1,
+          name: 'Keel Lemon Water',
+          n: 64,
+          yes_share: 0.61,
+          maybe_share: 0.22,
+          no_share: 0.17,
+          lo: 0.49,
+          hi: 0.72,
+          tested_price_dollars: 3.49,
+          reportable: true,
+          decision_ready: true,
+        },
+        {
+          ref: 11,
+          name: 'Rivermark Citrus Still',
+          n: 64,
+          yes_share: 0.66,
+          maybe_share: 0.2,
+          no_share: 0.14,
+          lo: 0.54,
+          hi: 0.76,
+          tested_price_dollars: 2.99,
+          reportable: true,
+          decision_ready: true,
+        },
+        {
+          ref: 12,
+          name: 'Northveil Lemon',
+          n: 64,
+          yes_share: 0.63,
+          maybe_share: 0.21,
+          no_share: 0.16,
+          lo: 0.51,
+          hi: 0.74,
+          tested_price_dollars: 3.29,
+          reportable: true,
+          decision_ready: true,
+        },
       ],
+      price_intent: {
+        analysis_version: 'IHUT_PRICE_V2',
+        label: 'tested_offer_intent',
+        interpretation:
+          "Stated willingness to buy at each product's frozen shelf price after tasting. Not demand, elasticity, conversion, or an optimal price.",
+        price_check_enabled: true,
+        descriptive_floor: 10,
+        decision_floor: 30,
+        tested_prices: [
+          {
+            ref: 1,
+            name: 'Keel Lemon Water',
+            is_yours: true,
+            price_dollars: 3.49,
+          },
+          {
+            ref: 11,
+            name: 'Rivermark Citrus Still',
+            is_yours: false,
+            price_dollars: 2.99,
+          },
+          {
+            ref: 12,
+            name: 'Northveil Lemon',
+            is_yours: false,
+            price_dollars: 3.29,
+          },
+        ],
+        day1: [
+          {
+            ref: 1,
+            name: 'Keel Lemon Water',
+            n: 64,
+            yes_share: 0.61,
+            maybe_share: 0.22,
+            no_share: 0.17,
+            yes_n: 39,
+            maybe_n: 14,
+            no_n: 11,
+            lo: 0.49,
+            hi: 0.72,
+            tested_price_dollars: 3.49,
+            reportable: true,
+            decision_ready: true,
+          },
+          {
+            ref: 11,
+            name: 'Rivermark Citrus Still',
+            n: 64,
+            yes_share: 0.66,
+            maybe_share: 0.2,
+            no_share: 0.14,
+            lo: 0.54,
+            hi: 0.76,
+            tested_price_dollars: 2.99,
+            reportable: true,
+            decision_ready: true,
+          },
+          {
+            ref: 12,
+            name: 'Northveil Lemon',
+            n: 64,
+            yes_share: 0.63,
+            maybe_share: 0.21,
+            no_share: 0.16,
+            lo: 0.51,
+            hi: 0.74,
+            tested_price_dollars: 3.29,
+            reportable: true,
+            decision_ready: true,
+          },
+        ],
+        day2: [
+          {
+            ref: 1,
+            name: 'Keel Lemon Water',
+            n: 44,
+            yes_share: 0.55,
+            maybe_share: 0.25,
+            no_share: 0.2,
+            lo: 0.4,
+            hi: 0.69,
+            tested_price_dollars: 3.49,
+            reportable: true,
+            decision_ready: true,
+          },
+        ],
+        day1_to_day2: [
+          {
+            ref: 1,
+            name: 'Keel Lemon Water',
+            n_paired: 40,
+            improved_share: 0.1,
+            worsened_share: 0.18,
+            stable_share: 0.72,
+            reportable: true,
+            matrix: {
+              yes_yes: 18,
+              yes_maybe: 4,
+              yes_no: 2,
+              maybe_yes: 3,
+              maybe_maybe: 7,
+              maybe_no: 2,
+              no_yes: 1,
+              no_maybe: 1,
+              no_no: 2,
+            },
+          },
+        ],
+        value_leakage: [
+          {
+            ref: 1,
+            name: 'Keel Lemon Water',
+            n_first: 33,
+            n_first_but_no_at_price: 7,
+            share: 0.212,
+            reportable: true,
+          },
+        ],
+      },
+      price_check_enabled: true,
+      analysis_version: 'REPORT_V2',
       attribute_penalties: [
         {
           ref: 1,
@@ -387,6 +545,21 @@ const MARKETING_BOX_REPORT_RAW = {
           { answer: 'Felt the same', n: 24 },
           { answer: 'Wore off', n: 6 },
         ],
+        price_check: [
+          {
+            ref: 1,
+            name: 'Keel Lemon Water',
+            n: 44,
+            yes_share: 0.55,
+            maybe_share: 0.25,
+            no_share: 0.2,
+            lo: 0.4,
+            hi: 0.69,
+            tested_price_dollars: 3.49,
+            reportable: true,
+            decision_ready: true,
+          },
+        ],
       },
     },
     methodology: {
@@ -398,4 +571,44 @@ const MARKETING_BOX_REPORT_RAW = {
 
 export function marketingBoxReportEnvelope(): ExperiencedReportEnvelope | null {
   return parseExperiencedEnvelope(MARKETING_BOX_REPORT_RAW, 'marketing-box-1')
+}
+
+/** Thin IHUT evidence: price checks off, no Day 2 price, small field. */
+export function marketingBoxReportThinEnvelope(): ExperiencedReportEnvelope | null {
+  const rich = structuredClone(MARKETING_BOX_REPORT_RAW) as Record<string, unknown>
+  const report = rich.report as Record<string, unknown>
+  const core = report.ihut_core as Record<string, unknown>
+  core.price_check_enabled = false
+  core.price_check = []
+  core.price_intent = {
+    analysis_version: 'IHUT_PRICE_V2',
+    label: 'tested_offer_intent',
+    interpretation:
+      "Stated willingness to buy at each product's frozen shelf price after tasting. Not demand, elasticity, conversion, or an optimal price.",
+    price_check_enabled: false,
+    descriptive_floor: 10,
+    decision_floor: 30,
+    tested_prices: [],
+    day1: [],
+    day2: [],
+    day1_to_day2: [],
+    value_leakage: [],
+  }
+  core.day2 = {
+    preference_hold: { n: 0, same_favorite_share: null },
+    consumption: [],
+    wear: [],
+    price_check: [],
+  }
+  const verdict = core.verdict as Record<string, unknown>
+  verdict.buy_at_price = {
+    share: null,
+    n: 0,
+    lo: null,
+    hi: null,
+    bar: null,
+    result: 'not_tested',
+  }
+  verdict.overall = 'cleared'
+  return parseExperiencedEnvelope(rich, 'marketing-box-thin')
 }

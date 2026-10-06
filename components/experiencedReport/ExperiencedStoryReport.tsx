@@ -14,6 +14,7 @@ import {
   pickTopDriver,
 } from "@/lib/experiencedReport/executiveSummary";
 import { deriveExperiencedNarrative } from "@/lib/experiencedReport/experiencedNarrative";
+import { deriveDecisionStory } from "@/lib/experiencedReport/decisionStory";
 import type {
   AttributeImportance,
   DriverRow,
@@ -21,6 +22,7 @@ import type {
   OpponentRow,
   RepurchaseSessionMetric,
 } from "@/lib/experiencedReport/types";
+import { PriceValueChapter } from "./DecisionChapters";
 import viz from "./experiencedStory.module.css";
 
 type Props = {
@@ -557,6 +559,7 @@ export function ExperiencedStoryReport({
 }: Props) {
   const { report } = envelope;
   const narrative = deriveExperiencedNarrative(envelope);
+  const decisionStory = deriveDecisionStory(envelope);
   const summary = deriveExecutiveSummary(envelope);
   const snapshot = formatDate(envelope.snapshot_date ?? envelope.computed_at);
   const opponents = report.per_opponent ?? [];
@@ -628,18 +631,20 @@ export function ExperiencedStoryReport({
         {variant === "full" ? (
           <StoryIndex
             links={[
-              { href: "#preference", label: "01 · Preference" },
-              { href: "#field", label: "02 · Against the field" },
-              { href: "#why", label: "03 · Why" },
-              { href: "#durability", label: "04 · Durability" },
+              { href: "#decision", label: "01 · Decision" },
+              { href: "#field", label: "02 · Field" },
+              { href: "#diagnosis", label: "03 · Diagnosis" },
+              { href: "#price", label: "04 · Price & value" },
+              { href: "#durability", label: "05 · Durability" },
+              { href: "#trust", label: "06 · Trust" },
             ]}
           />
         ) : null}
 
         <StoryChapter
-          id="preference"
+          id="decision"
           number="01"
-          kicker="The preference signal"
+          kicker="What happened?"
           title={narrative.headline}
           lead="The chart shows the point estimate, its likely range, and the 50% even-split reference. The interval—not the most flattering number—sets the strength of the claim."
           context={
@@ -694,7 +699,7 @@ export function ExperiencedStoryReport({
             <StoryChapter
               id="field"
               number="02"
-              kicker="Against the field"
+              kicker="Against whom?"
               title={fieldTitle}
               lead={`Each row is ${narrative.productName} against one named competitor. Intervals remain separate; the report never averages unlike comparison slices.`}
               context={`${reportableOpponents.length} reportable comparison${
@@ -716,9 +721,9 @@ export function ExperiencedStoryReport({
             </StoryChapter>
 
             <StoryChapter
-              id="why"
+              id="diagnosis"
               number="03"
-              kicker="Why people chose"
+              kicker="Why?"
               title={driverTitle}
               lead="Reasons are reported as citation shares within each outcome. They explain what respondents said—not what would causally increase sales."
               context="Choice reasons · category priorities"
@@ -748,10 +753,12 @@ export function ExperiencedStoryReport({
               </div>
             </StoryChapter>
 
+            <PriceValueChapter story={decisionStory} />
+
             <StoryChapter
               id="durability"
-              number="04"
-              kicker="Would it last?"
+              number="05"
+              kicker="Did it hold?"
               title={repurchaseTitle}
               lead="Intent is shown by session so a later response cannot be collapsed into the first read. These are stated answers, not observed repeat sales."
               context={`${sessions.length} reportable session${
@@ -815,10 +822,10 @@ export function ExperiencedStoryReport({
 
             <StoryChapter
               id="trust"
-              number="05"
-              kicker="Trust the read"
+              number="06"
+              kicker="How much should I trust it?"
               title={rankTitle(envelope)}
-              lead="Reliability, ranking consistency, and evidence composition show how much weight this result can reasonably carry."
+              lead="Reliability, ranking consistency, and evidence composition show how much weight this result can reasonably carry. Price appears only as a cited reason when tested-offer intent was not measured."
               context="Evidence quality"
             >
               <div className={viz.visualGrid}>
@@ -925,10 +932,10 @@ export function ExperiencedStoryReport({
 
             <StoryChapter
               id="method"
-              number="06"
+              number="06b"
               kicker="Method appendix"
               title="What this report can—and cannot—say."
-              lead="Methods sit last, but every visual above keeps its denominator, uncertainty, and scope intact."
+              lead="Methods sit last, but every visual above keeps its denominator, uncertainty, and scope intact. Legacy studies never invent a tested shelf price."
               context="Transparent by design"
             >
               <div className={story.methods}>
