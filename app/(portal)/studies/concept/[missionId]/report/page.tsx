@@ -6,7 +6,7 @@ import { fetchConceptMissionReport } from '@/lib/conceptReport/fetchReport'
 import type { ConceptReportErrorCode } from '@/lib/conceptReport/types'
 import { ConceptTestReportDeck } from '@/components/conceptReport/ConceptTestReportDeck'
 import {
-  isConceptTestReportPayload,
+  parseConceptTestEnvelope,
   parseConceptTestReport,
 } from '@/lib/conceptReport/conceptTestTypes'
 import conceptTestFixture from '../../../../../../concept-core-fixtures/report_concept_test.json'
@@ -38,7 +38,11 @@ function StateCard({
     >
       <Link
         href={backHref}
-        style={{ fontSize: 12, color: 'var(--ink-faint)', textDecoration: 'none' }}
+        style={{
+          fontSize: 12,
+          color: 'var(--ink-faint)',
+          textDecoration: 'none',
+        }}
       >
         ← Back to studies
       </Link>
@@ -53,12 +57,24 @@ function StateCard({
       >
         {title}
       </h1>
-      <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--ink-muted)', margin: 0 }}>{body}</p>
+      <p
+        style={{
+          fontSize: 14,
+          lineHeight: 1.55,
+          color: 'var(--ink-muted)',
+          margin: 0,
+        }}
+      >
+        {body}
+      </p>
     </div>
   )
 }
 
-function messageForCode(code: ConceptReportErrorCode): { title: string; body: string } {
+function messageForCode(code: ConceptReportErrorCode): {
+  title: string
+  body: string
+} {
   switch (code) {
     case 'NO_REPORT_YET':
       return {
@@ -86,26 +102,18 @@ function messageForCode(code: ConceptReportErrorCode): { title: string; body: st
 
 async function tryParseConceptTest(
   supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
-  missionId: string
+  missionId: string,
 ) {
   const { data } = await supabase.rpc('get_concept_mission_report', {
     p_mission_id: missionId,
   })
-  if (isConceptTestReportPayload(data)) {
-    return parseConceptTestReport(data)
-  }
-  const envelope =
-    data && typeof data === 'object' && !Array.isArray(data)
-      ? (data as Record<string, unknown>)
-      : null
-  const inner = envelope?.report ?? envelope?.data ?? data
-  if (isConceptTestReportPayload(inner)) {
-    return parseConceptTestReport(inner)
-  }
-  return null
+  return parseConceptTestEnvelope(data)
 }
 
-export default async function ConceptStudyReportPage({ params, searchParams }: Props) {
+export default async function ConceptStudyReportPage({
+  params,
+  searchParams,
+}: Props) {
   const { missionId } = await params
   const sp = await searchParams
   const backHref = '/studies'
@@ -113,7 +121,10 @@ export default async function ConceptStudyReportPage({ params, searchParams }: P
   const scope = await getPortalBrandScope()
   if (!scope) redirect('/login')
 
-  if (sp.preview === 'sample' || (sp.preview === 'core' && scope.portalUser.role === 'dough_admin')) {
+  if (
+    sp.preview === 'sample' ||
+    (sp.preview === 'core' && scope.portalUser.role === 'dough_admin')
+  ) {
     const parsed = parseConceptTestReport(conceptTestFixture)
     if (parsed) {
       return (
@@ -129,7 +140,8 @@ export default async function ConceptStudyReportPage({ params, searchParams }: P
               padding: '8px 12px',
             }}
           >
-            Preview fixture — not a live report. These numbers are an example of the format.
+            Preview fixture — not a live report. These numbers are an example of
+            the format.
           </div>
           <ConceptTestReportDeck report={parsed} backHref={backHref} />
         </>

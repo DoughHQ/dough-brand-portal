@@ -12,11 +12,9 @@ export default function MarketingWorkspaceBoxReportPage() {
   }
 
   return (
-    <>
-      <div className="mw-banner">
-        Simulated box report — real portal renderer, fixture data. Not a client study.
-      </div>
-      <ExperiencedReportDeck envelope={envelope} backHref="/marketing/workspace/home" />
-    </>
+    <ExperiencedReportDeck
+      envelope={envelope}
+      backHref="/marketing/workspace/home"
+    />
   )
 }

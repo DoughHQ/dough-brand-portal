@@ -13,15 +13,10 @@ export default function MarketingWorkspaceBoxPreviewPage() {
   }
 
   return (
-    <>
-      <div className="mw-banner">
-        Simulated box report preview — preference after use and buy-again. Not a client study.
-      </div>
-      <ExperiencedReportDeck
-        envelope={envelope}
-        backHref="/marketing/workspace/home"
-        variant="preview"
-      />
-    </>
+    <ExperiencedReportDeck
+      envelope={envelope}
+      backHref="/marketing/workspace/home"
+      variant="preview"
+    />
   )
 }
