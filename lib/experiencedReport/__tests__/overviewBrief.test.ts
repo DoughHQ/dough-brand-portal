@@ -170,6 +170,12 @@ describe('deriveOverviewBrief — Organic Garlic', () => {
     )
     expect(overview.interpretation).toMatch(/taste/)
     expect(overview.interpretation).toMatch(/price/)
+    expect(overview.proofTitle).toMatch(/soft spot|cleared even/i)
+    expect(overview.whyTitle).toMatch(/Taste is the win condition/i)
+    expect(overview.supports.length).toBeGreaterThan(0)
+    expect(overview.doesNotSupport.some((c) => /price/i.test(c.text))).toBe(
+      true,
+    )
   })
 })
 
@@ -190,7 +196,9 @@ describe('Overview Bottom Line SSR', () => {
     expect(html).toContain('Price not tested')
     expect(html).toContain('51%')
     expect(html).toContain('See the proof')
-    expect(html).toContain('Performance')
+    expect(html).toContain('What this supports')
+    expect(html).toContain('What this does not support')
+    expect(html).toContain('Win condition')
     expect(html).toContain('Not reportable yet')
     expect(html).not.toMatch(/list at \$|optimal list price/i)
   })

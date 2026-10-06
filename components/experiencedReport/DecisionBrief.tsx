@@ -1,4 +1,6 @@
-import type { CSSProperties, ReactNode } from 'react'
+'use client'
+
+import { useId, useState, type CSSProperties, type ReactNode } from 'react'
 import type { OverviewBrief } from '@/lib/experiencedReport/overviewBrief'
 import { pct01 } from '@/lib/experiencedReport/fieldBrief'
 import type {
@@ -81,10 +83,72 @@ export function PreferenceIntervalBar({
   )
 }
 
-/**
- * The permanent Bottom Line layer — first viewport answers the decision.
- * ANSWER → three proof tiles → price caveat. Screenshot-ready for email.
- */
+function FieldProofStrip({
+  field,
+  productName,
+}: {
+  field: FieldBrief
+  productName: string
+}) {
+  if (!field.rows.length) {
+    return (
+      <div className={styles.fieldStripEmpty}>
+        Named head-to-heads appear here once each comparison clears its floor.
+      </div>
+    )
+  }
+
+  const maxShare = Math.max(...field.rows.map((row) => row.winShare), 0.01)
+
+  return (
+    <div
+      className={styles.fieldStrip}
+      role="list"
+      aria-label={`${productName} against named competitors`}
+    >
+      <div className={styles.fieldStripHead}>
+        <span>Against the field</span>
+        <span>
+          {field.rows.filter((r) => r.call === 'win').length} of {field.fieldSize}{' '}
+          ahead of even
+        </span>
+      </div>
+      {field.rows.map((row) => {
+        const isBest = field.beatMost?.key === row.key
+        const isWorst = field.beatLeast?.key === row.key && !isBest
+        const width = `${Math.max(8, (row.winShare / maxShare) * 100)}%`
+        return (
+          <div
+            className={`${styles.fieldStripRow} ${h2hCallClass(row.call)} ${
+              isBest ? styles.fieldStripBest : ''
+            } ${isWorst ? styles.fieldStripWorst : ''}`}
+            key={row.key}
+            role="listitem"
+          >
+            <div className={styles.fieldStripMeta}>
+              <strong>{row.opponentName}</strong>
+              <span>
+                {isBest ? 'Strongest' : isWorst ? 'Soft spot' : row.call === 'win' ? 'Ahead' : row.call === 'loss' ? 'Behind' : 'Close'}
+                {row.nWins != null && row.nLosses != null
+                  ? ` · ${row.nWins}–${row.nLosses}`
+                  : ''}
+              </span>
+            </div>
+            <div className={styles.fieldStripBarTrack} aria-hidden="true">
+              <span
+                className={styles.fieldStripBar}
+                style={{ width } as CSSProperties}
+              />
+              <span className={styles.fieldStripEven} />
+            </div>
+            <div className={styles.fieldStripValue}>{pct01(row.winShare)}</div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function emphasizeShare(text: string, shareLabel: string): ReactNode {
   if (!shareLabel || shareLabel === '—' || !text.includes(shareLabel)) {
     return text
@@ -102,6 +166,10 @@ function emphasizeShare(text: string, shareLabel: string): ReactNode {
   )
 }
 
+/**
+ * The permanent Bottom Line layer — first viewport answers the decision.
+ * ANSWER → field proof → why/intent spine → supports / does not.
+ */
 export function OverviewBottomLine({
   overview,
   eyebrow,
@@ -111,6 +179,9 @@ export function OverviewBottomLine({
   eyebrow: string
   metadata: string[]
 }) {
+  const fieldTile = overview.tiles.find((t) => t.id === 'field')
+  const priceMuted = overview.price.status !== 'tested'
+
   return (
     <header className={styles.brief} id="overview">
       <div className={styles.briefEyebrowRow}>
@@ -136,44 +207,106 @@ export function OverviewBottomLine({
           </a>
         </div>
 
-        <div className={styles.heroMetric}>
-          <div className={styles.heroNumber}>{overview.preferencePct}</div>
-          <div className={styles.heroLabel}>chosen after use</div>
-          <PreferenceIntervalBar
-            brief={overview.preference}
-            productName={overview.productName}
-          />
-          <div className={styles.heroFacts}>
-            <div>
-              <strong>{overview.rangeLabel}</strong>
-              <span>Likely range</span>
-            </div>
-            <div>
-              <strong>
-                {overview.nDecisiveLabel.replace(/ decisive choices/, '')}
-              </strong>
-              <span>Decisive choices</span>
-            </div>
-            <div>
-              <strong>{overview.confidence.replace(/ confidence/i, '')}</strong>
-              <span>Interval width</span>
+        <div className={styles.heroStack}>
+          <div className={styles.heroMetric}>
+            <div className={styles.heroNumber}>{overview.preferencePct}</div>
+            <div className={styles.heroLabel}>chosen after use</div>
+            <PreferenceIntervalBar
+              brief={overview.preference}
+              productName={overview.productName}
+            />
+            <div className={styles.heroFacts}>
+              <div>
+                <strong>{overview.rangeLabel}</strong>
+                <span>Likely range</span>
+              </div>
+              <div>
+                <strong>
+                  {overview.nDecisiveLabel.replace(/ decisive choices/, '')}
+                </strong>
+                <span>Decisive choices</span>
+              </div>
+              <div>
+                <strong>
+                  {overview.confidence.replace(/ confidence/i, '')}
+                </strong>
+                <span>Interval width</span>
+              </div>
             </div>
           </div>
+          <FieldProofStrip
+            field={overview.field}
+            productName={overview.productName}
+          />
         </div>
       </div>
 
-      <div className={styles.answerGrid}>
-        {overview.tiles.map((tile) => (
-          <a
-            key={tile.id}
-            href={tile.href}
-            className={`${styles.answerTile} ${tile.muted ? styles.answerMuted : ''}`}
-          >
-            <span className={styles.answerLabel}>{tile.label}</span>
-            <strong className={styles.answerValue}>{tile.value}</strong>
-            <span className={styles.answerDetail}>{tile.detail}</span>
-          </a>
-        ))}
+      <div className={styles.decisionSpine}>
+        <a href="#why" className={styles.spineWhy}>
+          <span className={styles.answerLabel}>Why it wins</span>
+          <div className={styles.spineWhyPair}>
+            <div>
+              <em>Win condition</em>
+              <strong>{overview.whyDriver ?? '—'}</strong>
+            </div>
+            <div className={styles.spineWhyDivider} aria-hidden="true" />
+            <div>
+              <em>Headwind</em>
+              <strong>
+                {overview.whyHeadwind
+                  ? overview.whyHeadwind.replace(/^./, (c) => c.toUpperCase())
+                  : '—'}
+              </strong>
+            </div>
+          </div>
+          <span className={styles.answerDetail}>
+            {overview.tiles.find((t) => t.id === 'why')?.detail}
+          </span>
+        </a>
+
+        <a href="#intent" className={styles.spineIntent}>
+          <span className={styles.answerLabel}>Would they buy again?</span>
+          <strong className={styles.answerValue}>{overview.intentValue}</strong>
+          <span className={styles.answerDetail}>{overview.intentDetail}</span>
+        </a>
+
+        <a
+          href="#price"
+          className={`${styles.spinePrice} ${priceMuted ? styles.answerMuted : ''}`}
+        >
+          <span className={styles.answerLabel}>Price</span>
+          <strong className={styles.answerValue}>
+            {overview.price.priceLabel ?? overview.price.title}
+          </strong>
+          <span className={styles.answerDetail}>{overview.price.detail}</span>
+        </a>
+      </div>
+
+      {fieldTile ? (
+        <p className={styles.fieldSummary}>
+          <span className={styles.answerLabel}>Against the field</span>
+          <strong>{fieldTile.value}</strong>
+          <span>{fieldTile.detail}</span>
+        </p>
+      ) : null}
+
+      <div className={styles.supportsGrid}>
+        <div className={styles.supportsCol}>
+          <p className={styles.supportsLabel}>What this supports</p>
+          <ul>
+            {overview.supports.map((claim) => (
+              <li key={claim.id}>{claim.text}</li>
+            ))}
+          </ul>
+        </div>
+        <div className={`${styles.supportsCol} ${styles.supportsMuted}`}>
+          <p className={styles.supportsLabel}>What this does not support</p>
+          <ul>
+            {overview.doesNotSupport.map((claim) => (
+              <li key={claim.id}>{claim.text}</li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       <div className={styles.metaRow}>
@@ -224,6 +357,9 @@ export function HeadToHeadForest({
   productName: string
   favoredLabel?: string
 }) {
+  const tableId = useId()
+  const [showTable, setShowTable] = useState(false)
+
   if (!field.rows.length) {
     return (
       <div className={styles.emptyNote}>
@@ -238,9 +374,7 @@ export function HeadToHeadForest({
 
   return (
     <div className={styles.h2h}>
-      {favoredLabel ? <p className={styles.h2hLead}>{favoredLabel}</p> : null}
-
-      <div className={styles.h2hCallouts}>
+      <div className={styles.h2hVerdict}>
         {field.beatMost ? (
           <div className={`${styles.h2hCallout} ${styles.h2hWin}`}>
             <span className={styles.h2hCalloutLabel}>Beat most</span>
@@ -250,12 +384,15 @@ export function HeadToHeadForest({
               {field.beatMost.nWins != null && field.beatMost.nDecisive != null
                 ? ` · ${field.beatMost.nWins} of ${field.beatMost.nDecisive}`
                 : ''}
+              {field.beatMost.nWins != null && field.beatMost.nLosses != null
+                ? ` · W–L ${field.beatMost.nWins}–${field.beatMost.nLosses}`
+                : ''}
             </span>
           </div>
         ) : null}
         {field.beatLeast ? (
           <div className={`${styles.h2hCallout} ${styles.h2hLoss}`}>
-            <span className={styles.h2hCalloutLabel}>Beat least</span>
+            <span className={styles.h2hCalloutLabel}>Soft spot</span>
             <strong>{field.beatLeast.opponentName}</strong>
             <span>
               {pct01(field.beatLeast.winShare)}
@@ -263,10 +400,15 @@ export function HeadToHeadForest({
               field.beatLeast.nDecisive != null
                 ? ` · ${field.beatLeast.nWins} of ${field.beatLeast.nDecisive}`
                 : ''}
+              {field.beatLeast.nWins != null && field.beatLeast.nLosses != null
+                ? ` · W–L ${field.beatLeast.nWins}–${field.beatLeast.nLosses}`
+                : ''}
             </span>
           </div>
         ) : null}
       </div>
+
+      {favoredLabel ? <p className={styles.h2hLead}>{favoredLabel}</p> : null}
 
       <div
         className={styles.forest}
@@ -287,15 +429,20 @@ export function HeadToHeadForest({
               key={row.key}
             >
               <div className={styles.forestName}>
-                <strong>{row.opponentName}</strong>
+                <strong>
+                  {row.call === 'win' ? 'Beat' : row.call === 'loss' ? 'Behind' : 'Even with'}{' '}
+                  {row.opponentName}
+                </strong>
                 <span>
                   {isBest ? 'Strongest · ' : ''}
-                  {isWorst && !isBest ? 'Weakest · ' : ''}
-                  {row.call === 'win'
-                    ? 'Ahead of even'
-                    : row.call === 'loss'
-                      ? 'Behind even'
-                      : 'Crosses even'}
+                  {isWorst && !isBest ? 'Soft spot · ' : ''}
+                  {row.nWins != null && row.nLosses != null
+                    ? `${row.nWins}–${row.nLosses}`
+                    : row.call === 'win'
+                      ? 'Ahead of even'
+                      : row.call === 'loss'
+                        ? 'Behind even'
+                        : 'Crosses even'}
                 </span>
               </div>
               <div className={styles.forestTrack}>
@@ -322,57 +469,71 @@ export function HeadToHeadForest({
         </div>
       </div>
 
-      <div className={styles.tableWrap}>
-        <table className={styles.h2hTable}>
-          <caption className={styles.srOnly}>
-            Aggregate head-to-head results for {productName}
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Opponent</th>
-              <th scope="col">Result</th>
-              <th scope="col">Win%</th>
-              <th scope="col">Interval</th>
-              <th scope="col">W–L</th>
-              <th scope="col">n</th>
-            </tr>
-          </thead>
-          <tbody>
-            {field.rows.map((row) => (
-              <tr key={`t-${row.key}`} className={h2hCallClass(row.call)}>
-                <th scope="row">
-                  {row.opponentName}
-                  {row.opponentBrand ? (
-                    <span className={styles.brandMuted}>
-                      {' '}
-                      · {row.opponentBrand}
-                    </span>
-                  ) : null}
-                </th>
-                <td>
-                  {row.call === 'win'
-                    ? 'Win'
-                    : row.call === 'loss'
-                      ? 'Loss'
-                      : 'Too close'}
-                </td>
-                <td>{pct01(row.winShare)}</td>
-                <td>
-                  {row.lo != null && row.hi != null
-                    ? `${pct01(row.lo)}–${pct01(row.hi)}`
-                    : '—'}
-                </td>
-                <td>
-                  {row.nWins != null && row.nLosses != null
-                    ? `${row.nWins}–${row.nLosses}`
-                    : '—'}
-                </td>
-                <td>{row.nDecisive ?? '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className={styles.tableToggle}>
+        <button
+          type="button"
+          className={styles.tableToggleBtn}
+          aria-expanded={showTable}
+          aria-controls={tableId}
+          onClick={() => setShowTable((v) => !v)}
+        >
+          {showTable ? 'Hide full table' : 'Show full W–L table'}
+        </button>
       </div>
+
+      {showTable ? (
+        <div className={styles.tableWrap} id={tableId}>
+          <table className={styles.h2hTable}>
+            <caption className={styles.srOnly}>
+              Aggregate head-to-head results for {productName}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Opponent</th>
+                <th scope="col">Result</th>
+                <th scope="col">Win%</th>
+                <th scope="col">Interval</th>
+                <th scope="col">W–L</th>
+                <th scope="col">n</th>
+              </tr>
+            </thead>
+            <tbody>
+              {field.rows.map((row) => (
+                <tr key={`t-${row.key}`} className={h2hCallClass(row.call)}>
+                  <th scope="row">
+                    {row.opponentName}
+                    {row.opponentBrand ? (
+                      <span className={styles.brandMuted}>
+                        {' '}
+                        · {row.opponentBrand}
+                      </span>
+                    ) : null}
+                  </th>
+                  <td>
+                    {row.call === 'win'
+                      ? 'Win'
+                      : row.call === 'loss'
+                        ? 'Loss'
+                        : 'Too close'}
+                  </td>
+                  <td>{pct01(row.winShare)}</td>
+                  <td>
+                    {row.lo != null && row.hi != null
+                      ? `${pct01(row.lo)}–${pct01(row.hi)}`
+                      : '—'}
+                  </td>
+                  <td>
+                    {row.nWins != null && row.nLosses != null
+                      ? `${row.nWins}–${row.nLosses}`
+                      : '—'}
+                  </td>
+                  <td>{row.nDecisive ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
     </div>
   )
 }
