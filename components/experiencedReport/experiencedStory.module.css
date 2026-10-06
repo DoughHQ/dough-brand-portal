@@ -1,0 +1,676 @@
+.visualGrid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 30px;
+}
+
+.span7 {
+  grid-column: span 7;
+}
+
+.span5 {
+  grid-column: span 5;
+}
+
+.span6 {
+  grid-column: span 6;
+}
+
+.span12 {
+  grid-column: 1 / -1;
+}
+
+.vizCard {
+  overflow: hidden;
+  border: 1px solid rgba(28, 38, 32, 0.11);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: clamp(20px, 3vw, 30px);
+}
+
+.vizCardDark {
+  background: var(--sage-dark);
+  color: #f8f5ed;
+}
+
+.cardKicker {
+  margin: 0 0 8px;
+  color: var(--ink-faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.vizCardDark .cardKicker {
+  color: rgba(248, 245, 237, 0.52);
+}
+
+.cardTitle {
+  margin: 0;
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.vizCardDark .cardTitle {
+  color: #f8f5ed;
+}
+
+.cardCopy {
+  margin: 8px 0 0;
+  color: var(--ink-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.vizCardDark .cardCopy {
+  color: rgba(248, 245, 237, 0.64);
+}
+
+.preferenceLayout {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.85fr) minmax(0, 1.15fr);
+  gap: 22px;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.preferenceDial {
+  width: 100%;
+  max-width: 390px;
+  overflow: visible;
+}
+
+.dialRail {
+  fill: none;
+  stroke: rgba(248, 245, 237, 0.12);
+  stroke-linecap: round;
+  stroke-width: 18;
+}
+
+.dialInterval {
+  fill: none;
+  stroke: rgba(209, 226, 213, 0.32);
+  stroke-linecap: round;
+  stroke-width: 28;
+}
+
+.dialValue {
+  fill: none;
+  stroke: #dbe9dd;
+  stroke-linecap: round;
+  stroke-width: 18;
+}
+
+.dialMidline {
+  stroke: rgba(248, 245, 237, 0.55);
+  stroke-width: 1.5;
+}
+
+.dialPoint {
+  fill: #f8f5ed;
+  stroke: var(--sage-dark);
+  stroke-width: 3;
+}
+
+.dialText {
+  fill: #f8f5ed;
+  font-family: var(--font-display);
+  font-size: 54px;
+  text-anchor: middle;
+}
+
+.dialSubtext {
+  fill: rgba(248, 245, 237, 0.58);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-anchor: middle;
+  text-transform: uppercase;
+}
+
+.preferenceFacts {
+  display: grid;
+  gap: 12px;
+}
+
+.fact {
+  padding: 15px 0;
+  border-top: 1px solid rgba(248, 245, 237, 0.14);
+}
+
+.fact:first-child {
+  border-top: 0;
+}
+
+.fact strong {
+  display: block;
+  color: #f8f5ed;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.fact span {
+  display: block;
+  margin-top: 5px;
+  color: rgba(248, 245, 237, 0.55);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.comparisonChart,
+.driverChart,
+.attributeChart {
+  margin-top: 24px;
+}
+
+.comparisonRow {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.7fr) minmax(240px, 1.3fr) 62px;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 0;
+  border-top: 1px solid rgba(28, 38, 32, 0.08);
+}
+
+.comparisonRow:first-child {
+  border-top: 0;
+}
+
+.comparisonName {
+  min-width: 0;
+}
+
+.comparisonName strong,
+.comparisonName span {
+  display: block;
+}
+
+.comparisonName strong {
+  overflow: hidden;
+  color: var(--ink-80);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comparisonName span {
+  margin-top: 3px;
+  color: var(--ink-faint);
+  font-size: 10px;
+}
+
+.comparisonValue {
+  color: var(--ink-80);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-align: right;
+}
+
+.rangeTrack {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      to right,
+      transparent calc(50% - 0.5px),
+      rgba(28, 38, 32, 0.34) calc(50% - 0.5px),
+      rgba(28, 38, 32, 0.34) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    ),
+    var(--mist);
+}
+
+.rangeBand {
+  position: absolute;
+  top: 2px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(62, 107, 74, 0.3);
+}
+
+.rangePoint {
+  position: absolute;
+  top: -2px;
+  width: 3px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--sage-dark);
+  transform: translateX(-1.5px);
+}
+
+.axis {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.7fr) minmax(240px, 1.3fr) 62px;
+  gap: 16px;
+  margin-top: 2px;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.axisScale {
+  display: flex;
+  justify-content: space-between;
+  grid-column: 2;
+}
+
+.driverLegend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 20px 0 4px 150px;
+  color: var(--ink-faint);
+  font-size: 10px;
+}
+
+.driverLegend span:first-child {
+  color: var(--clay);
+  text-align: right;
+}
+
+.driverLegend span:last-child {
+  color: var(--sage);
+}
+
+.driverRow {
+  display: grid;
+  grid-template-columns: 134px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.driverLabel {
+  overflow: hidden;
+  color: var(--ink-80);
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.divergingTrack {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  min-width: 0;
+}
+
+.negativeHalf,
+.positiveHalf {
+  position: relative;
+  height: 22px;
+  background: rgba(28, 38, 32, 0.045);
+}
+
+.negativeHalf {
+  border-radius: 5px 0 0 5px;
+}
+
+.positiveHalf {
+  border-radius: 0 5px 5px 0;
+}
+
+.negativeBar,
+.positiveBar {
+  position: absolute;
+  top: 3px;
+  height: 16px;
+  min-width: 0;
+}
+
+.negativeBar {
+  right: 0;
+  border-radius: 4px 0 0 4px;
+  background: var(--clay);
+}
+
+.positiveBar {
+  left: 0;
+  border-radius: 0 4px 4px 0;
+  background: var(--sage);
+}
+
+.barNumberLeft,
+.barNumberRight {
+  position: absolute;
+  top: 50%;
+  color: var(--ink-80);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+.barNumberLeft {
+  right: calc(100% + 6px);
+}
+
+.barNumberRight {
+  left: calc(100% + 6px);
+}
+
+.attributeRow {
+  display: grid;
+  grid-template-columns: 134px minmax(0, 1fr) 52px;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.attributeName {
+  overflow: hidden;
+  color: var(--ink-80);
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attributeTrack {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  height: 18px;
+}
+
+.attributeTrack::after {
+  position: absolute;
+  inset: -3px auto -3px 50%;
+  width: 1px;
+  background: rgba(28, 38, 32, 0.3);
+  content: '';
+}
+
+.attributeNegative,
+.attributePositive {
+  position: relative;
+  background: rgba(28, 38, 32, 0.045);
+}
+
+.attributeFillNegative,
+.attributeFillPositive {
+  position: absolute;
+  top: 3px;
+  height: 12px;
+}
+
+.attributeFillNegative {
+  right: 0;
+  border-radius: 4px 0 0 4px;
+  background: var(--clay);
+}
+
+.attributeFillPositive {
+  left: 0;
+  border-radius: 0 4px 4px 0;
+  background: var(--sage);
+}
+
+.attributeValue {
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-align: right;
+}
+
+.attributeAxis {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 68px 0 150px;
+  color: var(--ink-faint);
+  font-size: 9px;
+}
+
+.buyChart {
+  width: 100%;
+  height: auto;
+  margin-top: 18px;
+  overflow: visible;
+}
+
+.chartGrid {
+  stroke: rgba(28, 38, 32, 0.1);
+  stroke-width: 1;
+}
+
+.chartAxisText {
+  fill: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.definiteBar {
+  fill: var(--sage);
+}
+
+.maybeBar {
+  fill: rgba(62, 107, 74, 0.32);
+}
+
+.noBar {
+  fill: rgba(166, 84, 60, 0.72);
+}
+
+.lineDefinite,
+.lineMaybe {
+  fill: none;
+  stroke: var(--sage);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.lineMaybe {
+  stroke: rgba(62, 107, 74, 0.4);
+}
+
+.linePoint {
+  fill: var(--paper);
+  stroke: var(--sage);
+  stroke-width: 2;
+}
+
+.chartLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 14px;
+  color: var(--ink-muted);
+  font-size: 10px;
+}
+
+.chartLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendDefinite,
+.legendMaybe,
+.legendNo {
+  width: 16px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--sage);
+}
+
+.legendMaybe {
+  background: rgba(62, 107, 74, 0.32);
+}
+
+.legendNo {
+  background: rgba(166, 84, 60, 0.72);
+}
+
+.numberGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.numberCard {
+  border-top: 1px solid rgba(28, 38, 32, 0.13);
+  padding-top: 14px;
+}
+
+.numberCard strong {
+  display: block;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 400;
+}
+
+.numberCard span {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink-muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.ringLayout {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+  margin-top: 24px;
+}
+
+.ring {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--sage) var(--ring-value),
+    var(--mist) var(--ring-value)
+  );
+}
+
+.ring::after {
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  background: var(--paper);
+  content: '';
+}
+
+.ringValue {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 31px;
+}
+
+.ringCopy strong {
+  display: block;
+  color: var(--ink-80);
+  font-size: 13px;
+}
+
+.ringCopy p {
+  margin: 7px 0 0;
+  color: var(--ink-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.emptyVisual {
+  display: grid;
+  min-height: 180px;
+  margin-top: 20px;
+  place-items: center;
+  border: 1px dashed rgba(28, 38, 32, 0.16);
+  border-radius: 10px;
+  color: var(--ink-muted);
+  padding: 24px;
+  text-align: center;
+}
+
+.emptyVisual strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink-80);
+}
+
+@media (max-width: 900px) {
+  .span7,
+  .span5,
+  .span6 {
+    grid-column: 1 / -1;
+  }
+
+  .preferenceLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .preferenceDial {
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .comparisonRow {
+    grid-template-columns: 1fr 56px;
+    gap: 8px 12px;
+  }
+
+  .comparisonName {
+    grid-column: 1;
+  }
+
+  .rangeTrack {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .comparisonValue {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .axis {
+    display: none;
+  }
+
+  .driverLegend {
+    margin-left: 0;
+  }
+
+  .driverRow,
+  .attributeRow {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .attributeValue {
+    text-align: left;
+  }
+
+  .attributeAxis {
+    margin: 8px 0 0;
+  }
+
+  .numberGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ringLayout {
+    grid-template-columns: 1fr;
+  }
+}

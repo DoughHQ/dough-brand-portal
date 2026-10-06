@@ -41,7 +41,7 @@ describe('parseExperiencedEnvelope — honest-empty / thin study', () => {
         is_simulated: false,
         focal_product_id: 42,
       },
-      'fallback-id'
+      'fallback-id',
     )
 
     expect(envelope).not.toBeNull()
@@ -71,8 +71,8 @@ describe('parseExperiencedEnvelope — honest-empty / thin study', () => {
           status: 'ok',
           report: { ...THIN_REPORT, focal_product: { product_id: 1 } },
         },
-        'm1'
-      )
+        'm1',
+      ),
     ).toBeNull()
   })
 
@@ -83,32 +83,25 @@ describe('parseExperiencedEnvelope — honest-empty / thin study', () => {
         report: THIN_REPORT,
         mission_id: 'fa4fb97f-4e3f-44e7-8c99-cf553202e1f4',
       },
-      'fa4fb97f-4e3f-44e7-8c99-cf553202e1f4'
+      'fa4fb97f-4e3f-44e7-8c99-cf553202e1f4',
     )
     expect(envelope).not.toBeNull()
     const html = renderToString(
-      createElement(ExperiencedReportDeck, { envelope: envelope! })
+      createElement(ExperiencedReportDeck, { envelope: envelope! }),
     )
     expect(html).not.toContain("Couldn't load report")
     expect(html).toContain('Best Garlic')
     expect(html).toContain('Acme')
-    expect(html).toContain('1 person who’s had it')
-    expect(html).toContain('1 session')
-    expect(html).toContain('exec-strip--thin')
-    expect(html).not.toContain('Chosen')
-    expect(html).not.toContain("Couldn't load report")
-    expect(html).toContain('Not enough responses yet to report this')
-    expect(html).toContain('Against the shelf')
-    expect(html).toContain('Would they buy again')
-    expect(html).toContain('Did preference move')
-    expect(html).toContain('What matters in the category')
-    expect(html).toContain('Why they chose')
-    expect(html).toContain('Does the ranking hold up')
-    expect(html).toContain('Methodology &amp; exclusions')
-    expect(html).toContain('report-span-6')
-    expect(html).toContain('report-span-5')
-    expect((html.match(/Not enough responses yet to report this/g) ?? []).length).toBeGreaterThan(3)
-    expect(html).not.toContain('Chose Best Garlic')
+    expect(html).toContain('1 participant')
+    expect(html).toContain('still forming')
+    expect(html).toContain('Missing evidence is not replaced')
+    expect(html).toContain('Preference is below the reporting floor')
+    expect(html).toContain('The named competitive field is not reportable yet')
+    expect(html).toContain('The reasons behind choice are still forming')
+    expect(html).toContain('Buy-again intent is not reportable yet')
+    expect(html).toContain('Ranking consistency is not reportable yet')
+    expect(html).toContain('What this report can—and cannot—say')
+    expect(html).not.toContain('Chosen Best Garlic')
   })
 })
 
@@ -120,7 +113,11 @@ describe('ExperiencedReportDeck — dense 2-up occupancy', () => {
         is_simulated: true,
         report: {
           ...THIN_REPORT,
-          focal_product: { name: 'Organic Garlic Powder', brand: 'Acme', product_id: 42 },
+          focal_product: {
+            name: 'Organic Garlic Powder',
+            brand: 'Acme',
+            product_id: 42,
+          },
           headline_win_rate: [
             {
               reportable: true,
@@ -169,9 +166,19 @@ describe('ExperiencedReportDeck — dense 2-up occupancy', () => {
           },
           repurchase_intent: {
             by_session: [
-              { session_number: 1, metric: 'definite_yes', rate: 0.4, reportable: true },
+              {
+                session_number: 1,
+                metric: 'definite_yes',
+                rate: 0.4,
+                reportable: true,
+              },
               { session_number: 1, metric: 'no', rate: 0.2, reportable: true },
-              { session_number: 1, metric: 'top_two_box', rate: 0.6, reportable: true },
+              {
+                session_number: 1,
+                metric: 'top_two_box',
+                rate: 0.6,
+                reportable: true,
+              },
             ],
           },
           experience_lift_vs_baseline: {
@@ -180,41 +187,28 @@ describe('ExperiencedReportDeck — dense 2-up occupancy', () => {
           },
         },
       },
-      '0b26e1e8-aef3-422f-bf4b-b20902e349d1'
+      '0b26e1e8-aef3-422f-bf4b-b20902e349d1',
     )
     expect(envelope).not.toBeNull()
     const html = renderToString(
-      createElement(ExperiencedReportDeck, { envelope: envelope! })
+      createElement(ExperiencedReportDeck, { envelope: envelope! }),
     )
 
     expect(html).toContain('Organic Garlic Powder')
-    expect(html).toContain('report-span-6')
-    expect(html).toContain('What matters in the category')
-    expect(html).toContain('Did preference move')
-    expect(html).toContain('Not enough responses yet to report this')
-    const strongest = html.match(/the strongest claim/g) ?? []
-    expect(strongest.length).toBeLessThanOrEqual(2)
-    expect(html).not.toContain('forced choices in this slice')
+    expect(html).toContain('too close to call')
+    expect(html).toContain('Against the field')
+    expect(html).toContain('Preference movement')
+    expect(html).toContain('Preference ranged from 55% to 70%')
     expect(html).toContain('Rival A')
     expect(html).toContain('Rival B')
-    expect(html).toContain('When they chose you')
-    expect(html).toContain('Chosen 62 of 100 times')
+    expect(html).toContain('Taste led choice')
+    expect(html).toContain('Price was the leading headwind')
     expect(html).toContain('40% would definitely buy again')
     expect(html).toContain('Taste')
-    expect(html).toContain('share-bar--own')
-    expect(html).toContain('share-bar--against')
     expect(html).toContain('Price')
-    expect(html).toContain('exec-tiles')
-    expect(html).toContain('exec-tile--own')
-    expect(html).toContain('exec-tile--against')
-    expect(html).toContain('bipolar-track')
-    expect(html).toContain('Objectionable')
-    expect(html).toContain('Compelling')
-    expect(html).toContain('loyalty-numeral--own')
-    expect(html).toContain('loyalty-numeral--against')
-    expect(html).toContain('loyalty-numeral--neutral')
-    expect(html).toContain('lift-numeral--own')
-    expect(html).toContain('Does the ranking hold up')
+    expect(html).toContain('Compelling versus objectionable')
+    expect(html).toContain('Buy-again intent')
+    expect(html).toContain('What this report can—and cannot—say')
+    expect(html).toContain('role="img"')
   })
 })
-
