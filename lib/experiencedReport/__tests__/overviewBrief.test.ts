@@ -1,13 +1,8 @@
-import { describe, expect, it } from 'vitest'
 import { createElement } from 'react'
 import { renderToString } from 'react-dom/server'
-import {
-  deriveFieldBrief,
-  derivePreferenceBrief,
-  derivePriceBriefTile,
-} from '../fieldBrief'
-import { deriveDecisionStory } from '../decisionStory'
+import { describe, expect, it } from 'vitest'
 import { ExperiencedStoryReport } from '@/components/experiencedReport/ExperiencedStoryReport'
+import { deriveOverviewBrief } from '../overviewBrief'
 import type { ExperiencedReportEnvelope } from '../types'
 
 function garlicEnvelope(): ExperiencedReportEnvelope {
@@ -68,8 +63,8 @@ function garlicEnvelope(): ExperiencedReportEnvelope {
           opponent_brand: 'Badia',
           reportable: true,
           value: 0.58,
-          ci_low: 0.49,
-          ci_high: 0.67,
+          ci_low: 0.51,
+          ci_high: 0.65,
           n_decisive: 110,
           n_wins: 64,
           experience_split: 'experienced_vs_experienced',
@@ -80,11 +75,11 @@ function garlicEnvelope(): ExperiencedReportEnvelope {
           opponent_name: 'Spice Islands Garlic',
           opponent_brand: 'Spice Islands',
           reportable: true,
-          value: 0.52,
-          ci_low: 0.43,
-          ci_high: 0.61,
+          value: 0.56,
+          ci_low: 0.48,
+          ci_high: 0.64,
           n_decisive: 100,
-          n_wins: 52,
+          n_wins: 56,
           experience_split: 'experienced_vs_experienced',
           withheld_reason: null,
         },
@@ -117,61 +112,86 @@ function garlicEnvelope(): ExperiencedReportEnvelope {
       },
       rank_validation: null,
       attribute_importance: null,
-      repurchase_intent: null,
+      repurchase_intent: {
+        by_session: [
+          {
+            session_number: 1,
+            metric: 'definite_yes',
+            rate: 0.51,
+            reportable: true,
+            value: 0.51,
+            ci_low: null,
+            ci_high: null,
+            withheld_reason: null,
+          },
+          {
+            session_number: 1,
+            metric: 'top_two_box',
+            rate: 0.79,
+            reportable: true,
+            value: 0.79,
+            ci_low: null,
+            ci_high: null,
+            withheld_reason: null,
+          },
+          {
+            session_number: 1,
+            metric: 'no',
+            rate: 0.21,
+            reportable: true,
+            value: 0.21,
+            ci_low: null,
+            ci_high: null,
+            withheld_reason: null,
+          },
+        ],
+      },
       experience_lift_vs_baseline: null,
       ihut_core: null,
     },
   }
 }
 
-describe('fieldBrief', () => {
-  it('marks Garlic ahead and surfaces beat most / least with W–L', () => {
-    const envelope = garlicEnvelope()
-    const preference = derivePreferenceBrief({
-      share: 0.62,
-      lo: 0.57,
-      hi: 0.67,
-      nDecisive: 400,
-      direction: 'more',
-    })
-    expect(preference.call).toBe('ahead')
-    expect(preference.callLabel).toBe('Ahead in field')
-
-    const field = deriveFieldBrief(envelope.report.per_opponent)
-    expect(field.beatMost?.opponentName).toBe('McCormick Garlic Powder')
-    expect(field.beatMost?.nWins).toBe(85)
-    expect(field.beatLeast?.opponentName).toBe('Spice Islands Garlic')
-    expect(field.beatLeast?.nWins).toBe(52)
-    expect(field.rows[0]?.call).toBe('win')
-  })
-
-  it('keeps price as not measured for legacy Garlic', () => {
-    const story = deriveDecisionStory(garlicEnvelope())
-    const price = derivePriceBriefTile(story)
-    expect(price.status).toBe('not_measured')
-    expect(price.priceLabel).toBeNull()
-    expect(price.detail).toMatch(/Cited against the product 40%/)
+describe('deriveOverviewBrief — Organic Garlic', () => {
+  it('answers the four brand questions from existing data', () => {
+    const overview = deriveOverviewBrief(garlicEnvelope())
+    expect(overview.bottomLine).toBe(
+      'Organic Garlic Powder won the choice test.',
+    )
+    expect(overview.call).toBe('ahead')
+    expect(overview.preferencePct).toBe('62%')
+    expect(overview.tiles.find((t) => t.id === 'field')?.detail).toMatch(
+      /Preferred in/,
+    )
+    expect(overview.tiles.find((t) => t.id === 'why')?.value).toMatch(/Taste/i)
+    expect(overview.tiles.find((t) => t.id === 'intent')?.value).toBe('51%')
+    expect(overview.tiles.find((t) => t.id === 'price')?.value).toBe(
+      'Price not tested',
+    )
+    expect(overview.interpretation).toMatch(/taste/)
+    expect(overview.interpretation).toMatch(/price/)
   })
 })
 
-describe('DecisionBrief visuals — Organic Garlic', () => {
-  it('SSR header answers call, H2H extremes, and price-not-tested', () => {
+describe('Overview Bottom Line SSR', () => {
+  it('puts the decision in the first viewport', () => {
     const html = renderToString(
       createElement(ExperiencedStoryReport, {
         envelope: garlicEnvelope(),
         backHref: '/studies',
       }),
     )
-    expect(html).toContain('Won')
-    expect(html).toContain('won the choice test')
-    expect(html).toContain('Beat most')
-    expect(html).toContain('McCormick Garlic Powder')
-    expect(html).toContain('Beat least')
-    expect(html).toContain('Spice Islands Garlic')
+    expect(html).toContain('The bottom line')
+    expect(html).toContain('Organic Garlic Powder won the choice test.')
+    expect(html).toContain('chosen after use')
+    expect(html).toContain('Against the field')
+    expect(html).toContain('Why it wins')
+    expect(html).toContain('Would they buy again?')
     expect(html).toContain('Price not tested')
-    expect(html).toContain('85–35')
-    expect(html).toContain('W–L')
-    expect(html).toContain('Do not infer')
-    expect(html).not.toMatch(/list at \$|recommended price|optimal list price/i)
+    expect(html).toContain('51%')
+    expect(html).toContain('See the proof')
+    expect(html).toContain('Performance')
+    expect(html).toContain('Not reportable yet')
+    expect(html).not.toMatch(/list at \$|optimal list price/i)
   })
 })

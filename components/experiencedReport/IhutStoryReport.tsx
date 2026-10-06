@@ -18,6 +18,8 @@ import {
   type ScorecardItem,
 } from '@/components/reportStory/ReportStory'
 import styles from '@/components/reportStory/reportStory.module.css'
+import { deriveDecisionStory } from '@/lib/experiencedReport/decisionStory'
+import { deriveOverviewBrief } from '@/lib/experiencedReport/overviewBrief'
 import {
   ClaimStack,
   DataGapNotice,
@@ -25,10 +27,7 @@ import {
   DecisionScorecardChapter,
   PriceValueChapter,
 } from './DecisionChapters'
-import {
-  buildBriefParts,
-  DecisionBriefHeader,
-} from './DecisionBrief'
+import { OverviewBottomLine } from './DecisionBrief'
 
 type Props = {
   envelope: ExperiencedReportEnvelope
@@ -175,27 +174,22 @@ export function IhutStoryReport({
   ].filter((value): value is string => Boolean(value))
 
   if (!narrative) {
-    const formingBrief = buildBriefParts(story, envelope.report.per_opponent, {
-      share: null,
-      lo: null,
-      hi: null,
-      nDecisive: null,
-      direction: null,
-    })
+    const overview = deriveOverviewBrief(envelope)
+    overview.bottomLine = `The verdict on ${productName} is still forming.`
+    overview.explanation =
+      'The study exists, but the decision payload is not ready. This report will not fill the gap with a point estimate or a guess.'
+    overview.interpretation =
+      'Keep this read preliminary and return when the success-bar verdict is available.'
+    overview.call = 'forming'
+    overview.callLabel = 'Still forming'
     return (
       <div className={styles.page}>
         <main className={styles.shell}>
           <ReportToolbar backHref={backHref} />
           {envelope.is_simulated ? <SimulatedBanner /> : null}
-          <DecisionBriefHeader
+          <OverviewBottomLine
+            overview={overview}
             eyebrow="At-home product test · Decision brief"
-            productName={productName}
-            headline={`The verdict on ${productName} is still forming.`}
-            lede="The study exists, but the decision payload is not ready. This report will not fill the gap with a point estimate or a guess."
-            implication="Keep this read preliminary and return when the success-bar verdict is available."
-            preference={formingBrief.preference}
-            field={formingBrief.field}
-            price={formingBrief.price}
             metadata={metadata}
           />
           {variant === 'full' ? <PriceValueChapter story={story} /> : null}
@@ -219,37 +213,22 @@ export function IhutStoryReport({
     fill: metric.value,
     marker: metric.bar,
   }))
-  const tasteMetric = narrative.metrics.find((m) => m.key === 'taste')
-  const brief = buildBriefParts(story, envelope.report.per_opponent, {
-    share: tasteMetric?.value ?? null,
-    lo: tasteMetric?.lo ?? null,
-    hi: tasteMetric?.hi ?? null,
-    nDecisive: tasteMetric?.n ?? null,
-    direction:
-      tasteMetric?.result === 'cleared'
-        ? 'more'
-        : tasteMetric?.result === 'not_cleared'
-          ? 'less'
-          : tasteMetric?.result === 'too_close_to_call'
-            ? 'close'
-            : null,
-  })
-  // Prefer IHUT overall verdict for the call chip when present.
+  const overview = deriveOverviewBrief(envelope)
+  overview.bottomLine = story.headline
+  overview.explanation = story.explanation
+  overview.interpretation = story.implication
   if (narrative.overall === 'cleared') {
-    brief.preference.call = 'ahead'
-    brief.preference.callLabel = 'Cleared decision bars'
+    overview.call = 'ahead'
+    overview.callLabel = 'Cleared'
   } else if (narrative.overall === 'not_cleared') {
-    brief.preference.call = 'behind'
-    brief.preference.callLabel = 'Did not clear'
+    overview.call = 'behind'
+    overview.callLabel = 'Did not clear'
   } else if (narrative.overall === 'too_close_to_call') {
-    brief.preference.call = 'too_close'
-    brief.preference.callLabel = 'Too close to call'
-  } else if (
-    narrative.overall === 'not_enough_responses' ||
-    narrative.overall === 'not_tested'
-  ) {
-    brief.preference.call = 'forming'
-    brief.preference.callLabel = 'Still forming'
+    overview.call = 'too_close'
+    overview.callLabel = 'Too close'
+  } else {
+    overview.call = 'forming'
+    overview.callLabel = 'Still forming'
   }
   const position = positionFinding(report, productName, narrative.productRef)
   const shelfRows = report.promise_vs_delivery?.shelf ?? []
@@ -282,15 +261,9 @@ export function IhutStoryReport({
       <main className={styles.shell}>
         <ReportToolbar backHref={backHref} />
         {envelope.is_simulated ? <SimulatedBanner /> : null}
-        <DecisionBriefHeader
+        <OverviewBottomLine
+          overview={overview}
           eyebrow="At-home product test · Decision brief"
-          productName={productName}
-          headline={story.headline}
-          lede={story.explanation}
-          implication={story.implication}
-          preference={brief.preference}
-          field={brief.field}
-          price={brief.price}
           metadata={metadata}
         />
         {variant === 'full' ? <StoryIndex links={[...DECISION_CHAPTER_LINKS]} /> : null}

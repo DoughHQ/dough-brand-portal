@@ -40,12 +40,13 @@ function claimTone(status: DecisionClaim['status']): ReportTone {
 }
 
 export const DECISION_CHAPTER_LINKS = [
-  { href: '#decision', label: '01 · Decision' },
-  { href: '#field', label: '02 · Field' },
-  { href: '#diagnosis', label: '03 · Diagnosis' },
-  { href: '#price', label: '04 · Price & value' },
-  { href: '#durability', label: '05 · Durability' },
-  { href: '#trust', label: '06 · Trust' },
+  { href: '#overview', label: 'Overview' },
+  { href: '#decision', label: 'Decision' },
+  { href: '#field', label: 'Field' },
+  { href: '#diagnosis', label: 'Why' },
+  { href: '#price', label: 'Price' },
+  { href: '#durability', label: 'Durability' },
+  { href: '#trust', label: 'Trust' },
 ] as const
 
 export function ClaimStack({ claims }: { claims: DecisionClaim[] }) {

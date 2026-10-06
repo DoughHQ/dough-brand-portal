@@ -33,3 +33,4 @@ export {
   derivePreferenceBrief,
   derivePriceBriefTile,
 } from './fieldBrief'
+export { deriveOverviewBrief } from './overviewBrief'

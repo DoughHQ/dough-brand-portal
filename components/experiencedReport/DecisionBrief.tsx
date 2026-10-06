@@ -1,16 +1,11 @@
 import type { CSSProperties, ReactNode } from 'react'
-import type { DecisionStory } from '@/lib/experiencedReport/decisionStory'
-import {
-  deriveFieldBrief,
-  derivePreferenceBrief,
-  derivePriceBriefTile,
-  pct01,
-  type FieldBrief,
-  type HeadToHeadRow,
-  type PreferenceBrief,
-  type PriceBriefTile,
+import type { OverviewBrief } from '@/lib/experiencedReport/overviewBrief'
+import { pct01 } from '@/lib/experiencedReport/fieldBrief'
+import type {
+  FieldBrief,
+  HeadToHeadRow,
+  PreferenceBrief,
 } from '@/lib/experiencedReport/fieldBrief'
-import type { OpponentRow } from '@/lib/experiencedReport/types'
 import styles from './decisionBrief.module.css'
 
 function callClass(call: PreferenceBrief['call']): string {
@@ -40,9 +35,11 @@ function h2hCallClass(call: HeadToHeadRow['call']): string {
 export function PreferenceIntervalBar({
   brief,
   productName,
+  dark = true,
 }: {
   brief: PreferenceBrief
   productName: string
+  dark?: boolean
 }) {
   if (brief.share == null) {
     return (
@@ -60,7 +57,7 @@ export function PreferenceIntervalBar({
 
   return (
     <div
-      className={styles.intervalFigure}
+      className={`${styles.intervalFigure} ${dark ? '' : styles.intervalLight}`}
       role="img"
       aria-label={`${productName} chosen ${pct01(brief.share)}; likely range ${pct01(brief.lo)} to ${pct01(brief.hi)}`}
     >
@@ -77,128 +74,83 @@ export function PreferenceIntervalBar({
       </div>
       <div className={styles.intervalScale} aria-hidden="true">
         <span>0%</span>
-        <span>50% even</span>
+        <span>50% even split</span>
         <span>100%</span>
       </div>
-      <p className={styles.intervalCaption}>
-        Point estimate {pct01(brief.share)}
-        {brief.lo != null && brief.hi != null
-          ? ` · likely range ${pct01(brief.lo)}–${pct01(brief.hi)}`
-          : ''}
-        {brief.nDecisive != null ? ` · n=${brief.nDecisive} decisive` : ''}
-      </p>
     </div>
   )
 }
 
-export function DecisionBriefHeader({
+/**
+ * The permanent Bottom Line layer — first viewport answers the decision.
+ * ANSWER → three proof tiles → price caveat. Screenshot-ready for email.
+ */
+export function OverviewBottomLine({
+  overview,
   eyebrow,
-  productName,
-  headline,
-  lede,
-  implication,
   metadata,
-  preference,
-  field,
-  price,
-  children,
 }: {
+  overview: OverviewBrief
   eyebrow: string
-  productName: string
-  headline: string
-  lede: string
-  implication: string
   metadata: string[]
-  preference: PreferenceBrief
-  field: FieldBrief
-  price: PriceBriefTile
-  children?: ReactNode
 }) {
   return (
-    <header className={styles.brief}>
-      <div className={styles.briefTop}>
-        <div>
-          <p className={styles.eyebrow}>{eyebrow}</p>
-          <div className={`${styles.callChip} ${callClass(preference.call)}`}>
-            {preference.callLabel}
-          </div>
-          <h1 className={styles.headline}>{headline}</h1>
-          <p className={styles.lede}>{lede}</p>
+    <header className={styles.brief} id="overview">
+      <div className={styles.briefEyebrowRow}>
+        <p className={styles.eyebrow}>{eyebrow}</p>
+        <div className={`${styles.callChip} ${callClass(overview.call)}`}>
+          {overview.callLabel}
         </div>
-        <aside className={styles.supportBox}>
-          <span className={styles.supportLabel}>What this supports</span>
-          <p>{implication}</p>
-        </aside>
       </div>
 
-      <div className={styles.kpiGrid}>
-        <article className={styles.kpi}>
-          <span className={styles.kpiLabel}>Preference</span>
-          <strong className={styles.kpiValue}>
-            {pct01(preference.share)}
-          </strong>
-          <span className={styles.kpiHint}>
-            {preference.lo != null && preference.hi != null
-              ? `${pct01(preference.lo)}–${pct01(preference.hi)}`
-              : 'Interval pending'}
-          </span>
-        </article>
-        <article className={styles.kpi}>
-          <span className={styles.kpiLabel}>Beat most</span>
-          <strong className={styles.kpiValue}>
-            {field.beatMost ? pct01(field.beatMost.winShare) : '—'}
-          </strong>
-          <span className={styles.kpiHint}>
-            {field.beatMost
-              ? field.beatMost.opponentName
-              : 'No reportable H2H yet'}
-          </span>
-        </article>
-        <article className={styles.kpi}>
-          <span className={styles.kpiLabel}>Beat least</span>
-          <strong className={styles.kpiValue}>
-            {field.beatLeast ? pct01(field.beatLeast.winShare) : '—'}
-          </strong>
-          <span className={styles.kpiHint}>
-            {field.beatLeast
-              ? field.beatLeast.opponentName
-              : 'No reportable H2H yet'}
-          </span>
-        </article>
-        <article
-          className={`${styles.kpi} ${
-            price.status === 'not_measured' || price.status === 'off'
-              ? styles.kpiMuted
-              : ''
-          }`}
-        >
-          <span className={styles.kpiLabel}>Price</span>
-          <strong className={styles.kpiValue}>
-            {price.priceLabel ?? price.title}
-          </strong>
-          <span className={styles.kpiHint}>{price.detail}</span>
-        </article>
+      <div className={styles.bottomLineGrid}>
+        <div className={styles.bottomLineCopy}>
+          <p className={styles.bottomLineKicker}>The bottom line</p>
+          <h1 className={styles.headline}>{overview.bottomLine}</h1>
+          <p className={styles.lede}>{overview.explanation}</p>
+          <p className={styles.interpretation}>{overview.interpretation}</p>
+          <a href="#performance" className={styles.jumpLink}>
+            See the proof ↓
+          </a>
+        </div>
+
+        <div className={styles.heroMetric}>
+          <div className={styles.heroNumber}>{overview.preferencePct}</div>
+          <div className={styles.heroLabel}>chosen after use</div>
+          <PreferenceIntervalBar
+            brief={overview.preference}
+            productName={overview.productName}
+          />
+          <div className={styles.heroFacts}>
+            <div>
+              <strong>{overview.rangeLabel}</strong>
+              <span>Likely range</span>
+            </div>
+            <div>
+              <strong>{overview.nDecisiveLabel.replace(/ decisive choices/, '')}</strong>
+              <span>Decisive choices</span>
+            </div>
+            <div>
+              <strong>{overview.confidence.replace(/ confidence/i, '')}</strong>
+              <span>Interval width</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <PreferenceIntervalBar brief={preference} productName={productName} />
-
-      {field.beatMost && field.beatLeast && field.fieldSize >= 2 ? (
-        <p className={styles.fieldCallout}>
-          Strongest pairwise win: <strong>{field.beatMost.opponentName}</strong>{' '}
-          ({pct01(field.beatMost.winShare)}
-          {field.beatMost.nWins != null && field.beatMost.nDecisive != null
-            ? ` · ${field.beatMost.nWins}/${field.beatMost.nDecisive}`
-            : ''}
-          ). Weakest: <strong>{field.beatLeast.opponentName}</strong> (
-          {pct01(field.beatLeast.winShare)}
-          {field.beatLeast.nWins != null && field.beatLeast.nDecisive != null
-            ? ` · ${field.beatLeast.nWins}/${field.beatLeast.nDecisive}`
-            : ''}
-          ).
-        </p>
-      ) : null}
-
-      {children}
+      <div className={styles.answerGrid}>
+        {overview.tiles.map((tile) => (
+          <a
+            key={tile.id}
+            href={tile.href}
+            className={`${styles.answerTile} ${tile.muted ? styles.answerMuted : ''}`}
+          >
+            <span className={styles.answerLabel}>{tile.label}</span>
+            <strong className={styles.answerValue}>{tile.value}</strong>
+            <span className={styles.answerDetail}>{tile.detail}</span>
+          </a>
+        ))}
+      </div>
 
       <div className={styles.metaRow}>
         {metadata.map((item) => (
@@ -209,12 +161,42 @@ export function DecisionBriefHeader({
   )
 }
 
+/** @deprecated Prefer OverviewBottomLine — kept for IHUT thin/forming states. */
+export function DecisionBriefHeader({
+  overview,
+  eyebrow,
+  metadata,
+}: {
+  overview: OverviewBrief
+  eyebrow: string
+  metadata: string[]
+  /** unused legacy props accepted for gradual migrate */
+  productName?: string
+  headline?: string
+  lede?: string
+  implication?: string
+  preference?: PreferenceBrief
+  field?: FieldBrief
+  price?: OverviewBrief['price']
+  children?: ReactNode
+}) {
+  return (
+    <OverviewBottomLine
+      overview={overview}
+      eyebrow={eyebrow}
+      metadata={metadata}
+    />
+  )
+}
+
 export function HeadToHeadForest({
   field,
   productName,
+  favoredLabel,
 }: {
   field: FieldBrief
   productName: string
+  favoredLabel?: string
 }) {
   if (!field.rows.length) {
     return (
@@ -222,7 +204,7 @@ export function HeadToHeadForest({
         <strong>No named head-to-head is reportable yet</strong>
         <span>
           Opponent intervals appear when each comparison clears its reporting
-          floor. The report will not invent a 1–5 podium from incomplete pairs.
+          floor. The report will not invent a podium from incomplete pairs.
         </span>
       </div>
     )
@@ -230,6 +212,8 @@ export function HeadToHeadForest({
 
   return (
     <div className={styles.h2h}>
+      {favoredLabel ? <p className={styles.h2hLead}>{favoredLabel}</p> : null}
+
       <div className={styles.h2hCallouts}>
         {field.beatMost ? (
           <div className={`${styles.h2hCallout} ${styles.h2hWin}`}>
@@ -238,7 +222,7 @@ export function HeadToHeadForest({
             <span>
               {pct01(field.beatMost.winShare)}
               {field.beatMost.nWins != null && field.beatMost.nDecisive != null
-                ? ` · ${field.beatMost.nWins} of ${field.beatMost.nDecisive} decisive`
+                ? ` · ${field.beatMost.nWins} of ${field.beatMost.nDecisive}`
                 : ''}
             </span>
           </div>
@@ -251,7 +235,7 @@ export function HeadToHeadForest({
               {pct01(field.beatLeast.winShare)}
               {field.beatLeast.nWins != null &&
               field.beatLeast.nDecisive != null
-                ? ` · ${field.beatLeast.nWins} of ${field.beatLeast.nDecisive} decisive`
+                ? ` · ${field.beatLeast.nWins} of ${field.beatLeast.nDecisive}`
                 : ''}
             </span>
           </div>
@@ -261,7 +245,7 @@ export function HeadToHeadForest({
       <div
         className={styles.forest}
         role="img"
-        aria-label={`${productName} win rate against each named competitor, with intervals`}
+        aria-label={`${productName} win rate against each named competitor`}
       >
         {field.rows.map((row) => {
           const value = row.winShare * 100
@@ -279,13 +263,13 @@ export function HeadToHeadForest({
               <div className={styles.forestName}>
                 <strong>{row.opponentName}</strong>
                 <span>
-                  {isBest ? 'Strongest win · ' : ''}
-                  {isWorst && !isBest ? 'Weakest win · ' : ''}
+                  {isBest ? 'Strongest · ' : ''}
+                  {isWorst && !isBest ? 'Weakest · ' : ''}
                   {row.call === 'win'
-                    ? 'Ahead'
+                    ? 'Ahead of even'
                     : row.call === 'loss'
-                      ? 'Behind'
-                      : 'Too close'}
+                      ? 'Behind even'
+                      : 'Crosses even'}
                 </span>
               </div>
               <div className={styles.forestTrack}>
@@ -305,7 +289,7 @@ export function HeadToHeadForest({
             </div>
           )
         })}
-        <div className={styles.intervalScale} aria-hidden="true">
+        <div className={styles.forestScale} aria-hidden="true">
           <span>0%</span>
           <span>50% even</span>
           <span>100%</span>
@@ -367,20 +351,37 @@ export function HeadToHeadForest({
   )
 }
 
-export function buildBriefParts(
-  story: DecisionStory,
-  opponents: OpponentRow[] | null | undefined,
-  preference: {
-    share: number | null
-    lo: number | null
-    hi: number | null
-    nDecisive: number | null
-    direction: 'more' | 'less' | 'close' | null
-  },
-) {
-  return {
-    preference: derivePreferenceBrief(preference),
-    field: deriveFieldBrief(opponents),
-    price: derivePriceBriefTile(story),
-  }
+export function EvidenceStrip({
+  rankingPct,
+  compositionPct,
+  reliabilityNote,
+}: {
+  rankingPct: string | null
+  compositionPct: string | null
+  reliabilityNote: string
+}) {
+  return (
+    <div className={styles.evidenceStrip}>
+      <div>
+        <span className={styles.evidenceLabel}>Evidence quality</span>
+        <strong className={styles.evidenceTitle}>
+          How much weight this preference signal can carry
+        </strong>
+      </div>
+      <div className={styles.evidenceMetrics}>
+        <div>
+          <strong>{rankingPct ?? '—'}</strong>
+          <span>Ranking validation</span>
+        </div>
+        <div>
+          <strong>{compositionPct ?? '—'}</strong>
+          <span>Evidence composition</span>
+        </div>
+        <div className={styles.evidenceNote}>
+          <span>{reliabilityNote}</span>
+          <a href="#method">See methodology →</a>
+        </div>
+      </div>
+    </div>
+  )
 }

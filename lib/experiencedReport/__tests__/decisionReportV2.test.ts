@@ -57,7 +57,7 @@ describe('Report V2 decision chapters', () => {
         backHref: '/studies',
       }),
     )
-    expect(richHtml).toContain('Price &amp; value')
+    expect(richHtml).toContain('Price')
     expect(richHtml).toContain('tested-offer intent')
     expect(richHtml).toContain('$3.49')
     expect(richHtml).toContain('Value leakage')
@@ -93,7 +93,7 @@ describe('Report V2 decision chapters', () => {
         backHref: '/studies',
       }),
     )
-    expect(html).toContain('Price &amp; value')
+    expect(html).toContain('The bottom line')
     expect(html).toContain('No tested shelf-price intent was measured')
   })
 })
