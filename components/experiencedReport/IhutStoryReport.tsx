@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import type { ExperiencedReportEnvelope } from '@/lib/experiencedReport/types'
 import { deriveDecisionStory } from '@/lib/experiencedReport/decisionStory'
 import {
@@ -10,7 +9,6 @@ import type {
   IhutCoreStrengthRow,
 } from '@/lib/experiencedReport/ihutCoreTypes'
 import {
-  ExecutiveMemo,
   ReportFooter,
   ReportToolbar,
   SimulatedBanner,
@@ -27,6 +25,10 @@ import {
   DecisionScorecardChapter,
   PriceValueChapter,
 } from './DecisionChapters'
+import {
+  buildBriefParts,
+  DecisionBriefHeader,
+} from './DecisionBrief'
 
 type Props = {
   envelope: ExperiencedReportEnvelope
@@ -173,16 +175,27 @@ export function IhutStoryReport({
   ].filter((value): value is string => Boolean(value))
 
   if (!narrative) {
+    const formingBrief = buildBriefParts(story, envelope.report.per_opponent, {
+      share: null,
+      lo: null,
+      hi: null,
+      nDecisive: null,
+      direction: null,
+    })
     return (
       <div className={styles.page}>
         <main className={styles.shell}>
           <ReportToolbar backHref={backHref} />
           {envelope.is_simulated ? <SimulatedBanner /> : null}
-          <ExecutiveMemo
+          <DecisionBriefHeader
             eyebrow="At-home product test · Decision brief"
+            productName={productName}
             headline={`The verdict on ${productName} is still forming.`}
             lede="The study exists, but the decision payload is not ready. This report will not fill the gap with a point estimate or a guess."
             implication="Keep this read preliminary and return when the success-bar verdict is available."
+            preference={formingBrief.preference}
+            field={formingBrief.field}
+            price={formingBrief.price}
             metadata={metadata}
           />
           {variant === 'full' ? <PriceValueChapter story={story} /> : null}
@@ -206,6 +219,38 @@ export function IhutStoryReport({
     fill: metric.value,
     marker: metric.bar,
   }))
+  const tasteMetric = narrative.metrics.find((m) => m.key === 'taste')
+  const brief = buildBriefParts(story, envelope.report.per_opponent, {
+    share: tasteMetric?.value ?? null,
+    lo: tasteMetric?.lo ?? null,
+    hi: tasteMetric?.hi ?? null,
+    nDecisive: tasteMetric?.n ?? null,
+    direction:
+      tasteMetric?.result === 'cleared'
+        ? 'more'
+        : tasteMetric?.result === 'not_cleared'
+          ? 'less'
+          : tasteMetric?.result === 'too_close_to_call'
+            ? 'close'
+            : null,
+  })
+  // Prefer IHUT overall verdict for the call chip when present.
+  if (narrative.overall === 'cleared') {
+    brief.preference.call = 'ahead'
+    brief.preference.callLabel = 'Cleared decision bars'
+  } else if (narrative.overall === 'not_cleared') {
+    brief.preference.call = 'behind'
+    brief.preference.callLabel = 'Did not clear'
+  } else if (narrative.overall === 'too_close_to_call') {
+    brief.preference.call = 'too_close'
+    brief.preference.callLabel = 'Too close to call'
+  } else if (
+    narrative.overall === 'not_enough_responses' ||
+    narrative.overall === 'not_tested'
+  ) {
+    brief.preference.call = 'forming'
+    brief.preference.callLabel = 'Still forming'
+  }
   const position = positionFinding(report, productName, narrative.productRef)
   const shelfRows = report.promise_vs_delivery?.shelf ?? []
   const tasteRows = report.promise_vs_delivery?.taste ?? []
@@ -237,11 +282,15 @@ export function IhutStoryReport({
       <main className={styles.shell}>
         <ReportToolbar backHref={backHref} />
         {envelope.is_simulated ? <SimulatedBanner /> : null}
-        <ExecutiveMemo
+        <DecisionBriefHeader
           eyebrow="At-home product test · Decision brief"
+          productName={productName}
           headline={story.headline}
           lede={story.explanation}
           implication={story.implication}
+          preference={brief.preference}
+          field={brief.field}
+          price={brief.price}
           metadata={metadata}
         />
         {variant === 'full' ? <StoryIndex links={[...DECISION_CHAPTER_LINKS]} /> : null}

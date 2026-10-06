@@ -1,0 +1,493 @@
+.brief {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--sage-dark);
+  color: #f8f5ed;
+  padding: clamp(28px, 4vw, 56px);
+  box-shadow: 0 28px 70px rgba(28, 38, 32, 0.14);
+}
+
+.brief::after {
+  position: absolute;
+  top: -140px;
+  right: -110px;
+  width: 400px;
+  height: 400px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  content: '';
+  pointer-events: none;
+}
+
+.briefTop {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.7fr);
+  gap: clamp(24px, 4vw, 48px);
+  align-items: start;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: rgba(248, 245, 237, 0.55);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.callChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.callChip::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  content: '';
+  background: currentColor;
+}
+
+.callAhead {
+  background: rgba(120, 180, 130, 0.22);
+  color: #c8e6c0;
+}
+
+.callBehind {
+  background: rgba(210, 110, 90, 0.22);
+  color: #f0c4b8;
+}
+
+.callClose {
+  background: rgba(220, 180, 90, 0.2);
+  color: #f0d9a0;
+}
+
+.callForming {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(248, 245, 237, 0.7);
+}
+
+.headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4.2vw, 44px);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  max-width: 40rem;
+  margin: 14px 0 0;
+  color: rgba(248, 245, 237, 0.78);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.supportBox {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 18px 20px;
+}
+
+.supportLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(248, 245, 237, 0.5);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.supportBox p {
+  margin: 0;
+  color: rgba(248, 245, 237, 0.88);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.kpiGrid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.kpi {
+  min-height: 112px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.16);
+  padding: 14px 16px;
+}
+
+.kpiMuted {
+  opacity: 0.88;
+  border-style: dashed;
+}
+
+.kpiLabel {
+  display: block;
+  color: rgba(248, 245, 237, 0.5);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.kpiValue {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.kpiHint {
+  display: block;
+  margin-top: 8px;
+  color: rgba(248, 245, 237, 0.62);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.intervalFigure {
+  position: relative;
+  z-index: 1;
+  margin-top: 26px;
+}
+
+.intervalTrack,
+.forestTrack {
+  position: relative;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: visible;
+}
+
+.forestTrack {
+  background: rgba(28, 38, 32, 0.08);
+}
+
+.evenSpine {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: 50%;
+  width: 1px;
+  background: rgba(248, 245, 237, 0.55);
+  transform: translateX(-0.5px);
+}
+
+.forestTrack .evenSpine {
+  background: rgba(28, 38, 32, 0.35);
+}
+
+.intervalBand,
+.forestBand {
+  position: absolute;
+  top: 4px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(200, 230, 192, 0.55);
+}
+
+.forestBand {
+  background: rgba(62, 107, 74, 0.35);
+}
+
+.intervalPoint,
+.forestPoint {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #f8f5ed;
+  border-radius: 50%;
+  background: #c8e6c0;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 2px rgba(28, 38, 32, 0.2);
+}
+
+.forestPoint {
+  border-color: #fff;
+  background: var(--sage-dark);
+}
+
+.intervalScale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: rgba(248, 245, 237, 0.45);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.h2h .intervalScale {
+  color: var(--ink-faint);
+  padding: 0 0 0 calc(28% + 12px);
+  max-width: calc(72% - 64px);
+  margin-left: 0;
+}
+
+.intervalCaption,
+.fieldCallout {
+  margin: 12px 0 0;
+  color: rgba(248, 245, 237, 0.72);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.fieldCallout strong {
+  color: #f8f5ed;
+  font-weight: 600;
+}
+
+.metaRow {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 22px;
+  color: rgba(248, 245, 237, 0.48);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.h2h {
+  display: grid;
+  gap: 20px;
+}
+
+.h2hCallouts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.h2hCallout {
+  border: 1px solid rgba(28, 38, 32, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 16px 18px;
+}
+
+.h2hCalloutLabel {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink-faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.h2hCallout strong {
+  display: block;
+  color: var(--ink-80);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.h2hCallout span:last-child {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.h2hWin {
+  border-color: rgba(62, 107, 74, 0.28);
+}
+
+.h2hLoss {
+  border-color: rgba(180, 90, 70, 0.28);
+}
+
+.h2hClose {
+  border-color: rgba(180, 140, 40, 0.28);
+}
+
+.forest {
+  display: grid;
+  gap: 10px;
+}
+
+.forestRow {
+  display: grid;
+  grid-template-columns: minmax(140px, 28%) minmax(0, 1fr) 56px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid rgba(28, 38, 32, 0.08);
+}
+
+.forestName strong {
+  display: block;
+  color: var(--ink-80);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.forestName span {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+.forestValue {
+  text-align: right;
+  color: var(--ink-80);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid rgba(28, 38, 32, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.h2hTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.h2hTable th,
+.h2hTable td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(28, 38, 32, 0.08);
+  vertical-align: top;
+}
+
+.h2hTable thead th {
+  color: var(--ink-faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(28, 38, 32, 0.03);
+}
+
+.h2hTable tbody th {
+  color: var(--ink-80);
+  font-weight: 600;
+}
+
+.brandMuted {
+  color: var(--ink-faint);
+  font-weight: 500;
+}
+
+.h2hTable tbody tr.h2hWin td:nth-child(2) {
+  color: var(--sage-dark);
+  font-weight: 600;
+}
+
+.h2hTable tbody tr.h2hLoss td:nth-child(2) {
+  color: #8a4030;
+  font-weight: 600;
+}
+
+.emptyNote {
+  border: 1px dashed rgba(28, 38, 32, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 20px;
+}
+
+.emptyNote strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink-80);
+  font-size: 13px;
+}
+
+.emptyNote span {
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 900px) {
+  .briefTop,
+  .kpiGrid,
+  .h2hCallouts {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .briefTop,
+  .kpiGrid,
+  .h2hCallouts {
+    grid-template-columns: 1fr;
+  }
+
+  .forestRow {
+    grid-template-columns: 1fr 48px;
+    gap: 8px;
+  }
+
+  .forestTrack {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+
+  .h2h .intervalScale {
+    padding-left: 0;
+    max-width: 100%;
+  }
+}
+
+@media print {
+  .brief {
+    break-after: page;
+    box-shadow: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .h2hCallout,
+  .tableWrap,
+  .forestRow {
+    break-inside: avoid;
+  }
+}

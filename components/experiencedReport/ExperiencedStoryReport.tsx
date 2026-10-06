@@ -1,6 +1,5 @@
 import type { CSSProperties } from "react";
 import {
-  ExecutiveMemo,
   ReportFooter,
   ReportToolbar,
   SimulatedBanner,
@@ -22,6 +21,11 @@ import type {
   OpponentRow,
   RepurchaseSessionMetric,
 } from "@/lib/experiencedReport/types";
+import {
+  buildBriefParts,
+  DecisionBriefHeader,
+  HeadToHeadForest,
+} from "./DecisionBrief";
 import { PriceValueChapter } from "./DecisionChapters";
 import viz from "./experiencedStory.module.css";
 
@@ -68,145 +72,6 @@ function splitLabel(split: string): string {
 function displayLabel(value: string): string {
   const label = value.replace(/_/g, " ").trim();
   return label ? `${label[0].toUpperCase()}${label.slice(1)}` : "Evidence";
-}
-
-function PreferenceDial({
-  value,
-  low,
-  high,
-}: {
-  value: number;
-  low: number | null;
-  high: number | null;
-}) {
-  const share = clampUnit(value);
-  const lo = low == null ? null : clampUnit(low);
-  const hi = high == null ? null : clampUnit(high);
-  const angle = Math.PI * (1 - share);
-  const pointX = 180 + 130 * Math.cos(angle);
-  const pointY = 165 - 130 * Math.sin(angle);
-  const intervalStart = lo == null || hi == null ? 0 : Math.min(lo, hi) * 100;
-  const intervalWidth = lo == null || hi == null ? 0 : Math.abs(hi - lo) * 100;
-
-  return (
-    <svg
-      className={viz.preferenceDial}
-      viewBox="0 0 360 205"
-      role="img"
-      aria-label={`Chosen ${pct(value)}; ${
-        low != null && high != null
-          ? `likely range ${pct(low)} to ${pct(high)}`
-          : "interval unavailable"
-      }`}
-    >
-      <path
-        className={viz.dialRail}
-        d="M50 165 A130 130 0 0 1 310 165"
-        pathLength="100"
-      />
-      {intervalWidth > 0 ? (
-        <path
-          className={viz.dialInterval}
-          d="M50 165 A130 130 0 0 1 310 165"
-          pathLength="100"
-          strokeDasharray={`${intervalWidth} ${100 - intervalWidth}`}
-          strokeDashoffset={-intervalStart}
-        />
-      ) : null}
-      <path
-        className={viz.dialValue}
-        d="M50 165 A130 130 0 0 1 310 165"
-        pathLength="100"
-        strokeDasharray={`${share * 100} ${100 - share * 100}`}
-      />
-      <line className={viz.dialMidline} x1="180" x2="180" y1="24" y2="50" />
-      <circle className={viz.dialPoint} cx={pointX} cy={pointY} r="7" />
-      <text className={viz.dialText} x="180" y="142">
-        {pct(value)}
-      </text>
-      <text className={viz.dialSubtext} x="180" y="162">
-        chosen after use
-      </text>
-      <text className={viz.dialSubtext} x="50" y="190">
-        0%
-      </text>
-      <text className={viz.dialSubtext} x="180" y="190">
-        even
-      </text>
-      <text className={viz.dialSubtext} x="310" y="190">
-        100%
-      </text>
-    </svg>
-  );
-}
-
-function ComparisonChart({
-  rows,
-  productName,
-}: {
-  rows: OpponentRow[];
-  productName: string;
-}) {
-  const reportable = rows
-    .filter((row) => row.reportable && row.value != null)
-    .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
-
-  if (!reportable.length) {
-    return (
-      <div className={viz.emptyVisual}>
-        <div>
-          <strong>No named comparison is reportable yet</strong>
-          The field chart appears when opponent-level evidence clears its floor.
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={viz.comparisonChart}
-      role="img"
-      aria-label={`${productName} experienced preference against each named competitor`}
-    >
-      {reportable.map((row) => {
-        const value = clampUnit(row.value);
-        const lo = row.ci_low == null ? value : clampUnit(row.ci_low);
-        const hi = row.ci_high == null ? value : clampUnit(row.ci_high);
-        return (
-          <div
-            className={viz.comparisonRow}
-            key={`${row.opponent_name}-${row.experience_split}`}
-          >
-            <div className={viz.comparisonName}>
-              <strong>{row.opponent_name}</strong>
-              <span>{splitLabel(row.experience_split ?? "")}</span>
-            </div>
-            <div className={viz.rangeTrack}>
-              <span
-                className={viz.rangeBand}
-                style={{
-                  left: `${Math.min(lo, hi) * 100}%`,
-                  width: `${Math.abs(hi - lo) * 100}%`,
-                }}
-              />
-              <span
-                className={viz.rangePoint}
-                style={{ left: `${value * 100}%` }}
-              />
-            </div>
-            <div className={viz.comparisonValue}>{pct(value)}</div>
-          </div>
-        );
-      })}
-      <div className={viz.axis} aria-hidden="true">
-        <div className={viz.axisScale}>
-          <span>0%</span>
-          <span>50% even</span>
-          <span>100%</span>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 type DriverDatum = {
@@ -593,6 +458,17 @@ export function ExperiencedStoryReport({
     fieldLow != null && fieldHigh != null
       ? `Preference ranged from ${pct(fieldLow)} to ${pct(fieldHigh)} across named competitors.`
       : "The named competitive field is not reportable yet.";
+  const brief = buildBriefParts(decisionStory, opponents, {
+    share: narrative.preferenceShare,
+    lo: narrative.intervalLow,
+    hi: narrative.intervalHigh,
+    nDecisive: narrative.nDecisive,
+    direction: narrative.direction,
+  });
+  const fieldTitleFromBrief =
+    brief.field.beatMost && brief.field.beatLeast && brief.field.fieldSize >= 2
+      ? `Beat ${brief.field.beatMost.opponentName} most (${pct(brief.field.beatMost.winShare)}); weakest vs ${brief.field.beatLeast.opponentName} (${pct(brief.field.beatLeast.winShare)}).`
+      : fieldTitle;
   const methodEntries = Object.entries(report.methodology ?? {}).filter(
     (entry): entry is [string, string] =>
       typeof entry[1] === "string" && entry[1].trim().length > 0,
@@ -611,11 +487,15 @@ export function ExperiencedStoryReport({
       <main className={story.shell}>
         <ReportToolbar backHref={backHref} />
         {envelope.is_simulated ? <SimulatedBanner /> : null}
-        <ExecutiveMemo
+        <DecisionBriefHeader
           eyebrow="Experienced product report · Decision brief"
+          productName={narrative.productName}
           headline={narrative.headline}
           lede={narrative.explanation}
           implication={narrative.implication}
+          preference={brief.preference}
+          field={brief.field}
+          price={brief.price}
           metadata={[
             report.focal_product.brand
               ? `Brand · ${report.focal_product.brand}`
@@ -646,52 +526,29 @@ export function ExperiencedStoryReport({
           number="01"
           kicker="What happened?"
           title={narrative.headline}
-          lead="The chart shows the point estimate, its likely range, and the 50% even-split reference. The interval—not the most flattering number—sets the strength of the claim."
+          lead="The header call comes from the interval versus a 50% even split. The point estimate alone never upgrades a too-close result."
           context={
             summary.headline
               ? splitLabel(summary.headline.experience_split)
               : "Evidence forming"
           }
         >
-          {narrative.preferenceShare != null ? (
-            <div className={`${viz.vizCard} ${viz.vizCardDark}`}>
-              <div className={viz.preferenceLayout}>
-                <PreferenceDial
-                  value={narrative.preferenceShare}
-                  low={narrative.intervalLow}
-                  high={narrative.intervalHigh}
-                />
-                <div className={viz.preferenceFacts}>
-                  <div className={viz.fact}>
-                    <strong>
-                      {narrative.intervalLow != null &&
-                      narrative.intervalHigh != null
-                        ? `${pct(narrative.intervalLow)}–${pct(
-                            narrative.intervalHigh,
-                          )}`
-                        : "Interval unavailable"}
-                    </strong>
-                    <span>Likely preference range in this tested field</span>
-                  </div>
-                  <div className={viz.fact}>
-                    <strong>{narrative.nDecisive ?? "—"}</strong>
-                    <span>Decisive choices behind the preference estimate</span>
-                  </div>
-                  <div className={viz.fact}>
-                    <strong>{summary.confidence}</strong>
-                    <span>Precision label based on interval width</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className={viz.emptyVisual}>
-              <div>
-                <strong>Preference is below the reporting floor</strong>
-                No chart is drawn from an unreportable estimate.
-              </div>
-            </div>
-          )}
+          <div className={`${viz.vizCard} ${viz.span12}`}>
+            <p className={viz.cardKicker}>Decision read</p>
+            <h3 className={viz.cardTitle}>{brief.preference.callLabel}</h3>
+            <p className={viz.cardCopy}>
+              {brief.preference.share != null
+                ? `Chosen ${pct(brief.preference.share)} of the time${
+                    brief.preference.nDecisive != null
+                      ? ` across ${brief.preference.nDecisive} decisive choices`
+                      : ""
+                  }. Confidence: ${summary.confidence}.`
+                : "Preference is below the reporting floor."}
+            </p>
+            <p className={viz.cardCopy}>
+              Price status: {brief.price.title}. {brief.price.detail}
+            </p>
+          </div>
         </StoryChapter>
 
         {variant === "full" ? (
@@ -700,24 +557,16 @@ export function ExperiencedStoryReport({
               id="field"
               number="02"
               kicker="Against whom?"
-              title={fieldTitle}
-              lead={`Each row is ${narrative.productName} against one named competitor. Intervals remain separate; the report never averages unlike comparison slices.`}
-              context={`${reportableOpponents.length} reportable comparison${
-                reportableOpponents.length === 1 ? "" : "s"
+              title={fieldTitleFromBrief}
+              lead={`Each row is ${narrative.productName} against one named competitor. Intervals remain separate; the report never averages unlike comparison slices or invents a podium rank.`}
+              context={`${brief.field.fieldSize} reportable comparison${
+                brief.field.fieldSize === 1 ? "" : "s"
               }`}
             >
-              <div className={`${viz.vizCard} ${viz.span12}`}>
-                <p className={viz.cardKicker}>
-                  Experienced preference by opponent
-                </p>
-                <h3 className={viz.cardTitle}>
-                  Point estimate and likely range, with 50% marked
-                </h3>
-                <ComparisonChart
-                  rows={opponents}
-                  productName={narrative.productName}
-                />
-              </div>
+              <HeadToHeadForest
+                field={brief.field}
+                productName={narrative.productName}
+              />
             </StoryChapter>
 
             <StoryChapter
