@@ -50,6 +50,7 @@ import {
 } from './reportSections'
 import { ExecutiveSummaryStrip } from './ExecutiveSummaryStrip'
 import { IhutStoryReport } from './IhutStoryReport'
+import { ExperiencedStoryReport } from './ExperiencedStoryReport'
 import { isIhutCoreReport } from '@/lib/experiencedReport/ihutCoreTypes'
 
 const PREFERENCE_METHOD_NOTE =
@@ -1235,6 +1236,16 @@ export function ExperiencedReportDeck({
       <IhutStoryReport
         envelope={envelope}
         report={report.ihut_core}
+        backHref={backHref}
+        variant={variant}
+      />
+    )
+  }
+
+  if (!report.ihut_core) {
+    return (
+      <ExperiencedStoryReport
+        envelope={envelope}
         backHref={backHref}
         variant={variant}
       />
