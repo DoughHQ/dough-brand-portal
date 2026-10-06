@@ -18,7 +18,6 @@ import {
   type ScorecardItem,
 } from '@/components/reportStory/ReportStory'
 import styles from '@/components/reportStory/reportStory.module.css'
-import { deriveDecisionStory } from '@/lib/experiencedReport/decisionStory'
 import { deriveOverviewBrief } from '@/lib/experiencedReport/overviewBrief'
 import {
   ClaimStack,
