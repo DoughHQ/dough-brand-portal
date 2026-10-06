@@ -7,7 +7,7 @@ import {
   StoryIndex,
 } from "@/components/reportStory/ReportStory";
 import story from "@/components/reportStory/reportStory.module.css";
-import { asUnit, pickTopDriver } from "@/lib/experiencedReport/executiveSummary";
+import { asUnit } from "@/lib/experiencedReport/executiveSummary";
 import { deriveOverviewBrief } from "@/lib/experiencedReport/overviewBrief";
 import type {
   AttributeImportance,
@@ -421,18 +421,6 @@ export function ExperiencedStoryReport({
   const { report } = envelope;
   const overview = deriveOverviewBrief(envelope);
   const snapshot = formatDate(envelope.snapshot_date ?? envelope.computed_at);
-  const topDriver = pickTopDriver(report.choice_drivers?.by_outcome.focal_won);
-  const topHeadwind = pickTopDriver(
-    report.choice_drivers?.by_outcome.focal_lost,
-  );
-  const driverTitle =
-    topDriver && topHeadwind
-      ? `${topDriver.driver} drove choice; ${topHeadwind.driver} was the biggest headwind.`
-      : topDriver
-        ? `${topDriver.driver} was the leading reason for choice.`
-        : topHeadwind
-          ? `${topHeadwind.driver} was the leading headwind.`
-          : "The reasons behind choice are still forming.";
   const sessionRows = report.repurchase_intent?.by_session ?? [];
   const sessions = repurchaseSessions(sessionRows);
   const firstSession = sessions[0];
@@ -494,8 +482,8 @@ export function ExperiencedStoryReport({
         {variant === "full" ? (
           <StoryIndex
             links={[
-              { href: "#overview", label: "Overview" },
-              { href: "#performance", label: "Performance" },
+              { href: "#overview", label: "Bottom line" },
+              { href: "#performance", label: "Proof" },
               { href: "#why", label: "Why" },
               { href: "#intent", label: "Buy again" },
               { href: "#price", label: "Price" },
@@ -510,11 +498,8 @@ export function ExperiencedStoryReport({
               id="performance"
               number="01"
               kicker="Proof · Against the field"
-              title={
-                favoredLabel ??
-                "The named competitive field is not reportable yet."
-              }
-              lead={`Each row is ${overview.productName} against one named competitor. The 50% line is the even split — anything to the right means it won more often than it lost.`}
+              title={overview.proofTitle}
+              lead={`Each comparison is ${overview.productName} against one named competitor. The 50% line is an even split — right of the line means it won more often than it lost.`}
               context={`${overview.reportableComparisons} reportable comparison${
                 overview.reportableComparisons === 1 ? "" : "s"
               }`}
@@ -530,7 +515,7 @@ export function ExperiencedStoryReport({
               id="why"
               number="02"
               kicker="Why"
-              title={driverTitle}
+              title={overview.whyTitle}
               lead="Citation shares within each outcome — what respondents said, not what would causally increase sales."
               context="Choice reasons"
             >
