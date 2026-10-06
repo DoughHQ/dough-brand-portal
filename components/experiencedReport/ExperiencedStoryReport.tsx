@@ -1,6 +1,5 @@
 import type { CSSProperties } from "react";
 import {
-  ExecutiveMemo,
   ReportFooter,
   ReportToolbar,
   SimulatedBanner,
@@ -8,12 +7,8 @@ import {
   StoryIndex,
 } from "@/components/reportStory/ReportStory";
 import story from "@/components/reportStory/reportStory.module.css";
-import {
-  asUnit,
-  deriveExecutiveSummary,
-  pickTopDriver,
-} from "@/lib/experiencedReport/executiveSummary";
-import { deriveExperiencedNarrative } from "@/lib/experiencedReport/experiencedNarrative";
+import { asUnit, pickTopDriver } from "@/lib/experiencedReport/executiveSummary";
+import { deriveOverviewBrief } from "@/lib/experiencedReport/overviewBrief";
 import type {
   AttributeImportance,
   DriverRow,
@@ -21,6 +16,13 @@ import type {
   OpponentRow,
   RepurchaseSessionMetric,
 } from "@/lib/experiencedReport/types";
+import {
+  EvidenceStrip,
+  HeadToHeadForest,
+  OverviewBottomLine,
+} from "./DecisionBrief";
+import { PriceValueChapter } from "./DecisionChapters";
+import briefStyles from "./decisionBrief.module.css";
 import viz from "./experiencedStory.module.css";
 
 type Props = {
@@ -66,145 +68,6 @@ function splitLabel(split: string): string {
 function displayLabel(value: string): string {
   const label = value.replace(/_/g, " ").trim();
   return label ? `${label[0].toUpperCase()}${label.slice(1)}` : "Evidence";
-}
-
-function PreferenceDial({
-  value,
-  low,
-  high,
-}: {
-  value: number;
-  low: number | null;
-  high: number | null;
-}) {
-  const share = clampUnit(value);
-  const lo = low == null ? null : clampUnit(low);
-  const hi = high == null ? null : clampUnit(high);
-  const angle = Math.PI * (1 - share);
-  const pointX = 180 + 130 * Math.cos(angle);
-  const pointY = 165 - 130 * Math.sin(angle);
-  const intervalStart = lo == null || hi == null ? 0 : Math.min(lo, hi) * 100;
-  const intervalWidth = lo == null || hi == null ? 0 : Math.abs(hi - lo) * 100;
-
-  return (
-    <svg
-      className={viz.preferenceDial}
-      viewBox="0 0 360 205"
-      role="img"
-      aria-label={`Chosen ${pct(value)}; ${
-        low != null && high != null
-          ? `likely range ${pct(low)} to ${pct(high)}`
-          : "interval unavailable"
-      }`}
-    >
-      <path
-        className={viz.dialRail}
-        d="M50 165 A130 130 0 0 1 310 165"
-        pathLength="100"
-      />
-      {intervalWidth > 0 ? (
-        <path
-          className={viz.dialInterval}
-          d="M50 165 A130 130 0 0 1 310 165"
-          pathLength="100"
-          strokeDasharray={`${intervalWidth} ${100 - intervalWidth}`}
-          strokeDashoffset={-intervalStart}
-        />
-      ) : null}
-      <path
-        className={viz.dialValue}
-        d="M50 165 A130 130 0 0 1 310 165"
-        pathLength="100"
-        strokeDasharray={`${share * 100} ${100 - share * 100}`}
-      />
-      <line className={viz.dialMidline} x1="180" x2="180" y1="24" y2="50" />
-      <circle className={viz.dialPoint} cx={pointX} cy={pointY} r="7" />
-      <text className={viz.dialText} x="180" y="142">
-        {pct(value)}
-      </text>
-      <text className={viz.dialSubtext} x="180" y="162">
-        chosen after use
-      </text>
-      <text className={viz.dialSubtext} x="50" y="190">
-        0%
-      </text>
-      <text className={viz.dialSubtext} x="180" y="190">
-        even
-      </text>
-      <text className={viz.dialSubtext} x="310" y="190">
-        100%
-      </text>
-    </svg>
-  );
-}
-
-function ComparisonChart({
-  rows,
-  productName,
-}: {
-  rows: OpponentRow[];
-  productName: string;
-}) {
-  const reportable = rows
-    .filter((row) => row.reportable && row.value != null)
-    .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
-
-  if (!reportable.length) {
-    return (
-      <div className={viz.emptyVisual}>
-        <div>
-          <strong>No named comparison is reportable yet</strong>
-          The field chart appears when opponent-level evidence clears its floor.
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={viz.comparisonChart}
-      role="img"
-      aria-label={`${productName} experienced preference against each named competitor`}
-    >
-      {reportable.map((row) => {
-        const value = clampUnit(row.value);
-        const lo = row.ci_low == null ? value : clampUnit(row.ci_low);
-        const hi = row.ci_high == null ? value : clampUnit(row.ci_high);
-        return (
-          <div
-            className={viz.comparisonRow}
-            key={`${row.opponent_name}-${row.experience_split}`}
-          >
-            <div className={viz.comparisonName}>
-              <strong>{row.opponent_name}</strong>
-              <span>{splitLabel(row.experience_split ?? "")}</span>
-            </div>
-            <div className={viz.rangeTrack}>
-              <span
-                className={viz.rangeBand}
-                style={{
-                  left: `${Math.min(lo, hi) * 100}%`,
-                  width: `${Math.abs(hi - lo) * 100}%`,
-                }}
-              />
-              <span
-                className={viz.rangePoint}
-                style={{ left: `${value * 100}%` }}
-              />
-            </div>
-            <div className={viz.comparisonValue}>{pct(value)}</div>
-          </div>
-        );
-      })}
-      <div className={viz.axis} aria-hidden="true">
-        <div className={viz.axisScale}>
-          <span>0%</span>
-          <span>50% even</span>
-          <span>100%</span>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 type DriverDatum = {
@@ -556,23 +419,15 @@ export function ExperiencedStoryReport({
   variant = "full",
 }: Props) {
   const { report } = envelope;
-  const narrative = deriveExperiencedNarrative(envelope);
-  const summary = deriveExecutiveSummary(envelope);
+  const overview = deriveOverviewBrief(envelope);
   const snapshot = formatDate(envelope.snapshot_date ?? envelope.computed_at);
-  const opponents = report.per_opponent ?? [];
-  const reportableOpponents = opponents.filter(
-    (row) => row.reportable && row.value != null,
-  );
-  const opponentValues = reportableOpponents.map((row) => clampUnit(row.value));
-  const fieldLow = opponentValues.length ? Math.min(...opponentValues) : null;
-  const fieldHigh = opponentValues.length ? Math.max(...opponentValues) : null;
   const topDriver = pickTopDriver(report.choice_drivers?.by_outcome.focal_won);
   const topHeadwind = pickTopDriver(
     report.choice_drivers?.by_outcome.focal_lost,
   );
   const driverTitle =
     topDriver && topHeadwind
-      ? `${topDriver.driver} led choice; ${topHeadwind.driver} was the leading headwind.`
+      ? `${topDriver.driver} drove choice; ${topHeadwind.driver} was the biggest headwind.`
       : topDriver
         ? `${topDriver.driver} was the leading reason for choice.`
         : topHeadwind
@@ -586,15 +441,19 @@ export function ExperiencedStoryReport({
     firstSession?.definite != null
       ? `${pct(firstSession.definite)} would definitely buy again after Session ${firstSession.session}.`
       : "Buy-again intent is not reportable yet.";
-  const fieldTitle =
-    fieldLow != null && fieldHigh != null
-      ? `Preference ranged from ${pct(fieldLow)} to ${pct(fieldHigh)} across named competitors.`
-      : "The named competitive field is not reportable yet.";
+  const favoredLabel =
+    overview.reportableComparisons > 0
+      ? overview.favoredComparisons === overview.reportableComparisons
+        ? `${overview.productName} was preferred in all ${overview.reportableComparisons} named comparisons.`
+        : `${overview.productName} was preferred in ${overview.favoredComparisons} of ${overview.reportableComparisons} named comparisons.`
+      : undefined;
   const methodEntries = Object.entries(report.methodology ?? {}).filter(
     (entry): entry is [string, string] =>
       typeof entry[1] === "string" && entry[1].trim().length > 0,
   );
   const lift = report.experience_lift_vs_baseline;
+  const movementReportable =
+    Boolean(lift?.reportable) && lift?.mean_elo_delta != null;
   const hasMovementCounts =
     lift?.n_moved_up != null ||
     lift?.n_unchanged != null ||
@@ -602,21 +461,28 @@ export function ExperiencedStoryReport({
   const stage = report.report_stage.is_final
     ? "Final read"
     : "Preliminary read";
+  const rankingRow = (report.rank_validation?.by_pair_class ?? []).find(
+    (row) => row.reportable && row.agreement_rate != null,
+  );
+  const compositionRow = (report.evidence_composition?.by_grade ?? []).find(
+    (row) => row.reportable && row.value != null,
+  );
+  const reliabilityNote =
+    report.reliability?.reportable &&
+    report.reliability.consistency_rate != null
+      ? `${pct(report.reliability.consistency_rate)} repeat-choice reliability`
+      : "Repeat-choice reliability is below the reporting floor.";
 
   return (
     <div className={story.page}>
       <main className={story.shell}>
         <ReportToolbar backHref={backHref} />
         {envelope.is_simulated ? <SimulatedBanner /> : null}
-        <ExecutiveMemo
+        <OverviewBottomLine
+          overview={overview}
           eyebrow="Experienced product report · Decision brief"
-          headline={narrative.headline}
-          lede={narrative.explanation}
-          implication={narrative.implication}
           metadata={[
-            report.focal_product.brand
-              ? `Brand · ${report.focal_product.brand}`
-              : "Experienced product study",
+            overview.brand ? `Brand · ${overview.brand}` : "Experienced product study",
             `${report.participation.n_users} participant${
               report.participation.n_users === 1 ? "" : "s"
             }`,
@@ -628,307 +494,187 @@ export function ExperiencedStoryReport({
         {variant === "full" ? (
           <StoryIndex
             links={[
-              { href: "#preference", label: "01 · Preference" },
-              { href: "#field", label: "02 · Against the field" },
-              { href: "#why", label: "03 · Why" },
-              { href: "#durability", label: "04 · Durability" },
+              { href: "#overview", label: "Overview" },
+              { href: "#performance", label: "Performance" },
+              { href: "#why", label: "Why" },
+              { href: "#intent", label: "Buy again" },
+              { href: "#price", label: "Price" },
+              { href: "#evidence", label: "Evidence" },
             ]}
           />
         ) : null}
 
-        <StoryChapter
-          id="preference"
-          number="01"
-          kicker="The preference signal"
-          title={narrative.headline}
-          lead="The chart shows the point estimate, its likely range, and the 50% even-split reference. The interval—not the most flattering number—sets the strength of the claim."
-          context={
-            summary.headline
-              ? splitLabel(summary.headline.experience_split)
-              : "Evidence forming"
-          }
-        >
-          {narrative.preferenceShare != null ? (
-            <div className={`${viz.vizCard} ${viz.vizCardDark}`}>
-              <div className={viz.preferenceLayout}>
-                <PreferenceDial
-                  value={narrative.preferenceShare}
-                  low={narrative.intervalLow}
-                  high={narrative.intervalHigh}
-                />
-                <div className={viz.preferenceFacts}>
-                  <div className={viz.fact}>
-                    <strong>
-                      {narrative.intervalLow != null &&
-                      narrative.intervalHigh != null
-                        ? `${pct(narrative.intervalLow)}–${pct(
-                            narrative.intervalHigh,
-                          )}`
-                        : "Interval unavailable"}
-                    </strong>
-                    <span>Likely preference range in this tested field</span>
-                  </div>
-                  <div className={viz.fact}>
-                    <strong>{narrative.nDecisive ?? "—"}</strong>
-                    <span>Decisive choices behind the preference estimate</span>
-                  </div>
-                  <div className={viz.fact}>
-                    <strong>{summary.confidence}</strong>
-                    <span>Precision label based on interval width</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className={viz.emptyVisual}>
-              <div>
-                <strong>Preference is below the reporting floor</strong>
-                No chart is drawn from an unreportable estimate.
-              </div>
-            </div>
-          )}
-        </StoryChapter>
-
         {variant === "full" ? (
           <>
             <StoryChapter
-              id="field"
-              number="02"
-              kicker="Against the field"
-              title={fieldTitle}
-              lead={`Each row is ${narrative.productName} against one named competitor. Intervals remain separate; the report never averages unlike comparison slices.`}
-              context={`${reportableOpponents.length} reportable comparison${
-                reportableOpponents.length === 1 ? "" : "s"
+              id="performance"
+              number="01"
+              kicker="Proof · Against the field"
+              title={
+                favoredLabel ??
+                "The named competitive field is not reportable yet."
+              }
+              lead={`Each row is ${overview.productName} against one named competitor. The 50% line is the even split — anything to the right means it won more often than it lost.`}
+              context={`${overview.reportableComparisons} reportable comparison${
+                overview.reportableComparisons === 1 ? "" : "s"
               }`}
             >
-              <div className={`${viz.vizCard} ${viz.span12}`}>
-                <p className={viz.cardKicker}>
-                  Experienced preference by opponent
-                </p>
-                <h3 className={viz.cardTitle}>
-                  Point estimate and likely range, with 50% marked
-                </h3>
-                <ComparisonChart
-                  rows={opponents}
-                  productName={narrative.productName}
-                />
-              </div>
+              <HeadToHeadForest
+                field={overview.field}
+                productName={overview.productName}
+                favoredLabel={favoredLabel}
+              />
             </StoryChapter>
 
             <StoryChapter
               id="why"
-              number="03"
-              kicker="Why people chose"
+              number="02"
+              kicker="Why"
               title={driverTitle}
-              lead="Reasons are reported as citation shares within each outcome. They explain what respondents said—not what would causally increase sales."
-              context="Choice reasons · category priorities"
+              lead="Citation shares within each outcome — what respondents said, not what would causally increase sales."
+              context="Choice reasons"
             >
-              <div className={viz.visualGrid}>
-                <article className={`${viz.vizCard} ${viz.span7}`}>
-                  <p className={viz.cardKicker}>Choice reasons</p>
-                  <h3 className={viz.cardTitle}>
-                    What helped—and what worked against the product
-                  </h3>
-                  <DriverChart
-                    won={report.choice_drivers?.by_outcome.focal_won ?? []}
-                    lost={report.choice_drivers?.by_outcome.focal_lost ?? []}
-                  />
-                </article>
-                <article className={`${viz.vizCard} ${viz.span5}`}>
+              <div className={`${viz.vizCard} ${viz.span12}`}>
+                <DriverChart
+                  won={report.choice_drivers?.by_outcome.focal_won ?? []}
+                  lost={report.choice_drivers?.by_outcome.focal_lost ?? []}
+                />
+                <p className={story.finePrint}>
+                  Shares are among choices for or against the product. They do
+                  not prove that changing one reason will move preference.
+                </p>
+              </div>
+              {report.attribute_importance?.attributes?.length ? (
+                <div
+                  className={`${viz.vizCard} ${viz.span12}`}
+                  style={{ marginTop: 16 }}
+                >
                   <p className={viz.cardKicker}>Attribute priority</p>
                   <h3 className={viz.cardTitle}>
                     Compelling versus objectionable
                   </h3>
-                  <p className={viz.cardCopy}>
-                    Best-minus-worst scores are relative model values, not
-                    percentages.
-                  </p>
                   <AttributeChart data={report.attribute_importance} />
-                </article>
-              </div>
+                </div>
+              ) : null}
             </StoryChapter>
 
             <StoryChapter
-              id="durability"
-              number="04"
-              kicker="Would it last?"
+              id="intent"
+              number="03"
+              kicker="Would it stick?"
               title={repurchaseTitle}
-              lead="Intent is shown by session so a later response cannot be collapsed into the first read. These are stated answers, not observed repeat sales."
+              lead="Stated intent after use — not observed repeat sales."
               context={`${sessions.length} reportable session${
                 sessions.length === 1 ? "" : "s"
               }`}
             >
-              <div className={viz.visualGrid}>
-                <article className={`${viz.vizCard} ${viz.span7}`}>
-                  <p className={viz.cardKicker}>Buy-again intent</p>
-                  <h3 className={viz.cardTitle}>Response profile by session</h3>
-                  <RepurchaseChart rows={sessionRows} />
-                </article>
-                <article className={`${viz.vizCard} ${viz.span5}`}>
+              <div className={`${viz.vizCard} ${viz.span12}`}>
+                <RepurchaseChart rows={sessionRows} />
+              </div>
+              {movementReportable && lift ? (
+                <div
+                  className={`${viz.vizCard} ${viz.span12}`}
+                  style={{ marginTop: 16 }}
+                >
                   <p className={viz.cardKicker}>Preference movement</p>
                   <h3 className={viz.cardTitle}>{movementTitle(envelope)}</h3>
-                  {lift?.reportable && lift.mean_elo_delta != null ? (
-                    <>
-                      <div className={story.bigNumber}>
-                        {lift.mean_elo_delta > 0 ? "+" : ""}
-                        {numberValue(lift.mean_elo_delta)}
+                  <div className={story.bigNumber}>
+                    {lift.mean_elo_delta! > 0 ? "+" : ""}
+                    {numberValue(lift.mean_elo_delta)}
+                  </div>
+                  <p className={viz.cardCopy}>
+                    Mean Elo movement among respondents with a baseline.
+                    Associational — not proof that product use caused the
+                    movement.
+                  </p>
+                  {hasMovementCounts ? (
+                    <div className={viz.numberGrid}>
+                      <div className={viz.numberCard}>
+                        <strong>{lift.n_moved_up ?? "—"}</strong>
+                        <span>Moved up</span>
                       </div>
-                      <p className={viz.cardCopy}>
-                        Mean Elo movement among respondents with a baseline.
-                        Associational—not proof that product use caused the
-                        movement.
-                      </p>
-                      {hasMovementCounts ? (
-                        <div className={viz.numberGrid}>
-                          <div className={viz.numberCard}>
-                            <strong>{lift.n_moved_up ?? "—"}</strong>
-                            <span>Moved up</span>
-                          </div>
-                          <div className={viz.numberCard}>
-                            <strong>{lift.n_unchanged ?? "—"}</strong>
-                            <span>Unchanged</span>
-                          </div>
-                          <div className={viz.numberCard}>
-                            <strong>{lift.n_moved_down ?? "—"}</strong>
-                            <span>Moved down</span>
-                          </div>
-                        </div>
-                      ) : null}
-                      {lift.confound_warning ? (
-                        <p className={story.finePrint}>
-                          {lift.confound_warning}
-                        </p>
-                      ) : null}
-                    </>
-                  ) : (
-                    <div className={viz.emptyVisual}>
-                      <div>
-                        <strong>No reportable baseline movement</strong>
-                        The report does not infer change without matched
-                        evidence.
+                      <div className={viz.numberCard}>
+                        <strong>{lift.n_unchanged ?? "—"}</strong>
+                        <span>Unchanged</span>
+                      </div>
+                      <div className={viz.numberCard}>
+                        <strong>{lift.n_moved_down ?? "—"}</strong>
+                        <span>Moved down</span>
                       </div>
                     </div>
-                  )}
-                </article>
-              </div>
+                  ) : null}
+                </div>
+              ) : (
+                <div className={briefStyles.collapsedGap} style={{ marginTop: 16 }}>
+                  <strong>Preference movement · </strong>
+                  Not reportable yet — matched baseline evidence isn’t available.
+                </div>
+              )}
             </StoryChapter>
 
+            <PriceValueChapter story={overview.story} />
+
             <StoryChapter
-              id="trust"
+              id="evidence"
               number="05"
-              kicker="Trust the read"
-              title={rankTitle(envelope)}
-              lead="Reliability, ranking consistency, and evidence composition show how much weight this result can reasonably carry."
+              kicker="Caveat · Trust"
+              title="How much weight this preference signal can carry."
+              lead="Evidence quality is not the product result. Ranking validation is agreement with stated ranks — not confidence that the product will sell."
               context="Evidence quality"
             >
-              <div className={viz.visualGrid}>
-                <article className={`${viz.vizCard} ${viz.span6}`}>
-                  <p className={viz.cardKicker}>Repeat-choice reliability</p>
-                  <h3 className={viz.cardTitle}>
-                    Did respondents make a consistent choice?
-                  </h3>
-                  {report.reliability?.reportable &&
-                  report.reliability.consistency_rate != null ? (
-                    <ReliabilityVisual
-                      value={report.reliability.consistency_rate}
-                      note={report.reliability.scope_note}
-                    />
-                  ) : (
-                    <div className={viz.emptyVisual}>
-                      <div>
-                        <strong>
-                          Reliability is below the reporting floor
-                        </strong>
-                        No consistency percentage is shown.
-                      </div>
-                    </div>
-                  )}
-                </article>
-                <article className={`${viz.vizCard} ${viz.span6}`}>
-                  <p className={viz.cardKicker}>Ranking validation</p>
-                  <h3 className={viz.cardTitle}>Stated rank versus choice</h3>
-                  {(report.rank_validation?.by_pair_class ?? []).length ? (
-                    <div className={story.rows}>
-                      {(report.rank_validation?.by_pair_class ?? []).map(
-                        (row) => (
-                          <div className={story.dataRow} key={row.pair_class}>
-                            <div className={story.rowLabel}>
-                              <span>{displayLabel(row.pair_class)}</span>
-                              <strong>
-                                {row.reportable
-                                  ? pct(row.agreement_rate)
-                                  : "Withheld"}
-                              </strong>
-                            </div>
-                            <div className={story.rowTrack}>
-                              <div
-                                className={story.rowFill}
-                                style={{
-                                  width: `${
-                                    clampUnit(row.agreement_rate) * 100
-                                  }%`,
-                                }}
-                              />
-                            </div>
+              <EvidenceStrip
+                rankingPct={
+                  rankingRow?.agreement_rate != null
+                    ? pct(rankingRow.agreement_rate)
+                    : null
+                }
+                compositionPct={
+                  compositionRow?.value != null
+                    ? pct(compositionRow.value)
+                    : null
+                }
+                reliabilityNote={reliabilityNote}
+              />
+              {(report.rank_validation?.by_pair_class ?? []).length ? (
+                <div
+                  className={`${viz.vizCard} ${viz.span12}`}
+                  style={{ marginTop: 16 }}
+                >
+                  <p className={viz.cardKicker}>Ranking validation detail</p>
+                  <div className={story.rows}>
+                    {(report.rank_validation?.by_pair_class ?? []).map(
+                      (row) => (
+                        <div className={story.dataRow} key={row.pair_class}>
+                          <div className={story.rowLabel}>
+                            <span>{displayLabel(row.pair_class)}</span>
+                            <strong>
+                              {row.reportable
+                                ? pct(row.agreement_rate)
+                                : "Withheld"}
+                            </strong>
                           </div>
-                        ),
-                      )}
-                    </div>
-                  ) : (
-                    <div className={viz.emptyVisual}>
-                      <div>
-                        <strong>No ranking validation is available</strong>
-                        The report keeps this limitation visible.
-                      </div>
-                    </div>
-                  )}
-                </article>
-                {report.evidence_composition?.by_grade.length ? (
-                  <article className={`${viz.vizCard} ${viz.span12}`}>
-                    <p className={viz.cardKicker}>Evidence composition</p>
-                    <h3 className={viz.cardTitle}>
-                      How product experience was verified
-                    </h3>
-                    <div className={story.rows}>
-                      {report.evidence_composition.by_grade.map(
-                        (row, index) => (
-                          <div
-                            className={story.dataRow}
-                            key={row.evidence_split ?? `grade-${index}`}
-                          >
-                            <div className={story.rowLabel}>
-                              <span>
-                                {displayLabel(
-                                  row.evidence_split ?? "Evidence grade",
-                                )}
-                              </span>
-                              <strong>
-                                {row.reportable ? pct(row.value) : "Withheld"}
-                              </strong>
-                            </div>
-                            <div className={story.rowTrack}>
-                              <div
-                                className={story.rowFill}
-                                style={{
-                                  width: `${clampUnit(row.value) * 100}%`,
-                                }}
-                              />
-                            </div>
+                          <div className={story.rowTrack}>
+                            <div
+                              className={story.rowFill}
+                              style={{
+                                width: `${clampUnit(row.agreement_rate) * 100}%`,
+                              }}
+                            />
                           </div>
-                        ),
-                      )}
-                    </div>
-                  </article>
-                ) : null}
-              </div>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
+              ) : null}
             </StoryChapter>
 
             <StoryChapter
               id="method"
               number="06"
-              kicker="Method appendix"
+              kicker="Method"
               title="What this report can—and cannot—say."
-              lead="Methods sit last, but every visual above keeps its denominator, uncertainty, and scope intact."
+              lead="Methods sit last. Every claim above keeps its denominator, uncertainty, and scope."
               context="Transparent by design"
             >
               <div className={story.methods}>
@@ -943,10 +689,18 @@ export function ExperiencedStoryReport({
                   <h3>Comparison discipline</h3>
                   <p>
                     Experience splits and named opponents remain separate. The
-                    report does not pool unlike comparisons.
+                    report does not pool unlike comparisons or invent a podium
+                    rank.
                   </p>
                 </article>
-                {methodEntries.slice(0, 6).map(([label, copy]) => (
+                <article className={story.methodCard}>
+                  <h3>Price</h3>
+                  <p>
+                    Legacy experienced studies did not test a shelf price.
+                    Price as a cited reason is not a list-price recommendation.
+                  </p>
+                </article>
+                {methodEntries.slice(0, 5).map(([label, copy]) => (
                   <article className={story.methodCard} key={label}>
                     <h3>{displayLabel(label)}</h3>
                     <p>{copy}</p>
@@ -966,7 +720,7 @@ export function ExperiencedStoryReport({
         ) : null}
 
         <ReportFooter
-          left={`${narrative.productName} · ${stage}${
+          left={`${overview.productName} · ${stage}${
             snapshot ? ` · ${snapshot}` : ""
           }`}
         />

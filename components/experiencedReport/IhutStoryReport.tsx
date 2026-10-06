@@ -1,5 +1,5 @@
-import type { CSSProperties } from 'react'
 import type { ExperiencedReportEnvelope } from '@/lib/experiencedReport/types'
+import { deriveDecisionStory } from '@/lib/experiencedReport/decisionStory'
 import {
   deriveIhutNarrative,
   strongestAttributeDirection,
@@ -9,10 +9,8 @@ import type {
   IhutCoreStrengthRow,
 } from '@/lib/experiencedReport/ihutCoreTypes'
 import {
-  ExecutiveMemo,
   ReportFooter,
   ReportToolbar,
-  Scorecard,
   SimulatedBanner,
   StoryChapter,
   StoryIndex,
@@ -20,6 +18,15 @@ import {
   type ScorecardItem,
 } from '@/components/reportStory/ReportStory'
 import styles from '@/components/reportStory/reportStory.module.css'
+import { deriveOverviewBrief } from '@/lib/experiencedReport/overviewBrief'
+import {
+  ClaimStack,
+  DataGapNotice,
+  DECISION_CHAPTER_LINKS,
+  DecisionScorecardChapter,
+  PriceValueChapter,
+} from './DecisionChapters'
+import { OverviewBottomLine } from './DecisionBrief'
 
 type Props = {
   envelope: ExperiencedReportEnvelope
@@ -112,49 +119,6 @@ function rankedNames(rows: IhutCoreStrengthRow[]): string {
     .join(' · ')
 }
 
-function BarRows({
-  rows,
-  mutedRefs = [],
-}: {
-  rows: Array<{
-    key: string
-    label: string
-    value: number | null
-    note?: string
-  }>
-  mutedRefs?: string[]
-}) {
-  return (
-    <div className={styles.rows}>
-      {rows.map((row) => (
-        <div className={styles.dataRow} key={row.key}>
-          <div className={styles.rowLabel}>
-            <span>{row.label}</span>
-            <strong>
-              {pct(row.value)}
-              {row.note ? ` · ${row.note}` : ''}
-            </strong>
-          </div>
-          <div className={styles.rowTrack}>
-            <div
-              className={
-                mutedRefs.includes(row.key)
-                  ? styles.rowFillMuted
-                  : styles.rowFill
-              }
-              style={
-                {
-                  width: `${Math.max(0, Math.min(100, (row.value ?? 0) * 100))}%`,
-                } as CSSProperties
-              }
-            />
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 function CountRows({
   rows,
   noun = 'response',
@@ -192,36 +156,42 @@ export function IhutStoryReport({
   backHref,
   variant = 'full',
 }: Props) {
+  const story = deriveDecisionStory(envelope)
   const narrative = deriveIhutNarrative(report)
   const productName =
+    story.productName ||
     narrative?.productName ||
     envelope.report.focal_product.name ||
     'The product'
-  const stage = envelope.report.report_stage.is_final
-    ? 'Final read'
-    : 'Preliminary read'
   const snapshot = formatDate(envelope.snapshot_date)
   const metadata = [
-    `IHUT · ${stage}`,
-    `${envelope.report.participation.n_users} participant${
-      envelope.report.participation.n_users === 1 ? '' : 's'
+    `IHUT · ${story.stageLabel}`,
+    `${story.participation.nUsers} participant${
+      story.participation.nUsers === 1 ? '' : 's'
     }`,
     snapshot ? `Snapshot ${snapshot}` : null,
   ].filter((value): value is string => Boolean(value))
 
   if (!narrative) {
+    const overview = deriveOverviewBrief(envelope)
+    overview.bottomLine = `The verdict on ${productName} is still forming.`
+    overview.explanation =
+      'The study exists, but the decision payload is not ready. This report will not fill the gap with a point estimate or a guess.'
+    overview.interpretation =
+      'Keep this read preliminary and return when the success-bar verdict is available.'
+    overview.call = 'forming'
+    overview.callLabel = 'Still forming'
     return (
       <div className={styles.page}>
         <main className={styles.shell}>
           <ReportToolbar backHref={backHref} />
           {envelope.is_simulated ? <SimulatedBanner /> : null}
-          <ExecutiveMemo
+          <OverviewBottomLine
+            overview={overview}
             eyebrow="At-home product test · Decision brief"
-            headline={`The verdict on ${productName} is still forming.`}
-            lede="The study exists, but the decision payload is not ready. This report will not fill the gap with a point estimate or a guess."
-            implication="Keep this read preliminary and return when the success-bar verdict is available."
             metadata={metadata}
           />
+          {variant === 'full' ? <PriceValueChapter story={story} /> : null}
         </main>
       </div>
     )
@@ -242,6 +212,23 @@ export function IhutStoryReport({
     fill: metric.value,
     marker: metric.bar,
   }))
+  const overview = deriveOverviewBrief(envelope)
+  overview.bottomLine = story.headline
+  overview.explanation = story.explanation
+  overview.interpretation = story.implication
+  if (narrative.overall === 'cleared') {
+    overview.call = 'ahead'
+    overview.callLabel = 'Cleared'
+  } else if (narrative.overall === 'not_cleared') {
+    overview.call = 'behind'
+    overview.callLabel = 'Did not clear'
+  } else if (narrative.overall === 'too_close_to_call') {
+    overview.call = 'too_close'
+    overview.callLabel = 'Too close'
+  } else {
+    overview.call = 'forming'
+    overview.callLabel = 'Still forming'
+  }
   const position = positionFinding(report, productName, narrative.productRef)
   const shelfRows = report.promise_vs_delivery?.shelf ?? []
   const tasteRows = report.promise_vs_delivery?.taste ?? []
@@ -253,15 +240,11 @@ export function IhutStoryReport({
   const heroBuyOrder = report.buy_order.find(
     (row) => row.ref === narrative.productRef,
   )
-  const heroExpectation = report.expectation_vs_experience.find(
-    (row) => row.ref === narrative.productRef,
-  )
   const heroDay2 = report.day2.preference_hold
-  const hasDay2 =
+  const day2Available =
     report.day2.preference_hold.n > 0 ||
     report.day2.consumption.length > 0 ||
     report.day2.wear.length > 0
-  const priceMetric = narrative.metrics.find((metric) => metric.key === 'price')
   const whyTitle = attributeIssue
     ? `${attributeIssue.claim} That is the clearest formulation watch-out.`
     : heroReasons[0]
@@ -277,45 +260,26 @@ export function IhutStoryReport({
       <main className={styles.shell}>
         <ReportToolbar backHref={backHref} />
         {envelope.is_simulated ? <SimulatedBanner /> : null}
-        <ExecutiveMemo
+        <OverviewBottomLine
+          overview={overview}
           eyebrow="At-home product test · Decision brief"
-          headline={narrative.headline}
-          lede={narrative.explanation}
-          implication={narrative.implication}
           metadata={metadata}
         />
-        {variant === 'full' ? (
-          <StoryIndex
-            links={[
-              { href: '#decision', label: '01 · The decision' },
-              { href: '#promise', label: '02 · Promise vs delivery' },
-              { href: '#why', label: '03 · Why it happened' },
-              { href: '#commercial', label: '04 · Commercial signal' },
-            ]}
-          />
-        ) : null}
+        {variant === 'full' ? <StoryIndex links={[...DECISION_CHAPTER_LINKS]} /> : null}
 
-        <StoryChapter
-          id="decision"
-          number="01"
-          kicker="The decision"
-          title={narrative.headline}
+        <DecisionScorecardChapter
+          title={story.headline}
           lead="Each call below comes from the frozen server verdict. A favorable percentage is not relabeled as a pass when its interval or pre-set bar says otherwise."
-          context="Pre-set bars · unchanged"
-        >
-          <Scorecard items={scoreItems} />
-          <div className={styles.callout}>
-            <span className={styles.calloutLabel}>Decision discipline</span>
-            <p>{narrative.implication}</p>
-          </div>
-        </StoryChapter>
+          items={scoreItems}
+          implication={story.implication}
+        />
 
         {variant === 'full' ? (
           <>
             <StoryChapter
-              id="promise"
+              id="field"
               number="02"
-              kicker="Promise vs delivery"
+              kicker="Against whom?"
               title={position.title}
               lead={position.lead}
               context="Rank is relative to the tested field"
@@ -342,25 +306,21 @@ export function IhutStoryReport({
                   </article>
                 </div>
               ) : (
-                <div className={styles.emptyState}>
-                  <strong>No promise-to-delivery comparison yet</strong>
-                  <p>
-                    Both shelf and tasted positions are required before this
-                    report claims movement.
-                  </p>
-                </div>
+                <DataGapNotice
+                  title="No promise-to-delivery comparison yet"
+                  body="Both shelf and tasted positions are required before this report claims movement."
+                />
               )}
               <p className={styles.finePrint}>
                 Rank is shown because it is decision-readable. Underlying
-                Bradley–Terry strengths are model scores, not percentages, and
-                are not presented as respondent shares.
+                Bradley–Terry strengths are model scores, not percentages.
               </p>
             </StoryChapter>
 
             <StoryChapter
-              id="why"
+              id="diagnosis"
               number="03"
-              kicker="Why it happened"
+              kicker="Why?"
               title={whyTitle}
               lead="Directional diagnostics explain where to look next. They do not prove that changing one attribute will cause the verdict to move."
               context={`Hero product · ${productName}`}
@@ -395,64 +355,37 @@ export function IhutStoryReport({
                     </p>
                   )}
                 </article>
+                {heroBuyOrder ? (
+                  <article className={styles.evidenceCard}>
+                    <p className={styles.cardEyebrow}>Buy order</p>
+                    <h3 className={styles.cardTitle}>Ranked first after tasting</h3>
+                    <div className={styles.bigNumber}>
+                      {pct(heroBuyOrder.first_share)}
+                    </div>
+                    <p className={styles.cardText}>
+                      Share ranking {productName} first · n={heroBuyOrder.n}.
+                      Preference order is not the same as buy-at-price intent.
+                    </p>
+                  </article>
+                ) : null}
               </div>
             </StoryChapter>
 
-            <StoryChapter
-              id="commercial"
-              number="04"
-              kicker="Commercial signal"
-              title={
-                priceMetric?.claim ??
-                'The tested price signal is still forming.'
-              }
-              lead="This is stated willingness to buy at the tested price—not a revenue forecast, repeat-purchase rate, or guarantee of in-market conversion."
-              context="Observed in this study"
-            >
-              <div className={styles.evidenceGrid}>
-                <article className={styles.evidenceCard}>
-                  <p className={styles.cardEyebrow}>Buy order</p>
-                  <h3 className={styles.cardTitle}>
-                    Ranked first after tasting
-                  </h3>
-                  <div className={styles.bigNumber}>
-                    {pct(heroBuyOrder?.first_share)}
-                  </div>
-                  <p className={styles.cardText}>
-                    {heroBuyOrder
-                      ? `Share ranking ${productName} first after tasting · n=${heroBuyOrder.n}.`
-                      : 'No buy-order evidence is available yet.'}
-                  </p>
-                </article>
-                <article className={styles.evidenceCard}>
-                  <p className={styles.cardEyebrow}>Expectation met</p>
-                  <h3 className={styles.cardTitle}>
-                    Liked it and expected good
-                  </h3>
-                  <div className={styles.bigNumber}>
-                    {pct(heroExpectation?.liked_and_expected_good_share)}
-                  </div>
-                  <p className={styles.cardText}>
-                    This is the specific conjunction measured—not a general
-                    claim that the product “delivered.”
-                  </p>
-                </article>
-              </div>
-            </StoryChapter>
+            <PriceValueChapter story={story} />
 
             <StoryChapter
-              id="day-two"
+              id="durability"
               number="05"
-              kicker="Did it last?"
+              kicker="Did it hold?"
               title={day2Title}
               lead={
-                hasDay2
+                day2Available
                   ? 'Day 2 shows whether the observed preference and experience held in the follow-up. It does not establish causality.'
                   : 'This report keeps the chapter visible so an absent follow-up is explicit, not silently omitted.'
               }
               context="Follow-up evidence"
             >
-              {hasDay2 ? (
+              {day2Available ? (
                 <div className={styles.evidenceGrid}>
                   <article className={styles.evidenceCard}>
                     <p className={styles.cardEyebrow}>Preference hold</p>
@@ -486,31 +419,31 @@ export function IhutStoryReport({
                   ) : null}
                 </div>
               ) : (
-                <div className={styles.emptyState}>
-                  <strong>No Day 2 response is included</strong>
-                  <p>
-                    No hold, consumption, or wear claim is made from the Day 1
-                    result.
-                  </p>
-                </div>
+                <DataGapNotice
+                  title="No Day 2 response is included"
+                  body="No hold, consumption, or wear claim is made from the Day 1 result."
+                />
               )}
             </StoryChapter>
 
             <StoryChapter
-              id="method"
+              id="trust"
               number="06"
-              kicker="Trust the read"
+              kicker="How much should I trust it?"
               title="What this report can—and cannot—say."
-              lead="The method sits last, but it is not fine-print theater. These rules protect the decision from flattering reinterpretation."
+              lead="These rules protect the decision from flattering reinterpretation. Price claims remain tested-offer intent, never demand."
               context="Transparent by design"
             >
+              <ClaimStack
+                claims={story.claims.filter((c) => c.kind === 'limitation')}
+              />
               <div className={styles.methods}>
                 <article className={styles.methodCard}>
                   <h3>Server verdict</h3>
                   <p>
-                    The overall result and all three metric calls are rendered
-                    from the frozen report payload. This page does not recompute
-                    or upgrade them.
+                    The overall result and metric calls are rendered from the
+                    frozen report payload. This page does not recompute or
+                    upgrade them.
                   </p>
                 </article>
                 <article className={styles.methodCard}>
@@ -522,18 +455,19 @@ export function IhutStoryReport({
                   </p>
                 </article>
                 <article className={styles.methodCard}>
-                  <h3>Sample floor</h3>
+                  <h3>Price decision floor</h3>
                   <p>
-                    A metric needs at least 10 answers to receive a decision
-                    call. Smaller bases remain “Still forming.”
+                    Under 10 answers: counts only. 10–29: descriptive small-base
+                    evidence. A pass/fail price verdict requires at least 30
+                    answers.
                   </p>
                 </article>
                 <article className={styles.methodCard}>
                   <h3>Scope</h3>
                   <p>
-                    Findings describe this product, price, comparison field, and
-                    sample. They are not a launch recommendation or sales
-                    forecast.
+                    Findings describe this product, tested shelf price,
+                    comparison field, and sample. They are not a launch
+                    recommendation, elasticity curve, or sales forecast.
                   </p>
                 </article>
               </div>
@@ -542,7 +476,7 @@ export function IhutStoryReport({
         ) : null}
 
         <ReportFooter
-          left={`${productName} · ${stage}${snapshot ? ` · ${snapshot}` : ''}`}
+          left={`${productName} · ${story.stageLabel}${snapshot ? ` · ${snapshot}` : ''}`}
         />
       </main>
     </div>
