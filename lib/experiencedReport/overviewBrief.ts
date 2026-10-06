@@ -31,6 +31,11 @@ export type AnswerTile = {
   muted?: boolean
 }
 
+export type DecisionClaim = {
+  id: string
+  text: string
+}
+
 export type OverviewBrief = {
   productName: string
   brand: string | null
@@ -40,6 +45,10 @@ export type OverviewBrief = {
   bottomLine: string
   explanation: string
   interpretation: string
+  /** Proof-chapter title that adds information beyond the Overview. */
+  proofTitle: string
+  /** Why-chapter implication title. */
+  whyTitle: string
   preference: PreferenceBrief
   preferencePct: string
   rangeLabel: string
@@ -48,6 +57,12 @@ export type OverviewBrief = {
   field: FieldBrief
   price: PriceBriefTile
   tiles: AnswerTile[]
+  whyDriver: string | null
+  whyHeadwind: string | null
+  intentValue: string
+  intentDetail: string
+  supports: DecisionClaim[]
+  doesNotSupport: DecisionClaim[]
   favoredComparisons: number
   reportableComparisons: number
   story: DecisionStory
@@ -58,10 +73,7 @@ function clamp01(v: number): number {
   return Math.max(0, Math.min(1, v))
 }
 
-function winHeadline(
-  productName: string,
-  call: OverviewCall,
-): string {
+function winHeadline(productName: string, call: OverviewCall): string {
   switch (call) {
     case 'ahead':
       return `${productName} won the choice test.`
@@ -85,6 +97,51 @@ function callLabel(call: OverviewCall): string {
     default:
       return 'Still forming'
   }
+}
+
+function capitalize(value: string): string {
+  return value ? `${value[0].toUpperCase()}${value.slice(1)}` : value
+}
+
+function proofTitleFromField(
+  productName: string,
+  field: FieldBrief,
+  favoredComparisons: number,
+  reportableComparisons: number,
+): string {
+  if (reportableComparisons === 0 || !field.beatMost || !field.beatLeast) {
+    return `The named competitive field for ${productName} is not reportable yet.`
+  }
+  if (favoredComparisons === reportableComparisons) {
+    return `It cleared even against every named competitor — strongest vs ${field.beatMost.opponentName}.`
+  }
+  if (favoredComparisons === 0) {
+    return `It did not clear even in the named field — softest vs ${field.beatLeast.opponentName}.`
+  }
+  if (field.beatMost.key === field.beatLeast.key) {
+    return `Against the named field, the clearest read is vs ${field.beatMost.opponentName}.`
+  }
+  return `It cleared even against ${field.beatMost.opponentName}; ${field.beatLeast.opponentName} is the soft spot.`
+}
+
+function whyTitleFromDrivers(
+  driver: string | null,
+  headwind: string | null,
+  call: OverviewCall,
+): string {
+  if (driver && headwind) {
+    return `${capitalize(driver)} is the win condition; ${headwind.toLowerCase()} is the risk.`
+  }
+  if (driver) {
+    return `${capitalize(driver)} is the clearest reason behind the preference signal.`
+  }
+  if (headwind) {
+    return `${capitalize(headwind)} is the clearest headwind in the choice reasons.`
+  }
+  if (call === 'forming') {
+    return 'The reasons behind choice are still forming.'
+  }
+  return 'Choice reasons do not yet name a clear win condition.'
 }
 
 export function deriveOverviewBrief(
@@ -127,16 +184,20 @@ export function deriveOverviewBrief(
               field.beatLeast?.opponentName ?? 'field'
             }.`
 
-  const whyValue = summary.topDriver?.driver
-    ? summary.topDriver.driver.replace(/^./, (c) => c.toUpperCase())
-    : '—'
+  const whyDriver = summary.topDriver?.driver
+    ? capitalize(summary.topDriver.driver)
+    : null
+  const whyHeadwind = summary.topHeadwind?.driver
+    ? summary.topHeadwind.driver.toLowerCase()
+    : null
+  const whyValue = whyDriver ?? '—'
   const whyDetail =
-    summary.topDriver && summary.topHeadwind
-      ? `${summary.topDriver.driver} drove choice; ${summary.topHeadwind.driver} was the biggest headwind.`
-      : summary.topDriver
-        ? `${summary.topDriver.driver} was the leading reason for choice.`
-        : summary.topHeadwind
-          ? `${summary.topHeadwind.driver} was the leading headwind.`
+    whyDriver && whyHeadwind
+      ? `${whyDriver.toLowerCase()} drove choice; ${whyHeadwind} was the biggest headwind.`
+      : whyDriver
+        ? `${whyDriver.toLowerCase()} was the leading reason for choice.`
+        : whyHeadwind
+          ? `${whyHeadwind} was the leading headwind.`
           : 'Choice reasons are still forming.'
 
   const intentShare =
@@ -193,7 +254,9 @@ export function deriveOverviewBrief(
     interpretationBits.push('The preference read is still forming')
   }
   if (summary.topDriver) {
-    interpretationBits.push(`driven primarily by ${summary.topDriver.driver.toLowerCase()}`)
+    interpretationBits.push(
+      `driven primarily by ${summary.topDriver.driver.toLowerCase()}`,
+    )
   }
   if (summary.topHeadwind) {
     interpretationBits.push(
@@ -215,6 +278,73 @@ export function deriveOverviewBrief(
             : ''
         }`
 
+  const supports: DecisionClaim[] = []
+  const doesNotSupport: DecisionClaim[] = []
+
+  if (preference.call === 'ahead' && share != null) {
+    supports.push({
+      id: 'pref',
+      text: `Experienced preference for ${summary.productName} over the tested field (${pct01(share)}${
+        preference.lo != null && preference.hi != null
+          ? `, likely ${pct01(preference.lo)}–${pct01(preference.hi)}`
+          : ''
+      }).`,
+    })
+  } else if (preference.call === 'behind' && share != null) {
+    supports.push({
+      id: 'pref',
+      text: `A clear read that ${summary.productName} did not clear even (${pct01(share)}).`,
+    })
+  } else if (preference.call === 'too_close') {
+    supports.push({
+      id: 'pref',
+      text: 'That the preference interval still crosses an even split — more sample would tighten the call.',
+    })
+  }
+
+  if (favoredComparisons > 0 && field.beatMost) {
+    supports.push({
+      id: 'field',
+      text: `Named head-to-head strength vs ${field.beatMost.opponentName} (${pct01(field.beatMost.winShare)}).`,
+    })
+  }
+  if (whyDriver) {
+    supports.push({
+      id: 'why',
+      text: `${whyDriver} as the leading cited reason when the product won.`,
+    })
+  }
+  if (intentShare != null) {
+    supports.push({
+      id: 'intent',
+      text: `Stated definite buy-again intent after Session 1 (${intentValue}).`,
+    })
+  }
+
+  doesNotSupport.push({
+    id: 'forecast',
+    text: 'A launch recommendation, sales forecast, or share-of-shelf prediction.',
+  })
+  if (price.status !== 'tested') {
+    doesNotSupport.push({
+      id: 'price',
+      text:
+        price.status === 'not_measured'
+          ? 'A tested shelf price or willingness-to-pay — price appears only as a cited reason share.'
+          : 'A priced decision from this freeze.',
+    })
+  }
+  if (field.beatLeast && favoredComparisons < reportableComparisons) {
+    doesNotSupport.push({
+      id: 'soft',
+      text: `That it dominates every competitor — ${field.beatLeast.opponentName} remains the soft comparison.`,
+    })
+  }
+  doesNotSupport.push({
+    id: 'causal',
+    text: 'That changing one cited reason would causally move preference.',
+  })
+
   return {
     productName: summary.productName,
     brand: envelope.report.focal_product.brand,
@@ -223,6 +353,13 @@ export function deriveOverviewBrief(
     bottomLine: winHeadline(summary.productName, preference.call),
     explanation,
     interpretation: `${interpretationBits.join(', ')}.`,
+    proofTitle: proofTitleFromField(
+      summary.productName,
+      field,
+      favoredComparisons,
+      reportableComparisons,
+    ),
+    whyTitle: whyTitleFromDrivers(whyDriver, whyHeadwind, preference.call),
     preference,
     preferencePct: pct01(share),
     rangeLabel:
@@ -237,6 +374,12 @@ export function deriveOverviewBrief(
     field,
     price,
     tiles,
+    whyDriver,
+    whyHeadwind,
+    intentValue,
+    intentDetail,
+    supports,
+    doesNotSupport,
     favoredComparisons,
     reportableComparisons,
     story,
