@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   battleLevelLabel,
+  battleWinFillPct,
   buildHeadToHeadJobs,
   formatBattleRecord,
   formatEloScore,
@@ -8,7 +9,9 @@ import {
   intelligenceVolumeStats,
   jobStatusCopy,
   pickHeadlineStanding,
+  rankStandingFillPct,
   raterFloorCopy,
+  raterFloorProgress,
 } from '../../app/(portal)/products/[productId]/tabs/intelligencePresentation'
 import type {
   CompareGroupEligible,
@@ -68,6 +71,15 @@ describe('intelligence formatters', () => {
     expect(battleLevelLabel('3')).toBe('Level 3')
     expect(battleLevelLabel(0)).toBeNull()
     expect(battleLevelLabel(null)).toBeNull()
+  })
+
+  it('maps rank-in-pool to a top-of-set fill percent', () => {
+    expect(rankStandingFillPct(1, 19)).toBe(100)
+    expect(rankStandingFillPct(19, 19)).toBe(0)
+    expect(rankStandingFillPct(12, 19)).toBe(39)
+    expect(rankStandingFillPct(null, 19)).toBeNull()
+    expect(battleWinFillPct(3, 8)).toBe(38)
+    expect(battleWinFillPct(0, 0)).toBeNull()
   })
 })
 
@@ -162,5 +174,15 @@ describe('headline and volume', () => {
         health_score: null,
       })
     ).toBe('12 of 25 unique raters toward a publishable score')
+    expect(
+      raterFloorProgress({
+        admin_only: true,
+        unique_raters: 12,
+        total_battles: 40,
+        min_raters_to_publish: 25,
+        taste_score: null,
+        health_score: null,
+      })
+    ).toEqual({ have: 12, need: 25, pct: 48 })
   })
 })
