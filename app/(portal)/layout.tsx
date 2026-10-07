@@ -84,6 +84,9 @@ export default async function PortalLayout({ children }: { children: React.React
       isAdmin={isAdmin}
       isImpersonating={isImpersonating}
       impersonatedBrandName={isImpersonating ? brandName : null}
+      effectiveBrandId={
+        !isAdmin || isImpersonating ? scope.effectiveBrandId : null
+      }
     >
       <LegacyBrandIdGate isAdmin={isAdmin} isImpersonating={isImpersonating}>
         {children}
