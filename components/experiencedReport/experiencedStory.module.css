@@ -512,6 +512,169 @@
   background: rgba(166, 84, 60, 0.72);
 }
 
+/* Definite-first buy-again intent */
+
+.intentFigure {
+  display: grid;
+  gap: 22px;
+  margin-top: 8px;
+}
+
+.intentHero {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.intentHeroValue {
+  font-family: var(--font-display);
+  font-size: clamp(56px, 8vw, 72px);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  color: var(--sage-dark);
+}
+
+.intentHeroCopy {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 6px;
+}
+
+.intentHeroCopy strong {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.intentHeroCopy span {
+  color: var(--ink-faint);
+  font-size: 12px;
+}
+
+.intentTracks {
+  display: grid;
+  gap: 16px;
+}
+
+.intentTrackRow {
+  display: grid;
+  gap: 8px;
+}
+
+.intentTrackMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.intentTrackMeta span {
+  color: var(--ink-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.intentTrackMeta strong {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.intentTrack {
+  position: relative;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(28, 38, 32, 0.07);
+  overflow: hidden;
+}
+
+.intentFillDefinite {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--sage);
+}
+
+.intentFillMaybe {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(62, 107, 74, 0.28);
+}
+
+.intentNestedDefinite {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--sage);
+}
+
+.intentFillNo {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(166, 84, 60, 0.7);
+}
+
+.intentNestedNote {
+  margin: 0;
+  color: var(--ink-faint);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.intentReject .intentTrackMeta strong {
+  color: #8a4030;
+}
+
+.intentSessionStrip {
+  border-top: 1px solid rgba(28, 38, 32, 0.1);
+  padding-top: 16px;
+}
+
+.intentSessionLabel {
+  margin: 0 0 12px;
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.intentSessionRows {
+  display: grid;
+  gap: 10px;
+}
+
+.intentSessionRow {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 48px;
+  gap: 10px;
+  align-items: center;
+}
+
+.intentSessionRow span {
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.intentSessionRow strong {
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--ink);
+}
+
 .numberGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

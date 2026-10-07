@@ -252,113 +252,125 @@ function RepurchaseChart({ rows }: { rows: RepurchaseSessionMetric[] }) {
       </div>
     );
   }
-  const left = 48;
-  const right = 572;
-  const top = 20;
-  const bottom = 210;
-  const y = (value: number) => bottom - value * (bottom - top);
-  const slot = (right - left) / sessions.length;
-  const barWidth = Math.min(28, slot / 5);
+
+  const primary = sessions[0];
+  const definite = primary.definite;
+  const maybe = primary.topTwo;
+  const no = primary.no;
+  const multi = sessions.length > 1;
 
   return (
-    <>
-      <svg
-        className={viz.buyChart}
-        viewBox="0 0 620 250"
-        role="img"
-        aria-label="Buy-again intent by session"
-      >
-        {[0, 0.5, 1].map((value) => (
-          <g key={value}>
-            <line
-              className={viz.chartGrid}
-              x1={left}
-              x2={right}
-              y1={y(value)}
-              y2={y(value)}
-            />
-            <text
-              className={viz.chartAxisText}
-              x={left - 8}
-              y={y(value) + 3}
-              textAnchor="end"
-            >
-              {pct(value)}
-            </text>
-          </g>
-        ))}
-        {sessions.map((session, index) => {
-          const center = left + slot * index + slot / 2;
-          const metrics = [
-            {
-              value: session.definite,
-              className: viz.definiteBar,
-              offset: -barWidth - 3,
-              label: "Definitely yes",
-            },
-            {
-              value: session.topTwo,
-              className: viz.maybeBar,
-              offset: 0,
-              label: "Yes or maybe",
-            },
-            {
-              value: session.no,
-              className: viz.noBar,
-              offset: barWidth + 3,
-              label: "No",
-            },
-          ];
-          return (
-            <g key={session.session}>
-              {metrics.map((metric) =>
-                metric.value == null ? null : (
-                  <rect
-                    className={metric.className}
-                    x={center + metric.offset - barWidth / 2}
-                    y={y(metric.value)}
-                    width={barWidth}
-                    height={bottom - y(metric.value)}
-                    rx="3"
-                    key={metric.label}
-                  >
-                    <title>{`Session ${session.session} · ${
-                      metric.label
-                    } · ${pct(metric.value)}`}</title>
-                  </rect>
-                ),
-              )}
-              <text
-                className={viz.chartAxisText}
-                x={center}
-                y={bottom + 22}
-                textAnchor="middle"
-              >
-                Session {session.session}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-      <div className={viz.chartLegend}>
-        <span>
-          <i className={viz.legendDefinite} />
-          Definitely yes
-        </span>
-        <span>
-          <i className={viz.legendMaybe} />
-          Yes or maybe
-        </span>
-        <span>
-          <i className={viz.legendNo} />
-          No
-        </span>
+    <div className={viz.intentFigure}>
+      <div className={viz.intentHero}>
+        <div
+          className={viz.intentHeroValue}
+          aria-label={
+            definite == null
+              ? "Definite buy-again not reportable"
+              : `${pct(definite)} would definitely buy again`
+          }
+        >
+          {definite == null ? "—" : pct(definite)}
+        </div>
+        <div className={viz.intentHeroCopy}>
+          <strong>Definitely would buy again</strong>
+          <span>
+            Session {primary.session}
+            {multi ? " · first reportable session" : ""}
+          </span>
+        </div>
       </div>
+
+      <div className={viz.intentTracks} role="img" aria-label="Buy-again intent composition">
+        {definite != null ? (
+          <div className={viz.intentTrackRow}>
+            <div className={viz.intentTrackMeta}>
+              <span>Definitely yes</span>
+              <strong>{pct(definite)}</strong>
+            </div>
+            <div className={viz.intentTrack}>
+              <span
+                className={viz.intentFillDefinite}
+                style={{ width: `${definite * 100}%` } as CSSProperties}
+              />
+            </div>
+          </div>
+        ) : null}
+
+        {maybe != null ? (
+          <div className={viz.intentTrackRow}>
+            <div className={viz.intentTrackMeta}>
+              <span>At least maybe</span>
+              <strong>{pct(maybe)}</strong>
+            </div>
+            <div className={viz.intentTrack}>
+              <span
+                className={viz.intentFillMaybe}
+                style={{ width: `${maybe * 100}%` } as CSSProperties}
+              />
+              {definite != null ? (
+                <span
+                  className={viz.intentNestedDefinite}
+                  style={{ width: `${definite * 100}%` } as CSSProperties}
+                  title={`Definitely yes · ${pct(definite)} is inside this band`}
+                />
+              ) : null}
+            </div>
+            <p className={viz.intentNestedNote}>
+              Includes “definitely yes” — not a separate group.
+            </p>
+          </div>
+        ) : null}
+
+        {no != null ? (
+          <div className={`${viz.intentTrackRow} ${viz.intentReject}`}>
+            <div className={viz.intentTrackMeta}>
+              <span>No</span>
+              <strong>{pct(no)}</strong>
+            </div>
+            <div className={viz.intentTrack}>
+              <span
+                className={viz.intentFillNo}
+                style={{ width: `${no * 100}%` } as CSSProperties}
+              />
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      {multi ? (
+        <div className={viz.intentSessionStrip}>
+          <p className={viz.intentSessionLabel}>Definite yes by session</p>
+          <div className={viz.intentSessionRows}>
+            {sessions.map((session) => (
+              <div className={viz.intentSessionRow} key={session.session}>
+                <span>S{session.session}</span>
+                <div className={viz.intentTrack}>
+                  {session.definite != null ? (
+                    <span
+                      className={viz.intentFillDefinite}
+                      style={
+                        {
+                          width: `${session.definite * 100}%`,
+                        } as CSSProperties
+                      }
+                    />
+                  ) : null}
+                </div>
+                <strong>
+                  {session.definite == null ? "—" : pct(session.definite)}
+                </strong>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <p className={story.finePrint}>
-        “Yes or maybe” includes “definitely yes”; bars are shown side by side
-        and should not be added together.
+        Stated intent after use — not observed repeat purchase. Rates are shares
+        of the session base, not independent votes that sum to 100%.
       </p>
-    </>
+    </div>
   );
 }
 
