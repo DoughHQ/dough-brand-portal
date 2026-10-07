@@ -32,6 +32,7 @@ type NavIcon =
   | 'ownership'
   | 'applications'
   | 'boxes'
+  | 'safety'
   | 'studies'
   | 'products'
   | 'prototypes'
@@ -78,6 +79,12 @@ function NavGlyph({ name }: { name: NavIcon }) {
         <>
           <circle cx="12" cy="8" r="3.2" {...stroke} />
           <path d="M5 19c1.2-3 3.6-4.5 7-4.5S17.8 16 19 19" {...stroke} />
+        </>
+      ) : null}
+      {name === 'safety' ? (
+        <>
+          <path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z" {...stroke} />
+          <path d="M12 11v3M12 16.5h.01" {...stroke} />
         </>
       ) : null}
       {name === 'corrections' ? <path d="M4 7h16M4 12h16M4 17h10" {...stroke} /> : null}
@@ -148,7 +155,7 @@ export default function PortalLayoutClient({
   brandName,
   portalUser: _portalUser,
   catalogProductCount = 0,
-  queueBadges = { corrections: 0, ownership: 0, applications: 0, boxes: 0 },
+  queueBadges = { safety: 0, corrections: 0, ownership: 0, applications: 0, boxes: 0 },
   isAdmin,
   isImpersonating,
   impersonatedBrandName,
@@ -211,6 +218,7 @@ export default function PortalLayoutClient({
       group: 'Ops',
       items: [
         { label: 'Impersonate', href: '/admin/impersonate', icon: 'impersonate', prefetch: false },
+        { label: 'Safety', href: '/admin/safety', icon: 'safety', badge: 'safety', prefetch: false },
         { label: 'Corrections', href: '/admin/corrections', icon: 'corrections', badge: 'corrections', prefetch: false },
         { label: 'Ownership', href: '/admin/ownership-corrections', icon: 'ownership', badge: 'ownership', prefetch: false },
         { label: 'Applications', href: '/admin/brand-applications', icon: 'applications', badge: 'applications', prefetch: false },

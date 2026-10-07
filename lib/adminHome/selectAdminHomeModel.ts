@@ -29,6 +29,7 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const ATTENTION_ORDER: AdminAttentionRow['key'][] = [
+  'safety',
   'corrections',
   'applications',
   'ownership',
@@ -66,6 +67,11 @@ function typeLabel(raw: string | null | undefined): string | null {
   return TYPE_LABELS[key] ?? key.replace(/_/g, ' ')
 }
 
+function reasonish(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  return raw.replace(/_/g, ' ')
+}
+
 export function correctionNextLabel(next: AdminHomeQueues['corrections']['next']): string | null {
   if (!next) return null
   const product = next.name.trim() || 'Untitled product'
@@ -88,6 +94,24 @@ function oldestClause(iso: string | null | undefined): string | null {
 
 export function buildAttention(queues: AdminHomeQueues, now: Date): AdminAttentionRow[] {
   const rows: AdminAttentionRow[] = []
+
+  if (queues.safety.count > 0) {
+    const oldest = oldestClause(queues.safety.oldestAt)
+    rows.push({
+      key: 'safety',
+      label: 'Safety',
+      href: queues.safety.next
+        ? `/admin/safety?focus=${queues.safety.next.id}`
+        : '/admin/safety',
+      count: queues.safety.count,
+      detail: joinDetail([
+        queues.safety.next ? reasonish(queues.safety.next.reason) : null,
+        oldest,
+      ]) || 'Open user reports',
+      nextLabel: queues.safety.next?.label ?? null,
+      tone: isStale(queues.safety.oldestAt, now) ? 'stale' : 'work',
+    })
+  }
 
   if (queues.corrections.count > 0) {
     const oldest = oldestClause(queues.corrections.oldestAt)

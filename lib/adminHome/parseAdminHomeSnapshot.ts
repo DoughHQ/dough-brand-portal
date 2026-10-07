@@ -24,6 +24,7 @@ const EMPTY_PULSE: AdminHomePulse = {
 }
 
 const EMPTY_QUEUES: AdminHomeQueues = {
+  safety: { count: 0, oldestAt: null, next: null },
   corrections: { count: 0, approveAsIs: 0, oldestAt: null, next: null },
   ownership: { count: 0, oldestAt: null, next: null },
   applications: { pending: 0, exceptions: 0, oldestAt: null, next: null },
@@ -95,16 +96,31 @@ function parseQueues(raw: unknown): AdminHomeQueues {
   const q = asRecord(raw)
   if (!q) return EMPTY_QUEUES
 
+  const safety = asRecord(q.safety)
   const corr = asRecord(q.corrections)
   const own = asRecord(q.ownership)
   const apps = asRecord(q.applications)
   const boxes = asRecord(q.boxes)
 
+  const safetyNext = asRecord(safety?.next)
   const appNext = asRecord(apps?.next)
   const ownNext = asRecord(own?.next)
   const boxNext = asRecord(boxes?.next)
 
   return {
+    safety: {
+      count: asNum(safety?.count),
+      oldestAt: asStr(safety?.oldest_at),
+      next:
+        safetyNext && asNum(safetyNext.id) > 0 && asStr(safetyNext.created_at)
+          ? {
+              id: asNum(safetyNext.id),
+              label: asStr(safetyNext.label) || 'Report',
+              reason: asStr(safetyNext.reason) || 'other',
+              createdAt: asStr(safetyNext.created_at)!,
+            }
+          : null,
+    },
     corrections: {
       count: asNum(corr?.count),
       approveAsIs: 0,
@@ -212,6 +228,7 @@ export function parseAdminHomeSnapshot(raw: unknown, fallbackGeneratedAt = new D
 
 export function badgesFromSnapshot(snapshot: AdminHomeSnapshot) {
   return {
+    safety: snapshot.queues.safety.count,
     corrections: snapshot.queues.corrections.count,
     ownership: snapshot.queues.ownership.count,
     applications: snapshot.queues.applications.pending,

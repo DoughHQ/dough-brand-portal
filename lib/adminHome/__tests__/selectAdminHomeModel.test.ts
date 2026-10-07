@@ -30,6 +30,7 @@ const pulse: AdminHomePulse = {
 
 function queues(partial?: Partial<AdminHomeQueues>): AdminHomeQueues {
   return {
+    safety: { count: 0, oldestAt: null, next: null },
     corrections: { count: 0, approveAsIs: 0, oldestAt: null, next: null },
     ownership: { count: 0, oldestAt: null, next: null },
     applications: { pending: 0, exceptions: 0, oldestAt: null, next: null },
