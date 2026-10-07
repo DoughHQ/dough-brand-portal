@@ -86,9 +86,11 @@ export function PreferenceIntervalBar({
 function FieldProofStrip({
   field,
   productName,
+  hideHead = false,
 }: {
   field: FieldBrief
   productName: string
+  hideHead?: boolean
 }) {
   if (!field.rows.length) {
     return (
@@ -106,13 +108,15 @@ function FieldProofStrip({
       role="list"
       aria-label={`${productName} against named competitors`}
     >
-      <div className={styles.fieldStripHead}>
-        <span>Against the field</span>
-        <span>
-          {field.rows.filter((r) => r.call === 'win').length} of {field.fieldSize}{' '}
-          ahead of even
-        </span>
-      </div>
+      {hideHead ? null : (
+        <div className={styles.fieldStripHead}>
+          <span>Against the field</span>
+          <span>
+            {field.rows.filter((r) => r.call === 'win').length} of{' '}
+            {field.fieldSize} ahead of even
+          </span>
+        </div>
+      )}
       {field.rows.map((row) => {
         const isBest = field.beatMost?.key === row.key
         const isWorst = field.beatLeast?.key === row.key && !isBest
@@ -128,7 +132,15 @@ function FieldProofStrip({
             <div className={styles.fieldStripMeta}>
               <strong>{row.opponentName}</strong>
               <span>
-                {isBest ? 'Strongest' : isWorst ? 'Soft spot' : row.call === 'win' ? 'Ahead' : row.call === 'loss' ? 'Behind' : 'Close'}
+                {isBest
+                  ? 'Strongest'
+                  : isWorst
+                    ? 'Soft spot'
+                    : row.call === 'win'
+                      ? 'Ahead'
+                      : row.call === 'loss'
+                        ? 'Behind'
+                        : 'Close'}
                 {row.nWins != null && row.nLosses != null
                   ? ` · ${row.nWins}–${row.nLosses}`
                   : ''}
@@ -168,7 +180,7 @@ function emphasizeShare(text: string, shareLabel: string): ReactNode {
 
 /**
  * The permanent Bottom Line layer — first viewport answers the decision.
- * ANSWER → field proof → why/intent spine → supports / does not.
+ * Layout mirrors concept DeckVerdictNext: finding + proof card.
  */
 export function OverviewBottomLine({
   overview,
@@ -179,8 +191,8 @@ export function OverviewBottomLine({
   eyebrow: string
   metadata: string[]
 }) {
-  const fieldTile = overview.tiles.find((t) => t.id === 'field')
   const priceMuted = overview.price.status !== 'tested'
+  const won = overview.call === 'ahead'
 
   return (
     <header className={styles.brief} id="overview">
@@ -193,8 +205,21 @@ export function OverviewBottomLine({
 
       <div className={styles.bottomLineGrid}>
         <div className={styles.bottomLineCopy}>
-          <p className={styles.bottomLineKicker}>Overview</p>
+          <p className={styles.bottomLineKicker}>
+            {overview.call === 'forming' ? 'Provisional read' : 'The finding'}
+          </p>
           <h1 className={styles.headline}>{overview.bottomLine}</h1>
+          <div
+            className={`${styles.heroNumber} ${won ? styles.heroNumberWon : ''}`}
+          >
+            {overview.preferencePct}
+            <span className={styles.heroNumberUnit}>chosen after use</span>
+          </div>
+          <PreferenceIntervalBar
+            brief={overview.preference}
+            productName={overview.productName}
+            dark={false}
+          />
           <p className={styles.lede}>
             {emphasizeShare(overview.explanation, overview.preferencePct)}
           </p>
@@ -207,39 +232,36 @@ export function OverviewBottomLine({
           </a>
         </div>
 
-        <div className={styles.heroStack}>
-          <div className={styles.heroMetric}>
-            <div className={styles.heroNumber}>{overview.preferencePct}</div>
-            <div className={styles.heroLabel}>chosen after use</div>
-          <PreferenceIntervalBar
-            brief={overview.preference}
-            productName={overview.productName}
-            dark={false}
-          />
-            <div className={styles.heroFacts}>
-              <div>
-                <strong>{overview.rangeLabel}</strong>
-                <span>Likely range</span>
-              </div>
-              <div>
-                <strong>
-                  {overview.nDecisiveLabel.replace(/ decisive choices/, '')}
-                </strong>
-                <span>Decisive choices</span>
-              </div>
-              <div>
-                <strong>
-                  {overview.confidence.replace(/ confidence/i, '')}
-                </strong>
-                <span>Interval width</span>
-              </div>
-            </div>
-          </div>
+        <aside className={styles.proofCard}>
+          <p className={styles.proofCardKicker}>Against the field</p>
+          <h2 className={styles.proofCardTitle}>
+            {overview.tiles.find((t) => t.id === 'field')?.detail ??
+              'Named comparisons'}
+          </h2>
           <FieldProofStrip
             field={overview.field}
             productName={overview.productName}
+            hideHead
           />
-        </div>
+          <div className={styles.heroFacts}>
+            <div>
+              <strong>{overview.rangeLabel}</strong>
+              <span>Likely range</span>
+            </div>
+            <div>
+              <strong>
+                {overview.nDecisiveLabel.replace(/ decisive choices/, '')}
+              </strong>
+              <span>Decisive choices</span>
+            </div>
+            <div>
+              <strong>
+                {overview.confidence.replace(/ confidence/i, '')}
+              </strong>
+              <span>Interval width</span>
+            </div>
+          </div>
+        </aside>
       </div>
 
       <div className={styles.decisionSpine}>
@@ -282,14 +304,6 @@ export function OverviewBottomLine({
           <span className={styles.answerDetail}>{overview.price.detail}</span>
         </a>
       </div>
-
-      {fieldTile ? (
-        <p className={styles.fieldSummary}>
-          <span className={styles.answerLabel}>Against the field</span>
-          <strong>{fieldTile.value}</strong>
-          <span>{fieldTile.detail}</span>
-        </p>
-      ) : null}
 
       <div className={styles.supportsGrid}>
         <div className={styles.supportsCol}>

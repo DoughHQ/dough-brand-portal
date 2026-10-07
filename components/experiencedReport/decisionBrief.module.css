@@ -1,15 +1,13 @@
-/* Overview — product UI surface, no editorial memo chrome. */
+/* Overview — concept-deck family: light finding + paper proof card. */
 
 .brief {
   --brief-ink: var(--ink);
   --brief-ink-soft: var(--ink-muted);
   --brief-ink-faint: var(--ink-faint);
-  --brief-ink-ghost: rgba(28, 38, 32, 0.28);
   --brief-accent: var(--sage);
-  --brief-glow: #fff;
   --brief-card: var(--paper);
-  --brief-card-border: var(--portal-border-soft);
-  --brief-radius: var(--portal-radius-control);
+  --brief-card-border: var(--mist);
+  --brief-radius: 10px;
 
   position: relative;
   isolation: isolate;
@@ -17,7 +15,7 @@
   border-radius: 0;
   background: transparent;
   color: var(--brief-ink);
-  padding: 8px 0 8px;
+  padding: 12px 0 8px;
   box-shadow: none;
 }
 
@@ -33,117 +31,142 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 12px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .eyebrow {
   margin: 0;
   color: var(--ink-faint);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  text-transform: none;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .callChip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: none;
+  border: 0;
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
 }
 
 .callChip::before {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  content: '';
-  background: currentColor;
+  display: none;
 }
 
 .callAhead {
-  background: var(--sage-soft);
-  color: var(--sage-dark);
-  border-color: rgba(62, 107, 74, 0.16);
+  background: var(--sage-dark);
+  color: #fff;
 }
 
 .callBehind {
-  background: var(--clay-soft);
-  color: #8a4030;
-  border-color: rgba(166, 84, 60, 0.18);
+  background: #8a4030;
+  color: #fff;
 }
 
 .callClose {
-  background: var(--amber-soft);
-  color: #8a5a12;
-  border-color: rgba(192, 120, 24, 0.2);
+  background: var(--ink-muted);
+  color: #fff;
 }
 
 .callForming {
-  background: rgba(28, 38, 32, 0.04);
-  color: var(--ink-muted);
+  background: var(--ink-muted);
+  color: #fff;
 }
 
 .bottomLineGrid {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.95fr);
-  gap: clamp(24px, 4vw, 40px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: clamp(28px, 5vw, 40px);
   align-items: start;
 }
 
 .bottomLineCopy {
   min-width: 0;
-  padding-top: 0;
 }
 
 .bottomLineKicker {
-  margin: 0 0 8px;
+  margin: 0 0 14px;
   color: var(--ink-faint);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.01em;
-  text-transform: none;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .headline {
-  margin: 0;
-  max-width: 22ch;
-  font-family: var(--font-sans);
-  font-size: clamp(26px, 3.2vw, 34px);
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  margin: 0 0 18px;
+  max-width: 18ch;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
   color: var(--ink);
   text-wrap: balance;
 }
 
-.lede {
-  max-width: 38rem;
-  margin: 12px 0 0;
+.heroNumber {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: clamp(48px, 7vw, 72px);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
   color: var(--ink-muted);
-  font-size: 14px;
-  line-height: 1.55;
+}
+
+.heroNumberWon {
+  color: var(--sage-dark);
+}
+
+.heroNumberUnit {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--ink-muted);
+}
+
+.heroLabel {
+  margin-top: 6px;
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
+.lede {
+  max-width: 26rem;
+  margin: 16px 0 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1.4;
   font-weight: 400;
 }
 
 .ledeEm {
   color: var(--ink);
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .interpretation {
-  max-width: 36rem;
+  max-width: 26rem;
   margin: 12px 0 0;
   color: var(--ink-muted);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.5;
 }
 
@@ -151,28 +174,52 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 18px;
+  margin-top: 20px;
   border: 0;
-  border-radius: 0;
   background: transparent;
   color: var(--sage-dark);
   padding: 0;
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0;
   text-decoration: none;
-  transition: color 140ms var(--motion-ease);
 }
 
 .jumpLink:hover {
-  background: transparent;
   color: var(--ink);
   transform: none;
+  background: transparent;
 }
 
 .jumpArrow {
   font-size: 12px;
   opacity: 0.7;
+}
+
+.proofCard {
+  background: var(--paper);
+  border: 1px solid var(--mist);
+  border-radius: var(--brief-radius);
+  padding: 28px 28px 24px;
+  box-shadow: 0 1px 0 rgba(28, 38, 32, 0.04);
+}
+
+.proofCardKicker {
+  margin: 0 0 10px;
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.proofCardTitle {
+  margin: 0 0 18px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--sage-dark);
 }
 
 .heroStack {
@@ -181,47 +228,26 @@
 }
 
 .heroMetric {
-  position: relative;
   border: 1px solid var(--brief-card-border);
   border-radius: var(--brief-radius);
   background: var(--brief-card);
   padding: 20px;
-  box-shadow: none;
-}
-
-.heroNumber {
-  font-family: var(--font-sans);
-  font-size: clamp(48px, 6vw, 64px);
-  font-weight: 650;
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-
-.heroLabel {
-  margin-top: 6px;
-  color: var(--ink-faint);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0;
 }
 
 .heroFacts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--brief-card-border);
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--mist);
 }
 
 .heroFacts strong {
   display: block;
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: -0.01em;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
@@ -232,17 +258,15 @@
   color: var(--ink-faint);
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
 }
 
 /* Field proof strip */
 
 .fieldStrip {
-  border: 1px solid var(--brief-card-border);
-  border-radius: var(--brief-radius);
-  background: var(--brief-card);
-  padding: 14px 16px 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .fieldStripHead {
@@ -251,10 +275,10 @@
   gap: 12px;
   margin-bottom: 10px;
   color: var(--ink-faint);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .fieldStripHead span:last-child {
@@ -338,12 +362,11 @@
 
 .fieldStripValue {
   text-align: right;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
   color: var(--ink);
-  font-variant-numeric: tabular-nums;
 }
 
 .fieldStripEmpty {
@@ -412,10 +435,10 @@
 
 .spineWhyPair strong {
   display: block;
-  font-family: var(--font-sans);
-  font-size: clamp(20px, 2.4vw, 24px);
-  font-weight: 600;
-  line-height: 1.15;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.6vw, 28px);
+  font-weight: 400;
+  line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--ink);
 }
@@ -570,13 +593,12 @@
 .answerValue {
   display: block;
   margin-top: 10px;
-  font-family: var(--font-sans);
-  font-size: clamp(18px, 2vw, 22px);
-  font-weight: 600;
-  line-height: 1.15;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 400;
+  line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--ink);
-  font-variant-numeric: tabular-nums;
 }
 
 .answerDetail {
@@ -1073,8 +1095,7 @@
 
 @media (max-width: 640px) {
   .brief {
-    padding: 28px 22px;
-    border-radius: 18px;
+    padding: 8px 0;
   }
 
   .bottomLineGrid,
@@ -1098,7 +1119,7 @@
   }
 
   .heroNumber {
-    font-size: 68px;
+    font-size: 56px;
   }
 
   .forestRow {

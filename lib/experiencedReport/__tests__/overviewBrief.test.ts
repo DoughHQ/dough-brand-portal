@@ -187,7 +187,7 @@ describe('Overview Bottom Line SSR', () => {
         backHref: '/studies',
       }),
     )
-    expect(html).toContain('Overview')
+    expect(html).toContain('The finding')
     expect(html).toContain('Organic Garlic Powder won the choice test.')
     expect(html).toContain('chosen after use')
     expect(html).toContain('Against the field')
