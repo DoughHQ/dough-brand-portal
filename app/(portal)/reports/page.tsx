@@ -9,6 +9,10 @@ export default async function ReportsPage() {
   if (!scope) redirect('/login')
 
   const { portalUser, effectiveBrandId, isImpersonating } = scope
+  const isAdmin = portalUser.role === 'dough_admin'
+
+  // Catalog storefront is platform-shell only — brands (and impersonation) use Categories.
+  if (!isAdmin || isImpersonating) redirect('/categories')
 
   const [brand, reportScope] = await Promise.all([
     getBrand(effectiveBrandId),
@@ -16,13 +20,10 @@ export default async function ReportsPage() {
   ])
   if (!brand) redirect('/login')
 
-  const isAdmin = portalUser.role === 'dough_admin'
-
   return (
     <ReportsClient
       brand={brand}
       isAdmin={isAdmin}
-      isImpersonating={isImpersonating}
       brandId={effectiveBrandId}
       brandCategoryIds={reportScope?.l2NodeIds ?? []}
     />

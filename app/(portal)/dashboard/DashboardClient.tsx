@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { BrandSnapshot, ProductIntelligence, CompetitiveSnapshot, PortalUser, Brand, BrandSubscription } from '@/lib/queries'
 import { createClient } from '@/lib/supabase'
-import { exitImpersonationAction } from '../admin/impersonation/actions'
 import type { BrandHomeModel } from '@/lib/brandHome/selectHomeModel'
 import type { ProductSignalCardModel } from '@/lib/brandHome/productSignalCards'
 import type { CatalogHealth } from '@/lib/brandHome/catalogHealth'
@@ -80,7 +79,7 @@ function delta(n: number | null | undefined): string {
   return r > 0 ? `+${r}` : `${r}`
 }
 
-export default function DashboardClient({ portalUser, brand, subscription, snapshot, history: _history, productIntelligence, competitive: _competitive, allProducts, narrative: _narrative, isImpersonating, totalProductCount, totalBattles = 0, homeModel, categoriesCount, signalCards = [], domainVerified = false, catalogHealth, claimedSkuCount, catalogReady = true }: Props) {
+export default function DashboardClient({ portalUser, brand, subscription, snapshot, history: _history, productIntelligence, competitive: _competitive, allProducts, narrative: _narrative, totalProductCount, totalBattles = 0, homeModel, categoriesCount, signalCards = [], domainVerified = false, catalogHealth, claimedSkuCount, catalogReady = true }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const [period, setPeriod] = useState<Period>('30d')
@@ -126,41 +125,6 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
 
   return (
     <>
-        {isImpersonating && (
-          <div style={{
-            background: 'var(--amber-pale)',
-            borderBottom: '1px solid rgba(192,120,24,0.2)',
-            padding: '8px 28px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-          }}>
-            <div style={{ fontSize: 12, color: 'var(--amber)', flex: 1 }}>
-              ✦ Viewing as {brand.brand_name} — this is exactly what they see.
-            </div>
-            <button
-              onClick={async () => {
-                const result = await exitImpersonationAction()
-                if (!result.ok) return
-                router.push('/dashboard')
-              }}
-              style={{
-                fontSize: 12,
-                color: 'var(--amber)',
-                background: 'transparent',
-                border: '1px solid rgba(192,120,24,0.3)',
-                borderRadius: 'var(--r-sm)',
-                padding: '4px 12px',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-sans)',
-                fontWeight: 500,
-              }}
-            >
-              Back to platform
-            </button>
-          </div>
-        )}
-
         <BrandHome
           model={homeModel}
           brandId={brand.brand_id}
