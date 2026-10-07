@@ -1,4 +1,5 @@
 @import '../lib/portal-ui/tokens.css';
+@import '../lib/portal-ui/panels.css';
 
 *, *::before, *::after {
   box-sizing: border-box;
