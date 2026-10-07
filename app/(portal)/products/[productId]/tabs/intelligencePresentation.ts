@@ -46,6 +46,24 @@ export type HeadlineStanding = {
   battlesWon: number | null
   battlesTotal: number | null
   setName: string | null
+  maturityLabel: string | null
+}
+
+/** Thin evidence — don’t let a #1 rank overclaim maturity. */
+export function isBuildingSignal(args: {
+  uniqueRaters: number | null | undefined
+  minRaters: number | null | undefined
+  battlesTotal: number | null | undefined
+}): boolean {
+  const raters = args.uniqueRaters
+  const need = args.minRaters
+  const battles = args.battlesTotal
+  if (raters != null && need != null && need > 0 && raters < Math.ceil(need * 0.4)) {
+    return true
+  }
+  if (battles != null && battles >= 0 && battles < 8) return true
+  if (raters != null && raters >= 0 && raters < 5) return true
+  return false
 }
 
 /** 1st of N → 100%, last → 0%. Null when rank/pool aren’t comparable. */
@@ -244,6 +262,7 @@ export function pickHeadlineStanding(jobs: HeadToHeadJob[]): HeadlineStanding | 
     battlesWon: best.standing.battlesWon,
     battlesTotal: best.standing.battlesTotal,
     setName: best.job.setName && best.job.setName !== question ? best.job.setName : null,
+    maturityLabel: best.standing.maturityLabel,
   }
 }
 
