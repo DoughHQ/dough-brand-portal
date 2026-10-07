@@ -136,11 +136,13 @@ a {
     display: none !important;
   }
 
-  .portal-topbar {
-    display: none !important;
-  }
-
-  .portal-nav-scrim {
+  .portal-topbar,
+  .portal-topbar-mobile,
+  .portal-desktop-topbar,
+  .portal-desktop-impersonation,
+  .portal-nav-scrim,
+  .portal-account-menu,
+  .no-print {
     display: none !important;
   }
 
@@ -150,9 +152,14 @@ a {
     max-width: none !important;
   }
 
+  .portal-main-body {
+    display: block !important;
+  }
+
   .portal-shell {
     display: block !important;
   }
+
 }
 
 /* Dark mode — legacy portal shell */

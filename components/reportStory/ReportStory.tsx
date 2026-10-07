@@ -1,8 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import type { ReactNode } from 'react'
 import styles from './reportStory.module.css'
+
+export { ReportToolbar } from './ReportToolbar'
 
 export type ReportTone = 'positive' | 'negative' | 'uncertain' | 'neutral'
 
@@ -35,32 +36,6 @@ const dotClass: Record<ReportTone, string> = {
 
 function clampPercent(value: number): string {
   return `${Math.max(0, Math.min(100, value * 100))}%`
-}
-
-export function ReportToolbar({
-  backHref,
-  backLabel = 'Back to studies',
-}: {
-  backHref: string
-  backLabel?: string
-}) {
-  return (
-    <div className={styles.toolbar}>
-      <Link href={backHref} className={styles.backLink}>
-        ← {backLabel}
-      </Link>
-      <div className={styles.toolbarActions}>
-        <span className={styles.backLink}>Decision report</span>
-        <button
-          type="button"
-          className={styles.quietButton}
-          onClick={() => window.print()}
-        >
-          Export PDF
-        </button>
-      </div>
-    </div>
-  )
 }
 
 export function SimulatedBanner() {

@@ -1,23 +1,39 @@
 'use client'
 
-export function ExportReportButton() {
+import { useCallback } from 'react'
+
+/** Legacy deck control — prefer ReportToolbar on story reports. */
+export function ExportReportButton({
+  productName,
+  snapshotLabel,
+}: {
+  productName?: string
+  snapshotLabel?: string | null
+} = {}) {
+  const handleExport = useCallback(() => {
+    const prev = document.title
+    if (productName) {
+      document.title = snapshotLabel
+        ? `${productName} · Dough decision report · ${snapshotLabel}`
+        : `${productName} · Dough decision report`
+    }
+    const restore = () => {
+      document.title = prev
+      window.removeEventListener('afterprint', restore)
+    }
+    window.addEventListener('afterprint', restore)
+    window.print()
+    window.setTimeout(restore, 1500)
+  }, [productName, snapshotLabel])
+
   return (
     <button
       type="button"
-      onClick={() => window.print()}
-      style={{
-        fontFamily: 'var(--font-sans)',
-        fontSize: 13,
-        fontWeight: 500,
-        color: 'var(--sage-dark)',
-        background: 'var(--paper)',
-        border: '1px solid var(--mist)',
-        borderRadius: 6,
-        padding: '8px 14px',
-        cursor: 'pointer',
-      }}
+      className="portal-btn portal-btn-cta no-print"
+      onClick={handleExport}
+      style={{ minHeight: 36, padding: '0 14px', fontSize: 13 }}
     >
-      Export report
+      Export PDF
     </button>
   )
 }

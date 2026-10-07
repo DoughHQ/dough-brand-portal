@@ -197,7 +197,15 @@ export function ConceptTestReportDeck({ report, backHref }: Props) {
     return (
       <div className={styles.page}>
         <main className={styles.shell}>
-          <ReportToolbar backHref={backHref} />
+          <ReportToolbar
+            backHref={backHref}
+            reportKind="Concept test"
+            share={{
+              productName: 'Concept',
+              finding: 'The concept verdict is still forming.',
+              implication: 'Return when the decision payload is ready.',
+            }}
+          />
           <ExecutiveMemo
             eyebrow="Concept test · Decision brief"
             headline="The concept verdict is still forming."
@@ -274,7 +282,15 @@ export function ConceptTestReportDeck({ report, backHref }: Props) {
   return (
     <div className={styles.page}>
       <main className={styles.shell}>
-        <ReportToolbar backHref={backHref} />
+        <ReportToolbar
+          backHref={backHref}
+          reportKind="Concept test"
+          share={{
+            productName: narrative.name || 'Concept',
+            finding: narrative.headline,
+            implication: narrative.implication,
+          }}
+        />
         <ExecutiveMemo
           eyebrow="Concept test · Decision brief"
           headline={narrative.headline}

@@ -152,7 +152,16 @@ export function IhutStoryReport({
     return (
       <div className={styles.page}>
         <main className={styles.shell}>
-          <ReportToolbar backHref={backHref} />
+          <ReportToolbar
+            backHref={backHref}
+            reportKind="At-home product test"
+            share={{
+              productName,
+              finding: overview.bottomLine,
+              implication: overview.interpretation,
+              snapshotLabel: snapshot,
+            }}
+          />
           {envelope.is_simulated ? <SimulatedBanner /> : null}
           <OverviewBottomLine
             overview={overview}
@@ -202,7 +211,16 @@ export function IhutStoryReport({
   return (
     <div className={styles.page}>
       <main className={styles.shell}>
-        <ReportToolbar backHref={backHref} />
+        <ReportToolbar
+          backHref={backHref}
+          reportKind="At-home product test"
+          share={{
+            productName,
+            finding: overview.bottomLine || story.headline,
+            implication: overview.interpretation || story.implication,
+            snapshotLabel: snapshot,
+          }}
+        />
         {envelope.is_simulated ? <SimulatedBanner /> : null}
         <OverviewBottomLine
           overview={overview}
