@@ -57,10 +57,20 @@ describe('Report V2 decision chapters', () => {
         backHref: '/studies',
       }),
     )
+    expect(richHtml).toContain('Evidence pack')
+    expect(richHtml).toContain('Shelf → taste')
+    expect(richHtml).toContain('Just right')
+    expect(richHtml).toContain('Lemon intensity')
+    expect(richHtml).toContain('Sweetness')
+    expect(richHtml).toContain('Bright, natural lemon flavor')
+    expect(richHtml).toContain('Top-two liking')
+    expect(richHtml).toContain('Ranked first')
+    expect(richHtml).toContain('Liked + expected good')
     expect(richHtml).toContain('Price')
     expect(richHtml).toContain('tested-offer intent')
     expect(richHtml).toContain('$3.49')
     expect(richHtml).toContain('Value leakage')
+    expect(richHtml).toContain('Movement by product')
 
     const thinHtml = renderToString(
       createElement(IhutStoryReport, {
@@ -69,6 +79,7 @@ describe('Report V2 decision chapters', () => {
         backHref: '/studies',
       }),
     )
+    expect(thinHtml).toContain('Evidence pack')
     expect(thinHtml).toContain('Price checks were off')
     expect(thinHtml).not.toContain('Value leakage')
   })
