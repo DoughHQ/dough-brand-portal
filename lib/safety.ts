@@ -161,11 +161,11 @@ export async function moderateReport(
 ): Promise<{ ok: boolean; status?: string; error?: string }> {
   try {
     const supabase = await createServerSupabaseClient()
-    const { data, error } = await supabase.rpc('moderate_report', {
+    const { data, error } = await supabase.rpc('moderate_report' as never, {
       p_report_id: reportId,
       p_outcome: outcome,
       p_note: note ?? null,
-    })
+    } as never)
     if (error) return { ok: false, error: error.message }
     const root = asRecord(data)
     if (!root || root.ok === false) {
