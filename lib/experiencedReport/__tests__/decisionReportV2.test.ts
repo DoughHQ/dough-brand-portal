@@ -93,7 +93,7 @@ describe('Report V2 decision chapters', () => {
         backHref: '/studies',
       }),
     )
-    expect(html).toContain('The bottom line')
+    expect(html).toContain('Overview')
     expect(html).toContain('No tested shelf-price intent was measured')
   })
 })

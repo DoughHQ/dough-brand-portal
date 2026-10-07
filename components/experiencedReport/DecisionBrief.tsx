@@ -193,7 +193,7 @@ export function OverviewBottomLine({
 
       <div className={styles.bottomLineGrid}>
         <div className={styles.bottomLineCopy}>
-          <p className={styles.bottomLineKicker}>The bottom line</p>
+          <p className={styles.bottomLineKicker}>Overview</p>
           <h1 className={styles.headline}>{overview.bottomLine}</h1>
           <p className={styles.lede}>
             {emphasizeShare(overview.explanation, overview.preferencePct)}
