@@ -21,6 +21,7 @@ function Glyph({
     | 'readiness'
     | 'report'
     | 'groups'
+    | 'safety'
 }) {
   const common = {
     width: 18,
@@ -72,6 +73,13 @@ function Glyph({
       return (
         <svg {...common}>
           <path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z" {...stroke} />
+        </svg>
+      )
+    case 'safety':
+      return (
+        <svg {...common}>
+          <path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z" {...stroke} />
+          <path d="M12 11v3M12 16.5h.01" {...stroke} />
         </svg>
       )
     case 'boxes':
