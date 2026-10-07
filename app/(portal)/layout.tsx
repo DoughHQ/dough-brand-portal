@@ -44,6 +44,7 @@ export default async function PortalLayout({ children }: { children: React.React
   let catalogProductCount = 0
   let chromeFailed = false
   let queueBadges: AdminQueueBadges = {
+    safety: 0,
     corrections: 0,
     ownership: 0,
     applications: 0,
@@ -64,7 +65,7 @@ export default async function PortalLayout({ children }: { children: React.React
     try {
       queueBadges = await getAdminQueueBadges()
     } catch {
-      queueBadges = { corrections: 0, ownership: 0, applications: 0, boxes: 0 }
+      queueBadges = { safety: 0, corrections: 0, ownership: 0, applications: 0, boxes: 0 }
     }
   }
 

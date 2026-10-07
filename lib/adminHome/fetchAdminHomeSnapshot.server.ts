@@ -44,5 +44,13 @@ export const getAdminHomeSnapshot = cache(async (): Promise<AdminHomeSnapshot> =
 
 export const getAdminQueueBadges = cache(async (): Promise<AdminQueueBadges> => {
   const snapshot = await getAdminHomeSnapshot()
-  return badgesFromSnapshot(snapshot)
+  const badges = badgesFromSnapshot(snapshot)
+  // Safety open count lives on user_reports (may not be in get_admin_home_snapshot yet).
+  try {
+    const { countOpenUserReports } = await import('@/lib/safety')
+    badges.safety = await countOpenUserReports()
+  } catch {
+    badges.safety = 0
+  }
+  return badges
 })

@@ -133,6 +133,7 @@ describe('badgesFromSnapshot', () => {
   it('mirrors Needs attention counts', () => {
     const snap = parseAdminHomeSnapshot(FIXTURE)
     expect(badgesFromSnapshot(snap)).toEqual({
+      safety: 0,
       corrections: 2,
       ownership: 1,
       applications: 3,

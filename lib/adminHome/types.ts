@@ -3,6 +3,7 @@ export type AdminQueueBadges = {
   ownership: number
   applications: number
   boxes: number
+  safety: number
 }
 
 export type AdminCorrectionNext = {
@@ -15,6 +16,11 @@ export type AdminCorrectionNext = {
 }
 
 export type AdminHomeQueues = {
+  safety: {
+    count: number
+    oldestAt: string | null
+    next: { id: number; label: string; reason: string; createdAt: string } | null
+  }
   corrections: {
     count: number
     /** Always 0 on Home until a stored approve-as-is flag exists. */
@@ -87,7 +93,7 @@ export type AdminHomeSnapshot = {
 export type AdminAttentionTone = 'work' | 'stale'
 
 export type AdminAttentionRow = {
-  key: 'corrections' | 'ownership' | 'applications' | 'boxes'
+  key: 'safety' | 'corrections' | 'ownership' | 'applications' | 'boxes'
   label: string
   href: string
   count: number
