@@ -75,10 +75,10 @@ import {
 import {
   buildHeadToHeadJobs,
   intelligenceVolumeStats,
-  jobStatusCopy,
   pickHeadlineStanding,
   raterFloorCopy,
 } from './tabs/intelligencePresentation'
+import ProductIntelligencePanel from './tabs/ProductIntelligencePanel'
 import type { ProductStudyCard } from '@/lib/productMaster/productHeroStudies'
 import WhereItsSoldSection from '@/components/distribution/WhereItsSoldSection'
 
@@ -1557,134 +1557,14 @@ export default function ProductMasterClient({
 
       {tab === 'intelligence' && (
         <ProductIntelligenceTab>
-          <div className="pm-intel-header">
-            <h2 className="pm-intel-title">Intelligence</h2>
-            <p className="pm-intel-sub">
-              How this product stands in Dough head-to-heads — the jobs shoppers actually vote on.
-            </p>
-          </div>
-
-          {intelHeadline ? (
-            <section className="pm-intel-hero">
-              <p className="pm-intel-eyebrow">Standing</p>
-              <p className="pm-intel-hero-rank">{intelHeadline.rankLabel}</p>
-              <p className="pm-intel-hero-q">&ldquo;{intelHeadline.question}&rdquo;</p>
-              <div className="pm-intel-hero-meta">
-                {intelHeadline.eloLabel ? <span>Elo {intelHeadline.eloLabel}</span> : null}
-                {intelHeadline.recordLabel ? <span>{intelHeadline.recordLabel}</span> : null}
-                {intelHeadline.setName ? <span>{intelHeadline.setName}</span> : null}
-              </div>
-              <p className="pm-intel-hero-note">
-                Unpublished ranking. Organic Elo has no confidence interval.
-              </p>
-            </section>
-          ) : null}
-
-          {intelVolume.length > 0 ? (
-            <>
-              <dl className="pm-intel-stats">
-                {intelVolume.map((stat) => (
-                  <div key={stat.key} className="pm-intel-stat">
-                    <dt>{stat.label}</dt>
-                    <dd>{stat.value}</dd>
-                  </div>
-                ))}
-              </dl>
-              {intelFloor ? <p className="pm-intel-floor">{intelFloor}</p> : null}
-            </>
-          ) : null}
-
-          {intelJobs.length === 0 ? (
-            <div className="pm-intel-empty">
-              <h3>No comparison jobs on file</h3>
-              <p>
-                This product isn’t in a Dough head-to-head yet. Jobs appear once the category has
-                an active compare group.
-              </p>
-            </div>
-          ) : (
-            <>
-              <h3 className="pm-intel-section">Head-to-heads</h3>
-              <div className="pm-intel-jobs">
-                {intelJobs.map((job) => {
-                const title = job.question ?? job.setName ?? 'Comparison job'
-                const quoted = Boolean(job.question)
-                const status = jobStatusCopy(job, showJobScores)
-                return (
-                  <article key={job.compareGroupId} className="pm-intel-job">
-                    {job.battleLevelLabel ? (
-                      <p className="pm-intel-eyebrow">{job.battleLevelLabel}</p>
-                    ) : null}
-                    <h3 className="pm-intel-job-q">
-                      {quoted ? <>&ldquo;{title}&rdquo;</> : title}
-                    </h3>
-                    {job.setName && job.question ? (
-                      <p className="pm-intel-job-set">{job.setName}</p>
-                    ) : null}
-
-                    {job.standings.map((standing) => {
-                      const metrics = [
-                        standing.rankLabel
-                          ? { key: 'rank', label: 'Rank', value: standing.rankLabel }
-                          : standing.rankComparable === false
-                            ? { key: 'rank', label: 'Rank', value: 'Not comparable yet' }
-                            : null,
-                        standing.eloLabel
-                          ? { key: 'elo', label: 'Elo', value: standing.eloLabel, sub: 'No confidence interval' }
-                          : null,
-                        standing.recordLabel
-                          ? { key: 'record', label: 'Record', value: standing.recordLabel }
-                          : null,
-                      ].filter((m): m is { key: string; label: string; value: string; sub?: string } => m != null)
-
-                      return (
-                        <div key={standing.key} className="pm-intel-standing">
-                          {metrics.length > 0 ? (
-                            <dl className="pm-intel-metrics">
-                              {metrics.map((metric) => (
-                                <div key={metric.key} className="pm-intel-metric">
-                                  <dt>{metric.label}</dt>
-                                  <dd>{metric.value}</dd>
-                                  {metric.sub ? (
-                                    <p className="pm-intel-metric-sub">{metric.sub}</p>
-                                  ) : null}
-                                </div>
-                              ))}
-                            </dl>
-                          ) : null}
-                          {standing.maturityLabel || standing.seedSource ? (
-                            <p className="pm-intel-hero-note">
-                              {[
-                                standing.maturityLabel,
-                                standing.seedSource ? `Seeded from ${standing.seedSource}` : null,
-                              ]
-                                .filter(Boolean)
-                                .join(' · ')}
-                            </p>
-                          ) : null}
-                        </div>
-                      )
-                    })}
-
-                    {status ? <p className="pm-intel-status">{status}</p> : null}
-                  </article>
-                )
-              })}
-              </div>
-            </>
-          )}
-
-          {!showJobScores && intelJobs.length > 0 ? (
-            <p className="pm-intel-note">
-              Published Elo and rankings aren’t shown here. Organic scores have no confidence
-              interval.
-            </p>
-          ) : master.intelligence?.admin_only && showJobScores ? (
-            <p className="pm-intel-note">
-              Admin view. These scores are unpublished and must not be presented as a brand-facing
-              ranking.
-            </p>
-          ) : null}
+          <ProductIntelligencePanel
+            headline={intelHeadline}
+            volume={intelVolume}
+            floorCopy={intelFloor}
+            jobs={intelJobs}
+            showJobScores={showJobScores}
+            intelligence={master.intelligence}
+          />
         </ProductIntelligenceTab>
       )}
 

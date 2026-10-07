@@ -11,8 +11,11 @@ export type JobStandingView = {
   eloLabel: string | null
   eloValue: number | null
   recordLabel: string | null
+  battlesWon: number | null
+  battlesTotal: number | null
   rankLabel: string | null
   rankValue: number | null
+  poolValue: number | null
   rankComparable: boolean
   maturityLabel: string | null
   seedSource: string | null
@@ -36,9 +39,45 @@ export type IntelligenceVolumeStat = {
 export type HeadlineStanding = {
   question: string
   rankLabel: string
+  rankValue: number | null
+  poolValue: number | null
   eloLabel: string | null
   recordLabel: string | null
+  battlesWon: number | null
+  battlesTotal: number | null
   setName: string | null
+}
+
+/** 1st of N → 100%, last → 0%. Null when rank/pool aren’t comparable. */
+export function rankStandingFillPct(rank: number | null, pool: number | null): number | null {
+  if (rank == null || pool == null) return null
+  if (!Number.isFinite(rank) || !Number.isFinite(pool)) return null
+  if (pool < 2 || rank < 1 || rank > pool) return null
+  return Math.round(((pool - rank) / (pool - 1)) * 100)
+}
+
+export function battleWinFillPct(
+  won: number | null,
+  total: number | null,
+): number | null {
+  if (won == null || total == null || total <= 0 || won < 0 || won > total) return null
+  return Math.round((won / total) * 100)
+}
+
+export function raterFloorProgress(intel: MasterIntelligence): {
+  have: number
+  need: number
+  pct: number
+} | null {
+  if (!intel) return null
+  const have = Math.trunc(intel.unique_raters)
+  const need = Math.trunc(intel.min_raters_to_publish)
+  if (!Number.isFinite(need) || need < 1 || !Number.isFinite(have) || have < 0) return null
+  return {
+    have,
+    need,
+    pct: Math.min(100, Math.round((have / need) * 100)),
+  }
 }
 
 function finiteNumber(value: unknown): number | null {
@@ -91,14 +130,19 @@ function standingFromResult(result: CompareGroupResult, index: number): JobStand
   const maturity = finiteNumber(result.maturity)
   const eloValue = finiteNumber(result.elo_score)
   const rankLabel = formatJobRank(result.job_rank, result.job_total, result.rank_comparable)
+  const battlesWon = finiteNumber(result.battles_won)
+  const battlesTotal = finiteNumber(result.battles)
   return {
     key: `${result.compare_group_id}-${componentId ?? 'na'}-${index}`,
     componentId,
     eloLabel: formatEloScore(result.elo_score),
     eloValue,
     recordLabel: formatBattleRecord(result.battles_won, result.battles),
+    battlesWon: battlesWon != null && battlesWon >= 0 ? Math.trunc(battlesWon) : null,
+    battlesTotal: battlesTotal != null && battlesTotal >= 0 ? Math.trunc(battlesTotal) : null,
     rankLabel,
     rankValue: rankLabel ? finiteNumber(result.job_rank) : null,
+    poolValue: rankLabel ? finiteNumber(result.job_total) : null,
     rankComparable: result.rank_comparable === true,
     maturityLabel:
       maturity != null ? `Maturity ${maturity.toFixed(2)}` : null,
@@ -193,8 +237,12 @@ export function pickHeadlineStanding(jobs: HeadToHeadJob[]): HeadlineStanding | 
   return {
     question,
     rankLabel: best.standing.rankLabel,
+    rankValue: best.standing.rankValue,
+    poolValue: best.standing.poolValue,
     eloLabel: best.standing.eloLabel,
     recordLabel: best.standing.recordLabel,
+    battlesWon: best.standing.battlesWon,
+    battlesTotal: best.standing.battlesTotal,
     setName: best.job.setName && best.job.setName !== question ? best.job.setName : null,
   }
 }
