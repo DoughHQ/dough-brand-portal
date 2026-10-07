@@ -7,6 +7,7 @@ import {
   formatEloScore,
   formatJobRank,
   intelligenceVolumeStats,
+  isBuildingSignal,
   jobStatusCopy,
   pickHeadlineStanding,
   rankStandingFillPct,
@@ -80,6 +81,18 @@ describe('intelligence formatters', () => {
     expect(rankStandingFillPct(null, 19)).toBeNull()
     expect(battleWinFillPct(3, 8)).toBe(38)
     expect(battleWinFillPct(0, 0)).toBeNull()
+  })
+
+  it('flags thin evidence as building signal', () => {
+    expect(
+      isBuildingSignal({ uniqueRaters: 1, minRaters: 25, battlesTotal: 24 }),
+    ).toBe(true)
+    expect(
+      isBuildingSignal({ uniqueRaters: 20, minRaters: 25, battlesTotal: 40 }),
+    ).toBe(false)
+    expect(
+      isBuildingSignal({ uniqueRaters: 12, minRaters: 25, battlesTotal: 3 }),
+    ).toBe(true)
   })
 })
 
