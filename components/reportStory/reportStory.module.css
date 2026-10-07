@@ -22,6 +22,7 @@
 }
 
 .toolbar {
+  position: relative;
   min-height: 44px;
   justify-content: space-between;
   gap: 24px;
@@ -54,6 +55,33 @@
   padding: 9px 14px;
   cursor: pointer;
   font-family: inherit;
+}
+
+.quietButton.primaryAction {
+  background: var(--cta, var(--sage-dark));
+  border-color: transparent;
+  color: var(--cta-ink, #fff);
+  font-weight: 650;
+}
+
+.quietButton.primaryAction:hover {
+  background: var(--cta-hover, var(--sage));
+  color: var(--cta-ink, #fff);
+}
+
+.toolbarToast {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 5;
+  border: 1px solid rgba(62, 107, 74, 0.22);
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: var(--shadow-card);
+  padding: 8px 12px;
+  color: var(--sage-dark);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .simulatedBanner {
@@ -912,8 +940,9 @@
   }
 
   .toolbar,
-  .storyIndex {
-    display: none;
+  .storyIndex,
+  .toolbarToast {
+    display: none !important;
   }
 
   .executive {
@@ -925,12 +954,14 @@
   .chapter {
     break-before: page;
     border-top: 0;
+    padding-top: 12px;
   }
 
   .metricCard,
   .evidenceCard,
   .quoteCard,
-  .methodCard {
+  .methodCard,
+  .callout {
     break-inside: avoid;
   }
 }

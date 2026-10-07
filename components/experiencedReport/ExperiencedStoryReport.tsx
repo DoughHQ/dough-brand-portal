@@ -476,7 +476,16 @@ export function ExperiencedStoryReport({
   return (
     <div className={story.page}>
       <main className={story.shell}>
-        <ReportToolbar backHref={backHref} />
+        <ReportToolbar
+          backHref={backHref}
+          reportKind="Experienced product report"
+          share={{
+            productName: overview.productName,
+            finding: overview.bottomLine,
+            implication: overview.interpretation,
+            snapshotLabel: snapshot,
+          }}
+        />
         {envelope.is_simulated ? <SimulatedBanner /> : null}
         <OverviewBottomLine
           overview={overview}
