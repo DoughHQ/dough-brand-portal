@@ -62,10 +62,11 @@
 }
 
 .prod-list {
-  background: var(--white);
-  border: 1px solid var(--mist);
-  border-radius: 13px;
+  background: var(--paper, var(--white));
+  border: 1px solid var(--portal-border-soft, var(--mist));
+  border-radius: var(--radius-panel, 14px);
   overflow: hidden;
+  box-shadow: var(--shadow-card);
 }
 
 .prod-list-head,

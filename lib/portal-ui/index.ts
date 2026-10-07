@@ -7,3 +7,9 @@ export {
   recordPathVisit,
   type CommandRecentItem,
 } from './commandRecents'
+export {
+  buildShareLinkMessage,
+  buildShareText,
+  reportPrintTitle,
+  type ReportSharePayload,
+} from './reportShare'

@@ -343,7 +343,7 @@ export default function ProductsClient({
       <header className="cat-header">
         <div className="cat-header-copy">
           <div className="cat-eyebrow">{brand.brand_name}</div>
-          <h1 className="cat-title">Your products</h1>
+          <h1 className="cat-title cat-title-sr">Products</h1>
           <p className="cat-lede">
             Manage the products your brand has on Dough and see where signal is beginning to build.
           </p>
@@ -364,7 +364,11 @@ export default function ProductsClient({
           ) : null}
         </div>
         <div className="prod-header-actions">
-          <button type="button" className="cat-primary-cta" onClick={() => alert('Add product coming soon')}>
+          <button
+            type="button"
+            className="portal-btn portal-btn-cta cat-primary-cta"
+            onClick={() => alert('Add product coming soon')}
+          >
             + Add product
           </button>
         </div>

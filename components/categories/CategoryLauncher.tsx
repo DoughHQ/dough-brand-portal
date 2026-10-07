@@ -178,7 +178,7 @@ function OwnedCard({ row }: { row: CategoryLauncherRow }) {
         </div>
         <MetricCells row={row} size="lg" />
         <div className="cat-feature-actions">
-          <Link href={href} className="cat-primary-cta">
+          <Link href={href} className="portal-btn portal-btn-cta cat-primary-cta">
             Open overview →
           </Link>
         </div>
@@ -336,7 +336,7 @@ export default function CategoryLauncher({
       <header className="cat-header">
         <div className="cat-header-copy">
           <div className="cat-eyebrow">{brandName}</div>
-          <h1 className="cat-title">Categories</h1>
+          <h1 className="cat-title cat-title-sr">Categories</h1>
           <p className="cat-lede">
             Category dashboards unlock full Overview. Until then, see where your products already
             compete — honest product and battle counts, no invented rankings.

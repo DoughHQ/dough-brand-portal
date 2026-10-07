@@ -58,6 +58,9 @@ describe('Report V2 decision chapters', () => {
       }),
     )
     expect(richHtml).toContain('Evidence pack')
+    expect(richHtml).toContain('Export PDF')
+    expect(richHtml).toContain('Copy link')
+    expect(richHtml).toContain('Copy finding')
     expect(richHtml).toContain('Shelf → taste')
     expect(richHtml).toContain('Just right')
     expect(richHtml).toContain('Lemon intensity')
