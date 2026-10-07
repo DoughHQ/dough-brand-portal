@@ -247,7 +247,6 @@ export default function PortalLayoutClient({
       group: 'Research',
       items: [
         { label: 'Studies', href: '/studies', icon: 'studies', prefetch: false },
-        { label: 'Reports', href: '/reports', icon: 'reports', prefetch: false },
       ],
     },
     {
@@ -287,6 +286,7 @@ export default function PortalLayoutClient({
       items: [
         { label: 'Studies', href: '/studies', icon: 'studies', prefetch: false },
         { label: 'Products', href: '/products', icon: 'products', prefetch: false },
+        { label: 'Reports', href: '/reports', icon: 'reports', prefetch: false },
       ],
     },
   ]
@@ -348,7 +348,6 @@ export default function PortalLayoutClient({
       { label: 'Products', group: 'Catalog' },
       { label: 'Prototypes', group: 'Catalog' },
       { label: 'Studies', group: 'Research' },
-      { label: 'Reports', group: 'Research' },
     ]
     const hrefFor = (label: string) =>
       label === 'Home' ? '/dashboard' : `/${label.toLowerCase()}`
@@ -546,7 +545,9 @@ export default function PortalLayoutClient({
                 <div className="portal-workspace-meta">
                   {isPlatform
                     ? 'Ops · Switch brand'
-                    : `Brand workspace · ${catalogProductCount} product${catalogProductCount !== 1 ? 's' : ''}`}
+                    : isImpersonating
+                      ? 'Impersonating · tap to switch'
+                      : `Brand workspace · ${catalogProductCount} product${catalogProductCount !== 1 ? 's' : ''}`}
                 </div>
               </div>
               <span className="portal-workspace-chevron" aria-hidden>
@@ -564,30 +565,6 @@ export default function PortalLayoutClient({
               </div>
             </div>
           )}
-
-          {showImpersonationStrip ? (
-            <div className="portal-impersonation">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <div style={{ minWidth: 0 }}>
-                  <div className="portal-impersonation-label">Viewing as brand</div>
-                  <div className="portal-impersonation-name">{impersonatedBrandName}</div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, flexShrink: 0 }}>
-                  <Link href="/admin/impersonate" className="portal-impersonation-link">
-                    Switch
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => void exitImpersonation()}
-                    disabled={exiting}
-                    className="portal-impersonation-btn"
-                  >
-                    {exiting ? '…' : 'Exit'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : null}
 
           <nav className="portal-nav">
             {navSections.map((section) => (
@@ -648,6 +625,21 @@ export default function PortalLayoutClient({
               <kbd className="portal-search-kbd">{modKey}K</kbd>
             </button>
             <div className="portal-desktop-topbar-right" ref={accountRef}>
+              {showImpersonationStrip ? (
+                <div className="portal-topbar-viewing" role="status">
+                  <span className="portal-topbar-viewing-label">
+                    Viewing as <strong>{impersonatedBrandName}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    className="portal-topbar-viewing-exit"
+                    onClick={() => void exitImpersonation()}
+                    disabled={exiting}
+                  >
+                    {exiting ? '…' : 'Exit brand'}
+                  </button>
+                </div>
+              ) : null}
               <button
                 type="button"
                 className={`portal-account-btn${accountOpen ? ' is-open' : ''}`}
@@ -693,21 +685,6 @@ export default function PortalLayoutClient({
               ) : null}
             </div>
           </header>
-
-          {showImpersonationStrip ? (
-            <div className="portal-desktop-impersonation">
-              <span>
-                Viewing as <strong>{impersonatedBrandName}</strong>
-              </span>
-              <button
-                type="button"
-                onClick={() => void exitImpersonation()}
-                disabled={exiting}
-              >
-                {exiting ? '…' : 'Exit brand'}
-              </button>
-            </div>
-          ) : null}
 
           <div className="portal-main-body">{children}</div>
         </main>

@@ -209,7 +209,7 @@ async function fetchPage(opts: {
 
 export default function ProductsClient({
   brand,
-  isImpersonating,
+  isImpersonating: _isImpersonating,
   summary,
   initialItems,
   initialHasMore,
@@ -324,22 +324,6 @@ export default function ProductsClient({
 
   return (
     <CatPage>
-      {isImpersonating ? (
-        <div
-          style={{
-            background: 'var(--amber-pale)',
-            border: '1px solid rgba(192,120,24,0.2)',
-            borderRadius: 13,
-            padding: '10px 16px',
-            marginBottom: 24,
-            fontSize: 12,
-            color: 'var(--amber)',
-          }}
-        >
-          Viewing as {brand.brand_name} — this is exactly what they see.
-        </div>
-      ) : null}
-
       <header className="cat-header">
         <div className="cat-header-copy">
           <div className="cat-eyebrow">{brand.brand_name}</div>

@@ -268,7 +268,7 @@ export default function ProductMasterClient({
   effectiveBrandId,
   initial,
   studies,
-  isImpersonating,
+  isImpersonating: _isImpersonating,
 }: Props) {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
@@ -778,22 +778,6 @@ export default function ProductMasterClient({
       >
         ← Products
       </Link>
-
-      {isImpersonating && (
-        <div
-          style={{
-            background: 'var(--amber-pale, #f3e6d0)',
-            border: '1px solid rgba(192,120,24,0.2)',
-            borderRadius: 8,
-            padding: '10px 16px',
-            marginBottom: 20,
-            fontSize: 13,
-            color: 'var(--amber)',
-          }}
-        >
-          Viewing as brand — this is exactly what they see.
-        </div>
-      )}
 
       {systemFlags.map((c) => (
         <div

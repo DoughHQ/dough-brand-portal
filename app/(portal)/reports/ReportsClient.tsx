@@ -29,7 +29,6 @@ type Purchase = {
 interface Props {
   brand: Brand
   isAdmin: boolean
-  isImpersonating: boolean
   brandId: number
   /** Cold L2 ids from brand_home_catalog_stats — not a products census. */
   brandCategoryIds?: number[]
@@ -42,7 +41,7 @@ const REPORT_TYPE_LABELS: Record<string, string> = {
   competitive_set: 'Competitive Set',
 }
 
-export default function ReportsClient({ brand, isAdmin, isImpersonating, brandId, brandCategoryIds: brandCategoryIdsProp = [] }: Props) {
+export default function ReportsClient({ brand, isAdmin, brandId, brandCategoryIds: brandCategoryIdsProp = [] }: Props) {
   const supabase = createClient()
   const [reports, setReports] = useState<Report[]>([])
   const [purchases, setPurchases] = useState<Purchase[]>([])
@@ -89,21 +88,6 @@ export default function ReportsClient({ brand, isAdmin, isImpersonating, brandId
 
   return (
     <div className="reports-page">
-
-      {isImpersonating && (
-        <div style={{
-          background: 'var(--amber-pale)',
-          border: '1px solid rgba(192,120,24,0.2)',
-          borderRadius: 'var(--r-md)',
-          padding: '10px 16px',
-          marginBottom: 24,
-          fontSize: 12,
-          color: 'var(--amber)',
-        }}>
-          Viewing as {brand.brand_name} — this is exactly what they see.
-        </div>
-      )}
-
       <header className="reports-header">
         <div>
           <div className="reports-eyebrow">
