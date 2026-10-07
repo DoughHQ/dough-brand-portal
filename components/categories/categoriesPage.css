@@ -75,12 +75,31 @@
   line-height: 1.08;
 }
 
+/* Desktop topbar already names the section — keep h1 for a11y. */
+@media (min-width: 881px) {
+  .cat-title-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .cat-lede {
+    margin-top: 0;
+  }
+}
+
 .cat-lede {
-  font-size: 16px;
-  color: var(--ink-50);
+  font-size: 15px;
+  color: var(--ink-muted, var(--ink-50));
   margin: 0;
   line-height: 1.55;
-  max-width: 560px;
+  max-width: 42rem;
 }
 
 .cat-summary {
@@ -97,9 +116,10 @@
   gap: 14px;
   min-height: 100px;
   padding: 18px 20px;
-  background: var(--white);
-  border: 1px solid var(--mist);
-  border-radius: 13px;
+  background: var(--paper, var(--white));
+  border: 1px solid var(--portal-border-soft, var(--mist));
+  border-radius: var(--radius-panel, 14px);
+  box-shadow: var(--shadow-card);
 }
 
 .cat-summary-icon {
@@ -123,12 +143,13 @@
 }
 
 .cat-summary-value {
-  font-family: var(--font-serif);
-  font-size: 28px;
-  font-weight: 400;
-  color: var(--sage-dark);
+  font-family: var(--font-sans);
+  font-size: 26px;
+  font-weight: 650;
+  color: var(--ink);
   line-height: 1.05;
   letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 .cat-summary-hint {
@@ -323,18 +344,27 @@
 .cat-primary-cta {
   display: inline-flex;
   align-items: center;
-  height: 40px;
-  padding: 0 18px;
-  border-radius: 9px;
-  background: var(--sage-dark);
-  color: var(--cream);
-  font-size: 13px;
-  font-weight: 500;
   text-decoration: none;
+  flex-shrink: 0;
 }
 
-.cat-primary-cta:hover {
-  background: var(--sage);
+/* Legacy pages without portal-btn still get a solid CTA. */
+a.cat-primary-cta:not(.portal-btn),
+button.cat-primary-cta:not(.portal-btn) {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 10px;
+  background: var(--cta, var(--sage-dark));
+  color: var(--cta-ink, var(--cream));
+  font-size: 13px;
+  font-weight: 650;
+  border: 0;
+  cursor: pointer;
+}
+
+a.cat-primary-cta:not(.portal-btn):hover,
+button.cat-primary-cta:not(.portal-btn):hover {
+  background: var(--cta-hover, var(--sage));
 }
 
 .cat-tile-grid {
@@ -346,12 +376,13 @@
 .cat-tile {
   display: flex;
   flex-direction: column;
-  background: var(--white);
-  border: 1px solid var(--mist);
-  border-radius: 13px;
+  background: var(--paper, var(--white));
+  border: 1px solid var(--portal-border-soft, var(--mist));
+  border-radius: var(--radius-panel, 14px);
   overflow: hidden;
   min-width: 0;
-  transition: border-color 160ms var(--ease);
+  box-shadow: var(--shadow-card);
+  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
 }
 
 .cat-tile-body {

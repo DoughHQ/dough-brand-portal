@@ -6,6 +6,7 @@ import type { Brand } from '@/lib/queries'
 import { brandCategoryOverviewHref } from '@/lib/categoryReport/href'
 import ReportsSkeleton from '@/components/reports/reports_skeleton'
 import '@/components/reports/reports_skeleton.css'
+import './reportsPage.css'
 
 type Report = {
   report_catalog_id: number
@@ -103,56 +104,34 @@ export default function ReportsClient({ brand, isAdmin, isImpersonating, brandId
         </div>
       )}
 
-      <div style={{ marginBottom: 32 }}>
-        <div style={{ fontSize: 11, fontWeight: 500, color: 'var(--ink-30)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
-          {isAdmin ? 'Admin' : brand.brand_name}
+      <header className="reports-header">
+        <div>
+          <div className="reports-eyebrow">
+            {isAdmin ? 'Admin' : brand.brand_name}
+          </div>
+          <h1 className="reports-title reports-title-sr">Reports</h1>
+          <p className="reports-lede">
+            Category-level preference data, ranked by real consumer battles.
+            Reports reflect declared preference — not surveys, not panels.
+          </p>
         </div>
-        <div style={{ fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 400, color: 'var(--ink)', marginBottom: 8 }}>
-          Intelligence Reports
-        </div>
-        <div style={{ fontSize: 13, color: 'var(--ink-50)', maxWidth: 540, lineHeight: 1.6 }}>
-          Category-level preference data, ranked by real consumer battles.
-          Reports reflect declared preference — not surveys, not panels.
-        </div>
-      </div>
+      </header>
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 32, alignItems: 'center' }}>
+      <div className="reports-toolbar">
         <input
           type="text"
+          className="reports-search"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search reports..."
-          style={{
-            flex: 1,
-            padding: '10px 14px',
-            borderRadius: 'var(--r-sm)',
-            border: '1px solid var(--ink-10)',
-            background: 'var(--white)',
-            fontSize: 13,
-            color: 'var(--ink)',
-            fontFamily: 'var(--font-sans)',
-            outline: 'none',
-          }}
-          onFocus={e => e.target.style.borderColor = 'var(--ink-30)'}
-          onBlur={e => e.target.style.borderColor = 'var(--ink-10)'}
+          placeholder="Search reports…"
         />
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div className="reports-filters">
           {['all', 'category_ranking', 'health_benchmark', 'brand_scorecard'].map(type => (
             <button
               key={type}
+              type="button"
+              className={`reports-filter${filterType === type ? ' is-on' : ''}`}
               onClick={() => setFilterType(type)}
-              style={{
-                padding: '8px 14px',
-                borderRadius: 'var(--r-sm)',
-                fontSize: 12,
-                fontWeight: filterType === type ? 500 : 400,
-                color: filterType === type ? 'var(--ink)' : 'var(--ink-50)',
-                background: filterType === type ? 'var(--white)' : 'transparent',
-                border: filterType === type ? '1px solid var(--ink-10)' : '1px solid transparent',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-sans)',
-                whiteSpace: 'nowrap',
-              }}
             >
               {type === 'all' ? 'All reports' : REPORT_TYPE_LABELS[type]}
             </button>
@@ -174,14 +153,14 @@ export default function ReportsClient({ brand, isAdmin, isImpersonating, brandId
               const typeReports = allOwned.filter(r => r.report_type === type)
               if (typeReports.length === 0) return null
               return (
-                <div key={type} style={{ marginBottom: 36 }}>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink)', marginBottom: 14 }}>
+                <div key={type} className="reports-section">
+                  <h2 className="reports-section-title">
                     {REPORT_TYPE_LABELS[type]}
-                    <span style={{ fontSize: 11, color: 'var(--ink-30)', fontWeight: 400, marginLeft: 8 }}>
-                      {typeReports.length} reports
+                    <span style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginLeft: 8 }}>
+                      {typeReports.length}
                     </span>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+                  </h2>
+                  <div className="reports-grid">
                     {typeReports.map(report => (
                       <ReportCard key={report.report_catalog_id} report={report} unlocked={true} isAdmin={isAdmin} brandCategoryIds={brandCategoryIds} />
                     ))}
@@ -191,15 +170,13 @@ export default function ReportsClient({ brand, isAdmin, isImpersonating, brandId
             })}
 
             {allAvailable.length > 0 && (
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink)', marginBottom: 4 }}>
-                  Available to purchase
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--ink-30)', marginBottom: 16, lineHeight: 1.6 }}>
+              <div className="reports-section">
+                <h2 className="reports-section-title">Available to purchase</h2>
+                <p className="reports-lede" style={{ marginBottom: 16 }}>
                   Generated from real battle data. Delivered instantly.
                   Licensed to {brand.brand_name} for internal use.
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+                </p>
+                <div className="reports-grid">
                   {allAvailable.map(report => (
                     <ReportCard key={report.report_catalog_id} report={report} unlocked={false} isAdmin={isAdmin} brandCategoryIds={brandCategoryIds} />
                   ))}
@@ -211,7 +188,7 @@ export default function ReportsClient({ brand, isAdmin, isImpersonating, brandId
       })()}
 
       {!loading && filterType !== 'all' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+        <div className="reports-grid">
           {sortReports(filtered).map(report => (
             <ReportCard
               key={report.report_catalog_id}
@@ -222,7 +199,7 @@ export default function ReportsClient({ brand, isAdmin, isImpersonating, brandId
             />
           ))}
           {filtered.length === 0 && (
-            <div style={{ gridColumn: '1 / -1', padding: '40px 0', textAlign: 'center', fontSize: 13, color: 'var(--ink-30)' }}>
+            <div style={{ gridColumn: '1 / -1', padding: '40px 0', textAlign: 'center', fontSize: 13, color: 'var(--ink-faint)' }}>
               No reports of this type yet.
             </div>
           )}
@@ -265,14 +242,15 @@ function ReportCard({ report, unlocked, isAdmin, brandCategoryIds }: {
   ]
 
   return (
-    <div style={{
-      background: 'var(--white)',
-      border: `1px solid ${unlocked ? 'var(--sage)' : 'var(--ink-10)'}`,
-      borderRadius: 'var(--r-lg)',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
+    <div
+      className="portal-panel"
+      style={{
+        borderColor: unlocked ? 'rgba(62, 107, 74, 0.35)' : undefined,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
 
       <div style={{ padding: '20px 22px', flex: 1 }}>
 
@@ -362,17 +340,9 @@ function ReportCard({ report, unlocked, isAdmin, brandCategoryIds }: {
               {isAdmin ? 'Admin access' : 'Purchased'}
             </div>
             <button
-              style={{
-                padding: '7px 16px',
-                background: 'var(--sage)',
-                color: 'white',
-                fontSize: 12,
-                fontWeight: 500,
-                borderRadius: 'var(--r-sm)',
-                border: 'none',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-sans)',
-              }}
+              type="button"
+              className="portal-btn portal-btn-cta"
+              style={{ minHeight: 34, padding: '0 14px', fontSize: 12 }}
               onClick={() => {
                 if (overviewHref) router.push(overviewHref)
                 else router.push('/categories')
@@ -392,17 +362,9 @@ function ReportCard({ report, unlocked, isAdmin, brandCategoryIds }: {
               </div>
             </div>
             <button
-              style={{
-                padding: '7px 16px',
-                background: 'var(--ink)',
-                color: 'white',
-                fontSize: 12,
-                fontWeight: 500,
-                borderRadius: 'var(--r-sm)',
-                border: 'none',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-sans)',
-              }}
+              type="button"
+              className="portal-btn portal-btn-cta"
+              style={{ minHeight: 34, padding: '0 14px', fontSize: 12 }}
               onClick={() =>
                 alert('Purchase coming soon — checkout is not live yet.')
               }
