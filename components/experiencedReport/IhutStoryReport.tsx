@@ -1,9 +1,6 @@
 import type { ExperiencedReportEnvelope } from '@/lib/experiencedReport/types'
 import { deriveDecisionStory } from '@/lib/experiencedReport/decisionStory'
-import {
-  deriveIhutNarrative,
-  strongestAttributeDirection,
-} from '@/lib/experiencedReport/ihutNarrative'
+import { deriveIhutNarrative } from '@/lib/experiencedReport/ihutNarrative'
 import type {
   IhutCoreReport,
   IhutCoreStrengthRow,
@@ -21,12 +18,22 @@ import styles from '@/components/reportStory/reportStory.module.css'
 import { deriveOverviewBrief } from '@/lib/experiencedReport/overviewBrief'
 import {
   ClaimStack,
-  DataGapNotice,
-  DECISION_CHAPTER_LINKS,
   DecisionScorecardChapter,
   PriceValueChapter,
 } from './DecisionChapters'
 import { OverviewBottomLine } from './DecisionBrief'
+import {
+  AttributeEvidenceChapter,
+  BuyOrderEvidenceChapter,
+  Day2EvidenceChapter,
+  EVIDENCE_PACK_LINKS,
+  EvidencePackHeader,
+  EvidenceToc,
+  ExpectationEvidenceChapter,
+  FieldEvidenceChapter,
+  LikingEvidenceChapter,
+  WhyEvidenceChapter,
+} from './IhutEvidencePack'
 
 type Props = {
   envelope: ExperiencedReportEnvelope
@@ -111,45 +118,6 @@ function positionFinding(
   }
 }
 
-function rankedNames(rows: IhutCoreStrengthRow[]): string {
-  return [...rows]
-    .filter((row) => row.rank != null)
-    .sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0))
-    .map((row) => `#${row.rank ?? '—'} ${row.name}`)
-    .join(' · ')
-}
-
-function CountRows({
-  rows,
-  noun = 'response',
-}: {
-  rows: Array<{ answer: string; n: number }>
-  noun?: string
-}) {
-  const max = Math.max(1, ...rows.map((row) => row.n))
-  return (
-    <div className={styles.rows}>
-      {rows.map((row) => (
-        <div className={styles.dataRow} key={row.answer}>
-          <div className={styles.rowLabel}>
-            <span>{row.answer}</span>
-            <strong>
-              {row.n} {noun}
-              {row.n === 1 ? '' : 's'}
-            </strong>
-          </div>
-          <div className={styles.rowTrack}>
-            <div
-              className={styles.rowFill}
-              style={{ width: `${(row.n / max) * 100}%` }}
-            />
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 export function IhutStoryReport({
   envelope,
   report,
@@ -230,30 +198,6 @@ export function IhutStoryReport({
     overview.callLabel = 'Still forming'
   }
   const position = positionFinding(report, productName, narrative.productRef)
-  const shelfRows = report.promise_vs_delivery?.shelf ?? []
-  const tasteRows = report.promise_vs_delivery?.taste ?? []
-  const attributeIssue = strongestAttributeDirection(
-    report.attribute_penalties,
-    narrative.productRef,
-  )
-  const heroReasons = [...report.taste_why].sort((a, b) => b.n - a.n)
-  const heroBuyOrder = report.buy_order.find(
-    (row) => row.ref === narrative.productRef,
-  )
-  const heroDay2 = report.day2.preference_hold
-  const day2Available =
-    report.day2.preference_hold.n > 0 ||
-    report.day2.consumption.length > 0 ||
-    report.day2.wear.length > 0
-  const whyTitle = attributeIssue
-    ? `${attributeIssue.claim} That is the clearest formulation watch-out.`
-    : heroReasons[0]
-      ? `${heroReasons[0].answer} was the most-cited reason behind the taste choice.`
-      : 'The “why” evidence is still limited.'
-  const day2Title =
-    heroDay2.n > 0
-      ? `${pct(heroDay2.same_favorite_share)} kept the same favorite on Day 2.`
-      : 'Day 2 evidence is not available yet.'
 
   return (
     <div className={styles.page}>
@@ -265,7 +209,9 @@ export function IhutStoryReport({
           eyebrow="At-home product test · Decision brief"
           metadata={metadata}
         />
-        {variant === 'full' ? <StoryIndex links={[...DECISION_CHAPTER_LINKS]} /> : null}
+        {variant === 'full' ? (
+          <StoryIndex links={[...EVIDENCE_PACK_LINKS]} />
+        ) : null}
 
         <DecisionScorecardChapter
           title={story.headline}
@@ -276,160 +222,53 @@ export function IhutStoryReport({
 
         {variant === 'full' ? (
           <>
-            <StoryChapter
-              id="field"
+            <EvidencePackHeader pageCount={9} />
+            <EvidenceToc />
+
+            <FieldEvidenceChapter
+              report={report}
+              productName={productName}
+              productRef={narrative.productRef}
+              positionTitle={position.title}
+              positionLead={position.lead}
               number="02"
-              kicker="Against whom?"
-              title={position.title}
-              lead={position.lead}
-              context="Rank is relative to the tested field"
-            >
-              {shelfRows.length || tasteRows.length ? (
-                <div className={styles.evidenceGrid}>
-                  <article className={styles.evidenceCard}>
-                    <p className={styles.cardEyebrow}>Before tasting</p>
-                    <h3 className={styles.cardTitle}>Shelf promise</h3>
-                    <p className={styles.cardText}>
-                      {shelfRows.length
-                        ? rankedNames(shelfRows)
-                        : 'Not measured in this study.'}
-                    </p>
-                  </article>
-                  <article className={styles.evidenceCard}>
-                    <p className={styles.cardEyebrow}>After tasting</p>
-                    <h3 className={styles.cardTitle}>Delivered experience</h3>
-                    <p className={styles.cardText}>
-                      {tasteRows.length
-                        ? rankedNames(tasteRows)
-                        : 'Not measured in this study.'}
-                    </p>
-                  </article>
-                </div>
-              ) : (
-                <DataGapNotice
-                  title="No promise-to-delivery comparison yet"
-                  body="Both shelf and tasted positions are required before this report claims movement."
-                />
-              )}
-              <p className={styles.finePrint}>
-                Rank is shown because it is decision-readable. Underlying
-                Bradley–Terry strengths are model scores, not percentages.
-              </p>
-            </StoryChapter>
+            />
 
-            <StoryChapter
-              id="diagnosis"
+            <LikingEvidenceChapter
+              report={report}
+              productRef={narrative.productRef}
               number="03"
-              kicker="Why?"
-              title={whyTitle}
-              lead="Directional diagnostics explain where to look next. They do not prove that changing one attribute will cause the verdict to move."
-              context={`Hero product · ${productName}`}
-            >
-              <div className={styles.evidenceGrid}>
-                <article className={styles.evidenceCard}>
-                  <p className={styles.cardEyebrow}>Taste choice</p>
-                  <h3 className={styles.cardTitle}>Reasons people gave</h3>
-                  {heroReasons.length ? (
-                    <CountRows rows={heroReasons.slice(0, 6)} noun="mention" />
-                  ) : (
-                    <p className={styles.cardText}>
-                      No coded taste reasons are available for this product yet.
-                    </p>
-                  )}
-                </article>
-                <article className={styles.evidenceCard}>
-                  <p className={styles.cardEyebrow}>Just-right diagnostics</p>
-                  <h3 className={styles.cardTitle}>
-                    Strongest directional issue
-                  </h3>
-                  {attributeIssue ? (
-                    <>
-                      <div className={styles.bigNumber}>
-                        {pct(attributeIssue.share)}
-                      </div>
-                      <p className={styles.cardText}>{attributeIssue.claim}</p>
-                    </>
-                  ) : (
-                    <p className={styles.cardText}>
-                      No directional attribute issue is reportable yet.
-                    </p>
-                  )}
-                </article>
-                {heroBuyOrder ? (
-                  <article className={styles.evidenceCard}>
-                    <p className={styles.cardEyebrow}>Buy order</p>
-                    <h3 className={styles.cardTitle}>Ranked first after tasting</h3>
-                    <div className={styles.bigNumber}>
-                      {pct(heroBuyOrder.first_share)}
-                    </div>
-                    <p className={styles.cardText}>
-                      Share ranking {productName} first · n={heroBuyOrder.n}.
-                      Preference order is not the same as buy-at-price intent.
-                    </p>
-                  </article>
-                ) : null}
-              </div>
-            </StoryChapter>
+            />
 
-            <PriceValueChapter story={story} />
+            <AttributeEvidenceChapter
+              report={report}
+              productName={productName}
+              productRef={narrative.productRef}
+              number="04"
+            />
 
-            <StoryChapter
-              id="durability"
-              number="05"
-              kicker="Did it hold?"
-              title={day2Title}
-              lead={
-                day2Available
-                  ? 'Day 2 shows whether the observed preference and experience held in the follow-up. It does not establish causality.'
-                  : 'This report keeps the chapter visible so an absent follow-up is explicit, not silently omitted.'
-              }
-              context="Follow-up evidence"
-            >
-              {day2Available ? (
-                <div className={styles.evidenceGrid}>
-                  <article className={styles.evidenceCard}>
-                    <p className={styles.cardEyebrow}>Preference hold</p>
-                    <h3 className={styles.cardTitle}>Same choice as Day 1</h3>
-                    <div className={styles.bigNumber}>
-                      {pct(report.day2.preference_hold.same_favorite_share)}
-                    </div>
-                    <p className={styles.cardText}>
-                      Same Day 1 favorite · n={report.day2.preference_hold.n}.
-                    </p>
-                  </article>
-                  <article className={styles.evidenceCard}>
-                    <p className={styles.cardEyebrow}>Consumption</p>
-                    <h3 className={styles.cardTitle}>How much was used</h3>
-                    {report.day2.consumption.length ? (
-                      <CountRows rows={report.day2.consumption} />
-                    ) : (
-                      <p className={styles.cardText}>Not reported.</p>
-                    )}
-                  </article>
-                  {report.day2.wear.length ? (
-                    <article
-                      className={`${styles.evidenceCard} ${styles.evidenceCardWide}`}
-                    >
-                      <p className={styles.cardEyebrow}>How it wore</p>
-                      <h3 className={styles.cardTitle}>
-                        Whether the experience grew or faded
-                      </h3>
-                      <CountRows rows={report.day2.wear} />
-                    </article>
-                  ) : null}
-                </div>
-              ) : (
-                <DataGapNotice
-                  title="No Day 2 response is included"
-                  body="No hold, consumption, or wear claim is made from the Day 1 result."
-                />
-              )}
-            </StoryChapter>
+            <WhyEvidenceChapter report={report} number="05" />
+
+            <BuyOrderEvidenceChapter
+              report={report}
+              productRef={narrative.productRef}
+              number="06"
+            />
+
+            <ExpectationEvidenceChapter
+              report={report}
+              productRef={narrative.productRef}
+              number="07"
+            />
+
+            <PriceValueChapter story={story} number="08" />
+
+            <Day2EvidenceChapter report={report} number="09" />
 
             <StoryChapter
               id="trust"
-              number="06"
-              kicker="How much should I trust it?"
+              number="10"
+              kicker="Method · Trust"
               title="What this report can—and cannot—say."
               lead="These rules protect the decision from flattering reinterpretation. Price claims remain tested-offer intent, never demand."
               context="Transparent by design"
@@ -460,6 +299,14 @@ export function IhutStoryReport({
                     Under 10 answers: counts only. 10–29: descriptive small-base
                     evidence. A pass/fail price verdict requires at least 30
                     answers.
+                  </p>
+                </article>
+                <article className={styles.methodCard}>
+                  <h3>Evidence pack</h3>
+                  <p>
+                    Measure sections page every frozen share, rank, attribute,
+                    and coded reason. Empty measures stay visible as gaps —
+                    they are not filled with estimates.
                   </p>
                 </article>
                 <article className={styles.methodCard}>

@@ -220,7 +220,13 @@ function TransitionHeatmap({ row }: { row: PriceTransition }) {
   )
 }
 
-export function PriceValueChapter({ story }: { story: DecisionStory }) {
+export function PriceValueChapter({
+  story,
+  number = '04',
+}: {
+  story: DecisionStory
+  number?: string
+}) {
   const price = story.price
   const leadClaim = price.claims[0]
   const title =
@@ -232,8 +238,8 @@ export function PriceValueChapter({ story }: { story: DecisionStory }) {
   return (
     <StoryChapter
       id="price"
-      number="04"
-      kicker="At what value?"
+      number={number}
+      kicker="Evidence · Price"
       title={title}
       lead={price.interpretation}
       context={
