@@ -1,12 +1,17 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { PortalUser } from '@/lib/queries'
 import type { AdminQueueBadges } from '@/lib/adminHome/types'
 import { exitImpersonationAction } from './admin/impersonation/actions'
+import {
+  CommandPalette,
+  useCommandPaletteHotkey,
+  type CommandItem,
+} from '@/components/portal/CommandPalette'
 import './portalLayout.css'
 
 interface PortalLayoutClientProps {
@@ -41,6 +46,9 @@ type NavIcon =
   | 'moon'
   | 'sun'
   | 'logout'
+  | 'search'
+  | 'chevron'
+  | 'settings'
 
 type NavItem = {
   label: string
@@ -121,6 +129,22 @@ function NavGlyph({ name }: { name: NavIcon }) {
           <path d="M4 12h11M12 9l3 3-3 3" {...stroke} />
         </>
       ) : null}
+      {name === 'search' ? (
+        <>
+          <circle cx="11" cy="11" r="6.5" {...stroke} />
+          <path d="M16 16l4 4" {...stroke} />
+        </>
+      ) : null}
+      {name === 'chevron' ? <path d="M8 10l4 4 4-4" {...stroke} /> : null}
+      {name === 'settings' ? (
+        <>
+          <circle cx="12" cy="12" r="3" {...stroke} />
+          <path
+            d="M12 3v2.2M12 18.8V21M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M3 12h2.2M18.8 12H21M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6"
+            {...stroke}
+          />
+        </>
+      ) : null}
     </svg>
   )
 }
@@ -151,9 +175,14 @@ function currentSectionLabel(pathname: string, sections: NavSection[]): string {
   return 'Dough'
 }
 
+function isMacPlatform(): boolean {
+  if (typeof navigator === 'undefined') return false
+  return /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent)
+}
+
 export default function PortalLayoutClient({
   brandName,
-  portalUser: _portalUser,
+  portalUser,
   catalogProductCount = 0,
   queueBadges = { safety: 0, corrections: 0, ownership: 0, applications: 0, boxes: 0 },
   isAdmin,
@@ -168,7 +197,10 @@ export default function PortalLayoutClient({
   const [exiting, setExiting] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
   const [isCompact, setIsCompact] = useState(false)
+  const [paletteOpen, setPaletteOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
   const asideRef = useRef<HTMLElement>(null)
+  const accountRef = useRef<HTMLDivElement>(null)
 
   /** Platform ops shell vs brand intelligence shell. */
   const shell: 'platform' | 'brand' = isAdmin && !isImpersonating ? 'platform' : 'brand'
@@ -186,17 +218,34 @@ export default function PortalLayoutClient({
       ? impersonatedBrandName[0]
       : (brandName?.[0] ?? 'B')
 
+  const accountName =
+    portalUser.display_name?.trim() ||
+    (isPlatform ? 'Dough admin' : sidebarBrandName)
+
   const brandNav: NavSection[] = [
     {
-      group: 'Workspace',
+      group: 'Overview',
+      items: [{ label: 'Home', href: '/dashboard', icon: 'home' }],
+    },
+    {
+      group: 'Catalog',
       items: [
-        { label: 'Home', href: '/dashboard', icon: 'home' },
         { label: 'Categories', href: '/categories', icon: 'categories', prefetch: false },
         { label: 'Products', href: '/products', icon: 'products', prefetch: false },
         { label: 'Prototypes', href: '/prototypes', icon: 'prototypes', prefetch: false },
-        { label: 'Corrections', href: '/corrections', icon: 'corrections', prefetch: false },
+      ],
+    },
+    {
+      group: 'Research',
+      items: [
         { label: 'Studies', href: '/studies', icon: 'studies', prefetch: false },
         { label: 'Reports', href: '/reports', icon: 'reports', prefetch: false },
+      ],
+    },
+    {
+      group: 'Account',
+      items: [
+        { label: 'Corrections', href: '/corrections', icon: 'corrections', prefetch: false },
       ],
     },
   ]
@@ -223,6 +272,11 @@ export default function PortalLayoutClient({
         { label: 'Ownership', href: '/admin/ownership-corrections', icon: 'ownership', badge: 'ownership', prefetch: false },
         { label: 'Applications', href: '/admin/brand-applications', icon: 'applications', badge: 'applications', prefetch: false },
         { label: 'Boxes', href: '/admin/boxes', icon: 'boxes', badge: 'boxes', prefetch: false },
+      ],
+    },
+    {
+      group: 'Research',
+      items: [
         { label: 'Studies', href: '/studies', icon: 'studies', prefetch: false },
         { label: 'Products', href: '/products', icon: 'products', prefetch: false },
       ],
@@ -234,6 +288,26 @@ export default function PortalLayoutClient({
   const showImpersonationStrip = isAdmin && isImpersonating && !!impersonatedBrandName
   /** Drawer is off-canvas only in compact mode; keep it focusable on desktop. */
   const drawerInert = isCompact && !navOpen
+  const modKey = isMacPlatform() ? '⌘' : 'Ctrl'
+
+  const commandItems: CommandItem[] = useMemo(() => {
+    const items: CommandItem[] = []
+    for (const section of navSections) {
+      for (const item of section.items) {
+        items.push({
+          id: `${section.group}-${item.href}`,
+          label: item.label,
+          href: item.href,
+          group: section.group,
+          keywords: `${item.label} ${section.group}`,
+        })
+      }
+    }
+    return items
+  }, [navSections])
+
+  const openPalette = useCallback(() => setPaletteOpen(true), [])
+  useCommandPaletteHotkey(openPalette)
 
   // Keep closed compact drawer out of the tab order (inert).
   useEffect(() => {
@@ -248,6 +322,7 @@ export default function PortalLayoutClient({
   // Close drawer on route change
   useEffect(() => {
     setNavOpen(false)
+    setAccountOpen(false)
   }, [pathname])
 
   // Track compact viewport; close drawer when leaving it. Escape while open.
@@ -261,7 +336,10 @@ export default function PortalLayoutClient({
     mq.addEventListener('change', onMqChange)
 
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') setNavOpen(false)
+      if (e.key === 'Escape') {
+        setNavOpen(false)
+        setAccountOpen(false)
+      }
     }
     window.addEventListener('keydown', onKeyDown)
 
@@ -281,6 +359,18 @@ export default function PortalLayoutClient({
     }
   }, [navOpen])
 
+  // Close account menu on outside click
+  useEffect(() => {
+    if (!accountOpen) return
+    function onPointer(e: MouseEvent) {
+      if (!accountRef.current?.contains(e.target as Node)) {
+        setAccountOpen(false)
+      }
+    }
+    window.addEventListener('mousedown', onPointer)
+    return () => window.removeEventListener('mousedown', onPointer)
+  }, [accountOpen])
+
   async function handleSignOut() {
     if (isImpersonating) {
       await exitImpersonationAction()
@@ -295,8 +385,6 @@ export default function PortalLayoutClient({
     try {
       const result = await exitImpersonationAction()
       if (!result.ok) return
-      // Action already refreshSession()'d once — skip router.refresh() to avoid
-      // re-rendering the brand shell before navigating to platform Home.
       router.push('/dashboard')
       if (process.env.NODE_ENV === 'development') {
         console.log(`[perf] exit.client.total: ${Math.round(performance.now() - t0)}ms`)
@@ -306,9 +394,11 @@ export default function PortalLayoutClient({
     }
   }
 
+  const workspaceHref = isPlatform || isAdmin ? '/admin/impersonate' : undefined
+
   return (
     <div className={`portal-shell${dark ? ' dark' : ''}${navOpen ? ' is-nav-open' : ''}`}>
-      <header className="portal-topbar">
+      <header className="portal-topbar portal-topbar-mobile">
         <div className="portal-topbar-row">
           <button
             type="button"
@@ -333,9 +423,14 @@ export default function PortalLayoutClient({
             />
             <span className="portal-topbar-section">{sectionLabel}</span>
           </div>
-          <div className="portal-topbar-chip" aria-hidden>
-            {sidebarBrandInitial}
-          </div>
+          <button
+            type="button"
+            className="portal-topbar-search-icon"
+            aria-label="Search"
+            onClick={openPalette}
+          >
+            <NavGlyph name="search" />
+          </button>
         </div>
         {showImpersonationStrip ? (
           <div className="portal-topbar-impersonation">
@@ -389,17 +484,32 @@ export default function PortalLayoutClient({
             </div>
           </div>
 
-          <div className="portal-workspace">
-            <div className="portal-workspace-mark">{sidebarBrandInitial}</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="portal-workspace-name">{sidebarBrandName}</div>
-              <div className="portal-workspace-meta">
-                {isPlatform
-                  ? 'Ops'
-                  : `Brand workspace · ${catalogProductCount} product${catalogProductCount !== 1 ? 's' : ''}`}
+          {workspaceHref ? (
+            <Link href={workspaceHref} className="portal-workspace portal-workspace-link">
+              <div className="portal-workspace-mark">{sidebarBrandInitial}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="portal-workspace-name">{sidebarBrandName}</div>
+                <div className="portal-workspace-meta">
+                  {isPlatform
+                    ? 'Ops · Switch brand'
+                    : `Brand workspace · ${catalogProductCount} product${catalogProductCount !== 1 ? 's' : ''}`}
+                </div>
+              </div>
+              <span className="portal-workspace-chevron" aria-hidden>
+                <NavGlyph name="chevron" />
+              </span>
+            </Link>
+          ) : (
+            <div className="portal-workspace">
+              <div className="portal-workspace-mark">{sidebarBrandInitial}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="portal-workspace-name">{sidebarBrandName}</div>
+                <div className="portal-workspace-meta">
+                  {`Brand workspace · ${catalogProductCount} product${catalogProductCount !== 1 ? 's' : ''}`}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {showImpersonationStrip ? (
             <div className="portal-impersonation">
@@ -460,20 +570,100 @@ export default function PortalLayoutClient({
             ))}
           </nav>
 
-          <div className="portal-foot">
-            <button type="button" className="portal-foot-btn" onClick={() => setDark(!dark)}>
-              <NavGlyph name={dark ? 'sun' : 'moon'} />
-              {dark ? 'Light mode' : 'Dark mode'}
-            </button>
-            <button type="button" className="portal-foot-btn" onClick={() => void handleSignOut()}>
-              <NavGlyph name="logout" />
-              Logout
-            </button>
+          <div className="portal-foot portal-foot-compact">
+            <p className="portal-foot-hint">
+              Press <kbd>{modKey}K</kbd> to search
+            </p>
           </div>
         </aside>
 
-        <main className="portal-main">{children}</main>
+        <main className="portal-main">
+          <header className="portal-desktop-topbar">
+            <div className="portal-desktop-topbar-left">
+              <h1 className="portal-desktop-title">{sectionLabel}</h1>
+            </div>
+            <button
+              type="button"
+              className="portal-search-trigger"
+              onClick={openPalette}
+            >
+              <NavGlyph name="search" />
+              <span className="portal-search-trigger-placeholder">
+                Search pages, studies, products…
+              </span>
+              <kbd className="portal-search-kbd">{modKey}K</kbd>
+            </button>
+            <div className="portal-desktop-topbar-right" ref={accountRef}>
+              <button
+                type="button"
+                className={`portal-account-btn${accountOpen ? ' is-open' : ''}`}
+                aria-expanded={accountOpen}
+                aria-haspopup="menu"
+                onClick={() => setAccountOpen((o) => !o)}
+              >
+                <span className="portal-account-avatar">{accountName[0]?.toUpperCase() ?? 'D'}</span>
+                <span className="portal-account-name">{accountName}</span>
+                <NavGlyph name="chevron" />
+              </button>
+              {accountOpen ? (
+                <div className="portal-account-menu" role="menu">
+                  <div className="portal-account-menu-meta">
+                    <strong>{accountName}</strong>
+                    <span>{isPlatform ? 'Platform admin' : sidebarBrandName}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="portal-account-menu-item"
+                    role="menuitem"
+                    onClick={() => {
+                      setDark(!dark)
+                      setAccountOpen(false)
+                    }}
+                  >
+                    <NavGlyph name={dark ? 'sun' : 'moon'} />
+                    {dark ? 'Light mode' : 'Dark mode'}
+                  </button>
+                  <button
+                    type="button"
+                    className="portal-account-menu-item"
+                    role="menuitem"
+                    onClick={() => {
+                      setAccountOpen(false)
+                      void handleSignOut()
+                    }}
+                  >
+                    <NavGlyph name="logout" />
+                    Log out
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </header>
+
+          {showImpersonationStrip ? (
+            <div className="portal-desktop-impersonation">
+              <span>
+                Viewing as <strong>{impersonatedBrandName}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => void exitImpersonation()}
+                disabled={exiting}
+              >
+                {exiting ? '…' : 'Exit brand'}
+              </button>
+            </div>
+          ) : null}
+
+          <div className="portal-main-body">{children}</div>
+        </main>
       </div>
+
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        items={commandItems}
+      />
     </div>
   )
 }

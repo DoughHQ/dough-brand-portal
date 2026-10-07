@@ -13,6 +13,10 @@
   --clay: #a6543c;
   --mist: #e7e4db;
   --paper: #ffffff;
+  /* Primary action — used sparingly (Relay lime energy, Dough-native) */
+  --cta: #c8e06a;
+  --cta-ink: #243d2c;
+  --cta-hover: #d4e97f;
 
   /* Semantic tints */
   --sage-soft: rgba(62, 107, 74, 0.12);
@@ -50,7 +54,12 @@
 
   /* Radius */
   --radius-control: 6px;
-  --radius-card: 8px;
+  --radius-card: 12px;
+  --radius-panel: 14px;
+
+  /* Elevation — soft institutional cards on cream */
+  --shadow-card: 0 1px 2px rgba(28, 38, 32, 0.04), 0 8px 24px rgba(28, 38, 32, 0.05);
+  --shadow-panel: 0 1px 2px rgba(28, 38, 32, 0.05), 0 12px 32px rgba(28, 38, 32, 0.06);
 
   /* Motion */
   --motion-duration: 200ms;
@@ -78,7 +87,6 @@
   --r-lg: 12px;
   --r-xl: 16px;
   --ease: var(--motion-ease);
-  --shadow-card: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
