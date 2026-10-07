@@ -12,6 +12,7 @@ import {
   useCommandPaletteHotkey,
   type CommandItem,
 } from '@/components/portal/CommandPalette'
+import { searchPortalCommandAction } from './searchPortalCommandAction'
 import './portalLayout.css'
 
 interface PortalLayoutClientProps {
@@ -308,6 +309,11 @@ export default function PortalLayoutClient({
 
   const openPalette = useCallback(() => setPaletteOpen(true), [])
   useCommandPaletteHotkey(openPalette)
+
+  const searchRemote = useCallback(
+    (query: string) => searchPortalCommandAction(query),
+    [],
+  )
 
   // Keep closed compact drawer out of the tab order (inert).
   useEffect(() => {
@@ -663,6 +669,7 @@ export default function PortalLayoutClient({
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
         items={commandItems}
+        searchRemote={isPlatform ? undefined : searchRemote}
       />
     </div>
   )

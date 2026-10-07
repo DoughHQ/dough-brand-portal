@@ -52,41 +52,41 @@
   line-height: 1.05;
 }
 
+/* Desktop topbar already shows “Studies” — keep h1 for a11y on large screens. */
+@media (min-width: 881px) {
+  .studies-title-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .studies-lede {
+    margin-top: 0;
+  }
+}
+
 .studies-lede {
-  margin: 6px 0 0;
+  margin: 0;
   font-size: 15px;
   color: var(--ink-muted, var(--ink-50));
   line-height: 1.45;
+  max-width: 42rem;
 }
 
 .studies-new-study {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   flex-shrink: 0;
-  height: 44px;
-  padding: 0 20px;
-  background: var(--sage-dark);
-  color: var(--cream, var(--white, #fff));
-  border: none;
-  border-radius: 9px;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
-  box-shadow: none;
-  transition: background var(--motion-duration, 200ms) var(--motion-ease, ease);
-}
-
-.studies-new-study:hover {
-  background: var(--ink);
 }
 
 .studies-new-study:focus-visible {
-  outline: 2px solid var(--sage);
+  outline: 2px solid rgba(62, 107, 74, 0.45);
   outline-offset: 2px;
 }
 
@@ -118,10 +118,10 @@
   gap: 14px;
   height: 102px;
   padding: 16px 20px;
-  background: var(--white);
-  border: 1px solid var(--mist);
-  border-radius: 13px;
-  box-shadow: none;
+  background: var(--paper, var(--white));
+  border: 1px solid var(--portal-border-soft, var(--mist));
+  border-radius: var(--radius-panel, 14px);
+  box-shadow: var(--shadow-card);
 }
 
 .studies-metric-icon {
@@ -149,10 +149,10 @@
 }
 
 .studies-metric-value {
-  font-family: var(--font-serif, var(--font-display));
-  font-size: 32px;
-  font-weight: 400;
-  color: var(--sage-dark);
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: 650;
+  color: var(--ink);
   line-height: 1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -248,11 +248,11 @@
 }
 
 .studies-list {
-  background: var(--white);
-  border: 1px solid var(--mist);
-  border-radius: 13px;
+  background: var(--paper, var(--white));
+  border: 1px solid var(--portal-border-soft, var(--mist));
+  border-radius: var(--radius-panel, 14px);
   overflow: hidden;
-  box-shadow: none;
+  box-shadow: var(--shadow-card);
 }
 
 .studies-study-row {

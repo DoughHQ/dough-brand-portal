@@ -61,7 +61,7 @@ export default function CatalogHealthCard({
           View products →
         </Link>
       </div>
-      <div className="bh-panel bh-health">
+      <div className="bh-panel bh-health portal-panel">
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
           {rows.map((row, i) => (
             <li key={row.key}>

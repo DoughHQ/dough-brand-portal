@@ -67,6 +67,14 @@ export default function BrandHome({
   const battledPulse = pulseItem(model, 'battled')
   const studiesPulse = pulseItem(model, 'studies')
   const phoneCategories = model.categories.slice(0, 3)
+  const openStudies = model.openStudiesCount
+  const catalogIssues =
+    catalogHealth != null &&
+    catalogHealth.total > 0 &&
+    (catalogHealth.images.have < catalogHealth.images.total ||
+      catalogHealth.pricing.have < catalogHealth.pricing.total ||
+      catalogHealth.categories.have < catalogHealth.categories.total ||
+      catalogHealth.labelAllergen.have < catalogHealth.labelAllergen.total)
 
   const strip: {
     key: string
@@ -74,6 +82,7 @@ export default function BrandHome({
     value: string
     sub?: string
     icon: string
+    href: string
   }[] = [
     {
       key: 'products',
@@ -84,6 +93,7 @@ export default function BrandHome({
           ? `${battledPulse.value} with battles`
           : `${model.productsWithBattles.toLocaleString()} with battles`,
       icon: 'M4 7h16M4 12h16M4 17h10',
+      href: '/products',
     },
     {
       key: 'categories',
@@ -91,12 +101,14 @@ export default function BrandHome({
       value: categoriesPulse?.value ?? String(model.categories.length),
       sub: categoriesPulse?.detail ?? 'With your products',
       icon: 'M4 20V10l8-6 8 6v10H4z',
+      href: '/categories',
     },
     {
       key: 'comparisons',
       label: 'Comparisons',
       value: totalBattles.toLocaleString(),
       icon: 'M7 10h10M7 14h6M5 5h14v14H5z',
+      href: '/products',
     },
     {
       key: 'studies',
@@ -104,6 +116,7 @@ export default function BrandHome({
       value: studiesPulse?.value ?? String(model.openStudiesCount),
       sub: studiesPulse?.detail ?? 'Live or scheduled',
       icon: 'M8 6h8v14H8zM10 9h4',
+      href: '/studies',
     },
   ]
 
@@ -117,14 +130,43 @@ export default function BrandHome({
       ) : null}
       <header className="bh-top">
         <div className="bh-top-main">{profileSlot}</div>
-        <Link href="/studies/new" className="bh-new-study">
+        <Link href="/studies/new" className="portal-btn portal-btn-cta bh-new-study">
           <span aria-hidden>+</span> New study
         </Link>
       </header>
 
+      {(openStudies > 0 || catalogIssues) && (
+        <section className="bh-ops portal-panel" aria-label="Needs attention">
+          <div className="bh-ops-copy">
+            <p className="bh-ops-eyebrow">Open work</p>
+            <p className="bh-ops-title">
+              {openStudies > 0
+                ? `${openStudies} open stud${openStudies === 1 ? 'y' : 'ies'}`
+                : 'Catalog needs a pass'}
+              {openStudies > 0 && catalogIssues ? ' · catalog gaps' : ''}
+            </p>
+            <p className="bh-ops-body">
+              {openStudies > 0
+                ? 'Pick up live research or launch the next test.'
+                : 'Fix missing images or claims so preference signal can build.'}
+            </p>
+          </div>
+          <div className="bh-ops-actions">
+            {openStudies > 0 ? (
+              <Link href="/studies" className="portal-btn portal-btn-secondary">
+                Open studies
+              </Link>
+            ) : null}
+            <Link href="/studies/new" className="portal-btn portal-btn-cta">
+              New study
+            </Link>
+          </div>
+        </section>
+      )}
+
       <section className="bh-strip" aria-label="Portfolio snapshot">
         {strip.map((cell) => (
-          <div key={cell.key} className="bh-strip-cell">
+          <Link key={cell.key} href={cell.href} className="bh-strip-cell portal-panel">
             <div className="bh-strip-icon">
               <StripIcon d={cell.icon} />
             </div>
@@ -133,12 +175,51 @@ export default function BrandHome({
               <div className="bh-strip-value">{cell.value}</div>
               {cell.sub ? <div className="bh-strip-sub">{cell.sub}</div> : null}
             </div>
-          </div>
+          </Link>
         ))}
       </section>
 
       <div className="bh-grid">
         <div className="bh-col bh-col-main">
+          <section className="bh-region bh-region-research">
+            <div className="bh-section-head">
+              <h2 className="bh-h">Open studies</h2>
+              <Link href="/studies" className="bh-link">
+                All studies →
+              </Link>
+            </div>
+            {model.studies.length === 0 ? (
+              <EmptyPanel
+                title="No active research"
+                body="Launch a study when you want focused feedback beyond ongoing category intelligence."
+                href="/studies/new"
+                cta="+ New study"
+                ctaPrimary
+              />
+            ) : (
+              <div className="bh-studies">
+                {model.studies.map((s) => (
+                  <div key={s.missionId} className="bh-study portal-panel">
+                    <div className="bh-eyebrow">{s.badge}</div>
+                    <div className="bh-study-title">{s.title}</div>
+                    <div className="bh-study-detail">{s.detail}</div>
+                    {s.progress != null ? (
+                      <div className="bh-study-progress">
+                        <div
+                          className="bh-study-progress-fill"
+                          style={{ width: `${s.progress}%` }}
+                        />
+                      </div>
+                    ) : null}
+                    <Link href={s.href} className="portal-btn portal-btn-secondary bh-study-cta">
+                      {s.ctaLabel}
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
           <section className="bh-region bh-region-products">
             <div className="bh-section-head">
               <h2 className="bh-h">Your products</h2>
@@ -161,7 +242,7 @@ export default function BrandHome({
                 cta="See all products →"
               />
             ) : lead ? (
-              <div className="bh-panel bh-panel-products">
+              <div className="bh-panel bh-panel-products portal-panel">
                 <ProductSignalCard card={lead} variant="lead" />
                 {rest.length > 0 ? (
                   <div className="bh-product-list">
@@ -190,7 +271,6 @@ export default function BrandHome({
               />
             ) : (
               <>
-                {/* Desktop / tablet category cards */}
                 <div className="bh-cats bh-cats-desktop">
                   {model.categories.map((c) => {
                     const status = c.unlocked ? (c.status === 'building' ? 'building' : 'active') : 'locked'
@@ -198,7 +278,7 @@ export default function BrandHome({
                       <Link
                         key={c.l2NodeId}
                         href={c.href}
-                        className={`bh-cat${c.unlocked ? '' : ' is-locked'}`}
+                        className={`bh-cat portal-panel${c.unlocked ? '' : ' is-locked'}`}
                       >
                         <CatArt name={c.name} src={c.bannerImageUrl} />
                         <div className="bh-cat-body">
@@ -219,7 +299,6 @@ export default function BrandHome({
                   })}
                 </div>
 
-                {/* Phone: compact tappable rows */}
                 <div className="bh-cat-phone-list" aria-label="Categories">
                   {phoneCategories.map((c) => {
                     const status = c.unlocked
@@ -231,7 +310,7 @@ export default function BrandHome({
                       <Link
                         key={c.l2NodeId}
                         href={c.href}
-                        className={`bh-cat-phone-row${c.unlocked ? '' : ' is-locked'}`}
+                        className={`bh-cat-phone-row portal-panel${c.unlocked ? '' : ' is-locked'}`}
                       >
                         <CatArt name={c.name} src={c.bannerImageUrl} />
                         <span className="bh-cat-phone-copy">
@@ -265,14 +344,14 @@ export default function BrandHome({
             </div>
           ) : null}
 
-          <section className="bh-panel bh-region bh-region-hero" aria-labelledby="bh-hero-heading">
+          <section className="bh-panel bh-region bh-region-hero portal-panel" aria-labelledby="bh-hero-heading">
             <div className="bh-hero">
               <div className="bh-eyebrow">{model.hero.eyebrow}</div>
               <h2 id="bh-hero-heading" className="bh-hero-title">
                 {model.hero.headline}
               </h2>
               <p className="bh-hero-body">{model.hero.body}</p>
-              <Link href={model.hero.ctaHref} className="bh-hero-cta">
+              <Link href={model.hero.ctaHref} className="portal-btn portal-btn-cta bh-hero-cta">
                 {model.hero.ctaLabel}
               </Link>
             </div>
@@ -288,53 +367,6 @@ export default function BrandHome({
           </section>
         </aside>
       </div>
-
-      <section className="bh-region bh-region-research">
-        <div className="bh-section-head">
-          <h2 className="bh-h">Your research</h2>
-          <Link href="/studies/new" className="bh-link">
-            + New study
-          </Link>
-        </div>
-        {model.studies.length === 0 ? (
-          <EmptyPanel
-            title="No active research"
-            body="Launch a study when you want focused feedback beyond ongoing category intelligence."
-            href="/studies/new"
-            cta="+ New study"
-          />
-        ) : (
-          <div className="bh-studies">
-            {model.studies.map((s) => (
-              <div key={s.missionId} className="bh-study">
-                <div className="bh-eyebrow">{s.badge}</div>
-                <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--sage-dark)', marginBottom: 6 }}>
-                  {s.title}
-                </div>
-                <div style={{ fontSize: 13, color: 'var(--ink-50)', marginBottom: s.progress != null ? 8 : 10 }}>
-                  {s.detail}
-                </div>
-                {s.progress != null ? (
-                  <div
-                    style={{
-                      height: 4,
-                      borderRadius: 99,
-                      background: 'var(--mist)',
-                      overflow: 'hidden',
-                      marginBottom: 10,
-                    }}
-                  >
-                    <div style={{ width: `${s.progress}%`, height: '100%', background: 'var(--sage)' }} />
-                  </div>
-                ) : null}
-                <Link href={s.href} className="bh-link">
-                  {s.ctaLabel} →
-                </Link>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   )
 }
@@ -344,17 +376,22 @@ function EmptyPanel({
   body,
   href,
   cta,
+  ctaPrimary = false,
 }: {
   title: string
   body: string
   href: string
   cta: string
+  ctaPrimary?: boolean
 }) {
   return (
-    <div className="bh-empty">
+    <div className="bh-empty portal-panel">
       <p className="bh-empty-title">{title}</p>
       <p className="bh-empty-body">{body}</p>
-      <Link href={href} className="bh-link">
+      <Link
+        href={href}
+        className={ctaPrimary ? 'portal-btn portal-btn-cta' : 'bh-link'}
+      >
         {cta}
       </Link>
     </div>

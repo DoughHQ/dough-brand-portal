@@ -14,30 +14,83 @@ type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
   items: CommandItem[]
+  /** Optional remote search (products / studies / reports). */
+  searchRemote?: (query: string) => Promise<CommandItem[]>
 }
 
-export function CommandPalette({ open, onOpenChange, items }: Props) {
+export function CommandPalette({
+  open,
+  onOpenChange,
+  items,
+  searchRemote,
+}: Props) {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
+  const [remote, setRemote] = useState<CommandItem[]>([])
+  const [remoteLoading, setRemoteLoading] = useState(false)
 
-  const filtered = useMemo(
+  const navFiltered = useMemo(
     () => filterCommandItems(items, query),
     [items, query],
   )
+
+  const filtered = useMemo(() => {
+    const seen = new Set<string>()
+    const merged: CommandItem[] = []
+    for (const item of [...remote, ...navFiltered]) {
+      if (seen.has(item.id)) continue
+      seen.add(item.id)
+      merged.push(item)
+    }
+    return merged
+  }, [remote, navFiltered])
 
   useEffect(() => {
     if (!open) return
     setQuery('')
     setActive(0)
+    setRemote([])
+    setRemoteLoading(false)
     const t = window.setTimeout(() => inputRef.current?.focus(), 20)
     return () => window.clearTimeout(t)
   }, [open])
 
   useEffect(() => {
     setActive(0)
-  }, [query])
+  }, [query, remote])
+
+  useEffect(() => {
+    if (!open || !searchRemote) {
+      setRemote([])
+      return
+    }
+    const q = query.trim()
+    if (q.length < 2) {
+      setRemote([])
+      setRemoteLoading(false)
+      return
+    }
+    let cancelled = false
+    setRemoteLoading(true)
+    const handle = window.setTimeout(() => {
+      void searchRemote(q)
+        .then((rows) => {
+          if (!cancelled) setRemote(rows)
+        })
+        .catch(() => {
+          if (!cancelled) setRemote([])
+        })
+        .finally(() => {
+          if (!cancelled) setRemoteLoading(false)
+        })
+    }, 180)
+    return () => {
+      cancelled = true
+      window.clearTimeout(handle)
+    }
+  }, [open, query, searchRemote])
 
   const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
@@ -86,6 +139,13 @@ export function CommandPalette({ open, onOpenChange, items }: Props) {
     return acc
   }, {})
 
+  // Prefer entity groups before Pages
+  const groupOrder = ['Studies', 'Products', 'Reports', 'Overview', 'Catalog', 'Research', 'Account', 'Category', 'Ops']
+  const orderedGroups = [
+    ...groupOrder.filter((g) => groups[g]?.length),
+    ...Object.keys(groups).filter((g) => !groupOrder.includes(g)),
+  ]
+
   let flatIndex = -1
 
   return (
@@ -102,7 +162,7 @@ export function CommandPalette({ open, onOpenChange, items }: Props) {
             className={styles.input}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search pages, studies, products…"
+            placeholder="Search studies, products, reports, pages…"
             aria-autocomplete="list"
             aria-controls="portal-command-list"
           />
@@ -110,12 +170,18 @@ export function CommandPalette({ open, onOpenChange, items }: Props) {
         </div>
         <div className={styles.list} id="portal-command-list" role="listbox">
           {filtered.length === 0 ? (
-            <p className={styles.empty}>No matches</p>
+            <p className={styles.empty}>
+              {remoteLoading
+                ? 'Searching…'
+                : query.trim().length < 2
+                  ? 'Type to search pages — or keep typing for studies & products'
+                  : 'No matches'}
+            </p>
           ) : (
-            Object.entries(groups).map(([group, groupItems]) => (
+            orderedGroups.map((group) => (
               <div key={group} className={styles.group}>
                 <div className={styles.groupLabel}>{group}</div>
-                {groupItems.map((item) => {
+                {(groups[group] ?? []).map((item) => {
                   flatIndex += 1
                   const index = flatIndex
                   const isActive = index === active
@@ -142,6 +208,7 @@ export function CommandPalette({ open, onOpenChange, items }: Props) {
           <span>↑↓ Navigate</span>
           <span>↵ Open</span>
           <span>esc Close</span>
+          {remoteLoading ? <span>Searching…</span> : null}
         </div>
       </div>
     </div>

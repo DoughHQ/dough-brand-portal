@@ -187,7 +187,7 @@ export function InProgressEmpty() {
       <p className="studies-empty-active-copy">
         Start a new study when you want focused feedback from qualified consumers.
       </p>
-      <Link href="/studies/new" className="studies-new-study studies-new-study-sm">
+      <Link href="/studies/new" className="portal-btn portal-btn-cta studies-new-study studies-new-study-sm">
         <span aria-hidden style={{ fontSize: 16, lineHeight: 1, marginTop: -1 }}>
           +
         </span>
