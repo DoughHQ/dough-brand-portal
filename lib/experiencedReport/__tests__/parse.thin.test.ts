@@ -94,7 +94,7 @@ describe('parseExperiencedEnvelope — honest-empty / thin study', () => {
     expect(html).toContain('Acme')
     expect(html).toContain('1 participant')
     expect(html).toContain('still forming')
-    expect(html).toContain('Overview')
+    expect(html).toContain('Provisional read')
     expect(html).toContain('Preference below reporting floor')
     expect(html).toContain('The named competitive field for Best Garlic is not reportable yet')
     expect(html).toContain('The reasons behind choice are still forming')
@@ -196,7 +196,7 @@ describe('ExperiencedReportDeck — dense 2-up occupancy', () => {
 
     expect(html).toContain('Organic Garlic Powder')
     expect(html).toContain('too close to call')
-    expect(html).toContain('Overview')
+    expect(html).toContain('The finding')
     expect(html).toContain('Proof')
     expect(html).toContain('Preference movement')
     expect(html).toContain('preferred in 1 of 2 named comparisons')
