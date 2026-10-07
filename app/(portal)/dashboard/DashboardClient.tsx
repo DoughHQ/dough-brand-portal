@@ -163,6 +163,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
 
         <BrandHome
           model={homeModel}
+          brandId={brand.brand_id}
           totalProductCount={totalProductCount ?? allProducts.length}
           totalBattles={totalBattles}
           signalCards={signalCards}

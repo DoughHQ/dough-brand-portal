@@ -6,6 +6,8 @@ import type { BrandHomeModel } from '@/lib/brandHome/selectHomeModel'
 import type { ProductSignalCardModel } from '@/lib/brandHome/productSignalCards'
 import ProductSignalCard from '@/components/brandHome/ProductSignalCard'
 import CatalogHealthCard from '@/components/brandHome/CatalogHealthCard'
+import WhatChangedStrip from '@/components/brandHome/WhatChangedStrip'
+import { buildHomeAttention } from '@/lib/brandHome/homeAttention'
 import type { CatalogHealth } from '@/lib/brandHome/catalogHealth'
 import './brandHome.css'
 
@@ -50,6 +52,7 @@ export default function BrandHome({
   catalogHealth,
   domainVerified = false,
   catalogReady = true,
+  brandId,
 }: {
   model: BrandHomeModel
   profileSlot?: ReactNode
@@ -59,6 +62,7 @@ export default function BrandHome({
   catalogHealth?: CatalogHealth
   domainVerified?: boolean
   catalogReady?: boolean
+  brandId?: number
 }) {
   const hasCatalogProducts = totalProductCount > 0
   const hasProductSignal = signalCards.length > 0
@@ -67,14 +71,7 @@ export default function BrandHome({
   const battledPulse = pulseItem(model, 'battled')
   const studiesPulse = pulseItem(model, 'studies')
   const phoneCategories = model.categories.slice(0, 3)
-  const openStudies = model.openStudiesCount
-  const catalogIssues =
-    catalogHealth != null &&
-    catalogHealth.total > 0 &&
-    (catalogHealth.images.have < catalogHealth.images.total ||
-      catalogHealth.pricing.have < catalogHealth.pricing.total ||
-      catalogHealth.categories.have < catalogHealth.categories.total ||
-      catalogHealth.labelAllergen.have < catalogHealth.labelAllergen.total)
+  const attention = buildHomeAttention({ model, catalogHealth })
 
   const strip: {
     key: string
@@ -135,34 +132,35 @@ export default function BrandHome({
         </Link>
       </header>
 
-      {(openStudies > 0 || catalogIssues) && (
+      {attention.length > 0 ? (
         <section className="bh-ops portal-panel" aria-label="Needs attention">
           <div className="bh-ops-copy">
-            <p className="bh-ops-eyebrow">Open work</p>
-            <p className="bh-ops-title">
-              {openStudies > 0
-                ? `${openStudies} open stud${openStudies === 1 ? 'y' : 'ies'}`
-                : 'Catalog needs a pass'}
-              {openStudies > 0 && catalogIssues ? ' · catalog gaps' : ''}
-            </p>
-            <p className="bh-ops-body">
-              {openStudies > 0
-                ? 'Pick up live research or launch the next test.'
-                : 'Fix missing images or claims so preference signal can build.'}
-            </p>
+            <p className="bh-ops-eyebrow">Needs attention</p>
+            <ul className="bh-ops-list">
+              {attention.map((item) => (
+                <li key={item.id} className="bh-ops-row">
+                  <div>
+                    <p className="bh-ops-title">{item.title}</p>
+                    <p className="bh-ops-body">{item.body}</p>
+                  </div>
+                  <Link href={item.href} className="portal-btn portal-btn-secondary">
+                    {item.ctaLabel}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
           <div className="bh-ops-actions">
-            {openStudies > 0 ? (
-              <Link href="/studies" className="portal-btn portal-btn-secondary">
-                Open studies
-              </Link>
-            ) : null}
             <Link href="/studies/new" className="portal-btn portal-btn-cta">
               New study
             </Link>
           </div>
         </section>
-      )}
+      ) : null}
+
+      {brandId != null && brandId > 0 ? (
+        <WhatChangedStrip brandId={brandId} model={model} />
+      ) : null}
 
       <section className="bh-strip" aria-label="Portfolio snapshot">
         {strip.map((cell) => (
@@ -198,8 +196,18 @@ export default function BrandHome({
               />
             ) : (
               <div className="bh-studies">
-                {model.studies.map((s) => (
-                  <div key={s.missionId} className="bh-study portal-panel">
+                {model.studies.map((s) => {
+                  const tone = s.badge.toLowerCase().includes('results')
+                    ? 'results'
+                    : s.badge.toLowerCase().includes('needs claims') ||
+                        s.badge.toLowerCase().includes('payment')
+                      ? 'warn'
+                      : null
+                  return (
+                  <div
+                    key={s.missionId}
+                    className={`bh-study portal-panel${tone ? ` bh-study--${tone}` : ''}`}
+                  >
                     <div className="bh-eyebrow">{s.badge}</div>
                     <div className="bh-study-title">{s.title}</div>
                     <div className="bh-study-detail">{s.detail}</div>
@@ -215,7 +223,8 @@ export default function BrandHome({
                       {s.ctaLabel}
                     </Link>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </section>
