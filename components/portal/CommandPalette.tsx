@@ -3,9 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
+  commandRecentsAsItems,
   filterCommandItems,
+  pushCommandRecent,
   type CommandSearchItem,
-} from '@/lib/portal-ui/commandSearch'
+} from '@/lib/portal-ui'
+import { openServerStudyDraft } from '@/lib/studies/openServerDraft'
 import styles from './commandPalette.module.css'
 
 export type CommandItem = CommandSearchItem
@@ -14,22 +17,46 @@ type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
   items: CommandItem[]
-  /** Optional remote search (products / studies / reports). */
+  /** Optional remote search (products / studies / reports / drafts / categories). */
   searchRemote?: (query: string) => Promise<CommandItem[]>
+  /** Empty-query bootstrap: drafts + categories. */
+  bootstrapRemote?: () => Promise<CommandItem[]>
+  /** Needed to hydrate server drafts from ⌘K. */
+  effectiveBrandId?: number | null
 }
+
+const GROUP_ORDER = [
+  'Recent',
+  'Drafts',
+  'Studies',
+  'Products',
+  'Categories',
+  'Reports',
+  'Overview',
+  'Catalog',
+  'Research',
+  'Account',
+  'Category',
+  'Ops',
+]
 
 export function CommandPalette({
   open,
   onOpenChange,
   items,
   searchRemote,
+  bootstrapRemote,
+  effectiveBrandId,
 }: Props) {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const [remote, setRemote] = useState<CommandItem[]>([])
+  const [bootstrap, setBootstrap] = useState<CommandItem[]>([])
+  const [recents, setRecents] = useState<CommandItem[]>([])
   const [remoteLoading, setRemoteLoading] = useState(false)
+  const [openingDraft, setOpeningDraft] = useState(false)
 
   const navFiltered = useMemo(
     () => filterCommandItems(items, query),
@@ -37,15 +64,30 @@ export function CommandPalette({
   )
 
   const filtered = useMemo(() => {
+    const q = query.trim()
     const seen = new Set<string>()
     const merged: CommandItem[] = []
-    for (const item of [...remote, ...navFiltered]) {
-      if (seen.has(item.id)) continue
+    const push = (item: CommandItem) => {
+      if (seen.has(item.id)) return
+      // Also dedupe by href+draftId so recent doesn't duplicate bootstrap
+      const key = `${item.draftId ?? ''}|${item.href}|${item.label}`
+      if (seen.has(key)) return
       seen.add(item.id)
+      seen.add(key)
       merged.push(item)
     }
+
+    if (q.length < 2) {
+      for (const item of recents) push(item)
+      for (const item of bootstrap) push(item)
+      // Keep a short nav hint when idle
+      for (const item of navFiltered.slice(0, 6)) push(item)
+      return merged
+    }
+
+    for (const item of [...remote, ...navFiltered]) push(item)
     return merged
-  }, [remote, navFiltered])
+  }, [remote, navFiltered, bootstrap, recents, query])
 
   useEffect(() => {
     if (!open) return
@@ -53,13 +95,33 @@ export function CommandPalette({
     setActive(0)
     setRemote([])
     setRemoteLoading(false)
+    setOpeningDraft(false)
+    setRecents(commandRecentsAsItems())
     const t = window.setTimeout(() => inputRef.current?.focus(), 20)
     return () => window.clearTimeout(t)
   }, [open])
 
   useEffect(() => {
+    if (!open || !bootstrapRemote) {
+      setBootstrap([])
+      return
+    }
+    let cancelled = false
+    void bootstrapRemote()
+      .then((rows) => {
+        if (!cancelled) setBootstrap(rows)
+      })
+      .catch(() => {
+        if (!cancelled) setBootstrap([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [open, bootstrapRemote])
+
+  useEffect(() => {
     setActive(0)
-  }, [query, remote])
+  }, [query, remote, bootstrap, recents])
 
   useEffect(() => {
     if (!open || !searchRemote) {
@@ -95,11 +157,32 @@ export function CommandPalette({
   const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
   const go = useCallback(
-    (item: CommandItem) => {
+    async (item: CommandItem) => {
+      pushCommandRecent(item)
+      if (item.draftId) {
+        if (!effectiveBrandId) {
+          close()
+          router.push('/studies')
+          return
+        }
+        setOpeningDraft(true)
+        const result = await openServerStudyDraft({
+          serverDraftId: item.draftId,
+          effectiveBrandId,
+        })
+        setOpeningDraft(false)
+        close()
+        if (result.ok) {
+          router.push(result.href)
+        } else {
+          router.push('/studies')
+        }
+        return
+      }
       close()
       router.push(item.href)
     },
-    [close, router],
+    [close, router, effectiveBrandId],
   )
 
   useEffect(() => {
@@ -122,15 +205,15 @@ export function CommandPalette({
       }
       if (e.key === 'Enter') {
         const item = filtered[active]
-        if (item) {
+        if (item && !openingDraft) {
           e.preventDefault()
-          go(item)
+          void go(item)
         }
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, filtered, active, close, go])
+  }, [open, filtered, active, close, go, openingDraft])
 
   if (!open) return null
 
@@ -139,14 +222,13 @@ export function CommandPalette({
     return acc
   }, {})
 
-  // Prefer entity groups before Pages
-  const groupOrder = ['Studies', 'Products', 'Reports', 'Overview', 'Catalog', 'Research', 'Account', 'Category', 'Ops']
   const orderedGroups = [
-    ...groupOrder.filter((g) => groups[g]?.length),
-    ...Object.keys(groups).filter((g) => !groupOrder.includes(g)),
+    ...GROUP_ORDER.filter((g) => groups[g]?.length),
+    ...Object.keys(groups).filter((g) => !GROUP_ORDER.includes(g)),
   ]
 
   let flatIndex = -1
+  const idle = query.trim().length < 2
 
   return (
     <div className={styles.root} role="dialog" aria-modal="true" aria-label="Search portal">
@@ -162,7 +244,7 @@ export function CommandPalette({
             className={styles.input}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search studies, products, reports, pages…"
+            placeholder="Search studies, drafts, products, categories…"
             aria-autocomplete="list"
             aria-controls="portal-command-list"
           />
@@ -171,10 +253,12 @@ export function CommandPalette({
         <div className={styles.list} id="portal-command-list" role="listbox">
           {filtered.length === 0 ? (
             <p className={styles.empty}>
-              {remoteLoading
-                ? 'Searching…'
-                : query.trim().length < 2
-                  ? 'Type to search pages — or keep typing for studies & products'
+              {remoteLoading || openingDraft
+                ? openingDraft
+                  ? 'Opening draft…'
+                  : 'Searching…'
+                : idle
+                  ? 'Recent destinations, drafts, and categories appear here'
                   : 'No matches'}
             </p>
           ) : (
@@ -193,10 +277,13 @@ export function CommandPalette({
                       aria-selected={isActive}
                       className={`${styles.item}${isActive ? ` ${styles.itemActive}` : ''}`}
                       onMouseEnter={() => setActive(index)}
-                      onClick={() => go(item)}
+                      onClick={() => void go(item)}
+                      disabled={openingDraft}
                     >
                       <span className={styles.itemLabel}>{item.label}</span>
-                      <span className={styles.itemHref}>{item.href}</span>
+                      <span className={styles.itemHref}>
+                        {item.draftId ? 'Resume draft' : item.href}
+                      </span>
                     </button>
                   )
                 })}
@@ -208,7 +295,9 @@ export function CommandPalette({
           <span>↑↓ Navigate</span>
           <span>↵ Open</span>
           <span>esc Close</span>
-          {remoteLoading ? <span>Searching…</span> : null}
+          {remoteLoading || openingDraft ? (
+            <span>{openingDraft ? 'Opening…' : 'Searching…'}</span>
+          ) : null}
         </div>
       </div>
     </div>

@@ -4,6 +4,8 @@ export type CommandSearchItem = {
   href: string
   group: string
   keywords?: string
+  /** Server study_drafts UUID — CommandPalette hydrates via openServerStudyDraft. */
+  draftId?: string
 }
 
 export function filterCommandItems(

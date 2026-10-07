@@ -12,7 +12,11 @@ import {
   useCommandPaletteHotkey,
   type CommandItem,
 } from '@/components/portal/CommandPalette'
-import { searchPortalCommandAction } from './searchPortalCommandAction'
+import { recordPathVisit } from '@/lib/portal-ui'
+import {
+  bootstrapPortalCommandAction,
+  searchPortalCommandAction,
+} from './searchPortalCommandAction'
 import './portalLayout.css'
 
 interface PortalLayoutClientProps {
@@ -25,6 +29,8 @@ interface PortalLayoutClientProps {
   isAdmin: boolean
   isImpersonating: boolean
   impersonatedBrandName: string | null
+  /** Session brand for ⌘K draft resume (null on pure admin chrome). */
+  effectiveBrandId?: number | null
   children: React.ReactNode
 }
 
@@ -189,6 +195,7 @@ export default function PortalLayoutClient({
   isAdmin,
   isImpersonating,
   impersonatedBrandName,
+  effectiveBrandId = null,
   children,
 }: PortalLayoutClientProps) {
   const router = useRouter()
@@ -314,6 +321,10 @@ export default function PortalLayoutClient({
     (query: string) => searchPortalCommandAction(query),
     [],
   )
+  const bootstrapRemote = useCallback(
+    () => bootstrapPortalCommandAction(),
+    [],
+  )
 
   // Keep closed compact drawer out of the tab order (inert).
   useEffect(() => {
@@ -325,11 +336,48 @@ export default function PortalLayoutClient({
 
   const closeNav = useCallback(() => setNavOpen(false), [])
 
-  // Close drawer on route change
+  // Close drawer on route change; record ⌘K recents from nav labels when possible.
   useEffect(() => {
     setNavOpen(false)
     setAccountOpen(false)
-  }, [pathname])
+    if (isPlatform) return
+    const path = pathname.split('?')[0] || pathname
+    const navHit: { label: string; group: string }[] = [
+      { label: 'Home', group: 'Overview' },
+      { label: 'Categories', group: 'Catalog' },
+      { label: 'Products', group: 'Catalog' },
+      { label: 'Prototypes', group: 'Catalog' },
+      { label: 'Studies', group: 'Research' },
+      { label: 'Reports', group: 'Research' },
+    ]
+    const hrefFor = (label: string) =>
+      label === 'Home' ? '/dashboard' : `/${label.toLowerCase()}`
+    let label: string | null = null
+    let group = 'Pages'
+    for (const hit of navHit) {
+      const href = hrefFor(hit.label)
+      if (path === href || path.startsWith(`${href}/`)) {
+        label = hit.label
+        group = hit.group
+      }
+    }
+    if (!label) {
+      if (path.startsWith('/products/')) {
+        label = 'Product'
+        group = 'Catalog'
+      } else if (path.startsWith('/categories/')) {
+        label = 'Category'
+        group = 'Catalog'
+      } else if (path.includes('/report')) {
+        label = 'Report'
+        group = 'Research'
+      } else if (path.startsWith('/studies/')) {
+        label = 'Study'
+        group = 'Research'
+      }
+    }
+    if (label) recordPathVisit({ pathname: path, label, group })
+  }, [pathname, isPlatform])
 
   // Track compact viewport; close drawer when leaving it. Escape while open.
   useEffect(() => {
@@ -670,6 +718,8 @@ export default function PortalLayoutClient({
         onOpenChange={setPaletteOpen}
         items={commandItems}
         searchRemote={isPlatform ? undefined : searchRemote}
+        bootstrapRemote={isPlatform ? undefined : bootstrapRemote}
+        effectiveBrandId={effectiveBrandId}
       />
     </div>
   )
