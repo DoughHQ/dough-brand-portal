@@ -77,7 +77,7 @@ export default function DesignPreviewClient() {
             fontFamily: 'var(--font-display)',
             fontSize: 32,
             fontWeight: 400,
-            color: 'var(--sage-dark)',
+            color: 'var(--heading)',
             marginBottom: 'var(--space-2)',
             lineHeight: 1.15,
           }}

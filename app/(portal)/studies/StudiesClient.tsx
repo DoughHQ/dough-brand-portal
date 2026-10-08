@@ -503,7 +503,7 @@ export default function StudiesClient({
             style={{
               marginBottom: 20,
               fontSize: 13,
-              color: 'var(--sage-dark)',
+              color: 'var(--heading)',
               background: 'var(--sage-soft, var(--sage-pale))',
               border: '1px solid rgba(62, 107, 74, 0.2)',
               borderRadius: 'var(--r-md, 8px)',

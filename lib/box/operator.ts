@@ -159,9 +159,9 @@ export function tabForBoxStatus(status: BoxStatus): BoxTab {
 /** Badge colors shared by the list and the detail header. */
 export const BOX_STATUS_TONE: Record<BoxStatus, { bg: string; fg: string }> = {
   draft: { bg: 'var(--surface-1)', fg: 'var(--ink-50)' },
-  open: { bg: 'var(--sage-soft)', fg: 'var(--sage-dark)' },
+  open: { bg: 'var(--sage-soft)', fg: 'var(--heading)' },
   shipping: { bg: 'var(--amber-pale)', fg: 'var(--amber)' },
-  running: { bg: 'var(--sage-soft)', fg: 'var(--sage-dark)' },
+  running: { bg: 'var(--sage-soft)', fg: 'var(--heading)' },
   closed: { bg: 'var(--surface-1)', fg: 'var(--ink-50)' },
   archived: { bg: 'var(--surface-1)', fg: 'var(--ink-30)' },
 }

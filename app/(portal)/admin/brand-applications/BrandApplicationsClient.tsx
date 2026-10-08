@@ -43,7 +43,7 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
         padding: '3px 8px',
         borderRadius: 999,
         background: pending ? 'var(--sage-soft)' : 'var(--surface-1)',
-        color: pending ? 'var(--sage-dark)' : 'var(--ink-50)',
+        color: pending ? 'var(--heading)' : 'var(--ink-50)',
         border: `1px solid ${pending ? 'rgba(62,107,74,0.22)' : 'var(--ink-10)'}`,
       }}
     >
@@ -69,7 +69,7 @@ function DecisionBadge({
       : tone === 'sage'
         ? {
             background: 'var(--sage-soft)',
-            color: 'var(--sage-dark)',
+            color: 'var(--heading)',
             border: '1px solid rgba(62,107,74,0.22)',
           }
         : {
@@ -322,7 +322,7 @@ export default function BrandApplicationsClient({
             padding: '10px 14px',
             borderRadius: 8,
             background: 'var(--sage-soft, rgba(74, 103, 65, 0.12))',
-            color: 'var(--sage-dark, var(--sage))',
+            color: 'var(--heading)',
             fontSize: 13,
             lineHeight: 1.45,
           }}
@@ -490,7 +490,7 @@ export default function BrandApplicationsClient({
                       background: 'var(--sage-soft)',
                       border: '1px solid rgba(62,107,74,0.18)',
                       fontSize: 13,
-                      color: 'var(--sage-dark)',
+                      color: 'var(--heading)',
                       lineHeight: 1.5,
                     }}
                   >

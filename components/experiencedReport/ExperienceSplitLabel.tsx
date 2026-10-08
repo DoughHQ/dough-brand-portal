@@ -43,7 +43,7 @@ export function ExperienceSplitLabel({
           fontWeight: 600,
           letterSpacing: '0.04em',
           textTransform: 'uppercase',
-          color: 'var(--sage-dark)',
+          color: 'var(--heading)',
         }}
       >
         {title}

@@ -36,4 +36,5 @@ jobs:
       - run: npm run check:claim-array-ban
       - run: npm run check:landmine-callers-ban
       - run: npm run check:page-root-containment-ban
+      - run: npm run check:dark-mode-ban
       - run: npx vitest run lib/brandHome/__tests__

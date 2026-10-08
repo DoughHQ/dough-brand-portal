@@ -295,7 +295,7 @@ export default function AudienceSection({ draft, onChange, error, sectionDone = 
                     fontFamily: 'var(--font-sans)',
                     fontSize: 13,
                     fontWeight: active ? 600 : 500,
-                    color: active ? 'var(--sage-dark)' : 'var(--ink)',
+                    color: active ? 'var(--heading)' : 'var(--ink)',
                   }}
                 >
                   {eligibilityTierLabel(t)}
@@ -424,7 +424,7 @@ export default function AudienceSection({ draft, onChange, error, sectionDone = 
                                           ? '1px solid rgba(184, 121, 27, 0.45)'
                                           : '1px solid var(--ink-10)',
                                       background: on ? 'var(--sage-soft)' : 'var(--white)',
-                                      color: on ? 'var(--sage-dark)' : 'var(--ink)',
+                                      color: on ? 'var(--heading)' : 'var(--ink)',
                                       borderRadius: 'var(--cb-radius-pill)',
                                       padding: '8px 14px',
                                       cursor: 'pointer',
@@ -764,7 +764,7 @@ const optionalAffordance = {
   fontFamily: 'var(--font-sans)',
   fontSize: 13,
   fontWeight: 600,
-  color: 'var(--sage-dark)',
+  color: 'var(--heading)',
   background: 'var(--sage-soft)',
   borderLeft: '3px solid var(--sage)',
   borderRadius: 'var(--r-sm)',
@@ -779,7 +779,7 @@ const openPill = {
   fontFamily: 'var(--font-sans)',
   fontSize: 12,
   fontWeight: 600,
-  color: 'var(--sage-dark)',
+  color: 'var(--heading)',
   background: 'var(--sage-soft)',
   border: '1px solid var(--sage)',
   borderRadius: 'var(--cb-radius-pill)',

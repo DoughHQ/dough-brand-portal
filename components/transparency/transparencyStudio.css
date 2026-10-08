@@ -160,7 +160,7 @@
   font-family: var(--font-display);
   font-size: 20px;
   line-height: 1;
-  color: var(--sage-dark);
+  color: var(--heading);
   background: var(--sage-soft);
 }
 
@@ -381,7 +381,7 @@
 }
 
 .tx-pill--public {
-  color: var(--sage-dark);
+  color: var(--heading);
   background: var(--sage-soft);
   border-color: transparent;
 }
@@ -429,7 +429,7 @@
   background: var(--sage-soft);
   border-style: solid;
   border-color: rgba(62, 107, 74, 0.35);
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 /* —— Expanded editor card (nested) —— */
@@ -748,7 +748,7 @@
 
 .tx-btn--primary:hover:not(:disabled) {
   background: var(--sage-dark);
-  border-color: var(--sage-dark);
+  border-color: var(--heading);
 }
 
 .tx-btn:disabled {
@@ -806,7 +806,7 @@
   font-family: var(--font-sans);
   font-size: 13px;
   line-height: 1.45;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .tx-formula__sheet {
@@ -1394,7 +1394,7 @@
 .tx-demand--product,
 .tx-demand--catalog {
   background: var(--sage-dark);
-  border-color: var(--sage-dark);
+  border-color: var(--heading);
   color: var(--cream);
 }
 
@@ -1445,7 +1445,7 @@
 
 .tx-demand--answered .tx-demand__num {
   font-size: 48px;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .tx-demand__noun {

@@ -111,7 +111,7 @@ function statusPill(state: OperatorStudyLifecycleState): {
     default:
       return {
         label: 'Active',
-        color: 'var(--sage-dark)',
+        color: 'var(--heading)',
         background: 'var(--sage-soft, var(--sage-pale))',
       }
   }
@@ -302,7 +302,7 @@ export function ActiveStudyList({
                 extraBadges={
                   conceptStatus ? (
                     conceptStatus.href ? (
-                      <Link href={conceptStatus.href} className="studies-status-pill" style={{ color: 'var(--sage-dark)', background: 'var(--sage-soft)', textDecoration: 'none' }}>
+                      <Link href={conceptStatus.href} className="studies-status-pill" style={{ color: 'var(--heading)', background: 'var(--sage-soft)', textDecoration: 'none' }}>
                         {conceptStatus.label}
                       </Link>
                     ) : (

@@ -365,7 +365,7 @@ export default function MethodSection({
                 fontFamily: 'var(--font-sans)',
                 fontSize: 14,
                 fontWeight: 600,
-                color: day2On ? 'var(--sage-dark)' : 'var(--ink-80)',
+                color: day2On ? 'var(--heading)' : 'var(--ink-80)',
               }}
             >
               Day 2: Live with it
@@ -501,7 +501,7 @@ function AttributeEditor({
                 background: on ? 'var(--sage-soft)' : 'var(--white)',
                 fontSize: 13,
                 fontWeight: on ? 600 : 500,
-                color: on ? 'var(--sage-dark)' : 'var(--ink-80)',
+                color: on ? 'var(--heading)' : 'var(--ink-80)',
                 cursor: 'pointer',
               }}
             >

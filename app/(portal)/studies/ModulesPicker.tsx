@@ -75,7 +75,7 @@ export default function ModulesPicker({
                   fontFamily: 'var(--font-sans)',
                   fontSize: 14,
                   fontWeight: on ? 600 : 500,
-                  color: on ? 'var(--sage-dark)' : 'var(--ink-80)',
+                  color: on ? 'var(--heading)' : 'var(--ink-80)',
                 }}
               >
                 {mod.label}

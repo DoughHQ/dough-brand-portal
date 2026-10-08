@@ -163,7 +163,7 @@
   font-size: clamp(48px, 5vw, 56px);
   line-height: 0.95;
   letter-spacing: -0.04em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .report-body {
@@ -279,12 +279,12 @@
 .exec-numeral {
   font-size: clamp(48px, 4vw, 56px);
   letter-spacing: -0.04em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .exec-tile--own .exec-driver-name,
 .exec-tile--own .exec-numeral {
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .exec-tile--against .exec-driver-name,
@@ -435,7 +435,7 @@
 }
 
 .loyalty-numeral--own {
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .loyalty-numeral--against {
@@ -447,7 +447,7 @@
 }
 
 .lift-numeral--own {
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .lift-numeral--against {

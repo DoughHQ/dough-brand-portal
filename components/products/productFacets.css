@@ -223,7 +223,7 @@
   font-family: var(--font-sans);
   font-size: 12px;
   line-height: 1.35;
-  color: var(--sage-dark);
+  color: var(--heading);
   text-align: left;
   cursor: pointer;
   text-decoration: none;
@@ -277,7 +277,7 @@
   font-weight: 400;
   letter-spacing: -0.03em;
   line-height: 1.05;
-  color: var(--sage-dark, #243d2c);
+  color: var(--heading);
 }
 
 /* Discovery bar — region, not an input */
@@ -341,7 +341,7 @@
   font-size: 13px;
   font-weight: 500;
   line-height: 1.25;
-  color: var(--sage-dark, #243d2c);
+  color: var(--heading);
   background: rgba(62, 107, 74, 0.12);
   white-space: nowrap;
 }
@@ -366,7 +366,7 @@
   gap: 8px;
   cursor: pointer;
   font-weight: 500;
-  color: var(--sage-dark);
+  color: var(--heading);
   list-style: none;
 }
 
@@ -409,7 +409,7 @@
   font-size: 26px;
   font-weight: 400;
   letter-spacing: -0.02em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pf-room__lede {
@@ -480,7 +480,7 @@
   font-size: 20px;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pf-known__whisper {
@@ -539,7 +539,7 @@
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pf-claim__badge {
@@ -619,7 +619,7 @@
 .pf-add-row__name {
   font-size: 14px;
   font-weight: 500;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pf-add-row__meta {
@@ -715,7 +715,7 @@
   padding: 10px 12px;
   border: 1px solid var(--mist);
   border-radius: 9px;
-  background: var(--cream, #faf8f3);
+  background: var(--surface-1, var(--paper));
 }
 
 .pf-control:focus {
@@ -789,7 +789,7 @@
 
 .pf-btn--ghost {
   background: transparent;
-  color: var(--sage-dark, #243d2c);
+  color: var(--heading);
   border: 1px solid var(--mist);
 }
 
@@ -848,7 +848,7 @@
 .pf-note {
   padding: 12px 14px;
   border-radius: 12px;
-  background: var(--cream, #faf8f3);
+  background: var(--surface-1, var(--paper));
   border: 1px solid rgba(62, 107, 74, 0.1);
   transition:
     border-color 160ms ease,
@@ -885,7 +885,7 @@
   font-size: 20px;
   letter-spacing: -0.02em;
   line-height: 1.15;
-  color: var(--sage-dark, #243d2c);
+  color: var(--heading);
 }
 
 .pf-note__state {
@@ -1008,7 +1008,7 @@
   padding: 10px 12px;
   border: 1px solid var(--mist);
   border-radius: 10px;
-  background: var(--cream, #faf8f3);
+  background: var(--surface-1, var(--paper));
   resize: vertical;
   min-height: 64px;
   line-height: 1.4;

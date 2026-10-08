@@ -55,7 +55,7 @@ export function MetricHeadline({
                 fontFamily: 'var(--font-display)',
                 fontSize: 'clamp(40px, 8vw, 56px)',
                 fontWeight: 400,
-                color: 'var(--sage-dark)',
+                color: 'var(--heading)',
                 lineHeight: 1,
                 letterSpacing: '-0.02em',
               }}
@@ -97,7 +97,7 @@ export function MetricHeadline({
               fontFamily: 'var(--font-display)',
               fontSize: 'clamp(28px, 5vw, 36px)',
               fontWeight: 400,
-              color: 'var(--sage-dark)',
+              color: 'var(--heading)',
               lineHeight: 1.15,
               marginBottom: 'var(--space-2)',
             }}
