@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
@@ -304,6 +305,7 @@ export default function ProductMasterClient({
   const [editingNutritionKey, setEditingNutritionKey] = useState<string | null>(null)
   const [nutritionDraft, setNutritionDraft] = useState('')
   const [uploading, setUploading] = useState(false)
+  const imageFileRef = useRef<HTMLInputElement>(null)
 
   const canEdit =
     portalUser.role === 'brand_admin' || portalUser.role === 'dough_admin'
@@ -602,7 +604,7 @@ export default function ProductMasterClient({
     await refetch()
   }
 
-  async function uploadImage(file: File) {
+  async function uploadImage(file: File, opts?: { makePrimary?: boolean }) {
     if (!canEdit) return
     setUploading(true)
     setErrorMsg(null)
@@ -618,21 +620,28 @@ export default function ProductMasterClient({
       setErrorMsg(upErr.message || 'Upload failed.')
       return
     }
+    const makePrimary =
+      opts?.makePrimary ?? (!product.primary_image_url || master.images.length === 0)
     const result = await callWriteRpc(supabase, 'register_brand_product_image', {
       p_product_id: product.product_id,
       p_image_role: 'front',
       p_storage_path: path,
       p_sku_variant_id: null,
       p_supersede_image_id: null,
-      p_make_primary: master.images.length === 0,
+      p_make_primary: makePrimary,
     })
     setUploading(false)
     if (!result.ok) {
       handleWriteError(result.error)
       return
     }
-    setFlash('Image registered')
+    setFlash(makePrimary ? 'Pack shot added' : 'Image registered')
     await refetch()
+  }
+
+  function openImagePicker() {
+    if (!canEdit || uploading) return
+    imageFileRef.current?.click()
   }
 
   async function promoteImage(imageId: number) {
@@ -891,33 +900,69 @@ export default function ProductMasterClient({
           padding: '28px 32px',
         }}
       >
-        <div
-          style={{
-            width: '100%',
-            aspectRatio: '1',
-            maxWidth: 220,
-            borderRadius: 10,
-            background: 'var(--cream, #faf8f3)',
-            overflow: 'hidden',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: '1px solid var(--ink-10)',
-          }}
-        >
-          {product.primary_image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={product.primary_image_url}
-              alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 12 }}
-            />
-          ) : (
-            <span style={{ fontSize: 40, color: 'var(--ink-30)' }}>
-              {(product.product_name_display ?? '?')[0]}
-            </span>
-          )}
-        </div>
+        {canEdit ? (
+          <button
+            type="button"
+            className={`pm-hero-art${product.primary_image_url ? '' : ' is-empty'}${uploading ? ' is-busy' : ''}`}
+            onClick={() => {
+              if (product.primary_image_url) {
+                selectTab('images')
+                return
+              }
+              openImagePicker()
+            }}
+            disabled={uploading}
+            aria-label={
+              product.primary_image_url
+                ? 'Manage product images'
+                : uploading
+                  ? 'Uploading pack shot'
+                  : 'Add pack shot'
+            }
+          >
+            {product.primary_image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={product.primary_image_url} alt="" className="pm-hero-art-img" />
+            ) : (
+              <>
+                <span className="pm-hero-art-letter" aria-hidden>
+                  {(product.product_name_display ?? '?')[0]?.toUpperCase() ?? '?'}
+                </span>
+                <span className="pm-hero-art-cta">
+                  {uploading ? 'Uploading…' : 'Add pack shot'}
+                </span>
+              </>
+            )}
+            {product.primary_image_url ? (
+              <span className="pm-hero-art-hover">Manage images</span>
+            ) : null}
+          </button>
+        ) : (
+          <div className={`pm-hero-art${product.primary_image_url ? '' : ' is-empty'} is-static`}>
+            {product.primary_image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={product.primary_image_url} alt="" className="pm-hero-art-img" />
+            ) : (
+              <span className="pm-hero-art-letter" aria-hidden>
+                {(product.product_name_display ?? '?')[0]?.toUpperCase() ?? '?'}
+              </span>
+            )}
+          </div>
+        )}
+        {canEdit ? (
+          <input
+            ref={imageFileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            disabled={uploading}
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              if (f) void uploadImage(f, { makePrimary: !product.primary_image_url })
+              e.target.value = ''
+            }}
+          />
+        ) : null}
         <div style={{ minWidth: 0 }}>
           <div style={{ ...caption, marginBottom: 10 }}>
             {product.category_path ?? 'Not yet categorized'}
@@ -1638,20 +1683,18 @@ export default function ProductMasterClient({
               ))}
             </div>
             {canEdit && (
-              <label style={{ ...secondaryBtn, display: 'inline-block', cursor: uploading ? 'wait' : 'pointer' }}>
+              <button
+                type="button"
+                onClick={openImagePicker}
+                disabled={uploading}
+                style={{
+                  ...secondaryBtn,
+                  display: 'inline-block',
+                  cursor: uploading ? 'wait' : 'pointer',
+                }}
+              >
                 {uploading ? 'Uploading…' : 'Upload image'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  disabled={uploading}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0]
-                    if (f) void uploadImage(f)
-                    e.target.value = ''
-                  }}
-                />
-              </label>
+              </button>
             )}
           </div>
         </ProductImagesTab>
