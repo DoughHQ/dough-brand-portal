@@ -172,7 +172,7 @@ export default function StudyDraftsPanel({
                     borderRadius: 8,
                     border: '1px solid var(--mist, var(--ink-10))',
                     color: 'var(--ink)',
-                    background: 'var(--cream, var(--surface))',
+                    background: 'var(--surface-1, var(--paper))',
                   }}
                 />
                 <button

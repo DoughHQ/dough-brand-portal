@@ -624,7 +624,9 @@ export default function PortalLayoutClient({
         </aside>
 
         <main className="portal-main">
-          <header className="portal-desktop-topbar">
+          <header
+            className={`portal-desktop-topbar${showImpersonationStrip ? ' is-impersonating' : ''}`}
+          >
             <div className="portal-desktop-topbar-left">
               <h1 className="portal-desktop-title">{sectionLabel}</h1>
             </div>

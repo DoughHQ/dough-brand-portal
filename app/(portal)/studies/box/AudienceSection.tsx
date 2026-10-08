@@ -329,7 +329,7 @@ export default function AudienceSection({ draft, onChange, error, sectionDone = 
               border: '1px solid var(--ink-10)',
               borderRadius: 'var(--r-md)',
               padding: 20,
-              background: 'var(--cream)',
+              background: 'var(--surface-1, var(--paper))',
               maxWidth: 640,
             }}
           >
@@ -520,7 +520,7 @@ export default function AudienceSection({ draft, onChange, error, sectionDone = 
               border: '1px solid var(--ink-10)',
               borderRadius: 'var(--r-md)',
               padding: 20,
-              background: 'var(--cream)',
+              background: 'var(--surface-1, var(--paper))',
               maxWidth: 640,
             }}
           >

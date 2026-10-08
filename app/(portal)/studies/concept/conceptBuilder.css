@@ -3135,3 +3135,51 @@ html {
     flex-wrap: wrap;
   }
 }
+
+
+/* ==========================================================================
+   Dark mode — remap the builder's private palette onto portal tokens.
+   .concept-builder previously hard-locked light cream/white/#243d2c, which
+   fought .portal-shell.dark and produced white islands + dark-on-dark titles.
+   ========================================================================== */
+.portal-shell.dark .concept-builder {
+  --cb-bg: var(--surface);
+  --cb-surface: var(--paper);
+  --cb-surface-muted: var(--surface-1);
+
+  --cb-heading: var(--heading);
+  --cb-text: var(--ink);
+  --cb-secondary: var(--ink-muted);
+  --cb-tertiary: var(--ink-faint);
+  --cb-disabled: rgba(244, 241, 234, 0.32);
+
+  --cb-sage: var(--sage);
+  --cb-sage-soft: var(--sage-soft);
+  --cb-sage-hover: rgba(122, 175, 136, 0.12);
+  --cb-amber: var(--amber);
+  --cb-amber-warning: var(--text-warning, #f0c48a);
+
+  --cb-border-soft: var(--portal-border-soft);
+  --cb-border: rgba(244, 241, 234, 0.14);
+  --cb-border-strong: rgba(244, 241, 234, 0.28);
+
+  --cb-shadow-card: var(--shadow-card);
+  --cb-shadow-popover: var(--shadow-panel);
+  --cb-shadow-modal: var(--shadow-panel);
+  --cb-focus-ring: 0 0 0 3px rgba(122, 175, 136, 0.28);
+
+  /* Alias remap already points --ink/--cream/--white at cb-* — keep those links */
+  background: var(--cb-bg);
+  color: var(--cb-text);
+}
+
+.portal-shell.dark .concept-builder .cb-btn-primary[data-muted='true'] {
+  background: var(--surface-2);
+  color: var(--ink-faint);
+}
+
+.portal-shell.dark .concept-builder .cb-sticky-inner {
+  background: color-mix(in srgb, var(--cb-surface) 94%, transparent);
+  border-color: var(--cb-border);
+  box-shadow: var(--cb-shadow-popover);
+}

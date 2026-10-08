@@ -103,7 +103,7 @@ export default function NewStudyChooserPage() {
     <div
       style={{
         minHeight: '100%',
-        background: 'var(--cream)',
+        background: 'var(--surface, var(--cream))',
         padding: 'var(--space-4, 32px) var(--space-3, 24px)',
       }}
     >

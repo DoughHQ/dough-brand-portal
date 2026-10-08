@@ -404,7 +404,7 @@
 .ah-row-next {
   display: block;
   font-size: 12px;
-  color: var(--sage);
+  color: var(--ink-muted, var(--ink-50));
   margin-top: 3px;
   white-space: nowrap;
   overflow: hidden;
