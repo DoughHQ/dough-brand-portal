@@ -437,7 +437,7 @@ button.cat-primary-cta:not(.portal-btn):hover {
 
 .cat-tile-btn-solid {
   background: var(--sage-dark);
-  color: var(--cream);
+  color: var(--on-fill, #faf8f3);
 }
 
 .cat-tile-btn-outline {
@@ -544,7 +544,10 @@ a.cat-tile:hover .cat-tile-btn-outline {
   font-family: var(--font-sans);
   border: 1px solid var(--mist);
   border-radius: 9px;
-  background: var(--white);
+  /* WebKit type=search paints white unless appearance is reset */
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--surface-1, var(--white));
   color: var(--ink);
   outline: none;
 }

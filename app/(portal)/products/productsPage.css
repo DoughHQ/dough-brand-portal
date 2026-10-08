@@ -23,7 +23,7 @@
   font-family: var(--font-sans);
   font-weight: 400;
   color: var(--ink-50);
-  background: var(--white);
+  background: var(--surface-1, var(--white));
   border: 1px solid var(--mist);
   cursor: pointer;
   white-space: nowrap;
@@ -31,7 +31,7 @@
 
 .prod-filter-on {
   font-weight: 500;
-  color: var(--sage-dark);
+  color: var(--heading);
   background: var(--sage-soft);
   border-color: rgba(62, 107, 74, 0.28);
 }
@@ -57,7 +57,7 @@
 }
 
 .prod-view-btn-on {
-  color: var(--sage-dark);
+  color: var(--heading);
   background: var(--white);
 }
 

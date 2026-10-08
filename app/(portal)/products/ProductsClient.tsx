@@ -528,7 +528,7 @@ export default function ProductsClient({
                   href={href}
                   className="prod-list-row__battles"
                   style={{
-                    color: product.totalBattles > 0 ? 'var(--sage-dark)' : 'var(--ink-30)',
+                    color: product.totalBattles > 0 ? 'var(--heading)' : 'var(--ink-30)',
                   }}
                 >
                   {product.totalBattles > 0 ? n(product.totalBattles) : '—'}

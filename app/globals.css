@@ -16,7 +16,7 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background: var(--cream);
+  background: var(--surface, var(--cream));
   color: var(--ink);
   min-height: 100vh;
   width: 100%;
@@ -166,7 +166,8 @@ a {
 .dark {
   color-scheme: dark;
 
-  --cream: #141210;
+  /* Canvas / panels — keep --cream light for text-on-sage fills */
+  --cream: #faf8f3;
   --paper: #1c1916;
   --surface: #141210;
   --surface-1: #242018;
@@ -175,13 +176,14 @@ a {
 
   --ink: #f4f1ea;
   --ink-80: #e4ded4;
-  --ink-muted: rgba(244, 241, 234, 0.68);
-  --ink-faint: rgba(244, 241, 234, 0.45);
+  --ink-muted: rgba(244, 241, 234, 0.72);
+  --ink-faint: rgba(244, 241, 234, 0.5);
   --ink-50: var(--ink-muted);
   --ink-30: var(--ink-faint);
   --ink-10: #3a3530;
 
   --heading: #eef3ef;
+  --on-fill: #faf8f3;
   --sage: #7aaf88;
   --sage-light: #8fbf9a;
   --sage-soft: rgba(122, 175, 136, 0.16);

@@ -6,7 +6,7 @@
   align-items: stretch;
   gap: 0;
   border-top: 1px solid var(--mist);
-  background: var(--cream, #faf8f3);
+  background: var(--surface-1, var(--cream, #faf8f3));
 }
 
 .pf-footer__hit {
@@ -24,7 +24,7 @@
   font-family: var(--font-sans);
   font-size: 12px;
   line-height: 1.4;
-  color: var(--sage-dark);
+  color: var(--ink-muted, var(--ink-50));
   transition: background 140ms ease;
   text-decoration: none;
   box-sizing: border-box;
@@ -203,7 +203,7 @@
   border: 0;
   cursor: pointer;
   background: var(--sage-dark, #243d2c);
-  color: var(--cream, #faf8f3);
+  color: var(--on-fill, var(--cream, #faf8f3));
 }
 
 .pf-btn:disabled {

@@ -7,7 +7,7 @@
   margin: 0;
   padding: 0;
   border-radius: 12px;
-  background: var(--cream, #faf8f3);
+  background: var(--surface-1, var(--cream, #faf8f3));
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -425,7 +425,7 @@
 .pm-compete-question,
 .pm-compete-set {
   min-width: 0;
-  background: var(--cream, #faf8f3);
+  background: var(--surface-1, var(--cream, #faf8f3));
   border: 1px solid var(--ink-10);
   border-radius: 10px;
 }
@@ -995,7 +995,7 @@
 .pm-comp-summary-item {
   padding: 10px 12px;
   border-radius: 8px;
-  background: var(--cream, #faf8f3);
+  background: var(--surface-1, var(--cream, #faf8f3));
   border: 1px solid var(--ink-10);
 }
 
