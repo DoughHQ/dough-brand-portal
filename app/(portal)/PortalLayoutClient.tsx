@@ -624,9 +624,7 @@ export default function PortalLayoutClient({
         </aside>
 
         <main className="portal-main">
-          <header
-            className={`portal-desktop-topbar${showImpersonationStrip ? ' is-impersonating' : ''}`}
-          >
+          <header className="portal-desktop-topbar">
             <div className="portal-desktop-topbar-left">
               <h1 className="portal-desktop-title">{sectionLabel}</h1>
             </div>
@@ -642,21 +640,6 @@ export default function PortalLayoutClient({
               <kbd className="portal-search-kbd">{modKey}K</kbd>
             </button>
             <div className="portal-desktop-topbar-right" ref={accountRef}>
-              {showImpersonationStrip ? (
-                <div className="portal-topbar-viewing" role="status">
-                  <span className="portal-topbar-viewing-label">
-                    Viewing as <strong>{impersonatedBrandName}</strong>
-                  </span>
-                  <button
-                    type="button"
-                    className="portal-topbar-viewing-exit"
-                    onClick={() => void exitImpersonation()}
-                    disabled={exiting}
-                  >
-                    {exiting ? '…' : 'Exit brand'}
-                  </button>
-                </div>
-              ) : null}
               <button
                 type="button"
                 className={`portal-account-btn${accountOpen ? ' is-open' : ''}`}
@@ -702,6 +685,22 @@ export default function PortalLayoutClient({
               ) : null}
             </div>
           </header>
+
+          {showImpersonationStrip ? (
+            <div className="portal-impersonation-bar" role="status">
+              <span className="portal-impersonation-bar-label">
+                Viewing as <strong>{impersonatedBrandName}</strong>
+              </span>
+              <button
+                type="button"
+                className="portal-impersonation-bar-exit"
+                onClick={() => void exitImpersonation()}
+                disabled={exiting}
+              >
+                {exiting ? '…' : 'Exit brand'}
+              </button>
+            </div>
+          ) : null}
 
           <div className="portal-main-body">{children}</div>
         </main>

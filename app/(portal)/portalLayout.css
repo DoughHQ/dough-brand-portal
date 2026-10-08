@@ -43,8 +43,11 @@
 }
 
 .portal-mark {
+  position: relative;
+  z-index: 1;
   padding: 28px 20px 24px;
   border-bottom: 1px solid rgba(250, 248, 243, 0.08);
+  flex-shrink: 0;
 }
 
 .portal-mark-lockup {
@@ -82,8 +85,9 @@
 }
 
 .portal-workspace {
-  margin: 16px 12px 12px;
-  padding: 12px;
+  margin: 12px 10px 10px;
+  padding: 10px 12px;
+  flex-shrink: 0;
   border-radius: 10px;
   background: rgba(250, 248, 243, 0.07);
   border: 1px solid rgba(250, 248, 243, 0.08);
@@ -825,22 +829,73 @@
 }
 
 
-/* Impersonation strip shares the right column — keep it from colliding with ⌘K */
-.portal-desktop-topbar.is-impersonating {
-  gap: 10px;
+
+/* Full-width impersonation bar — never shares a row with ⌘K */
+.portal-impersonation-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+  padding: 8px 28px;
+  background: var(--amber-soft, #f3e6d0);
+  border-bottom: 1px solid rgba(192, 120, 24, 0.28);
+  color: #70450f;
 }
 
-.portal-desktop-topbar.is-impersonating .portal-account-name {
-  display: none;
+.portal-impersonation-bar-label {
+  font-size: 13px;
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.portal-desktop-topbar.is-impersonating .portal-search-trigger {
-  max-width: 420px;
+.portal-impersonation-bar-label strong {
+  font-weight: 700;
 }
 
-@media (max-width: 1200px) {
-  .portal-desktop-topbar.is-impersonating .portal-topbar-viewing {
-    max-width: min(160px, 22vw);
+.portal-impersonation-bar-exit {
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(112, 69, 15, 0.14);
+  color: #70450f;
+  padding: 7px 12px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.portal-impersonation-bar-exit:hover:not(:disabled) {
+  background: rgba(112, 69, 15, 0.22);
+}
+
+.portal-impersonation-bar-exit:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.portal-shell.dark .portal-impersonation-bar {
+  background: rgba(224, 160, 69, 0.14);
+  border-bottom-color: rgba(224, 160, 69, 0.35);
+  color: var(--amber);
+}
+
+.portal-shell.dark .portal-impersonation-bar-exit {
+  background: rgba(224, 160, 69, 0.22);
+  color: var(--amber);
+}
+
+.portal-shell.dark .portal-impersonation-bar-exit:hover:not(:disabled) {
+  background: rgba(224, 160, 69, 0.32);
+}
+
+@media (max-width: 880px) {
+  .portal-impersonation-bar {
+    display: none; /* mobile already has impersonation in compact chrome */
   }
 }
 

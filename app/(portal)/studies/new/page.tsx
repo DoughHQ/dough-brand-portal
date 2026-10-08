@@ -1,5 +1,6 @@
 'use client'
 
+import '../studiesPage.css'
 import Link from 'next/link'
 import { useState, type CSSProperties, type ReactNode } from 'react'
 
@@ -101,9 +102,8 @@ function ChoiceCard({
 export default function NewStudyChooserPage() {
   return (
     <div
+      className="studies-shell"
       style={{
-        minHeight: '100%',
-        background: 'var(--surface, var(--cream))',
         padding: 'var(--space-4, 32px) var(--space-3, 24px)',
       }}
     >
