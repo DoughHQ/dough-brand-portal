@@ -160,7 +160,7 @@ export const questionCard: CSSProperties = {
   padding: '16px 18px',
   borderRadius: 8,
   border: '1px solid var(--ink-10)',
-  background: 'var(--cream, #faf8f3)',
+  background: 'var(--surface)',
 }
 
 export const inputStyle: CSSProperties = {

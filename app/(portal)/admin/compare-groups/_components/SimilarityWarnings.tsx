@@ -37,7 +37,7 @@ function severityStyle(severity: string): CSSProperties {
   }
   return {
     border: '1px solid var(--ink-10)',
-    background: 'var(--cream, #FAF8F3)',
+    background: 'var(--surface)',
   }
 }
 

@@ -43,14 +43,22 @@ if [[ -n "$HITS" ]]; then
   FAIL=1
 fi
 
-# 4) Never use always-light --cream as a background (canvas/panel). Use --surface / --paper.
+# 4) Never use --cream as a background (with or without fallbacks). Use --surface / --paper.
 # Allow previewRunner (respondent phone chrome stays light by product design).
 HITS=$(rg -n --glob '*.{css,tsx,ts}' -g '!node_modules' -g '!**/previewRunner.css' \
-  "background:\s*(var\(--cream\)|'\''var\(--cream\)|\"var\(--cream\))" \
+  'background:[^;{]*var\(--cream' \
   "$ROOT" || true)
 if [[ -n "$HITS" ]]; then
   echo "$HITS"
-  echo "BAN FAIL: background: var(--cream) — cream is on-fill ink; use var(--surface) or var(--paper)"
+  echo "BAN FAIL: background uses --cream — cream is on-fill ink; use --surface / --paper / --surface-1"
+  FAIL=1
+fi
+
+# 5) Builder must not alias sage-dark to a heading token.
+HITS=$(rg -n --glob '**/conceptBuilder.css' -- '--sage-dark:\s*var\(--cb-heading\)' "$ROOT" || true)
+if [[ -n "$HITS" ]]; then
+  echo "$HITS"
+  echo "BAN FAIL: --sage-dark aliased to --cb-heading (fill≠ink cycle)"
   FAIL=1
 fi
 

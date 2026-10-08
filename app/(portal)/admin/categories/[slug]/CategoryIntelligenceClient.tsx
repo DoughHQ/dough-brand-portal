@@ -96,7 +96,7 @@ export default function CategoryIntelligenceClient({
               color: 'var(--clay, #a6543c)',
               marginTop: 8,
               padding: '10px 12px',
-              background: 'var(--cream, #faf8f3)',
+              background: 'var(--surface)',
               borderRadius: 8,
               border: '1px solid var(--ink-10)',
             }}

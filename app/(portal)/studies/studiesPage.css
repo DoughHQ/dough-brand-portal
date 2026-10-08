@@ -275,7 +275,7 @@
 }
 
 .studies-study-row:hover {
-  background: var(--surface-1, var(--cream));
+  background: var(--surface-1);
 }
 
 .studies-study-row--active,
@@ -319,7 +319,7 @@
 }
 
 .studies-study-mark-neutral {
-  background: var(--surface-1, var(--cream));
+  background: var(--surface-1);
   color: var(--ink-50);
 }
 
@@ -473,7 +473,7 @@
 
 .studies-kebab:hover,
 .studies-kebab.is-open {
-  background: var(--surface-1, var(--cream));
+  background: var(--surface-1);
 }
 
 .studies-kebab:focus-visible {
@@ -533,7 +533,7 @@
 }
 
 .studies-archive-toggle:hover {
-  background: var(--surface-1, var(--cream));
+  background: var(--surface-1);
 }
 
 .studies-archive-toggle:focus-visible {
@@ -552,7 +552,7 @@
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: var(--surface-1, var(--cream));
+  background: var(--surface-1);
   color: var(--ink-50);
   display: grid;
   place-items: center;
@@ -635,7 +635,7 @@
   padding: 0 7px;
   border-radius: 999px;
   color: var(--ink-50);
-  background: var(--surface-1, var(--cream));
+  background: var(--surface-1);
   margin-right: 8px;
 }
 
@@ -765,7 +765,7 @@
   border: none;
   border-radius: 8px;
   background: var(--sage-dark);
-  color: var(--cream, #fff);
+  color: var(--on-fill, #fff);
   font: inherit;
   font-size: 13px;
   font-weight: 600;

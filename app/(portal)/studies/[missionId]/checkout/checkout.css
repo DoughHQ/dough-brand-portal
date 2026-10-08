@@ -102,7 +102,7 @@
 .checkout-pack .checkout-pack-fallback,
 .checkout-face .checkout-pack-fallback {
   border-radius: 14px;
-  background: var(--paper, var(--cream, #f6f4ef));
+  background: var(--paper);
   border: 1px solid var(--mist, var(--ink-10));
 }
 
@@ -271,7 +271,7 @@
   border: none;
   border-radius: 10px;
   background: var(--sage-dark);
-  color: var(--cream, #fff);
+  color: var(--on-fill, #fff);
   font-family: var(--font-sans);
   font-size: 15px;
   font-weight: 600;
