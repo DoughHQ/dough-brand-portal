@@ -97,6 +97,19 @@
   outline-offset: 2px;
 }
 
+/* Visually hidden — do NOT use display:none / [hidden]; browsers block programmatic .click() */
+.pm-hero-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .pm-tabs {
   display: flex;
   align-items: stretch;

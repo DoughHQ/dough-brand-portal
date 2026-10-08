@@ -40,6 +40,7 @@ import {
 import { usePcfBrandAskCount } from '@/components/transparency/usePcfBrandAskCount'
 import { proofTabAskBadge } from '@/lib/transparency/proofAskCounts'
 import ProductDetailTabBar from './tabs/ProductDetailTabBar'
+import './tabs/productDetailTabs.css'
 import ProductSkuSwitcher from './tabs/ProductSkuSwitcher'
 import {
   ProductActivityTab,
@@ -639,11 +640,6 @@ export default function ProductMasterClient({
     await refetch()
   }
 
-  function openImagePicker() {
-    if (!canEdit || uploading) return
-    imageFileRef.current?.click()
-  }
-
   async function promoteImage(imageId: number) {
     if (!canEdit) return
     const result = await callWriteRpc(supabase, 'set_primary_product_image', {
@@ -900,42 +896,30 @@ export default function ProductMasterClient({
           padding: '28px 32px',
         }}
       >
-        {canEdit ? (
+        {canEdit && !product.primary_image_url ? (
+          <label
+            htmlFor="pm-product-image-file"
+            className={`pm-hero-art is-empty${uploading ? ' is-busy' : ''}`}
+            aria-label={uploading ? 'Uploading pack shot' : 'Add pack shot'}
+          >
+            <span className="pm-hero-art-letter" aria-hidden>
+              {(product.product_name_display ?? '?')[0]?.toUpperCase() ?? '?'}
+            </span>
+            <span className="pm-hero-art-cta">
+              {uploading ? 'Uploading…' : 'Add pack shot'}
+            </span>
+          </label>
+        ) : canEdit && product.primary_image_url ? (
           <button
             type="button"
-            className={`pm-hero-art${product.primary_image_url ? '' : ' is-empty'}${uploading ? ' is-busy' : ''}`}
-            onClick={() => {
-              if (product.primary_image_url) {
-                selectTab('images')
-                return
-              }
-              openImagePicker()
-            }}
+            className={`pm-hero-art${uploading ? ' is-busy' : ''}`}
+            onClick={() => selectTab('images')}
             disabled={uploading}
-            aria-label={
-              product.primary_image_url
-                ? 'Manage product images'
-                : uploading
-                  ? 'Uploading pack shot'
-                  : 'Add pack shot'
-            }
+            aria-label="Manage product images"
           >
-            {product.primary_image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={product.primary_image_url} alt="" className="pm-hero-art-img" />
-            ) : (
-              <>
-                <span className="pm-hero-art-letter" aria-hidden>
-                  {(product.product_name_display ?? '?')[0]?.toUpperCase() ?? '?'}
-                </span>
-                <span className="pm-hero-art-cta">
-                  {uploading ? 'Uploading…' : 'Add pack shot'}
-                </span>
-              </>
-            )}
-            {product.primary_image_url ? (
-              <span className="pm-hero-art-hover">Manage images</span>
-            ) : null}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={product.primary_image_url} alt="" className="pm-hero-art-img" />
+            <span className="pm-hero-art-hover">Manage images</span>
           </button>
         ) : (
           <div className={`pm-hero-art${product.primary_image_url ? '' : ' is-empty'} is-static`}>
@@ -949,20 +933,6 @@ export default function ProductMasterClient({
             )}
           </div>
         )}
-        {canEdit ? (
-          <input
-            ref={imageFileRef}
-            type="file"
-            accept="image/*"
-            hidden
-            disabled={uploading}
-            onChange={(e) => {
-              const f = e.target.files?.[0]
-              if (f) void uploadImage(f, { makePrimary: !product.primary_image_url })
-              e.target.value = ''
-            }}
-          />
-        ) : null}
         <div style={{ minWidth: 0 }}>
           <div style={{ ...caption, marginBottom: 10 }}>
             {product.category_path ?? 'Not yet categorized'}
@@ -1683,18 +1653,17 @@ export default function ProductMasterClient({
               ))}
             </div>
             {canEdit && (
-              <button
-                type="button"
-                onClick={openImagePicker}
-                disabled={uploading}
+              <label
+                htmlFor="pm-product-image-file"
                 style={{
                   ...secondaryBtn,
                   display: 'inline-block',
                   cursor: uploading ? 'wait' : 'pointer',
+                  opacity: uploading ? 0.7 : 1,
                 }}
               >
                 {uploading ? 'Uploading…' : 'Upload image'}
-              </button>
+              </label>
             )}
           </div>
         </ProductImagesTab>
@@ -1714,6 +1683,24 @@ export default function ProductMasterClient({
           <span style={{ color: 'var(--ink-30)' }}> · as of {cov.as_of}</span>
         </p>
       )}
+
+      {canEdit ? (
+        <input
+          id="pm-product-image-file"
+          ref={imageFileRef}
+          className="pm-hero-file"
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          disabled={uploading}
+          onChange={(e) => {
+            const f = e.target.files?.[0]
+            if (f) {
+              void uploadImage(f, { makePrimary: !product.primary_image_url })
+            }
+            e.target.value = ''
+          }}
+        />
+      ) : null}
     </div>
   )
 }
