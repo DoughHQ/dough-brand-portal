@@ -1,3 +1,102 @@
+/* Product hero pack-shot — click empty state to upload */
+.pm-hero-art {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 220px;
+  margin: 0;
+  padding: 0;
+  border-radius: 12px;
+  background: var(--cream, #faf8f3);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--ink-10);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition:
+    border-color 160ms var(--motion-ease, ease),
+    box-shadow 160ms var(--motion-ease, ease),
+    background 160ms var(--motion-ease, ease);
+}
+
+.pm-hero-art.is-static {
+  cursor: default;
+}
+
+.pm-hero-art.is-empty:not(.is-static) {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--sage) 35%, var(--ink-10));
+  background: color-mix(in srgb, var(--sage) 5%, var(--cream, #faf8f3));
+}
+
+.pm-hero-art:not(.is-static):hover {
+  border-color: color-mix(in srgb, var(--sage) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sage) 12%, transparent);
+}
+
+.pm-hero-art.is-empty:not(.is-static):hover {
+  background: color-mix(in srgb, var(--sage) 10%, var(--cream, #faf8f3));
+}
+
+.pm-hero-art.is-busy {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.pm-hero-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 12px;
+}
+
+.pm-hero-art-letter {
+  font-family: var(--font-serif, var(--font-display));
+  font-size: 44px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ink-30);
+  letter-spacing: -0.02em;
+}
+
+.pm-hero-art-cta {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--sage-dark);
+  letter-spacing: 0.01em;
+}
+
+.pm-hero-art-hover {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--sage-dark) 78%, transparent);
+  color: var(--cream, #faf8f3);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 160ms var(--motion-ease, ease),
+    transform 160ms var(--motion-ease, ease);
+}
+
+.pm-hero-art:not(.is-static):hover .pm-hero-art-hover,
+.pm-hero-art:not(.is-static):focus-visible .pm-hero-art-hover {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pm-hero-art:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--sage) 55%, transparent);
+  outline-offset: 2px;
+}
+
 .pm-tabs {
   display: flex;
   align-items: stretch;
