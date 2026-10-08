@@ -538,7 +538,7 @@ export default function ContentsSection({
                     border: `1px solid ${rowError ? 'var(--red)' : 'var(--ink-10)'}`,
                     borderRadius: 'var(--r-md)',
                     padding: 14,
-                    background: isYours ? 'var(--cream)' : 'var(--white)',
+                    background: isYours ? 'var(--surface-1)' : 'var(--paper)',
                   }}
                 >
                   {r.frozen_image_url ? (

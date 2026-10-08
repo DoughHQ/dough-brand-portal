@@ -191,7 +191,7 @@ export default function DesignPreviewClient() {
             border: '1px solid var(--mist)',
             borderRadius: 'var(--radius-card)',
             overflow: 'hidden',
-            background: 'var(--cream)',
+            background: 'var(--surface)',
           }}
         >
           <ConceptReportDeck report={conceptReportFixture()} backHref="/design-preview" />

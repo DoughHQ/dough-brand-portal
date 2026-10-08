@@ -1,5 +1,5 @@
 .experienced-report-deck {
-  background: var(--cream);
+  background: var(--surface);
   min-height: 100vh;
 }
 
@@ -55,7 +55,7 @@
 .report-cold-open {
   position: relative;
   padding: 40px 0 32px;
-  background: var(--cream);
+  background: var(--surface);
 }
 
 .report-cold-open-top {

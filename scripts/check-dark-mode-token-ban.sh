@@ -18,7 +18,6 @@ if [[ -n "$HITS" ]]; then
   FAIL=1
 fi
 
-# Ternaries spanning: color: cond ? 'var(--sage-dark)'
 HITS=$(rg -n --glob '*.{tsx,ts}' -g '!node_modules' \
   "color:[^\n]*var\(--sage-dark\)" \
   "$ROOT" || true)
@@ -41,6 +40,17 @@ HITS=$(rg -n --glob '*.css' -- '--cream:\s*#1[0-9a-fA-F]{5}' "$ROOT/app" "$ROOT/
 if [[ -n "$HITS" ]]; then
   echo "$HITS"
   echo "BAN FAIL: --cream remapped to a dark hex — keep cream/on-fill light; remap --surface"
+  FAIL=1
+fi
+
+# 4) Never use always-light --cream as a background (canvas/panel). Use --surface / --paper.
+# Allow previewRunner (respondent phone chrome stays light by product design).
+HITS=$(rg -n --glob '*.{css,tsx,ts}' -g '!node_modules' -g '!**/previewRunner.css' \
+  "background:\s*(var\(--cream\)|'\''var\(--cream\)|\"var\(--cream\))" \
+  "$ROOT" || true)
+if [[ -n "$HITS" ]]; then
+  echo "$HITS"
+  echo "BAN FAIL: background: var(--cream) — cream is on-fill ink; use var(--surface) or var(--paper)"
   FAIL=1
 fi
 

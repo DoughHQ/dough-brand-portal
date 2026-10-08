@@ -295,7 +295,7 @@ export default function MissionReportClient({ missionId, backHref }: Props) {
     <div
       style={{
         minHeight: '100vh',
-        background: 'var(--cream)',
+        background: 'var(--surface)',
         fontFamily: 'var(--font-sans)',
       }}
     >
