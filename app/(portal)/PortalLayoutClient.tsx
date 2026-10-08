@@ -201,7 +201,14 @@ export default function PortalLayoutClient({
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
-  const [dark, setDark] = useState(false)
+  const [dark, setDark] = useState(() => {
+    if (typeof window === 'undefined') return false
+    try {
+      return window.localStorage.getItem('dough.portal.dark') === '1'
+    } catch {
+      return false
+    }
+  })
   const [exiting, setExiting] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
   const [isCompact, setIsCompact] = useState(false)
@@ -209,6 +216,14 @@ export default function PortalLayoutClient({
   const [accountOpen, setAccountOpen] = useState(false)
   const asideRef = useRef<HTMLElement>(null)
   const accountRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('dough.portal.dark', dark ? '1' : '0')
+    } catch {
+      // private mode
+    }
+  }, [dark])
 
   /** Platform ops shell vs brand intelligence shell. */
   const shell: 'platform' | 'brand' = isAdmin && !isImpersonating ? 'platform' : 'brand'

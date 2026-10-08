@@ -25,7 +25,7 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .checkout-title {
@@ -34,7 +34,7 @@
   font-weight: 400;
   letter-spacing: -0.03em;
   line-height: 1.05;
-  color: var(--sage-dark);
+  color: var(--heading);
   margin: 8px 0 0;
 }
 
@@ -132,7 +132,7 @@
   justify-content: center;
   font-family: var(--font-serif, var(--font-display));
   font-size: 28px;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .checkout-face .checkout-pack-fallback {
@@ -215,7 +215,7 @@
 }
 
 .checkout-chapter-link .checkout-chapter-title {
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .checkout-chapter-link:hover .checkout-chapter-title {
@@ -260,7 +260,7 @@
   font-size: 40px;
   font-weight: 400;
   letter-spacing: -0.03em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .checkout-button {
@@ -302,7 +302,7 @@
   padding: 14px;
   border-radius: 12px;
   background: var(--sage-soft, #eef3ee);
-  color: var(--sage-dark);
+  color: var(--heading);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -318,7 +318,7 @@
   margin-top: 16px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 @media (max-width: 900px) {

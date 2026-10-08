@@ -66,7 +66,7 @@
 .pm-hero-art-cta {
   font-size: 12px;
   font-weight: 650;
-  color: var(--sage-dark);
+  color: var(--heading);
   letter-spacing: 0.01em;
 }
 
@@ -155,9 +155,9 @@
 }
 
 .pm-tab-active {
-  color: var(--sage-dark);
+  color: var(--heading);
   font-weight: 600;
-  border-bottom-color: var(--sage-dark);
+  border-bottom-color: var(--heading);
 }
 
 .pm-tab-count {
@@ -190,7 +190,7 @@
   font-family: var(--font-serif, var(--font-display));
   font-size: 22px;
   font-weight: 400;
-  color: var(--sage-dark);
+  color: var(--heading);
   letter-spacing: -0.02em;
   margin: 0 0 8px;
 }
@@ -242,7 +242,7 @@
   font-weight: 400;
   line-height: 1.2;
   letter-spacing: -0.02em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-id-rows {
@@ -304,7 +304,7 @@
 }
 
 .pm-id-value:not(:disabled):hover {
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-id-add {
@@ -313,7 +313,7 @@
 }
 
 .pm-id-add:not(:disabled):hover {
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-id-edit {
@@ -339,7 +339,7 @@
 .pm-overview-path-current {
   font-size: 14px;
   font-weight: 600;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-overview-path-sep {
@@ -401,7 +401,7 @@
 
 .pm-overview-quiet-btn:hover {
   border-color: var(--ink-30);
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-compete-groups {
@@ -614,7 +614,7 @@
   font-weight: 400;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-sku-sub {
@@ -781,7 +781,7 @@
   font-weight: 400;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-comp-sub {
@@ -839,7 +839,7 @@
   font-weight: 400;
   line-height: 1.2;
   letter-spacing: -0.02em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-comp-flags {
@@ -1088,7 +1088,7 @@
   font-weight: 400;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-intel-sub {
@@ -1129,7 +1129,7 @@
   padding: 5px 10px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--sage) 12%, transparent);
-  color: var(--sage-dark);
+  color: var(--heading);
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 550;
@@ -1206,7 +1206,7 @@
   font-weight: 400;
   line-height: 1;
   letter-spacing: -0.03em;
-  color: var(--sage-dark);
+  color: var(--heading);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1294,7 +1294,7 @@
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 700;
-  color: var(--sage-dark);
+  color: var(--heading);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1317,7 +1317,7 @@
   font-size: 22px;
   font-weight: 400;
   letter-spacing: -0.02em;
-  color: var(--sage-dark);
+  color: var(--heading);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1431,7 +1431,7 @@
   font-weight: 400;
   line-height: 1.2;
   letter-spacing: -0.02em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-intel-section-note {
@@ -1486,7 +1486,7 @@
   padding: 4px 8px;
   border-radius: 6px;
   background: color-mix(in srgb, var(--sage) 12%, transparent);
-  color: var(--sage-dark);
+  color: var(--heading);
   font-family: var(--font-sans);
   font-size: 10px;
   font-weight: 700;
@@ -1565,7 +1565,7 @@
   font-size: 20px;
   font-weight: 400;
   letter-spacing: -0.02em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-intel-empty p {
@@ -1661,7 +1661,7 @@
   font-weight: 400;
   line-height: 1.2;
   letter-spacing: -0.02em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-studies-empty-copy {
@@ -1716,7 +1716,7 @@
 }
 
 .pm-studies-empty-learn:hover {
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-studies-header {
@@ -1739,7 +1739,7 @@
   font-weight: 400;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .pm-studies-sub {
@@ -1848,7 +1848,7 @@
 }
 
 .pm-studies-card-cta:hover {
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 @media (max-width: 720px) {

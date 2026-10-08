@@ -7,6 +7,8 @@
   /* Color */
   --sage: #3e6b4a;
   --sage-dark: #243d2c;
+  /* Text-on-canvas headings — remaps in dark; keep --sage-dark for brand fills */
+  --heading: var(--sage-dark);
   --amber: #c07818;
   --cream: #faf8f3;
   --ink: #1c2620;
