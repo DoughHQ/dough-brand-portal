@@ -273,7 +273,7 @@ export default function BoxDetailClient({ initialDetail, loadError }: Props) {
                 padding: '10px 12px',
                 border: '1px solid var(--ink-10)',
                 borderRadius: 'var(--r-sm)',
-                background: p.product_id === focalId ? 'var(--cream)' : 'var(--white)',
+                background: p.product_id === focalId ? 'var(--surface-1)' : 'var(--paper)',
               }}
             >
               <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>

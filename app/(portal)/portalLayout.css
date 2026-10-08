@@ -218,7 +218,7 @@
 .portal-nav-link:focus-visible,
 .portal-menu-btn:focus-visible,
 .portal-topbar-search-icon:focus-visible,
-.portal-topbar-viewing-exit:focus-visible {
+.portal-impersonation-bar-exit:focus-visible {
   outline: 2px solid rgba(250, 248, 243, 0.55);
   outline-offset: 2px;
 }
@@ -418,55 +418,6 @@
   max-width: 100%;
 }
 
-.portal-topbar-viewing {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  max-width: min(200px, 26vw);
-  min-width: 0;
-  min-height: 36px;
-  padding: 4px 4px 4px 10px;
-  border-radius: 999px;
-  background: var(--amber-soft, #f3e6d0);
-  border: 1px solid rgba(192, 120, 24, 0.22);
-  color: #70450f;
-  flex-shrink: 1;
-}
-
-.portal-topbar-viewing-label {
-  font-size: 12px;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.portal-topbar-viewing-label strong {
-  font-weight: 700;
-}
-
-.portal-topbar-viewing-exit {
-  flex-shrink: 0;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(112, 69, 15, 0.12);
-  color: #70450f;
-  padding: 6px 10px;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.portal-topbar-viewing-exit:hover:not(:disabled) {
-  background: rgba(112, 69, 15, 0.18);
-}
-
-.portal-topbar-viewing-exit:disabled {
-  opacity: 0.7;
-  cursor: default;
-}
 
 .portal-account-btn {
   display: inline-flex;
@@ -910,7 +861,7 @@
   border-color: rgba(244, 241, 234, 0.14);
   background: var(--surface-1);
   box-shadow: none;
-  color: var(--ink-faint);
+  color: var(--ink-muted);
 }
 
 .portal-shell.dark .portal-search-trigger:hover {
@@ -918,10 +869,14 @@
   background: var(--surface-2);
 }
 
+.portal-shell.dark .portal-search-trigger-placeholder {
+  color: var(--ink-muted);
+}
+
 .portal-shell.dark .portal-search-kbd {
   border-color: rgba(244, 241, 234, 0.14);
   background: var(--paper);
-  color: var(--ink-faint);
+  color: var(--ink-muted);
 }
 
 .portal-shell.dark .portal-account-btn {
@@ -941,27 +896,3 @@
   box-shadow: var(--shadow-panel);
 }
 
-
-.portal-shell.dark .portal-topbar-viewing {
-  background: var(--amber-soft);
-  border-color: rgba(224, 160, 69, 0.45);
-  color: var(--amber);
-}
-
-.portal-shell.dark .portal-topbar-viewing-exit {
-  background: rgba(224, 160, 69, 0.22);
-  color: var(--amber);
-}
-
-.portal-shell.dark .portal-topbar-viewing-exit:hover:not(:disabled) {
-  background: rgba(224, 160, 69, 0.32);
-}
-
-.portal-shell.dark .portal-search-trigger-placeholder,
-.portal-shell.dark .portal-search-trigger {
-  color: var(--ink-muted);
-}
-
-.portal-shell.dark .portal-search-kbd {
-  color: var(--ink-muted);
-}

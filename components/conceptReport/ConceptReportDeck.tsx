@@ -763,7 +763,7 @@ export function ConceptReportDeck({
   const thin = isThinSampleReport(report)
 
   return (
-    <div className="concept-report-deck" style={{ background: 'var(--cream)', minHeight: '100vh' }}>
+    <div className="concept-report-deck" style={{ background: 'var(--surface)', minHeight: '100vh' }}>
       {report.is_simulated === true && !sampleMode ? <SimulatedDataBanner /> : null}
 
       {thin && !sampleMode ? (

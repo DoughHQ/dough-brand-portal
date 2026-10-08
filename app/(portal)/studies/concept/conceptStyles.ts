@@ -193,7 +193,7 @@ export const stageCard: CSSProperties = {
   border: '1px solid var(--ink-10)',
   borderRadius: 'var(--r-md)',
   padding: '16px 18px',
-  background: 'var(--cream)',
+  background: 'var(--surface)',
   marginBottom: 12,
 }
 

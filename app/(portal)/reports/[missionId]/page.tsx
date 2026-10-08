@@ -31,7 +31,7 @@ function StateCard({
         margin: '0 auto',
         padding: '64px 28px',
         fontFamily: 'var(--font-sans)',
-        background: 'var(--cream)',
+        background: 'var(--surface)',
         minHeight: '100vh',
       }}
     >
