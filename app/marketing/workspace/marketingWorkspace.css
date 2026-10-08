@@ -2,7 +2,7 @@
   display: grid;
   grid-template-columns: 200px 1fr;
   min-height: 100vh;
-  background: var(--cream, #faf8f3);
+  background: var(--surface);
   color: var(--ink, #18150f);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
@@ -50,7 +50,7 @@
 .mw-main {
   min-width: 0;
   overflow: auto;
-  background: var(--cream, #faf8f3);
+  background: var(--surface);
 }
 
 .mw-banner {

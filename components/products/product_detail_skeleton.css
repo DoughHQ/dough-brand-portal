@@ -176,7 +176,7 @@
   padding: 12px;
   border: 1px solid rgba(36, 61, 44, 0.08);
   border-radius: 10px;
-  background: var(--cream, #faf8f3);
+  background: var(--surface);
 }
 
 .pm-skel-compete-thumb {

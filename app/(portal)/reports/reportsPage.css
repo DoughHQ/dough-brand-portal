@@ -8,7 +8,7 @@
   box-sizing: border-box;
   padding: 28px 40px 88px;
   min-width: 0;
-  background: var(--surface, var(--cream));
+  background: var(--surface);
 }
 
 @media (max-width: 900px) {

@@ -288,7 +288,7 @@ export default function TaxonomyMultiSelect({ value, onChange }: Props) {
                         fontSize: 13,
                         padding: '4px 8px',
                         borderRadius: 6,
-                        background: 'var(--cream, #FAF8F3)',
+                        background: 'var(--surface)',
                         border: '1px solid var(--ink-10)',
                         color: 'var(--ink)',
                       }}

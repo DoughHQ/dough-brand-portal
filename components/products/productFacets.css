@@ -6,7 +6,7 @@
   align-items: stretch;
   gap: 0;
   border-top: 1px solid var(--mist);
-  background: var(--surface-1, var(--cream, #faf8f3));
+  background: var(--surface-1);
 }
 
 .pf-footer__hit {

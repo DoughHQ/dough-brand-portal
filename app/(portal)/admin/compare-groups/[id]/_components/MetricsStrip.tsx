@@ -23,7 +23,7 @@ export default function MetricsStrip({ metrics }: Props) {
             padding: '20px 18px',
             borderRadius: 12,
             border: '1px solid var(--ink-10)',
-            background: 'var(--cream, #FAF8F3)',
+            background: 'var(--surface)',
             fontSize: 14,
             color: 'var(--ink-50)',
           }}

@@ -50,7 +50,7 @@ export function ProductLoadError({ productId, error, hint }: Props) {
           fontSize: 12,
           color: 'var(--ink-50)',
           lineHeight: 1.6,
-          background: 'var(--cream, #faf8f3)',
+          background: 'var(--surface)',
           border: '1px solid var(--ink-10)',
           borderRadius: 8,
           padding: '12px 14px',

@@ -306,7 +306,7 @@ export function ActiveStudyList({
                         {conceptStatus.label}
                       </Link>
                     ) : (
-                      <span className="studies-status-pill" style={{ color: 'var(--ink-50)', background: 'var(--paper, var(--cream))' }}>
+                      <span className="studies-status-pill" style={{ color: 'var(--ink-50)', background: 'var(--paper)' }}>
                         {conceptStatus.label}
                       </span>
                     )

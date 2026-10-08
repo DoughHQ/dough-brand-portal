@@ -176,7 +176,7 @@
 
 .pm-tab-count--ask {
   background: var(--sage-dark);
-  color: var(--cream, #faf8f3);
+  color: var(--on-fill, #faf8f3);
   font-weight: 600;
 }
 
@@ -425,7 +425,7 @@
 .pm-compete-question,
 .pm-compete-set {
   min-width: 0;
-  background: var(--surface-1, var(--cream, #faf8f3));
+  background: var(--surface-1);
   border: 1px solid var(--ink-10);
   border-radius: 10px;
 }
@@ -634,7 +634,7 @@
   border: none;
   border-radius: 8px;
   background: var(--sage-dark);
-  color: var(--cream, #faf8f3);
+  color: var(--on-fill, #faf8f3);
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
@@ -995,7 +995,7 @@
 .pm-comp-summary-item {
   padding: 10px 12px;
   border-radius: 8px;
-  background: var(--surface-1, var(--cream, #faf8f3));
+  background: var(--surface-1);
   border: 1px solid var(--ink-10);
 }
 
@@ -1149,7 +1149,7 @@
   padding: 24px 26px 20px;
   border-radius: 16px;
   border: 1px solid color-mix(in srgb, var(--sage) 18%, transparent);
-  background: color-mix(in srgb, var(--sage) 6%, var(--cream, #faf8f3));
+  background: color-mix(in srgb, var(--sage) 6%, var(--surface));
 }
 
 .pm-intel-hero.is-building {
@@ -1685,7 +1685,7 @@
   border: none;
   border-radius: 8px;
   background: var(--sage-dark);
-  color: var(--cream, #faf8f3);
+  color: var(--on-fill, #faf8f3);
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;

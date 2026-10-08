@@ -291,7 +291,7 @@
   min-height: 100dvh;
   min-width: 0;
   overflow-x: clip;
-  background: var(--surface, var(--cream));
+  background: var(--surface);
 }
 
 .portal-main-body {

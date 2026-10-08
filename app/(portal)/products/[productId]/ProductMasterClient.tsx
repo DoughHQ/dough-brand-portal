@@ -791,7 +791,7 @@ export default function ProductMasterClient({
             marginBottom: 16,
             padding: '14px 16px',
             borderRadius: 8,
-            background: 'var(--cream, #faf8f3)',
+            background: 'var(--surface)',
             border: '1px solid var(--ink-10)',
           }}
         >
@@ -1110,7 +1110,7 @@ export default function ProductMasterClient({
                     style={{
                       marginTop: 8,
                       padding: 16,
-                      background: 'var(--cream, #faf8f3)',
+                      background: 'var(--surface)',
                       borderRadius: 8,
                       border: '1px solid var(--ink-10)',
                     }}
@@ -1380,7 +1380,7 @@ export default function ProductMasterClient({
                 style={{
                   marginTop: 12,
                   fontSize: 13,
-                  background: 'var(--cream, #faf8f3)',
+                  background: 'var(--surface)',
                   padding: 12,
                   borderRadius: 8,
                   overflow: 'auto',
@@ -1618,7 +1618,7 @@ export default function ProductMasterClient({
                       width: 100,
                       height: 100,
                       borderRadius: 8,
-                      background: 'var(--cream, #faf8f3)',
+                      background: 'var(--surface)',
                       overflow: 'hidden',
                       opacity: img.superseded_by_id ? 0.55 : 1,
                       border: img.is_primary ? '2px solid var(--sage)' : '1px solid var(--ink-10)',

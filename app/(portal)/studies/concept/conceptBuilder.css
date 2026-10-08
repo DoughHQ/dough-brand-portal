@@ -68,20 +68,23 @@
   --cb-control-h-sm: 36px;
   --cb-control-h-button: 44px;
 
-  /* Remap conceptStyles aliases inside the builder only */
+  /* Remap conceptStyles aliases inside the builder only.
+   * Keep --sage-dark as a FILL (never tied to --cb-heading).
+   * Do not point --cream at the page canvas — cream is on-fill ink. */
   --ink: var(--cb-text);
   --ink-80: var(--cb-heading);
   --ink-50: var(--cb-secondary);
   --ink-30: var(--cb-tertiary);
   --ink-10: var(--cb-border);
   --sage: var(--cb-sage);
-  --sage-dark: var(--cb-heading);
+  --sage-dark: #243d2c;
   --sage-soft: var(--cb-sage-soft);
   --amber: var(--cb-amber);
   --amber-warning: var(--cb-amber-warning);
   --white: var(--cb-surface);
-  --cream: var(--cb-bg);
+  --surface: var(--cb-bg);
   --surface-1: var(--cb-surface-muted);
+  --paper: var(--cb-surface);
   --r-sm: var(--cb-radius-control);
   --r-md: var(--cb-radius-card);
   --r-lg: var(--cb-radius-card);
@@ -3147,12 +3150,10 @@ html {
   --cb-surface: var(--paper);
   --cb-surface-muted: var(--surface-1);
 
-  /* Literals — avoid --heading ↔ --sage-dark ↔ --cb-heading cycles inside the builder */
-  --cb-heading: #eef3ef;
-  --heading: #eef3ef;
-  --cb-text: #f4f1ea;
-  --cb-secondary: rgba(244, 241, 234, 0.78);
-  --cb-tertiary: rgba(244, 241, 234, 0.55);
+  --cb-heading: var(--heading);
+  --cb-text: var(--ink);
+  --cb-secondary: var(--ink-muted);
+  --cb-tertiary: var(--ink-faint);
   --cb-disabled: rgba(244, 241, 234, 0.32);
 
   --cb-sage: var(--sage);
@@ -3170,7 +3171,7 @@ html {
   --cb-shadow-modal: var(--shadow-panel);
   --cb-focus-ring: 0 0 0 3px rgba(122, 175, 136, 0.28);
 
-  /* Alias remap already points --ink/--cream/--white at cb-* — keep those links */
+  /* Alias remap points --ink/--white/--surface at cb-* — cream stays on-fill */
   background: var(--cb-bg);
   color: var(--cb-text);
 }
@@ -3186,8 +3187,3 @@ html {
   box-shadow: var(--cb-shadow-popover);
 }
 
-.portal-shell.dark .concept-builder .cb-page-title,
-.portal-shell.dark .concept-builder .cb-section-title,
-.portal-shell.dark .concept-builder .cb-builder-section-title {
-  color: #eef3ef;
-}

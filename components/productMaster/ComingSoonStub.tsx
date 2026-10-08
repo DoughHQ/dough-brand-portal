@@ -27,7 +27,7 @@ export function ComingSoonStub({
       style={{
         marginTop: 8,
         padding: '12px 14px',
-        background: 'var(--cream, #faf8f3)',
+        background: 'var(--surface)',
         border: '1px solid var(--ink-10)',
         borderRadius: 8,
         ...caption,

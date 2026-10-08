@@ -164,7 +164,7 @@ export default function ImpersonateBrandClient({
             color: 'var(--clay, #a6543c)',
             marginBottom: 12,
             padding: '10px 12px',
-            background: 'var(--cream, #faf8f3)',
+            background: 'var(--surface)',
             borderRadius: 8,
             border: '1px solid var(--ink-10)',
           }}

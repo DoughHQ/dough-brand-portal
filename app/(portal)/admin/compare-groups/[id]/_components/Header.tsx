@@ -106,7 +106,7 @@ const strategyBadge: CSSProperties = {
   fontSize: 12,
   padding: '2px 8px',
   borderRadius: 6,
-  background: 'var(--cream, #FAF8F3)',
+  background: 'var(--surface)',
   color: 'var(--ink-50)',
 }
 
