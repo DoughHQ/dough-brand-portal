@@ -46,6 +46,7 @@ export default async function ConceptStudyStatusPage({ params }: Props) {
           fontWeight: 400,
           letterSpacing: '-0.02em',
           margin: '12px 0 8px',
+          color: 'var(--heading)',
         }}
       >
         {live ? 'Your study is live' : 'Concept study'}

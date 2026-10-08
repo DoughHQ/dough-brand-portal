@@ -419,7 +419,7 @@ export default function StudiesClient({
     <div
       style={{
         minHeight: '100%',
-        background: 'var(--cream)',
+        background: 'var(--surface, var(--cream))',
         fontFamily: 'var(--font-sans)',
       }}
     >
