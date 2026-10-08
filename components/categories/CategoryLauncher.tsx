@@ -130,7 +130,7 @@ function OwnedEmpty() {
           fontFamily: 'var(--font-serif)',
           fontSize: 24,
           fontWeight: 400,
-          color: 'var(--sage-dark)',
+          color: 'var(--heading)',
           margin: '0 0 10px',
           letterSpacing: '-0.02em',
           lineHeight: 1.25,
@@ -312,7 +312,7 @@ export default function CategoryLauncher({
             fontSize: 22,
             fontWeight: 400,
             margin: '0 0 8px',
-            color: 'var(--sage-dark)',
+            color: 'var(--heading)',
           }}
         >
           Couldn’t load categories
@@ -403,7 +403,7 @@ export default function CategoryLauncher({
                 fontSize: 20,
                 fontWeight: 400,
                 margin: '0 0 8px',
-                color: 'var(--sage-dark)',
+                color: 'var(--heading)',
               }}
             >
               No competing categories yet

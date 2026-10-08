@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  background: var(--cream);
+  background: var(--surface, var(--cream));
   color: var(--ink);
 }
 
