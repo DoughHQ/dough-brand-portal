@@ -3147,10 +3147,12 @@ html {
   --cb-surface: var(--paper);
   --cb-surface-muted: var(--surface-1);
 
-  --cb-heading: var(--heading);
-  --cb-text: var(--ink);
-  --cb-secondary: var(--ink-muted);
-  --cb-tertiary: var(--ink-faint);
+  /* Literals — avoid --heading ↔ --sage-dark ↔ --cb-heading cycles inside the builder */
+  --cb-heading: #eef3ef;
+  --heading: #eef3ef;
+  --cb-text: #f4f1ea;
+  --cb-secondary: rgba(244, 241, 234, 0.78);
+  --cb-tertiary: rgba(244, 241, 234, 0.55);
   --cb-disabled: rgba(244, 241, 234, 0.32);
 
   --cb-sage: var(--sage);
@@ -3182,4 +3184,10 @@ html {
   background: color-mix(in srgb, var(--cb-surface) 94%, transparent);
   border-color: var(--cb-border);
   box-shadow: var(--cb-shadow-popover);
+}
+
+.portal-shell.dark .concept-builder .cb-page-title,
+.portal-shell.dark .concept-builder .cb-section-title,
+.portal-shell.dark .concept-builder .cb-builder-section-title {
+  color: #eef3ef;
 }

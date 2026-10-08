@@ -416,13 +416,7 @@ export default function StudiesClient({
   const confirmBusy = confirm != null && busyId != null
 
   return (
-    <div
-      style={{
-        minHeight: '100%',
-        background: 'var(--surface, var(--cream))',
-        fontFamily: 'var(--font-sans)',
-      }}
-    >
+    <div className="studies-shell" style={{ fontFamily: 'var(--font-sans)' }}>
       <div className="studies-canvas">
         <header className="studies-header">
           <div style={{ minWidth: 0 }}>
