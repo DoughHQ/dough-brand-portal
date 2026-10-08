@@ -162,17 +162,54 @@ a {
 
 }
 
-/* Dark mode — legacy portal shell */
+/* Dark mode — portal shell (.portal-shell.dark). Keep --sage-dark for rail fills. */
 .dark {
+  color-scheme: dark;
+
   --cream: #141210;
   --paper: #1c1916;
+  --surface: #141210;
   --surface-1: #242018;
-  --surface-2: #2a2520;
+  --surface-2: #2e2923;
+  --white: var(--paper);
+
   --ink: #f4f1ea;
-  --ink-80: #d8d2c8;
-  --ink-muted: rgba(244, 241, 234, 0.65);
-  --ink-faint: rgba(244, 241, 234, 0.4);
+  --ink-80: #e4ded4;
+  --ink-muted: rgba(244, 241, 234, 0.68);
+  --ink-faint: rgba(244, 241, 234, 0.45);
+  --ink-50: var(--ink-muted);
+  --ink-30: var(--ink-faint);
+  --ink-10: #3a3530;
+
+  --heading: #eef3ef;
+  --sage: #7aaf88;
+  --sage-light: #8fbf9a;
+  --sage-soft: rgba(122, 175, 136, 0.16);
   --mist: #3a3530;
-  --sage-soft: rgba(106, 158, 120, 0.14);
-  --amber-soft: rgba(192, 120, 24, 0.12);
+
+  --amber: #e0a045;
+  --amber-soft: rgba(224, 160, 69, 0.16);
+  --amber-pale: var(--amber-soft);
+  --amber-light: #e0a045;
+
+  --cta: #c8e06a;
+  --cta-ink: #1c2620;
+  --cta-hover: #d4e97f;
+
+  --bg-pro: rgba(122, 175, 136, 0.14);
+  --text-pro: #a8d0b2;
+  --fill-pro: rgba(122, 175, 136, 0.32);
+  --border-strong: rgba(244, 241, 234, 0.4);
+
+  --bg-warning: #3a2c16;
+  --text-warning: #f0c48a;
+
+  --portal-surface-muted: #1a1714;
+  --portal-border-soft: rgba(244, 241, 234, 0.1);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.28);
+  --shadow-panel: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.32);
+
+  --clay-soft: rgba(224, 120, 100, 0.16);
+  --red-pale: #3a221c;
 }

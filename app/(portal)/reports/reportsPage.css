@@ -44,7 +44,7 @@
   font-family: var(--font-serif);
   font-size: 42px;
   font-weight: 400;
-  color: var(--sage-dark);
+  color: var(--heading);
   margin: 0 0 10px;
   letter-spacing: -0.03em;
   line-height: 1.08;

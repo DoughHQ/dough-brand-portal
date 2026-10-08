@@ -46,7 +46,7 @@
   font-family: var(--font-serif, var(--font-display));
   font-size: 42px;
   font-weight: 400;
-  color: var(--sage-dark);
+  color: var(--heading);
   letter-spacing: -0.03em;
   margin: 0;
   line-height: 1.05;
@@ -129,7 +129,7 @@
   height: 48px;
   border-radius: 50%;
   background: var(--sage-soft);
-  color: var(--sage-dark);
+  color: var(--heading);
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -174,7 +174,7 @@
   height: 30px;
   border-radius: 9px;
   background: var(--sage-soft);
-  color: var(--sage-dark);
+  color: var(--heading);
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -184,7 +184,7 @@
   font-family: var(--font-serif, var(--font-display));
   font-size: 24px;
   font-weight: 400;
-  color: var(--sage-dark);
+  color: var(--heading);
   margin: 0;
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -209,7 +209,7 @@
   height: 48px;
   border-radius: 50%;
   background: var(--sage-soft);
-  color: var(--sage-dark);
+  color: var(--heading);
   display: grid;
   place-items: center;
   margin-bottom: 12px;
@@ -219,7 +219,7 @@
   font-family: var(--font-serif, var(--font-display));
   font-size: 21px;
   font-weight: 400;
-  color: var(--sage-dark);
+  color: var(--heading);
   margin: 0 0 6px;
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -306,7 +306,7 @@
   height: 32px;
   border-radius: 50%;
   background: var(--sage-soft);
-  color: var(--sage-dark);
+  color: var(--heading);
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -353,7 +353,7 @@
   text-transform: uppercase;
   padding: 0 8px;
   border-radius: 999px;
-  color: var(--sage-dark);
+  color: var(--heading);
   background: var(--sage-soft);
   flex-shrink: 0;
 }
@@ -409,7 +409,7 @@
   font-family: var(--font-serif, var(--font-display));
   font-size: 20px;
   font-weight: 400;
-  color: var(--sage-dark);
+  color: var(--heading);
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
@@ -425,7 +425,7 @@
 .studies-row-cta {
   font-size: 13px;
   font-weight: 600;
-  color: var(--sage-dark);
+  color: var(--heading);
   text-decoration: none;
   white-space: nowrap;
   background: none;
@@ -648,7 +648,7 @@
 }
 
 .studies-archive-restore:hover:not(:disabled) {
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .studies-archive-restore:disabled {
@@ -682,7 +682,7 @@
   font-family: var(--font-sans);
   font-size: 16px;
   font-weight: 600;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .checkout-desk-head p,
@@ -782,7 +782,7 @@
 .checkout-desk-done {
   margin: 0;
   font-size: 13px;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 @media (max-width: 800px) {
