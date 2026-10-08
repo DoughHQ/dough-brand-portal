@@ -79,7 +79,7 @@
   background: var(--paper);
   box-shadow: var(--shadow-card);
   padding: 8px 12px;
-  color: var(--sage-dark);
+  color: var(--heading);
   font-size: 12px;
   font-weight: 600;
 }
@@ -221,7 +221,7 @@
 
 .storyIndex a:hover {
   background: rgba(62, 107, 74, 0.04);
-  color: var(--sage-dark);
+  color: var(--heading);
   box-shadow: none;
 }
 

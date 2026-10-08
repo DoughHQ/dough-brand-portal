@@ -180,7 +180,7 @@ export function CoinFlipTrack({
   const hi =
     ciHigh != null ? Math.max(0, Math.min(100, ciHigh <= 1 ? ciHigh * 100 : ciHigh)) : null
   const fill = tone === 'own' ? 'var(--fill-pro)' : 'var(--clay-soft)'
-  const mark = tone === 'own' ? 'var(--sage-dark)' : 'var(--clay)'
+  const mark = tone === 'own' ? 'var(--sage)' : 'var(--clay)'
 
   return (
     <div className="coin-flip-track" aria-hidden>

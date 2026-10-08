@@ -78,7 +78,7 @@ export default async function ConceptStudyStatusPage({ params }: Props) {
           style={{
             display: 'inline-block',
             background: 'var(--paper)',
-            color: 'var(--sage-dark)',
+            color: 'var(--heading)',
             border: '1px solid var(--mist)',
             fontSize: 13,
             fontWeight: 500,

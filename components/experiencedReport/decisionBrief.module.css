@@ -129,7 +129,7 @@
 }
 
 .heroNumberWon {
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .heroNumberUnit {
@@ -177,7 +177,7 @@
   margin-top: 20px;
   border: 0;
   background: transparent;
-  color: var(--sage-dark);
+  color: var(--heading);
   padding: 0;
   font-size: 13px;
   font-weight: 600;
@@ -219,7 +219,7 @@
   font-weight: 400;
   line-height: 1.25;
   letter-spacing: -0.02em;
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .heroStack {
@@ -950,7 +950,7 @@
 }
 
 .h2hTable tbody tr.h2hWin td:nth-child(2) {
-  color: var(--sage-dark);
+  color: var(--heading);
   font-weight: 600;
 }
 
@@ -1015,7 +1015,7 @@
 .evidenceNote a {
   display: inline-block;
   margin-top: 8px;
-  color: var(--sage-dark);
+  color: var(--heading);
   font-size: 12px;
   font-weight: 600;
   text-decoration: none;

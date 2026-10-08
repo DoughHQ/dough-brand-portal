@@ -164,7 +164,7 @@
   padding: 10px;
   border: 1px solid var(--bh-rule, rgba(36, 61, 44, 0.12));
   border-radius: 10px;
-  background: #fffcf8;
+  background: var(--paper);
 }
 
 .bh-skel-cat-art {

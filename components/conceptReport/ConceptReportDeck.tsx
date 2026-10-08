@@ -244,7 +244,7 @@ function DeckVerdictNext({
                   fontSize: 'clamp(48px, 7vw, 72px)',
                   lineHeight: 0.95,
                   letterSpacing: '-0.04em',
-                  color: confident ? 'var(--sage-dark)' : 'var(--ink-muted)',
+                  color: confident ? 'var(--heading)' : 'var(--ink-muted)',
                 }}
               >
                 {rate != null ? Math.round(rate) : '—'}
@@ -329,7 +329,7 @@ function DeckVerdictNext({
               fontWeight: 400,
               lineHeight: 1.2,
               letterSpacing: '-0.02em',
-              color: 'var(--sage-dark)',
+              color: 'var(--heading)',
               margin: '0 0 14px',
             }}
           >
@@ -673,7 +673,7 @@ function DeckTrust({ report }: { report: ConceptMissionReport }) {
             fontFamily: 'var(--font-sans)',
             fontSize: 14,
             fontWeight: 600,
-            color: 'var(--sage-dark)',
+            color: 'var(--heading)',
             cursor: 'pointer',
             listStyle: 'none',
           }}

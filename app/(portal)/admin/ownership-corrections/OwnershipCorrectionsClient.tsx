@@ -225,7 +225,7 @@ export default function OwnershipCorrectionsClient({
             padding: '10px 14px',
             borderRadius: 8,
             background: 'var(--sage-soft, rgba(74, 103, 65, 0.12))',
-            color: 'var(--sage-dark, var(--sage))',
+            color: 'var(--heading)',
             fontSize: 13,
           }}
         >

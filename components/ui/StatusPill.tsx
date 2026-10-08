@@ -11,7 +11,7 @@ const COPY: Record<StatusPillStatus, string> = {
 const STYLES: Record<StatusPillStatus, CSSProperties> = {
   ready: {
     background: 'var(--sage-soft)',
-    color: 'var(--sage-dark)',
+    color: 'var(--heading)',
   },
   gathering: {
     background: 'var(--amber-soft)',

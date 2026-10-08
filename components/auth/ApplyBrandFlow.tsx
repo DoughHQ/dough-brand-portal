@@ -477,7 +477,7 @@ export default function ApplyBrandFlow({
                 fontWeight: 600,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                color: 'var(--sage-dark)',
+                color: 'var(--heading)',
                 marginBottom: 8,
               }}
             >

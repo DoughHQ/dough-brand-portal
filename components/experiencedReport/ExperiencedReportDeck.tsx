@@ -210,7 +210,7 @@ function DeckColdOpen({
                 fontWeight: 600,
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
-                color: 'var(--sage-dark)',
+                color: 'var(--heading)',
                 margin: '0 0 6px',
               }}
             >
@@ -422,7 +422,7 @@ function DeckField({
                         fontFamily: 'var(--font-display)',
                         fontSize: 28,
                         lineHeight: 1,
-                        color: 'var(--sage-dark)',
+                        color: 'var(--heading)',
                         fontVariantNumeric: 'tabular-nums',
                       }}
                     >
@@ -609,7 +609,7 @@ function DeckAttributeImportance({
                           ? 'var(--ink-muted)'
                           : score < 0
                             ? 'var(--clay)'
-                            : 'var(--sage-dark)',
+                            : 'var(--sage)',
                         fontVariantNumeric: 'tabular-nums',
                       }}
                     >
@@ -1045,7 +1045,7 @@ function DeckTrust({
             fontFamily: 'var(--font-sans)',
             fontSize: 13,
             fontWeight: 600,
-            color: 'var(--sage-dark)',
+            color: 'var(--heading)',
             cursor: 'pointer',
             listStyle: 'none',
           }}
@@ -1286,7 +1286,7 @@ export function ExperiencedReportDeck({
             <a
               href="/marketing/workspace/box-report"
               style={{
-                color: 'var(--sage-dark)',
+                color: 'var(--heading)',
                 fontWeight: 600,
                 textDecoration: 'none',
               }}

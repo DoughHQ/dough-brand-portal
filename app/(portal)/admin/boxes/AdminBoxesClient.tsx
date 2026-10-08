@@ -228,7 +228,7 @@ export default function AdminBoxesClient({
                 style={{
                   border: 'none',
                   background: active ? 'var(--sage-soft)' : 'transparent',
-                  color: active ? 'var(--sage-dark)' : 'var(--ink-50)',
+                  color: active ? 'var(--heading)' : 'var(--ink-50)',
                   borderRadius: 'var(--r-sm)',
                   padding: '8px 14px',
                   fontSize: 13,

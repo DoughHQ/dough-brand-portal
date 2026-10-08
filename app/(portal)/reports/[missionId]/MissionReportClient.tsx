@@ -85,7 +85,7 @@ function UnavailableState({ backHref }: { backHref: string }) {
           fontFamily: 'var(--font-display)',
           fontSize: 24,
           fontWeight: 400,
-          color: 'var(--sage-dark)',
+          color: 'var(--heading)',
           marginBottom: 'var(--space-2)',
         }}
       >
@@ -167,7 +167,7 @@ function ReportBody({ report }: { report: MissionReportRow }) {
             fontFamily: 'var(--font-sans)',
             fontSize: 15,
             fontWeight: 500,
-            color: 'var(--sage-dark)',
+            color: 'var(--heading)',
             marginBottom: 'var(--space-3)',
           }}
         >
@@ -346,7 +346,7 @@ export default function MissionReportClient({ missionId, backHref }: Props) {
                     fontFamily: 'var(--font-display)',
                     fontSize: 'clamp(26px, 5vw, 32px)',
                     fontWeight: 400,
-                    color: 'var(--sage-dark)',
+                    color: 'var(--heading)',
                     marginBottom: 6,
                     lineHeight: 1.15,
                   }}
@@ -391,7 +391,7 @@ export default function MissionReportClient({ missionId, backHref }: Props) {
                     fontFamily: 'var(--font-sans)',
                     fontSize: 13,
                     fontWeight: 500,
-                    color: 'var(--sage-dark)',
+                    color: 'var(--heading)',
                     background: 'var(--paper)',
                     border: '1px solid var(--mist)',
                     borderRadius: 'var(--radius-control)',
@@ -427,7 +427,7 @@ export default function MissionReportClient({ missionId, backHref }: Props) {
                 style={{
                   fontFamily: 'var(--font-sans)',
                   fontSize: 13,
-                  color: 'var(--sage-dark)',
+                  color: 'var(--heading)',
                   background: 'var(--sage-soft)',
                   border: '1px solid rgba(62, 107, 74, 0.2)',
                   borderRadius: 'var(--radius-control)',

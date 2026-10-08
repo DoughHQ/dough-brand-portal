@@ -1,6 +1,13 @@
 /**
  * Dough brand portal — design tokens
  * Thesis: precision instrument, not marketing dashboard.
+ *
+ * Dark-mode contract (do not violate):
+ *   --surface / --paper / --surface-1/2  → canvases & panels (remap in .dark)
+ *   --ink / --heading                    → text on canvases (remap in .dark)
+ *   --sage-dark                          → brand FILL only (rail, solid buttons). Never color:
+ *   --on-fill                            → text/icons ON sage-dark fills (always light)
+ *   --cream                              → alias of --on-fill. Never remap to the canvas.
  */
 
 :root {
@@ -12,7 +19,8 @@
   /* Always-light ink for text sitting on sage-dark fills (buttons, rail accents) */
   --on-fill: #faf8f3;
   --amber: #c07818;
-  --cream: #faf8f3;
+  /* Brand cream / on-fill alias — NEVER remap to canvas in .dark */
+  --cream: var(--on-fill);
   --ink: #1c2620;
   --clay: #a6543c;
   --mist: #e7e4db;
@@ -79,7 +87,8 @@
   --ink-50: var(--ink-muted);
   --ink-30: var(--ink-faint);
   --ink-10: var(--mist);
-  --surface: var(--cream);
+  /* Canvas — light mode tracks cream; .dark remaps --surface, not --cream */
+  --surface: #faf8f3;
   --surface-1: #f4f1ea;
   --surface-2: #ede9e1;
   --white: var(--paper);

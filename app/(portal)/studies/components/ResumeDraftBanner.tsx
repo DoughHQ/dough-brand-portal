@@ -43,7 +43,7 @@ export default function ResumeDraftBanner({
           style={{
             fontSize: 13,
             fontWeight: 600,
-            color: 'var(--sage-dark)',
+            color: 'var(--heading)',
             marginBottom: 3,
           }}
         >

@@ -49,7 +49,7 @@
   padding: 8px 12px;
   border-radius: 8px;
   background: var(--sage-soft, rgba(62, 107, 74, 0.12));
-  color: var(--sage-dark, #243d2c);
+  color: var(--heading);
   font-size: 13px;
 }
 
@@ -127,7 +127,7 @@
 
 .wis-btn--primary:hover:not(:disabled) {
   background: var(--sage-dark, #243d2c);
-  border-color: var(--sage-dark, #243d2c);
+  border-color: var(--heading);
 }
 
 .wis-btn--quiet {
@@ -408,7 +408,7 @@
 }
 
 .wis-evidence li.wis-ev--shoppers {
-  color: var(--sage-dark, #243d2c);
+  color: var(--heading);
 }
 
 .wis-evidence li.wis-ev--weak {

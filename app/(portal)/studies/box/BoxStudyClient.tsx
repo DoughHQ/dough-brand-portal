@@ -301,7 +301,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
           style={{
             marginBottom: 16,
             fontSize: 13,
-            color: 'var(--sage-dark)',
+            color: 'var(--heading)',
             background: 'var(--sage-soft)',
             border: '1px solid rgba(62, 107, 74, 0.2)',
             borderRadius: 'var(--r-md)',

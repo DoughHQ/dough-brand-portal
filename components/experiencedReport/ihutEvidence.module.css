@@ -413,7 +413,7 @@
 
 .movedUp {
   background: rgba(62, 107, 74, 0.12);
-  color: var(--sage-dark);
+  color: var(--heading);
 }
 
 .movedDown {
