@@ -54,7 +54,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--on-fill, #fff);
 }
 
 .callChip::before {
@@ -63,22 +63,22 @@
 
 .callAhead {
   background: var(--sage-dark);
-  color: #fff;
+  color: var(--on-fill, #fff);
 }
 
 .callBehind {
   background: #8a4030;
-  color: #fff;
+  color: var(--on-fill, #fff);
 }
 
 .callClose {
   background: var(--ink-muted);
-  color: #fff;
+  color: var(--on-fill, #fff);
 }
 
 .callForming {
   background: var(--ink-muted);
-  color: #fff;
+  color: var(--on-fill, #fff);
 }
 
 .bottomLineGrid {
@@ -670,7 +670,7 @@
   top: 50%;
   width: 14px;
   height: 14px;
-  border: 2.5px solid #fff;
+  border: 2.5px solid var(--on-fill, #fff);
   border-radius: 50%;
   background: var(--sage-dark);
   transform: translate(-50%, -50%);
@@ -681,7 +681,7 @@
 .forestPoint {
   width: 12px;
   height: 12px;
-  border-color: #fff;
+  border-color: var(--on-fill, #fff);
   background: var(--sage-dark);
   box-shadow: 0 0 0 2px rgba(28, 38, 32, 0.12);
 }
@@ -723,7 +723,7 @@
 
 .intervalLight .intervalPoint {
   background: var(--sage-dark);
-  border-color: #fff;
+  border-color: var(--on-fill, #fff);
   box-shadow: 0 0 0 2px rgba(28, 38, 32, 0.12);
 }
 
@@ -799,7 +799,7 @@
   appearance: none;
   border: 1px solid rgba(28, 38, 32, 0.14);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
+  background: color-mix(in srgb, var(--paper) 72%, transparent);
   color: var(--ink-80);
   padding: 10px 16px;
   font-family: inherit;
@@ -809,14 +809,14 @@
 }
 
 .tableToggleBtn:hover {
-  background: #fff;
-  border-color: rgba(28, 38, 32, 0.22);
+  background: var(--paper);
+  border-color: var(--border-strong, rgba(28, 38, 32, 0.22));
 }
 
 .h2hCallout {
   border: 1px solid rgba(28, 38, 32, 0.1);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--paper);
   padding: 18px 20px;
   box-shadow: 0 1px 0 rgba(28, 38, 32, 0.04);
 }
@@ -913,7 +913,7 @@
   overflow-x: auto;
   border: 1px solid rgba(28, 38, 32, 0.1);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--paper);
 }
 
 .h2hTable {
@@ -965,7 +965,7 @@
   gap: 24px;
   border: 1px solid rgba(28, 38, 32, 0.1);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--paper);
   padding: 24px 26px;
 }
 
@@ -1024,7 +1024,7 @@
 .emptyNote {
   border: 1px dashed rgba(28, 38, 32, 0.2);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.55);
+  background: color-mix(in srgb, var(--paper) 55%, transparent);
   padding: 22px;
 }
 

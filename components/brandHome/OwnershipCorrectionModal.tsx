@@ -126,7 +126,7 @@ export default function OwnershipCorrectionModal({
         style={{
           width: '100%',
           maxWidth: 440,
-          background: 'var(--white, #fff)',
+          background: 'var(--paper)',
           borderRadius: 12,
           border: '1px solid var(--ink-10)',
           padding: '24px 24px 20px',

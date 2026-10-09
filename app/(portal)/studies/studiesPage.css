@@ -679,7 +679,7 @@
   padding: 18px 18px 8px;
   border: 1px solid var(--mist, var(--ink-10));
   border-radius: 16px;
-  background: var(--white, #fff);
+  background: var(--paper);
 }
 
 .checkout-desk-head h2,
@@ -745,7 +745,7 @@
   font: inherit;
   font-size: 14px;
   color: inherit;
-  background: var(--white, #fff);
+  background: var(--paper);
 }
 
 .checkout-desk-waive {
