@@ -1,6 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
+import { SUPPORT_EMAIL } from '@/lib/productMaster/support'
 import './authShell.css'
 
 export const authInputStyle: CSSProperties = {
@@ -154,11 +155,11 @@ export default function AuthShell({
       </div>
 
       <div className="auth-shell__footer">
-        <a href="https://godough.co/brands" style={{ color: 'inherit', textDecoration: 'none' }}>
-          godough.co/brands
+        <a href="https://www.itsarunoff.com" style={{ color: 'inherit', textDecoration: 'none' }}>
+          itsarunoff.com
         </a>
         {' · '}
-        hello@godough.co
+        {SUPPORT_EMAIL}
       </div>
     </div>
   )

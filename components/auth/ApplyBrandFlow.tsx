@@ -10,6 +10,7 @@ import {
   type ApplicationBrandHit,
 } from '@/lib/brandApplicationFlow'
 import { safeLinkedInHref } from '@/lib/brandApplications'
+import { SUPPORT_EMAIL } from '@/lib/productMaster/support'
 import '@/components/auth/authShell.css'
 
 export type ApplyStep = 'search' | 'details' | 'booking'
@@ -491,7 +492,7 @@ export default function ApplyBrandFlow({
             </div>
           </div>
 
-          <div style={{ fontSize: 12, color: 'var(--ink-30)' }}>Questions? hello@godough.co</div>
+          <div style={{ fontSize: 12, color: 'var(--ink-30)' }}>Questions? {SUPPORT_EMAIL}</div>
 
           <div style={{ marginTop: 20 }}>
             <button

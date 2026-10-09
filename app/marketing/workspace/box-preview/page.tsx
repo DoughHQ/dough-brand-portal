@@ -1,7 +1,7 @@
 import { ExperiencedReportDeck } from '@/components/experiencedReport/ExperiencedReportDeck'
 import { marketingBoxReportEnvelope } from '@/lib/marketing/boxReportFixture'
 
-/** Cropped box report for godough.co embeds — payoff only, not the full scroll. */
+/** Cropped box report for itsarunoff.com embeds — payoff only, not the full scroll. */
 export default function MarketingWorkspaceBoxPreviewPage() {
   const envelope = marketingBoxReportEnvelope()
   if (!envelope) {

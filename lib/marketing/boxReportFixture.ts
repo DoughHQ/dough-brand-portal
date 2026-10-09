@@ -1,7 +1,7 @@
 import { parseExperiencedEnvelope } from '@/lib/experiencedReport/parse'
 import type { ExperiencedReportEnvelope } from '@/lib/experiencedReport/types'
 
-/** Simulated in-home box report for godough.co embeds. Not a client study. */
+/** Simulated in-home box report for itsarunoff.com embeds. Not a client study. */
 const MARKETING_BOX_REPORT_RAW = {
   status: 'ok',
   is_simulated: true,
