@@ -181,7 +181,7 @@ export function validateConceptTemplateConfig(
       code: 'UNRESOLVED_TEMPLATE_TOKEN',
       field: 'pack_size',
       anchor: templateFieldAnchor('pack_size'),
-      message: 'Pack size is missing (e.g. “4-pack”).',
+      message: 'Pack size is missing (e.g. “Pint”).',
     })
   }
 
