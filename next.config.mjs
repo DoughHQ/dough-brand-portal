@@ -11,7 +11,7 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "frame-ancestors 'self' https://godough.co https://www.godough.co https://*.vercel.app",
+              "frame-ancestors 'self' https://itsarunoff.com https://www.itsarunoff.com https://godough.co https://www.godough.co https://*.vercel.app",
           },
           { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
         ],
