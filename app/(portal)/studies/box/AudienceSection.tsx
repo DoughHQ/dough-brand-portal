@@ -288,7 +288,7 @@ export default function AudienceSection({ draft, onChange, error, sectionDone = 
                     flex: 1,
                     textAlign: 'left',
                     border: active ? '1px solid var(--sage)' : '1px solid var(--ink-10)',
-                    background: active ? 'var(--sage-soft)' : 'var(--white)',
+                    background: active ? 'var(--sage-soft)' : 'var(--paper)',
                     borderRadius: 'var(--r-sm)',
                     padding: '12px 14px',
                     cursor: 'pointer',
@@ -329,7 +329,7 @@ export default function AudienceSection({ draft, onChange, error, sectionDone = 
               border: '1px solid var(--ink-10)',
               borderRadius: 'var(--r-md)',
               padding: 20,
-              background: 'var(--surface-1, var(--paper))',
+              background: 'var(--surface-1)',
               maxWidth: 640,
             }}
           >
@@ -423,7 +423,7 @@ export default function AudienceSection({ draft, onChange, error, sectionDone = 
                                         : allergy
                                           ? '1px solid rgba(184, 121, 27, 0.45)'
                                           : '1px solid var(--ink-10)',
-                                      background: on ? 'var(--sage-soft)' : 'var(--white)',
+                                      background: on ? 'var(--sage-soft)' : 'var(--paper)',
                                       color: on ? 'var(--heading)' : 'var(--ink)',
                                       borderRadius: 'var(--cb-radius-pill)',
                                       padding: '8px 14px',
@@ -520,7 +520,7 @@ export default function AudienceSection({ draft, onChange, error, sectionDone = 
               border: '1px solid var(--ink-10)',
               borderRadius: 'var(--r-md)',
               padding: 20,
-              background: 'var(--surface-1, var(--paper))',
+              background: 'var(--surface-1)',
               maxWidth: 640,
             }}
           >
@@ -636,7 +636,7 @@ function InfoButton({
           height: 28,
           borderRadius: '50%',
           border: '1px solid var(--ink-10)',
-          background: open ? 'var(--sage-soft)' : 'var(--white)',
+          background: open ? 'var(--sage-soft)' : 'var(--paper)',
           color: 'var(--ink-50)',
           cursor: 'pointer',
           fontFamily: 'var(--font-serif)',
@@ -662,7 +662,7 @@ function InfoButton({
             marginTop: 8,
             width: 320,
             maxWidth: 'min(320px, 70vw)',
-            background: 'var(--white)',
+            background: 'var(--paper)',
             border: '1px solid var(--ink-10)',
             borderRadius: 'var(--r-md)',
             boxShadow: 'var(--cb-shadow-popover)',
@@ -736,7 +736,7 @@ function BarInput({
 }
 
 const card = {
-  background: 'var(--white)',
+  background: 'var(--paper)',
   border: '1px solid var(--ink-10)',
   borderRadius: 'var(--r-lg)',
   padding: 32,
@@ -829,7 +829,7 @@ const inputBase = {
   fontFamily: 'var(--font-sans)',
   fontSize: 14,
   color: 'var(--ink)',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   outline: 'none',
 }
 const groupHeading = {
@@ -844,7 +844,7 @@ const groupHeading = {
 const allergyGroup = {
   marginBottom: 16,
   padding: '12px 14px 14px',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   border: '1px solid rgba(184, 121, 27, 0.35)',
   borderRadius: 'var(--r-md)',
 }

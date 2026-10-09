@@ -182,7 +182,7 @@ export default function AdminBoxesClient({
             alignItems: 'center',
             gap: 8,
             background: 'var(--sage)',
-            color: 'var(--white)',
+            color: 'var(--on-fill)',
             border: 'none',
             borderRadius: 'var(--r-sm)',
             padding: '10px 16px',
@@ -263,7 +263,7 @@ export default function AdminBoxesClient({
             padding: '48px 24px',
             border: '1px dashed var(--ink-10)',
             borderRadius: 'var(--r-lg)',
-            background: 'var(--white)',
+            background: 'var(--paper)',
             color: 'var(--ink-50)',
             fontSize: 14,
           }}
@@ -276,7 +276,7 @@ export default function AdminBoxesClient({
             border: '1px solid var(--ink-10)',
             borderRadius: 'var(--r-lg)',
             overflow: 'hidden',
-            background: 'var(--white)',
+            background: 'var(--paper)',
           }}
         >
           <div

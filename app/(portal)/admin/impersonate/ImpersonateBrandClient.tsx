@@ -132,7 +132,7 @@ export default function ImpersonateBrandClient({
             padding: '12px 16px',
             borderRadius: 8,
             border: '1px solid var(--ink-10)',
-            background: 'var(--white)',
+            background: 'var(--paper)',
             fontSize: 15,
             color: 'var(--ink)',
             fontFamily: 'var(--font-sans)',
@@ -175,7 +175,7 @@ export default function ImpersonateBrandClient({
 
       <div
         style={{
-          background: 'var(--white)',
+          background: 'var(--paper)',
           border: '1px solid var(--ink-10)',
           borderRadius: 12,
           overflow: 'hidden',

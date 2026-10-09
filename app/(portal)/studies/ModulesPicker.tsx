@@ -54,7 +54,7 @@ export default function ModulesPicker({
               margin: 0,
               padding: '14px 16px',
               border: on ? '1px solid var(--sage)' : '1px solid var(--ink-10)',
-              background: on ? 'var(--sage-soft)' : 'var(--white)',
+              background: on ? 'var(--sage-soft)' : 'var(--paper)',
               borderRadius: 'var(--r-md)',
               cursor: disabled ? 'default' : 'pointer',
               opacity: disabled ? 0.6 : 1,

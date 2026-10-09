@@ -813,7 +813,7 @@ export default function ProductMasterClient({
               textDecoration: 'none',
               background: 'var(--sage)',
               borderColor: 'var(--sage)',
-              color: '#fff',
+              color: 'var(--on-fill, #fff)',
             }}
           >
             {isAdmin ? 'Review in Corrections →' : 'Follow in Corrections →'}
@@ -849,7 +849,7 @@ export default function ProductMasterClient({
                 textDecoration: 'none',
                 background: 'var(--sage)',
                 borderColor: 'var(--sage)',
-                color: '#fff',
+                color: 'var(--on-fill, #fff)',
               }}
             >
               {isAdmin ? 'Review in Corrections →' : 'Follow in Corrections →'}
@@ -1089,7 +1089,7 @@ export default function ProductMasterClient({
                   textDecoration: 'none',
                   background: 'var(--sage)',
                   borderColor: 'var(--sage)',
-                  color: '#fff',
+                  color: 'var(--on-fill, #fff)',
                 }}
               >
                 {isAdmin ? 'Review category in Corrections →' : 'Follow category in Corrections →'}
@@ -1157,7 +1157,7 @@ export default function ProductMasterClient({
                           key={c.product_id}
                           style={{
                             fontSize: 13,
-                            background: 'var(--white)',
+                            background: 'var(--paper)',
                             border: '1px solid var(--ink-10)',
                             borderRadius: 4,
                             padding: '4px 8px',

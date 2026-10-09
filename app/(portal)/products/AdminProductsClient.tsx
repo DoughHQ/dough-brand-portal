@@ -94,7 +94,7 @@ export default function AdminProductsClient({ portalUser, categoryStats, milesto
               padding: '12px 16px',
               borderRadius: 'var(--r-sm)',
               border: '1px solid var(--ink-10)',
-              background: 'var(--white)',
+              background: 'var(--paper)',
               fontSize: 14,
               color: 'var(--ink)',
               fontFamily: 'var(--font-sans)',
@@ -122,7 +122,7 @@ export default function AdminProductsClient({ portalUser, categoryStats, milesto
                 padding: '12px 12px',
                 borderRadius: 'var(--r-sm)',
                 border: '1px solid var(--ink-10)',
-                background: 'var(--white)',
+                background: 'var(--paper)',
                 fontSize: 14,
                 color: 'var(--ink)',
                 fontFamily: 'var(--font-sans)',
@@ -153,7 +153,7 @@ export default function AdminProductsClient({ portalUser, categoryStats, milesto
         {(searchResults.length > 0 || searching) && (
           <div style={{
             marginTop: 8,
-            background: 'var(--white)',
+            background: 'var(--paper)',
             border: '1px solid var(--ink-10)',
             borderRadius: 'var(--r-md)',
             overflow: 'hidden',
@@ -264,7 +264,7 @@ export default function AdminProductsClient({ portalUser, categoryStats, milesto
             Categories with battle data
           </div>
           <div style={{
-            background: 'var(--white)',
+            background: 'var(--paper)',
             border: '1px solid var(--ink-10)',
             borderRadius: 'var(--r-lg)',
             overflow: 'hidden',
@@ -346,7 +346,7 @@ export default function AdminProductsClient({ portalUser, categoryStats, milesto
             Milestone alerts
           </div>
           <div style={{
-            background: 'var(--white)',
+            background: 'var(--paper)',
             border: '1px solid var(--ink-10)',
             borderRadius: 'var(--r-lg)',
             overflow: 'hidden',

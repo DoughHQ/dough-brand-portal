@@ -31,7 +31,7 @@ const panelStyle: CSSProperties = {
   marginTop: 4,
   padding: 0,
   listStyle: 'none',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   border: '1px solid var(--ink-10)',
   borderRadius: 'var(--cb-radius-card)',
   boxShadow: 'var(--cb-shadow-popover)',

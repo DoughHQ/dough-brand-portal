@@ -27,7 +27,7 @@ const inputStyle: CSSProperties = {
   border: '1px solid var(--ink-10)',
   fontSize: 13,
   fontFamily: 'var(--font-sans)',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   color: 'var(--ink)',
 }
 
@@ -77,7 +77,7 @@ export default function ControlBar({
         position: 'sticky',
         top: 0,
         zIndex: 40,
-        background: 'var(--white)',
+        background: 'var(--paper)',
         borderBottom: '1px solid var(--ink-10)',
         padding: '12px 32px',
       }}
@@ -143,7 +143,7 @@ export default function ControlBar({
                 fontWeight: mode === m ? 600 : 400,
                 fontFamily: 'var(--font-sans)',
                 cursor: scopeId ? 'pointer' : 'default',
-                background: mode === m ? 'var(--white)' : 'transparent',
+                background: mode === m ? 'var(--paper)' : 'transparent',
                 color: mode === m ? 'var(--ink)' : 'var(--ink-50)',
                 boxShadow: mode === m ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 textTransform: 'capitalize',

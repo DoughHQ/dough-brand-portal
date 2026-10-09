@@ -84,7 +84,7 @@ export default function RevisionTimeline({ revisions }: Props) {
         style={{
           border: '1px solid var(--ink-10)',
           borderRadius: 12,
-          background: 'var(--white)',
+          background: 'var(--paper)',
           overflow: 'hidden',
         }}
       >
@@ -199,7 +199,7 @@ const emptyBox: CSSProperties = {
   padding: 24,
   borderRadius: 12,
   border: '1px solid var(--ink-10)',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   fontSize: 14,
   color: 'var(--ink-30)',
   textAlign: 'center',

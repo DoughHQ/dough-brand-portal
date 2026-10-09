@@ -251,7 +251,7 @@ function ChipGroup({
               aria-pressed={on}
               style={{
                 ...chip,
-                background: on ? 'var(--sage-soft)' : 'var(--white)',
+                background: on ? 'var(--sage-soft)' : 'var(--paper)',
                 borderColor: on ? 'var(--sage)' : 'var(--ink-10)',
                 color: on ? 'var(--ink-80)' : 'var(--ink-50)',
                 fontWeight: on ? 600 : 500,

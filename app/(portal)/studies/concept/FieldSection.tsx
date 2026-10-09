@@ -173,8 +173,8 @@ export default function FieldSection({
                     style={{
                       border: 'none',
                       borderRight: isLast ? 'none' : '1px solid var(--ink-10)',
-                      background: active ? 'var(--sage)' : 'var(--white)',
-                      color: active ? 'var(--white)' : 'var(--ink-50)',
+                      background: active ? 'var(--sage)' : 'var(--paper)',
+                      color: active ? 'var(--on-fill)' : 'var(--ink-50)',
                       fontFamily: 'var(--font-sans)',
                       fontSize: 13,
                       fontWeight: active ? 600 : 500,

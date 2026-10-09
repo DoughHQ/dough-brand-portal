@@ -114,7 +114,7 @@ export default function BoxPrototypePickSlot({ taken, onPick, onCancel }: Props)
         border: '1px solid var(--ink-10)',
         borderRadius: 'var(--r-md)',
         padding: 14,
-        background: 'var(--white)',
+        background: 'var(--paper)',
       }}
     >
       <div
@@ -191,7 +191,7 @@ export default function BoxPrototypePickSlot({ taken, onPick, onCancel }: Props)
                     border: '1px solid var(--ink-10)',
                     borderRadius: 10,
                     padding: '10px 12px',
-                    background: isTaken ? 'var(--surface-1)' : 'var(--white)',
+                    background: isTaken ? 'var(--surface-1)' : 'var(--paper)',
                     cursor: isTaken ? 'not-allowed' : 'pointer',
                     opacity: isTaken ? 0.55 : 1,
                   }}

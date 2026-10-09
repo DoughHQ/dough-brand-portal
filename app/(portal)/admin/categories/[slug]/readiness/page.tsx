@@ -33,7 +33,7 @@ function ParentRow({ row }: { row: ReadinessRow }) {
   return (
     <div
       style={{
-        background: 'var(--white)',
+        background: 'var(--paper)',
         border: '1px solid var(--ink-10)',
         borderRadius: 12,
         padding: '18px 20px',

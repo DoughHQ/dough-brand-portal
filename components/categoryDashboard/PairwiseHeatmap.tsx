@@ -169,7 +169,7 @@ function ComponentGrid({
                         width: cell,
                         height: cell,
                         padding: 0,
-                        background: p == null ? 'var(--white)' : cellFill(p),
+                        background: p == null ? 'var(--paper)' : cellFill(p),
                         border: implied
                           ? '1px dashed rgba(36, 61, 44, 0.45)'
                           : '1px solid var(--ink-10)',

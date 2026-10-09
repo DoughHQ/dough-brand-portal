@@ -349,7 +349,7 @@ export default function BrandApplicationsClient({
       {rows.length === 0 ? (
         <div
           style={{
-            background: 'var(--white)',
+            background: 'var(--paper)',
             border: '1px solid var(--ink-10)',
             borderRadius: 12,
             padding: '48px 32px',
@@ -385,7 +385,7 @@ export default function BrandApplicationsClient({
               <article
                 key={row.waitlist_id}
                 style={{
-                  background: 'var(--white)',
+                  background: 'var(--paper)',
                   border: `1px solid ${
                     row.already_claimed
                       ? 'rgba(192,120,24,0.45)'

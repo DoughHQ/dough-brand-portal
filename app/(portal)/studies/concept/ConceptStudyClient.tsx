@@ -468,7 +468,7 @@ export default function ConceptStudyClient({
         >
           <div
             style={{
-              background: 'var(--white)',
+              background: 'var(--paper)',
               borderRadius: 'var(--r-lg)',
               maxWidth: 440,
               width: '100%',
@@ -503,7 +503,7 @@ export default function ConceptStudyClient({
                 }}
                 style={{
                   border: '1px solid var(--ink-10)',
-                  background: 'var(--white)',
+                  background: 'var(--paper)',
                   color: 'var(--ink)',
                   fontFamily: 'var(--font-sans)',
                   fontSize: 13,
@@ -525,7 +525,7 @@ export default function ConceptStudyClient({
                 style={{
                   border: 'none',
                   background: 'var(--sage)',
-                  color: 'var(--white)',
+                  color: 'var(--on-fill)',
                   fontFamily: 'var(--font-sans)',
                   fontSize: 13,
                   fontWeight: 600,

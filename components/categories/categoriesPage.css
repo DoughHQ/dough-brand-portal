@@ -116,7 +116,7 @@
   gap: 14px;
   min-height: 100px;
   padding: 18px 20px;
-  background: var(--paper, var(--white));
+  background: var(--paper);
   border: 1px solid var(--portal-border-soft, var(--mist));
   border-radius: var(--radius-panel, 14px);
   box-shadow: var(--shadow-card);
@@ -189,7 +189,7 @@
   grid-template-columns: minmax(200px, 28%) 1fr;
   min-height: 188px;
   max-height: 210px;
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid var(--mist);
   border-radius: 14px;
   overflow: hidden;
@@ -376,7 +376,7 @@ button.cat-primary-cta:not(.portal-btn):hover {
 .cat-tile {
   display: flex;
   flex-direction: column;
-  background: var(--paper, var(--white));
+  background: var(--paper);
   border: 1px solid var(--portal-border-soft, var(--mist));
   border-radius: var(--radius-panel, 14px);
   overflow: hidden;
@@ -547,7 +547,7 @@ a.cat-tile:hover .cat-tile-btn-outline {
   /* WebKit type=search paints white unless appearance is reset */
   -webkit-appearance: none;
   appearance: none;
-  background: var(--surface-1, var(--white));
+  background: var(--surface-1);
   color: var(--ink);
   outline: none;
 }
@@ -558,7 +558,7 @@ a.cat-tile:hover .cat-tile-btn-outline {
 }
 
 .cat-browse-empty {
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid var(--mist);
   border-radius: 13px;
   padding: 28px 24px;
@@ -674,7 +674,7 @@ a.cat-tile:hover .cat-tile-btn-outline {
   align-items: center;
   gap: 16px;
   padding: 14px 16px;
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid var(--mist);
   border-radius: 13px;
   min-width: 0;
@@ -821,7 +821,7 @@ a.cat-locked-product:hover .cat-locked-product-chev {
   gap: 24px;
   margin-top: 28px;
   padding: 22px 24px;
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid var(--mist);
   border-radius: 13px;
 }

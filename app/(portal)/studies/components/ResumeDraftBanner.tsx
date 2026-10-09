@@ -89,7 +89,7 @@ export default function ResumeDraftBanner({
           style={{
             border: 'none',
             background: 'var(--sage)',
-            color: 'var(--white, #fff)',
+            color: 'var(--on-fill, #fff)',
             cursor: busy ? 'default' : 'pointer',
             fontFamily: 'var(--font-sans)',
             fontSize: 13,

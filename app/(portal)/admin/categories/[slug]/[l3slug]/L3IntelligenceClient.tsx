@@ -132,7 +132,7 @@ export default function L3IntelligenceClient({ l2Name, l3Name, products }: Props
           { label: 'Data coverage', value: `${meaningfulPct}%` },
         ].map(s => (
           <div key={s.label} style={{
-            background: 'var(--white)',
+            background: 'var(--paper)',
             border: '1px solid var(--ink-10)',
             borderRadius: 'var(--r-md)',
             padding: '16px 18px',
@@ -146,7 +146,7 @@ export default function L3IntelligenceClient({ l2Name, l3Name, products }: Props
       </div>
 
       <div style={{
-        background: 'var(--white)',
+        background: 'var(--paper)',
         border: '1px solid var(--ink-10)',
         borderRadius: 'var(--r-lg)',
         padding: '20px 24px',
@@ -266,7 +266,7 @@ export default function L3IntelligenceClient({ l2Name, l3Name, products }: Props
                     fontSize: 12,
                     fontWeight: sort === key ? 500 : 400,
                     color: sort === key ? 'var(--ink)' : 'var(--ink-50)',
-                    background: sort === key ? 'var(--white)' : 'transparent',
+                    background: sort === key ? 'var(--paper)' : 'transparent',
                     border: 'none',
                     cursor: 'pointer',
                     fontFamily: 'var(--font-sans)',
@@ -281,7 +281,7 @@ export default function L3IntelligenceClient({ l2Name, l3Name, products }: Props
         </div>
 
         <div style={{
-          background: 'var(--white)',
+          background: 'var(--paper)',
           border: '1px solid var(--ink-10)',
           borderRadius: 'var(--r-lg)',
           overflow: 'hidden',

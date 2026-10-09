@@ -63,7 +63,7 @@ export default async function ConceptStudyStatusPage({ params }: Props) {
             style={{
               display: 'inline-block',
               background: 'var(--sage)',
-              color: 'var(--white)',
+              color: 'var(--on-fill)',
               fontSize: 13,
               fontWeight: 600,
               padding: '10px 18px',

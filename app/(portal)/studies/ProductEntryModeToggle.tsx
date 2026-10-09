@@ -31,8 +31,8 @@ export default function ProductEntryModeToggle({ mode, onChange }: Props) {
             onClick={() => onChange(value)}
             style={{
               border: 'none',
-              background: active ? 'var(--ink-80)' : 'var(--white)',
-              color: active ? 'var(--white)' : 'var(--ink-50)',
+              background: active ? 'var(--ink-80)' : 'var(--paper)',
+              color: active ? 'var(--on-fill)' : 'var(--ink-50)',
               fontFamily: 'var(--font-sans)',
               fontSize: 12,
               fontWeight: 600,

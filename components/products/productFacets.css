@@ -185,7 +185,7 @@
   padding: 8px 10px;
   border: 1px solid var(--mist);
   border-radius: 8px;
-  background: var(--white);
+  background: var(--paper);
 }
 
 .pf-actions {
@@ -288,7 +288,7 @@
   margin: 0 0 12px;
   padding: 14px 16px 14px 14px;
   border-radius: 14px;
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid rgba(62, 107, 74, 0.14);
   box-shadow: inset 4px 0 0 var(--sage-dark, #243d2c);
 }
@@ -429,7 +429,7 @@
 .pf-known {
   padding: 16px 16px 14px;
   border-radius: 12px;
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid var(--mist, #e7e4db);
   transition: border-color 140ms ease;
 }
@@ -499,7 +499,7 @@
 .pf-claim {
   padding: 16px;
   border-radius: 12px;
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid var(--mist);
 }
 
@@ -563,7 +563,7 @@
 .pf-add-list {
   border: 1px solid var(--mist);
   border-radius: 12px;
-  background: var(--white);
+  background: var(--paper);
   overflow: hidden;
 }
 
@@ -715,7 +715,7 @@
   padding: 10px 12px;
   border: 1px solid var(--mist);
   border-radius: 9px;
-  background: var(--surface-1, var(--paper));
+  background: var(--surface-1);
 }
 
 .pf-control:focus {
@@ -751,7 +751,7 @@
   max-height: 240px;
   overflow: auto;
   list-style: none;
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid var(--mist);
   border-radius: 10px;
   box-shadow: 0 12px 32px rgba(36, 61, 44, 0.12);
@@ -848,7 +848,7 @@
 .pf-note {
   padding: 12px 14px;
   border-radius: 12px;
-  background: var(--surface-1, var(--paper));
+  background: var(--surface-1);
   border: 1px solid rgba(62, 107, 74, 0.1);
   transition:
     border-color 160ms ease,
@@ -968,7 +968,7 @@
   padding: 14px;
   border: 1px solid rgba(62, 107, 74, 0.18);
   border-radius: 12px;
-  background: var(--white);
+  background: var(--paper);
   box-shadow: inset 3px 0 0 var(--sage-dark, #243d2c);
 }
 
@@ -1008,7 +1008,7 @@
   padding: 10px 12px;
   border: 1px solid var(--mist);
   border-radius: 10px;
-  background: var(--surface-1, var(--paper));
+  background: var(--surface-1);
   resize: vertical;
   min-height: 64px;
   line-height: 1.4;

@@ -154,7 +154,7 @@ export default function TaxonomyMultiSelect({ value, onChange }: Props) {
               border: '1px solid var(--ink-10)',
               borderRadius: 8,
               padding: '8px 10px',
-              background: 'var(--white)',
+              background: 'var(--paper)',
             }}
           >
             {l3Children.map((c) => (
@@ -215,7 +215,7 @@ export default function TaxonomyMultiSelect({ value, onChange }: Props) {
               borderRadius: 8,
               maxHeight: 200,
               overflow: 'auto',
-              background: 'var(--white)',
+              background: 'var(--paper)',
             }}
           >
             {searching && hits.length === 0 && (
@@ -339,7 +339,7 @@ const inputStyle: CSSProperties = {
   fontSize: 14,
   fontFamily: 'var(--font-sans)',
   color: 'var(--ink)',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   boxSizing: 'border-box',
 }
 

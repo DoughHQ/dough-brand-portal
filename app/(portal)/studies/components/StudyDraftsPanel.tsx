@@ -172,7 +172,7 @@ export default function StudyDraftsPanel({
                     borderRadius: 8,
                     border: '1px solid var(--mist, var(--ink-10))',
                     color: 'var(--ink)',
-                    background: 'var(--surface-1, var(--paper))',
+                    background: 'var(--surface-1)',
                   }}
                 />
                 <button
@@ -267,7 +267,7 @@ const quietGhost: CSSProperties = {
 const quietPrimary: CSSProperties = {
   border: 'none',
   background: 'var(--sage)',
-  color: 'var(--white, #fff)',
+  color: 'var(--on-fill, #fff)',
   cursor: 'pointer',
   fontFamily: 'var(--font-sans)',
   fontSize: 13,

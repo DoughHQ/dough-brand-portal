@@ -208,13 +208,13 @@ export default function BoxDetailClient({ initialDetail, loadError }: Props) {
                       background: blocked
                         ? 'var(--surface-1)'
                         : destructive
-                          ? 'var(--white)'
+                          ? 'var(--paper)'
                           : 'var(--sage)',
                       color: blocked
                         ? 'var(--ink-30)'
                         : destructive
                           ? 'var(--red)'
-                          : 'var(--white)',
+                          : 'var(--paper)',
                       borderRadius: 'var(--r-sm)',
                       padding: '10px 16px',
                       fontSize: 13,
@@ -460,7 +460,7 @@ const backLink: CSSProperties = {
   marginBottom: 16,
 }
 const card: CSSProperties = {
-  background: 'var(--white)',
+  background: 'var(--paper)',
   border: '1px solid var(--ink-10)',
   borderRadius: 'var(--r-lg)',
   padding: 24,
@@ -736,7 +736,7 @@ function FulfillmentPanel({
                       }}
                       style={{
                         ...miniBtn(false),
-                        background: 'var(--white)',
+                        background: 'var(--paper)',
                         color: 'var(--ink-50)',
                         border: '1px solid var(--ink-10)',
                       }}
@@ -802,8 +802,8 @@ function FulfillmentPanel({
 function miniBtn(danger: boolean): CSSProperties {
   return {
     border: danger ? '1px solid var(--red)' : 'none',
-    background: danger ? 'var(--white)' : 'var(--sage)',
-    color: danger ? 'var(--red)' : 'var(--white)',
+    background: danger ? 'var(--paper)' : 'var(--sage)',
+    color: danger ? 'var(--red)' : 'var(--on-fill)',
     borderRadius: 'var(--r-sm)',
     padding: '7px 12px',
     fontSize: 12,

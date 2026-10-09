@@ -95,7 +95,7 @@ export default function ModelDrawer({
   return (
     <section
       style={{
-        background: 'var(--white)',
+        background: 'var(--paper)',
         border: '1px solid var(--ink-10)',
         borderRadius: 12,
         marginBottom: 28,

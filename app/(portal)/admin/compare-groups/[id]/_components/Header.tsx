@@ -114,7 +114,7 @@ const secondaryBtn: CSSProperties = {
   padding: '9px 14px',
   borderRadius: 6,
   border: '1px solid var(--ink-10)',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   color: 'var(--ink)',
   fontSize: 14,
   fontWeight: 500,

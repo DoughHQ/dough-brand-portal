@@ -138,7 +138,7 @@ export default function NodesPanel({ detail, metrics }: Props) {
                             ? 'rgba(28,38,32,0.04)'
                             : hasData
                               ? sageTint(stats?.node_win_rate, isFavorite ? 1.15 : 1)
-                              : 'var(--white)',
+                              : 'var(--paper)',
                           opacity: noData ? 0.72 : 1,
                           minWidth: 120,
                           maxWidth: 220,
@@ -206,7 +206,7 @@ const emptyBox: CSSProperties = {
   padding: 24,
   borderRadius: 12,
   border: '1px solid var(--ink-10)',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   fontSize: 14,
   color: 'var(--ink-30)',
   textAlign: 'center',

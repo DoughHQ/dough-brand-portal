@@ -166,7 +166,7 @@ export default function CreateCompareGroupForm() {
           padding: 16,
           border: '1px solid var(--ink-10)',
           borderRadius: 12,
-          background: 'var(--white)',
+          background: 'var(--paper)',
           marginBottom: 20,
         }}
       >
@@ -183,7 +183,7 @@ export default function CreateCompareGroupForm() {
           borderRadius: 6,
           border: 'none',
           background: 'var(--sage)',
-          color: '#fff',
+          color: 'var(--on-fill, #fff)',
           fontSize: 14,
           fontWeight: 500,
           cursor: saving ? 'wait' : 'pointer',
@@ -215,6 +215,6 @@ const inputStyle: CSSProperties = {
   fontSize: 14,
   fontFamily: 'var(--font-sans)',
   color: 'var(--ink)',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   boxSizing: 'border-box',
 }

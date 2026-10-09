@@ -8,7 +8,7 @@ const cardBase: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   gap: 16,
-  background: 'var(--paper, var(--white))',
+  background: 'var(--paper)',
   border: '1px solid var(--mist, var(--ink-10))',
   borderRadius: 12,
   padding: '28px 24px',
@@ -37,7 +37,7 @@ function ChoiceCard({
       style={{
         ...cardBase,
         borderColor: hovered ? 'var(--sage)' : 'var(--mist, var(--ink-10))',
-        background: hovered ? 'var(--sage-soft, var(--paper))' : 'var(--paper, var(--white))',
+        background: hovered ? 'var(--sage-soft, var(--paper))' : 'var(--paper)',
         boxShadow: hovered ? '0 4px 16px rgba(36, 61, 44, 0.06)' : 'none',
       }}
       onMouseEnter={() => setHovered(true)}

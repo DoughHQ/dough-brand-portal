@@ -124,7 +124,7 @@
   gap: 14px;
   height: 102px;
   padding: 16px 20px;
-  background: var(--paper, var(--white));
+  background: var(--paper);
   border: 1px solid var(--portal-border-soft, var(--mist));
   border-radius: var(--radius-panel, 14px);
   box-shadow: var(--shadow-card);
@@ -203,7 +203,7 @@
   justify-content: center;
   min-height: 196px;
   padding: 28px 28px 32px;
-  background: var(--paper, var(--white));
+  background: var(--paper);
   border: 1px dashed var(--mist);
   border-radius: 13px;
   text-align: center;
@@ -254,7 +254,7 @@
 }
 
 .studies-list {
-  background: var(--paper, var(--white));
+  background: var(--paper);
   border: 1px solid var(--portal-border-soft, var(--mist));
   border-radius: var(--radius-panel, 14px);
   overflow: hidden;
@@ -509,7 +509,7 @@
 }
 
 .studies-archive-card {
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid var(--mist);
   border-radius: 13px;
   overflow: hidden;
