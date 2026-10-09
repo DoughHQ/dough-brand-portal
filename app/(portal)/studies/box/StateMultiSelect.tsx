@@ -208,7 +208,7 @@ const fieldShell = {
   border: '1px solid var(--ink-10)',
   borderRadius: 'var(--r-sm)',
   padding: '6px 10px',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   cursor: 'text',
 }
 
@@ -237,7 +237,7 @@ const dropdown = {
   margin: 0,
   padding: '4px 0',
   listStyle: 'none',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   border: '1px solid var(--ink-10)',
   borderRadius: 'var(--r-md)',
   boxShadow: 'var(--cb-shadow-popover)',

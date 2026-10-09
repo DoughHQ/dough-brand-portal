@@ -13,7 +13,7 @@ export const pageShell: CSSProperties = {
 }
 
 export const sectionCard: CSSProperties = {
-  background: 'var(--white)',
+  background: 'var(--paper)',
   border: '1px solid var(--ink-10)',
   borderRadius: 'var(--r-lg)',
   padding: 32,
@@ -59,7 +59,7 @@ export const inputBase: CSSProperties = {
   fontFamily: 'var(--font-sans)',
   fontSize: 14,
   color: 'var(--ink)',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   outline: 'none',
 }
 
@@ -153,7 +153,7 @@ export const fieldCard: CSSProperties = {
   border: '1px solid var(--ink-10)',
   borderRadius: 'var(--r-lg)',
   padding: 24,
-  background: 'var(--white)',
+  background: 'var(--paper)',
   marginBottom: 12,
   boxShadow: 'none',
   cursor: 'grab',

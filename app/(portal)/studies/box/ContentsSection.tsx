@@ -318,7 +318,7 @@ export default function ContentsSection({
             border: '1px dashed var(--ink-10)',
             borderRadius: 'var(--r-md)',
             padding: 14,
-            background: isEmpty ? 'var(--white)' : 'var(--surface-1)',
+            background: isEmpty ? 'var(--paper)' : 'var(--surface-1)',
           }}
         >
           <div
@@ -374,7 +374,7 @@ export default function ContentsSection({
             border: '1px dashed var(--ink-10)',
             borderRadius: 'var(--r-md)',
             padding: 14,
-            background: isEmpty ? 'var(--white)' : 'var(--surface-1)',
+            background: isEmpty ? 'var(--paper)' : 'var(--surface-1)',
           }}
         >
           <div

@@ -166,7 +166,7 @@
 
 .tx-rail__btn--active .tx-rail__letter {
   background: var(--sage);
-  color: #fff;
+  color: var(--on-fill, #fff);
 }
 
 .tx-rail__meta {
@@ -743,7 +743,7 @@
 .tx-btn--primary {
   background: var(--sage);
   border-color: var(--sage);
-  color: #fff;
+  color: var(--on-fill, #fff);
 }
 
 .tx-btn--primary:hover:not(:disabled) {

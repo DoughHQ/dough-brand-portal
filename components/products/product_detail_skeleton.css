@@ -13,7 +13,7 @@
   align-items: center;
   margin-bottom: 20px;
   padding: 28px 32px;
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid var(--ink-10);
   border-radius: 12px;
 }

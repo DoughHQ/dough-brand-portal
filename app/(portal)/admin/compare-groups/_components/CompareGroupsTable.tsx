@@ -56,7 +56,7 @@ function chipStyle(active: boolean): CSSProperties {
     padding: '6px 12px',
     borderRadius: 999,
     border: active ? '1px solid var(--sage)' : '1px solid var(--ink-10)',
-    background: active ? 'var(--sage-pale, #eef5f0)' : 'var(--white)',
+    background: active ? 'var(--sage-pale, #eef5f0)' : 'var(--paper)',
     color: active ? 'var(--sage)' : 'var(--ink-50)',
     fontSize: 13,
     fontWeight: active ? 500 : 400,
@@ -326,7 +326,7 @@ export default function CompareGroupsTable({
 
       <div
         style={{
-          background: 'var(--white)',
+          background: 'var(--paper)',
           border: '1px solid var(--ink-10)',
           borderRadius: 12,
           overflow: 'hidden',

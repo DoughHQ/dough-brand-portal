@@ -91,6 +91,7 @@
   --surface: #faf8f3;
   --surface-1: #f4f1ea;
   --surface-2: #ede9e1;
+  /* Prefer --paper (canvas) or --on-fill (ink on fills). */
   --white: var(--paper);
   --red: #b83a24;
   --red-pale: #fceee9;

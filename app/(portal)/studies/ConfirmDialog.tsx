@@ -65,7 +65,7 @@ export default function ConfirmDialog({
   const card: CSSProperties = {
     width: '100%',
     maxWidth: 420,
-    background: 'var(--white)',
+    background: 'var(--paper)',
     borderRadius: 'var(--r-md)',
     border: t.border,
     padding: '22px 24px',
@@ -104,7 +104,7 @@ export default function ConfirmDialog({
             onClick={onCancel}
             style={{
               border: '1px solid var(--ink-10)',
-              background: 'var(--white)',
+              background: 'var(--paper)',
               color: 'var(--ink-50)',
               borderRadius: 'var(--r-sm)',
               padding: '9px 14px',

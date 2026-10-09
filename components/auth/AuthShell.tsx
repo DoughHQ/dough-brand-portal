@@ -8,7 +8,7 @@ export const authInputStyle: CSSProperties = {
   padding: '14px 16px',
   borderRadius: 12,
   border: '1px solid rgba(28, 38, 32, 0.14)',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   fontSize: 16,
   color: 'var(--ink)',
   fontFamily: 'var(--font-sans)',

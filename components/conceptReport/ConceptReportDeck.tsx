@@ -211,7 +211,7 @@ function DeckVerdictNext({
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
                   background: confident ? 'var(--sage-dark)' : 'var(--ink-muted)',
-                  color: '#fff',
+                  color: 'var(--on-fill, #fff)',
                   padding: '3px 7px',
                   borderRadius: 4,
                 }}

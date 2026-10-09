@@ -52,7 +52,7 @@ export default function EditConceptStudyPage() {
             marginTop: 16,
             border: 'none',
             background: 'var(--sage)',
-            color: 'var(--white)',
+            color: 'var(--on-fill)',
             fontFamily: 'var(--font-sans)',
             fontSize: 13,
             fontWeight: 600,

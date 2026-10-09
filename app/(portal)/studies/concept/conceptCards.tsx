@@ -59,7 +59,7 @@ export function QCard({
         borderRadius: 'var(--r-md)',
         padding: '20px 20px 18px',
         marginBottom: 14,
-        background: locked ? 'var(--surface-1)' : 'var(--white)',
+        background: locked ? 'var(--surface-1)' : 'var(--paper)',
       }}
     >
       <div
@@ -131,14 +131,14 @@ export function Chip({
   const styles: Record<string, CSSProperties> = {
     default: {
       border: selected ? '1.5px solid var(--sage)' : '1px solid var(--ink-10)',
-      background: selected ? 'var(--sage)' : 'var(--white)',
-      color: selected ? 'var(--white)' : 'var(--ink)',
+      background: selected ? 'var(--sage)' : 'var(--paper)',
+      color: selected ? 'var(--on-fill)' : 'var(--ink)',
       fontWeight: selected ? 600 : 500,
     },
     sage: {
       border: '1.5px solid var(--sage)',
       background: 'var(--sage)',
-      color: 'var(--white)',
+      color: 'var(--on-fill)',
       fontWeight: 600,
     },
     amber: {
@@ -294,7 +294,7 @@ export function ExpectedPriceCard({
           maxWidth: 200,
           border: '1px solid var(--ink-10)',
           borderRadius: 'var(--r-sm)',
-          background: 'var(--white)',
+          background: 'var(--paper)',
           overflow: 'hidden',
         }}
       >

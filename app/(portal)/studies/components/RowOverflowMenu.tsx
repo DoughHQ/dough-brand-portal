@@ -135,7 +135,7 @@ export default function RowOverflowMenu({
             left: pos?.left ?? 0,
             visibility: pos ? 'visible' : 'hidden',
             minWidth: MIN_WIDTH,
-            background: 'var(--white)',
+            background: 'var(--paper)',
             border: '1px solid var(--ink-10)',
             borderRadius: 'var(--r-md)',
             boxShadow: '0 8px 24px rgba(36, 61, 44, 0.08)',

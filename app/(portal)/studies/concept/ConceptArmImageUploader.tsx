@@ -178,7 +178,7 @@ export default function ConceptArmImageUploader({
                     ? '1px solid var(--cb-sage)'
                     : 'var(--cb-border-dashed)',
                   borderRadius: 'var(--r-sm)',
-                  background: dragOver ? 'var(--cb-sage-hover)' : 'var(--white)',
+                  background: dragOver ? 'var(--cb-sage-hover)' : 'var(--paper)',
                   padding: 12,
                   cursor: disabled || uploading ? 'not-allowed' : 'pointer',
                   opacity: disabled ? 0.55 : 1,
@@ -273,7 +273,7 @@ export default function ConceptArmImageUploader({
               width: 40,
               height: 40,
               borderRadius: 'var(--cb-radius-media)',
-              background: 'var(--white)',
+              background: 'var(--paper)',
               border: '1px solid var(--ink-10)',
               overflow: 'hidden',
               flexShrink: 0,

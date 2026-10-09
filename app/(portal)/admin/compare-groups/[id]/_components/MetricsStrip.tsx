@@ -95,7 +95,7 @@ const cardStyle: CSSProperties = {
   padding: '14px 16px',
   borderRadius: 10,
   border: '1px solid var(--ink-10)',
-  background: 'var(--white)',
+  background: 'var(--paper)',
 }
 
 const cardLabel: CSSProperties = {

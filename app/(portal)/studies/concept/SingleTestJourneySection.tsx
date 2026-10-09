@@ -449,7 +449,7 @@ export default function SingleTestJourneySection({
                       padding: '10px 12px',
                       borderRadius: 'var(--r-sm)',
                       border: `1px solid ${active ? 'var(--sage)' : 'var(--ink-10)'}`,
-                      background: active ? 'var(--sage-soft)' : 'var(--white)',
+                      background: active ? 'var(--sage-soft)' : 'var(--paper)',
                       cursor: 'pointer',
                       opacity: usingCustom ? 0.45 : 1,
                     }}

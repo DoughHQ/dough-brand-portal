@@ -119,7 +119,7 @@ function OwnedEmpty() {
   return (
     <div
       style={{
-        background: 'var(--white)',
+        background: 'var(--paper)',
         border: '1px solid var(--mist)',
         borderRadius: 13,
         padding: '32px 28px 28px',
@@ -300,7 +300,7 @@ export default function CategoryLauncher({
     return (
       <div
         style={{
-          background: 'var(--white)',
+          background: 'var(--paper)',
           border: '1px solid var(--mist)',
           borderRadius: 13,
           padding: '28px',
@@ -391,7 +391,7 @@ export default function CategoryLauncher({
         {hasProducts.length === 0 ? (
           <div
             style={{
-              background: 'var(--white)',
+              background: 'var(--paper)',
               border: '1px solid var(--mist)',
               borderRadius: 13,
               padding: '28px 24px',

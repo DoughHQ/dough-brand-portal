@@ -324,7 +324,7 @@ export default function MethodSection({
           marginTop: 28,
           padding: '16px 18px',
           border: day2On ? '1px solid var(--sage)' : '1px solid var(--ink-10)',
-          background: day2On ? 'var(--sage-soft)' : 'var(--white)',
+          background: day2On ? 'var(--sage-soft)' : 'var(--paper)',
           borderRadius: 'var(--r-md)',
           maxWidth: 640,
         }}
@@ -498,7 +498,7 @@ function AttributeEditor({
                 padding: '8px 12px',
                 borderRadius: 'var(--r-sm)',
                 border: `1px solid ${on ? 'var(--sage)' : 'var(--ink-10)'}`,
-                background: on ? 'var(--sage-soft)' : 'var(--white)',
+                background: on ? 'var(--sage-soft)' : 'var(--paper)',
                 fontSize: 13,
                 fontWeight: on ? 600 : 500,
                 color: on ? 'var(--heading)' : 'var(--ink-80)',

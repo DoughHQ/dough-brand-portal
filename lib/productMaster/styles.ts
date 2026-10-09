@@ -13,7 +13,7 @@ export const pageShell: CSSProperties = {
 }
 
 export const card: CSSProperties = {
-  background: 'var(--white)',
+  background: 'var(--paper)',
   border: '1px solid var(--ink-10)',
   borderRadius: 12,
   padding: '28px 32px',
@@ -111,7 +111,7 @@ export const button: CSSProperties = {
   padding: '8px 16px',
   borderRadius: 6,
   border: '1px solid var(--ink-10)',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   color: 'var(--ink)',
   cursor: 'pointer',
 }
@@ -120,7 +120,7 @@ export const buttonPrimary: CSSProperties = {
   ...button,
   background: 'var(--sage)',
   borderColor: 'var(--sage)',
-  color: '#fff',
+  color: 'var(--on-fill, #fff)',
 }
 
 export const hairline: CSSProperties = {
@@ -173,11 +173,11 @@ export const inputStyle: CSSProperties = {
   lineHeight: 1.5,
   color: 'var(--ink)',
   boxSizing: 'border-box',
-  background: 'var(--white)',
+  background: 'var(--paper)',
 }
 
 export const panel: CSSProperties = {
-  background: 'var(--white)',
+  background: 'var(--paper)',
   border: '1px solid var(--ink-10)',
   borderRadius: 12,
   padding: '24px 26px',

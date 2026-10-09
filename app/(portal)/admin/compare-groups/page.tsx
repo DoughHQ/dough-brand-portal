@@ -91,7 +91,7 @@ export default async function CompareGroupsPage({
             padding: '10px 16px',
             borderRadius: 6,
             background: 'var(--sage)',
-            color: '#fff',
+            color: 'var(--on-fill, #fff)',
             fontSize: 14,
             fontWeight: 500,
             textDecoration: 'none',

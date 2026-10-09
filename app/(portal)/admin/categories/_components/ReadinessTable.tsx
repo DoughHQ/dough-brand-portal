@@ -32,7 +32,7 @@ const STATUS_STYLE: Record<
   building: {
     label: 'Building',
     color: 'var(--ink-50)',
-    bg: 'var(--white)',
+    bg: 'var(--paper)',
     border: 'var(--ink-10)',
   },
   approaching: {
@@ -54,7 +54,7 @@ function chipStyle(active: boolean): CSSProperties {
     padding: '6px 12px',
     borderRadius: 999,
     border: active ? '1px solid var(--sage)' : '1px solid var(--ink-10)',
-    background: active ? 'var(--sage-pale, #eef5f0)' : 'var(--white)',
+    background: active ? 'var(--sage-pale, #eef5f0)' : 'var(--paper)',
     color: active ? 'var(--sage)' : 'var(--ink-50)',
     fontSize: 13,
     fontWeight: active ? 500 : 400,
@@ -276,7 +276,7 @@ export default function ReadinessTable(props: Props) {
           <div
             key={key}
             style={{
-              background: 'var(--white)',
+              background: 'var(--paper)',
               border: '1px solid var(--ink-10)',
               borderRadius: 10,
               padding: '14px 16px',
@@ -371,7 +371,7 @@ export default function ReadinessTable(props: Props) {
             fontSize: 14,
             fontFamily: 'var(--font-sans)',
             boxSizing: 'border-box',
-            background: 'var(--white)',
+            background: 'var(--paper)',
             color: 'var(--ink)',
           }}
         />
@@ -383,7 +383,7 @@ export default function ReadinessTable(props: Props) {
 
       <div
         style={{
-          background: 'var(--white)',
+          background: 'var(--paper)',
           border: '1px solid var(--ink-10)',
           borderRadius: 12,
           overflow: 'auto',

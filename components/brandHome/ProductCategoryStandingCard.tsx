@@ -42,7 +42,7 @@ function EmptyStanding({ productCount }: { productCount: number }) {
   return (
     <div
       style={{
-        background: 'var(--white)',
+        background: 'var(--paper)',
         border: '1px solid var(--ink-10)',
         borderRadius: 12,
         padding: '28px 28px 24px',
@@ -165,7 +165,7 @@ function PopulatedStanding({ data }: { data: BrandProductCategoryStanding }) {
   return (
     <div
       style={{
-        background: 'var(--white)',
+        background: 'var(--paper)',
         border: '1px solid var(--ink-10)',
         borderRadius: 12,
         padding: '28px 28px 20px',
@@ -292,7 +292,7 @@ export default function ProductCategoryStandingCard({
     return (
       <div
         style={{
-          background: 'var(--white)',
+          background: 'var(--paper)',
           border: '1px solid var(--ink-10)',
           borderRadius: 12,
           padding: '28px',
@@ -308,7 +308,7 @@ export default function ProductCategoryStandingCard({
     return (
       <div
         style={{
-          background: 'var(--white)',
+          background: 'var(--paper)',
           border: '1px solid var(--ink-10)',
           borderRadius: 12,
           padding: '28px 28px 24px',

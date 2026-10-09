@@ -99,7 +99,7 @@ export default function ProductTable({ metrics }: Props) {
       ) : (
         <div
           style={{
-            background: 'var(--white)',
+            background: 'var(--paper)',
             border: '1px solid var(--ink-10)',
             borderRadius: 12,
             overflow: 'hidden',
@@ -221,7 +221,7 @@ const emptyBox: CSSProperties = {
   padding: 24,
   borderRadius: 12,
   border: '1px solid var(--ink-10)',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   fontSize: 14,
   color: 'var(--ink-30)',
   textAlign: 'center',

@@ -115,7 +115,7 @@ export default function CategoryIntelligenceClient({
           { label: 'Avg win rate', value: `${avgWinRate}%` },
         ].map(stat => (
           <div key={stat.label} style={{
-            background: 'var(--white)',
+            background: 'var(--paper)',
             border: '1px solid var(--ink-10)',
             borderRadius: 'var(--r-md)',
             padding: '16px 18px',
@@ -134,7 +134,7 @@ export default function CategoryIntelligenceClient({
             Sub-categories
           </div>
           <div style={{
-            background: 'var(--white)',
+            background: 'var(--paper)',
             border: '1px solid var(--ink-10)',
             borderRadius: 'var(--r-lg)',
             overflow: 'hidden',
@@ -229,7 +229,7 @@ export default function CategoryIntelligenceClient({
                   fontSize: 12,
                   fontWeight: sort === key ? 500 : 400,
                   color: sort === key ? 'var(--ink)' : 'var(--ink-50)',
-                  background: sort === key ? 'var(--white)' : 'transparent',
+                  background: sort === key ? 'var(--paper)' : 'transparent',
                   border: 'none',
                   cursor: 'pointer',
                   fontFamily: 'var(--font-sans)',
@@ -243,7 +243,7 @@ export default function CategoryIntelligenceClient({
         </div>
 
         <div style={{
-          background: 'var(--white)',
+          background: 'var(--paper)',
           border: '1px solid var(--ink-10)',
           borderRadius: 'var(--r-lg)',
           overflow: 'hidden',

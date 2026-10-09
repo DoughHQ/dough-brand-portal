@@ -75,6 +75,18 @@ if [[ -n "$HITS" ]]; then
   FAIL=1
 fi
 
+# 7) --white is a legacy alias. Call sites must use --paper (canvas) or --on-fill
+# (ink on fills). Definitions may remain in tokens / globals / conceptBuilder.
+HITS=$(rg -n --glob '*.{css,module.css,tsx,ts}' -g '!node_modules' \
+  -g '!**/tokens.css' -g '!**/globals.css' -g '!**/conceptBuilder.css' \
+  'var\(--white' \
+  "$ROOT" || true)
+if [[ -n "$HITS" ]]; then
+  echo "$HITS"
+  echo "BAN FAIL: var(--white) at call site — use --paper (canvas) or --on-fill (on fills)"
+  FAIL=1
+fi
+
 if [[ "$FAIL" -ne 0 ]]; then
   echo "check-dark-mode-token-ban: FAILED"
   exit 1

@@ -246,7 +246,7 @@ export default function OwnershipCorrectionModal({
                       overflow: 'auto',
                       border: '1px solid var(--ink-10)',
                       borderRadius: 6,
-                      background: 'var(--white)',
+                      background: 'var(--paper)',
                     }}
                   >
                     {filtered.length === 0 ? (

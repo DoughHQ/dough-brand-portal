@@ -202,7 +202,7 @@ export default function BoxProductSearchSlot({
           fontFamily: 'var(--font-sans)',
           fontSize: 14,
           color: 'var(--ink)',
-          background: 'var(--white)',
+          background: 'var(--paper)',
           outline: 'none',
         }}
       />

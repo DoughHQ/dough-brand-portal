@@ -29,7 +29,7 @@ export default function ScopeToggle({ current }: { current: CompareGroupScope })
         border: '1px solid var(--ink-10)',
         borderRadius: 8,
         overflow: 'hidden',
-        background: 'var(--white)',
+        background: 'var(--paper)',
       }}
     >
       {OPTIONS.map((o) => {

@@ -79,7 +79,7 @@ export default function ManageNodesPanel({ id, detail, onClose, onError }: Props
         padding: 20,
         borderRadius: 12,
         border: '1px solid var(--ink-10)',
-        background: 'var(--white)',
+        background: 'var(--paper)',
       }}
     >
       <div
@@ -165,7 +165,7 @@ export default function ManageNodesPanel({ id, detail, onClose, onError }: Props
               borderRadius: 6,
               border: 'none',
               background: 'var(--sage)',
-              color: '#fff',
+              color: 'var(--on-fill, #fff)',
               fontSize: 14,
               fontWeight: 500,
               cursor: saving ? 'wait' : 'pointer',
@@ -183,7 +183,7 @@ export default function ManageNodesPanel({ id, detail, onClose, onError }: Props
               padding: '10px 16px',
               borderRadius: 6,
               border: '1px solid var(--ink-10)',
-              background: 'var(--white)',
+              background: 'var(--paper)',
               color: 'var(--ink-50)',
               fontSize: 14,
               cursor: 'pointer',

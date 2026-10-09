@@ -251,7 +251,7 @@ export default function OwnershipCorrectionsClient({
       {rows.length === 0 ? (
         <div
           style={{
-            background: 'var(--white)',
+            background: 'var(--paper)',
             border: '1px solid var(--ink-10)',
             borderRadius: 12,
             padding: '48px 32px',
@@ -284,7 +284,7 @@ export default function OwnershipCorrectionsClient({
               <article
                 key={row.correction_id}
                 style={{
-                  background: 'var(--white)',
+                  background: 'var(--paper)',
                   border: `1px solid ${row.snapshot_is_stale ? 'rgba(192,120,24,0.45)' : 'var(--ink-10)'}`,
                   borderRadius: 12,
                   padding: '20px 22px',
@@ -527,7 +527,7 @@ export default function OwnershipCorrectionsClient({
                   padding: '10px 18px',
                   borderRadius: 8,
                   border: '1px solid var(--ink-10)',
-                  background: 'var(--white)',
+                  background: 'var(--paper)',
                   fontSize: 13,
                   fontWeight: 500,
                   cursor: loadingMore ? 'wait' : 'pointer',

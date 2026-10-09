@@ -93,7 +93,7 @@
 }
 
 .reports-skel-card {
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid var(--mist, var(--ink-10));
   border-radius: 12px;
   padding: 20px;

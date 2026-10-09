@@ -169,7 +169,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
         <div style={{ height:52, borderBottom:'1px solid var(--ink-10)', display:'flex', alignItems:'center', padding:'0 0', gap:16, background:'transparent', marginBottom: 16 }}>
           <div style={{ display:'flex', alignItems:'center', background:'var(--surface-1)', borderRadius:'var(--r-sm)', padding:3, gap:1 }}>
             {(['7d','30d','90d','all'] as Period[]).map(p => (
-              <button key={p} onClick={() => setPeriod(p)} style={{ padding:'4px 12px', borderRadius:4, fontSize:12, fontWeight:period===p?500:400, color:period===p?'var(--ink)':'var(--ink-50)', background:period===p?'var(--white)':'transparent', boxShadow:period===p?'0 1px 3px rgba(0,0,0,0.08)':'none', cursor:'pointer', fontFamily:'var(--font-sans)', border:'none' }}>
+              <button key={p} onClick={() => setPeriod(p)} style={{ padding:'4px 12px', borderRadius:4, fontSize:12, fontWeight:period===p?500:400, color:period===p?'var(--ink)':'var(--ink-50)', background:period===p?'var(--on-fill)':'transparent', boxShadow:period===p?'0 1px 3px rgba(0,0,0,0.08)':'none', cursor:'pointer', fontFamily:'var(--font-sans)', border:'none' }}>
                 {p === 'all' ? 'All time' : p}
               </button>
             ))}
@@ -192,7 +192,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
                 Your categories on Dough
               </div>
               <div style={{
-                background: 'var(--white)',
+                background: 'var(--paper)',
                 border: '1px solid var(--ink-10)',
                 borderRadius: 'var(--r-lg)',
                 overflow: 'hidden',
@@ -355,7 +355,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
                                 alignItems: 'center',
                                 cursor: 'pointer',
                               }}
-                              onMouseEnter={e => (e.currentTarget.style.background = 'var(--white)')}
+                              onMouseEnter={e => (e.currentTarget.style.background = 'var(--paper)')}
                               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                               onClick={() => { window.location.href = `/products/${prod.product_id}` }}
                             >
@@ -465,7 +465,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:16 }}>
 
-              <div onClick={() => setExpandedCard(expandedCard==='wr'?null:'wr')} style={{ background:'var(--white)', borderRadius:'var(--r-lg)', border:`1px solid ${expandedCard==='wr'?'var(--ink-30)':'var(--ink-10)'}`, padding:20, cursor:'pointer' }}>
+              <div onClick={() => setExpandedCard(expandedCard==='wr'?null:'wr')} style={{ background:'var(--paper)', borderRadius:'var(--r-lg)', border:`1px solid ${expandedCard==='wr'?'var(--ink-30)':'var(--ink-10)'}`, padding:20, cursor:'pointer' }}>
                 <div style={{ fontSize:10, fontWeight:500, letterSpacing:'1.3px', textTransform:'uppercase', color:'var(--ink-30)', marginBottom:6 }}>Head-to-Head</div>
                 <div style={{ fontFamily:'var(--font-serif)', fontSize:14, fontWeight:500, color:'var(--ink)', lineHeight:1.4, marginBottom:16 }}>
                   {(snapshot?.win_rate_30d??0)>0.55?`${brand.brand_name} wins more often than it loses.`:`${brand.brand_name} is in a competitive position.`}
@@ -485,7 +485,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
                 <div style={{ fontSize:11, color:'var(--ink-30)', marginTop:12 }}>{expandedCard==='wr'?'↑ Collapse':'↕ Click to expand'}</div>
               </div>
 
-              <div style={{ background:'var(--white)', borderRadius:'var(--r-lg)', border:'1px solid var(--ink-10)', padding:20 }}>
+              <div style={{ background:'var(--paper)', borderRadius:'var(--r-lg)', border:'1px solid var(--ink-10)', padding:20 }}>
                 <div style={{ fontSize:10, fontWeight:500, letterSpacing:'1.3px', textTransform:'uppercase', color:'var(--ink-30)', marginBottom:6 }}>When They Choose You</div>
                 <div style={{ fontFamily:'var(--font-serif)', fontSize:14, fontWeight:500, color:'var(--ink)', lineHeight:1.4, marginBottom:16 }}>
                   {snapshot?.top_occasions?.[0]?`Strongest in ${snapshot.top_occasions[0].name.toLowerCase()} occasions.`:'Occasion data building up.'}
@@ -514,7 +514,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
 
           <div>
             <div style={{ fontFamily:'var(--font-serif)', fontSize:16, fontWeight:500, color:'var(--ink)', marginBottom:12 }}>Your products</div>
-            <div style={{ background:'var(--white)', borderRadius:'var(--r-lg)', border:'1px solid var(--ink-10)', overflow:'hidden' }}>
+            <div style={{ background:'var(--paper)', borderRadius:'var(--r-lg)', border:'1px solid var(--ink-10)', overflow:'hidden' }}>
               <div style={{ padding:'18px 20px 16px', borderBottom:'1px solid var(--ink-10)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                 <div>
                   <div style={{ fontFamily:'var(--font-serif)', fontSize:15, fontWeight:500, color:'var(--ink)' }}>Active SKUs on Dough</div>

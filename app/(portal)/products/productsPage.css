@@ -23,7 +23,7 @@
   font-family: var(--font-sans);
   font-weight: 400;
   color: var(--ink-50);
-  background: var(--surface-1, var(--white));
+  background: var(--surface-1);
   border: 1px solid var(--mist);
   cursor: pointer;
   white-space: nowrap;
@@ -58,11 +58,11 @@
 
 .prod-view-btn-on {
   color: var(--heading);
-  background: var(--white);
+  background: var(--paper);
 }
 
 .prod-list {
-  background: var(--paper, var(--white));
+  background: var(--paper);
   border: 1px solid var(--portal-border-soft, var(--mist));
   border-radius: var(--radius-panel, 14px);
   overflow: hidden;
@@ -242,7 +242,7 @@
     gap: 14px;
     min-height: 72px;
     padding: 12px 14px;
-    background: var(--white);
+    background: var(--paper);
     border: 1px solid var(--mist);
     border-radius: 14px;
     text-decoration: none;

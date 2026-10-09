@@ -82,11 +82,11 @@
   padding: 6px 10px;
   border: 1px solid var(--ink-10);
   border-radius: 999px;
-  background: var(--white);
+  background: var(--paper);
 }
 
 .corr-empty {
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid var(--ink-10);
   border-radius: var(--r-md);
   padding: 56px 24px;
@@ -124,7 +124,7 @@
 }
 
 .corr-rail {
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid var(--ink-10);
   border-radius: var(--r-lg);
   overflow: hidden;
@@ -279,7 +279,7 @@
 }
 
 .corr-case {
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid var(--ink-10);
   border-radius: var(--r-lg);
   overflow: hidden;
@@ -323,7 +323,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   background: rgba(28, 38, 32, 0.7);
-  color: #fff;
+  color: var(--on-fill, #fff);
   padding: 4px 8px;
   border-radius: 4px;
 }
@@ -466,7 +466,7 @@
   flex: 1;
   border: none;
   background: var(--sage);
-  color: #fff;
+  color: var(--on-fill, #fff);
 }
 
 .corr-btn-primary:disabled {
@@ -639,7 +639,7 @@ a.corr-btn {
   color: var(--sage);
   padding: 5px 8px;
   border-radius: 999px;
-  background: var(--white);
+  background: var(--paper);
   border: 1px solid rgba(62, 107, 74, 0.22);
 }
 
@@ -703,7 +703,7 @@ a.corr-btn {
   font-size: 13px;
   font-family: var(--font-sans);
   color: var(--ink);
-  background: var(--white);
+  background: var(--paper);
 }
 
 .corr-editor-textarea {
@@ -754,7 +754,7 @@ a.corr-btn {
   padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid var(--ink-10);
-  background: var(--white);
+  background: var(--paper);
   cursor: pointer;
   font-size: 13px;
   color: var(--ink);
@@ -809,7 +809,7 @@ a.corr-btn {
   cursor: pointer;
   font-family: var(--font-sans);
   border: 1px solid var(--ink-10);
-  background: var(--white);
+  background: var(--paper);
   color: var(--ink-50);
 }
 

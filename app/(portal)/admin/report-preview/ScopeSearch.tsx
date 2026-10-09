@@ -35,7 +35,7 @@ const inputStyle: CSSProperties = {
   border: '1px solid var(--ink-10)',
   fontSize: 13,
   fontFamily: 'var(--font-sans)',
-  background: 'var(--white)',
+  background: 'var(--paper)',
   color: 'var(--ink)',
   width: 280,
 }
@@ -272,7 +272,7 @@ export default function ScopeSearch({ scope, scopeId, scopeName, onSelect, onCle
             listStyle: 'none',
             padding: 0,
             margin: 0,
-            background: 'var(--white)',
+            background: 'var(--paper)',
             border: '1px solid var(--ink-10)',
             borderRadius: 8,
             boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
