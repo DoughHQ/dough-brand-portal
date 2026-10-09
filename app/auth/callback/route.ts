@@ -1,14 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-
-/** Only allow internal relative paths — prevents open redirects */
-function safeNextPath(raw: string | null): string {
-  if (!raw) return '/dashboard'
-  if (!raw.startsWith('/') || raw.startsWith('//')) return '/dashboard'
-  if (raw.includes('://')) return '/dashboard'
-  return raw
-}
+import { safeNextPath } from '@/lib/auth/safeNextPath'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
