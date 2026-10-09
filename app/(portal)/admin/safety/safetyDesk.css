@@ -57,7 +57,7 @@
   border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
   border-radius: 12px;
   overflow: hidden;
-  background: var(--surface, #fff);
+  background: var(--surface);
 }
 
 .safety-queue-item {
@@ -152,7 +152,7 @@
   border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
   border-radius: 12px;
   padding: 24px;
-  background: var(--surface, #fff);
+  background: var(--surface);
   min-height: 420px;
 }
 
@@ -241,8 +241,8 @@
 
 .safety-btn {
   appearance: none;
-  border: 1px solid var(--line, rgba(0, 0, 0, 0.12));
-  background: #fff;
+  border: 1px solid var(--mist, var(--line, rgba(0, 0, 0, 0.12)));
+  background: var(--paper);
   color: var(--ink);
   font: inherit;
   font-size: 14px;
@@ -260,13 +260,13 @@
 .safety-btn.is-primary {
   background: var(--sage, #2f6b54);
   border-color: transparent;
-  color: #fff;
+  color: var(--on-fill, #fff);
 }
 
 .safety-btn.is-danger {
   background: #9f1239;
   border-color: transparent;
-  color: #fff;
+  color: var(--on-fill, #fff);
 }
 
 .safety-note {
@@ -276,7 +276,9 @@
   font-size: 14px;
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid var(--line, rgba(0, 0, 0, 0.12));
+  border: 1px solid var(--mist, var(--line, rgba(0, 0, 0, 0.12)));
+  background: var(--paper);
+  color: var(--ink);
   resize: vertical;
   margin-top: 8px;
 }

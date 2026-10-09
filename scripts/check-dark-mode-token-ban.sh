@@ -62,6 +62,19 @@ if [[ -n "$HITS" ]]; then
   FAIL=1
 fi
 
+# 6) Bare background:#fff locks light chrome. Exempt: print sheets (globals,
+# reportStory), previewRunner (respondent phone stays light), tokens.css.
+HITS=$(rg -n --glob '*.{css,module.css,tsx,ts}' -g '!node_modules' \
+  -g '!**/previewRunner.css' -g '!**/tokens.css' \
+  -g '!**/globals.css' -g '!**/reportStory.module.css' \
+  'background:\s*#fff(\s*!important)?\s*;' \
+  "$ROOT" || true)
+if [[ -n "$HITS" ]]; then
+  echo "$HITS"
+  echo "BAN FAIL: bare background:#fff — use var(--paper) (print + previewRunner exempt)"
+  FAIL=1
+fi
+
 if [[ "$FAIL" -ne 0 ]]; then
   echo "check-dark-mode-token-ban: FAILED"
   exit 1

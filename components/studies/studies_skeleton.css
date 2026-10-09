@@ -27,7 +27,7 @@
 }
 
 .studies-skel-kpi {
-  background: var(--white, #fff);
+  background: var(--paper);
   border: 1px solid var(--mist, #e7e4db);
   border-radius: 12px;
   padding: 16px 18px;
@@ -82,7 +82,7 @@
 }
 
 .studies-skel-list {
-  background: var(--white, #fff);
+  background: var(--paper);
   border: 1px solid var(--mist, #e7e4db);
   border-radius: 13px;
   overflow: hidden;
