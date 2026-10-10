@@ -35,7 +35,7 @@ export function ImagesTab({
           <ProposalBadge types={pendingFields} match="images" />
         </SectionHeading>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
-          {master.images.map((img) => (
+          {master.images.filter((img) => img.public_url?.trim()).map((img) => (
             <div key={img.product_image_id} style={{ width: 100, textAlign: 'center' }}>
               <div
                 style={{

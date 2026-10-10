@@ -285,7 +285,7 @@ export default function BrandCorrectionsClient({
               related={related}
               canReviewInOps={canReviewInOps}
               onOpenRelated={(row) => dispatch({ type: 'openRelated', row })}
-              onExpandEvidence={() => setExpandedImg(focused.evidence_image_url)}
+              onExpandEvidence={() => setExpandedImg(focused.evidence_preview_url)}
             />
           ) : null}
         </div>
@@ -324,7 +324,7 @@ function StatusStage({
   const copy = brandClaimCopy(row)
   const age = waitingAge(row.created_at, nowMs)
   const path = formatCategoryPath(row.current_category_path)
-  const hasEvidence = Boolean(row.evidence_image_url)
+  const hasEvidence = Boolean(row.evidence_preview_url)
   const showDiff = Boolean(row.current_category && row.proposed_category_label)
 
   return (
@@ -375,7 +375,7 @@ function StatusStage({
               onClick={onExpandEvidence}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={row.evidence_image_url!} alt="Submitted evidence" />
+              <img src={row.evidence_preview_url!} alt="Submitted evidence" />
             </button>
           ) : null}
 

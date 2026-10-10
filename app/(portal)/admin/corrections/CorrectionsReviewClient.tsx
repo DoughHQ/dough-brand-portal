@@ -499,7 +499,7 @@ export default function CorrectionsReviewClient({
               onExtract={() => void handleExtract(focused.id)}
               onOpenEditor={() => setEditorOpenId(focused.id)}
               onCloseEditor={() => setEditorOpenId(null)}
-              onExpandEvidence={() => setExpandedImg(focused.evidence_image_url)}
+              onExpandEvidence={() => setExpandedImg(focused.evidence_preview_url)}
               onPickReject={(chip) => {
                 setRejectChipById((prev) => ({ ...prev, [focused.id]: chip }))
                 setError(null)
@@ -589,7 +589,7 @@ function CaseStage({
     correctionType: row.correction_type,
   })
   const brandSib = relatedBrandClaim(related)
-  const hasEvidence = Boolean(row.evidence_image_url)
+  const hasEvidence = Boolean(row.evidence_preview_url)
   const applyLabel =
     mode === 'confirm'
       ? `Apply “${proposedApplyLabel(row)}”`
@@ -677,7 +677,7 @@ function CaseStage({
               onClick={onExpandEvidence}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={row.evidence_image_url!} alt="Submitted evidence" />
+              <img src={row.evidence_preview_url!} alt="Submitted evidence" />
             </button>
           ) : null}
 
