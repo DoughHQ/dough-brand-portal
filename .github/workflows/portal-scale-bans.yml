@@ -38,3 +38,4 @@ jobs:
       - run: npm run check:page-root-containment-ban
       - run: npm run check:dark-mode-ban
       - run: npx vitest run lib/brandHome/__tests__
+      - run: npx vitest run lib/productMaster lib/__tests__/productDetailTabs.test.ts
