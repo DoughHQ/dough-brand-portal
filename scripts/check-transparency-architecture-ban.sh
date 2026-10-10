@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Keeps shared transparency presentation rules centralized and OperationsSheet orchestration-only.
+# Keeps shared transparency presentation rules centralized and sheet modules orchestration-only.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TRANSPARENCY="$ROOT/components/transparency"
 OPERATIONS="$TRANSPARENCY/OperationsSheet.tsx"
+RIGHTS="$TRANSPARENCY/RightsSheet.tsx"
 FAIL=0
 
 for REQUIRED in \
@@ -64,6 +65,51 @@ fi
 OPERATIONS_LINES="$(wc -l < "$OPERATIONS" | tr -d ' ')"
 if (( OPERATIONS_LINES > 350 )); then
   echo "BAN FAIL: OperationsSheet grew past its 350-line orchestration budget ($OPERATIONS_LINES)"
+  FAIL=1
+fi
+
+for REQUIRED in \
+  "$TRANSPARENCY/rights/types.ts" \
+  "$TRANSPARENCY/rights/helpers.ts"; do
+  if [[ ! -f "$REQUIRED" ]]; then
+    echo "BAN FAIL: missing RightsSheet support module"
+    echo "  ${REQUIRED#"$ROOT/"}"
+    FAIL=1
+  fi
+done
+
+for EDITOR in \
+  ProvenanceFields \
+  LivingEditor \
+  LaborEditor \
+  DiligenceEditor \
+  SupplierEditor \
+  SingleEnumCard \
+  SingleTextCard; do
+  if [[ ! -f "$TRANSPARENCY/rights/$EDITOR.tsx" ]]; then
+    echo "BAN FAIL: missing extracted RightsSheet editor: $EDITOR"
+    FAIL=1
+  fi
+  case "$EDITOR" in
+    ProvenanceFields) ;;
+    *)
+      if ! rg -q "rights/$EDITOR'" "$RIGHTS"; then
+        echo "BAN FAIL: RightsSheet must import extracted editor: $EDITOR"
+        FAIL=1
+      fi
+      ;;
+  esac
+done
+
+if rg -n '\b(function|const|class) (ProvenanceFields|LivingEditor|LaborEditor|DiligenceEditor|SupplierEditor|SingleEnumCard|SingleTextCard)\b' \
+  "$RIGHTS" >/dev/null 2>&1; then
+  echo "BAN FAIL: RightsSheet must remain an orchestration shell"
+  FAIL=1
+fi
+
+RIGHTS_LINES="$(wc -l < "$RIGHTS" | tr -d ' ')"
+if (( RIGHTS_LINES > 300 )); then
+  echo "BAN FAIL: RightsSheet grew past its 300-line orchestration budget ($RIGHTS_LINES)"
   FAIL=1
 fi
 
