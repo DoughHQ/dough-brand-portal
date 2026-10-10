@@ -3,7 +3,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import RightsSheet, { type RightsLocalRow } from '../../RightsSheet'
+import RightsSheet, {
+  RIGHTS_LABOR_CODES,
+  RIGHTS_LIVING_CODES,
+  RIGHTS_DILIGENCE_CODES,
+  type RightsLocalRow,
+} from '../../RightsSheet'
 import {
   blankDraft,
   type DisclosureDraft,
@@ -68,6 +73,7 @@ describe('RightsSheet bundled editors', () => {
     const laborRow = localRow(laborField, 'labor-row', { valueText: 'standard_a' })
     const scopeRow = localRow(scopeField, 'scope-row', { valueText: 'standard_b' })
     const onChange = vi.fn()
+    const onSaveBundle = vi.fn()
 
     render(
       <RightsSheet
@@ -85,7 +91,7 @@ describe('RightsSheet bundled editors', () => {
         errors={{}}
         onChange={onChange}
         onSaveRow={vi.fn()}
-        onSaveBundle={vi.fn()}
+        onSaveBundle={onSaveBundle}
       />
     )
 
@@ -122,6 +128,9 @@ describe('RightsSheet bundled editors', () => {
       'scope-row',
       expect.objectContaining({ published: true })
     )
+
+    await user.click(screen.getByRole('button', { name: 'Save labor code' }))
+    expect(onSaveBundle).toHaveBeenCalledWith(RIGHTS_LABOR_CODES, 'rights-labor')
   })
 
   it('normalizes supplier coverage as a percentage disclosure', () => {
@@ -162,6 +171,97 @@ describe('RightsSheet bundled editors', () => {
         valueUnit: 'percent',
       })
     )
+  })
+
+  it('preserves Living and Diligence edits, error clearing, and bundle keys', async () => {
+    const user = userEvent.setup()
+    const welfareField = enumField('animal_welfare_standard')
+    const antibioticField = enumField('antibiotic_hormone_policy')
+    const diligenceField = enumField('forced_labor_due_diligence')
+    const geoField = enumField('high_risk_geography_policy')
+    const remediationField = enumField('remediation_commitment')
+    const onChange = vi.fn()
+    const onSaveBundle = vi.fn()
+    const onClearStoryError = vi.fn()
+
+    render(
+      <RightsSheet
+        fieldsByCode={{
+          animal_welfare_standard: welfareField,
+          antibiotic_hormone_policy: antibioticField,
+          forced_labor_due_diligence: diligenceField,
+          high_risk_geography_policy: geoField,
+          remediation_commitment: remediationField,
+        }}
+        rowsByCode={{
+          animal_welfare_standard: [
+            localRow(welfareField, 'welfare-row', { valueText: 'standard_a' }),
+          ],
+          antibiotic_hormone_policy: [
+            localRow(antibioticField, 'antibiotic-row', { valueText: 'standard_a' }),
+          ],
+          forced_labor_due_diligence: [
+            localRow(diligenceField, 'diligence-row', { valueText: 'standard_a' }),
+          ],
+          high_risk_geography_policy: [
+            localRow(geoField, 'geo-row', { valueText: 'Existing policy' }),
+          ],
+          remediation_commitment: [
+            localRow(remediationField, 'remediation-row', {
+              valueText: 'Existing commitment',
+            }),
+          ],
+        }}
+        canEdit
+        savingKey={null}
+        storyError="Previous save failed"
+        errors={{}}
+        onChange={onChange}
+        onSaveRow={vi.fn()}
+        onSaveBundle={onSaveBundle}
+        onClearStoryError={onClearStoryError}
+      />
+    )
+
+    expect(screen.getByText('Animal care claim')).toBeTruthy()
+    expect(screen.getByText('Human rights diligence')).toBeTruthy()
+    await user.selectOptions(screen.getAllByRole('combobox')[0]!, 'standard_b')
+    expect(onClearStoryError).toHaveBeenCalled()
+    expect(onChange).toHaveBeenCalledWith(
+      'animal_welfare_standard',
+      'welfare-row',
+      expect.objectContaining({ status: 'disclosed', valueText: 'standard_b' })
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Save living things' }))
+    expect(onSaveBundle).toHaveBeenCalledWith(RIGHTS_LIVING_CODES, 'rights-living')
+    await user.click(screen.getByRole('button', { name: 'Save diligence' }))
+    expect(onSaveBundle).toHaveBeenCalledWith(
+      RIGHTS_DILIGENCE_CODES,
+      'rights-diligence'
+    )
+  })
+
+  it('shows and disables a bundled editor while its save is active', () => {
+    const laborField = enumField('labor_standard_alignment')
+    const laborRow = localRow(laborField, 'labor-row', { valueText: 'standard_a' })
+
+    render(
+      <RightsSheet
+        fieldsByCode={{ labor_standard_alignment: laborField }}
+        rowsByCode={{ labor_standard_alignment: [laborRow] }}
+        canEdit
+        savingKey="rights-labor"
+        storyError={null}
+        errors={{}}
+        onChange={vi.fn()}
+        onSaveRow={vi.fn()}
+        onSaveBundle={vi.fn()}
+      />
+    )
+
+    const savingButton = screen.getByRole('button', { name: 'Saving…' })
+    expect((savingButton as HTMLButtonElement).disabled).toBe(true)
   })
 })
 
