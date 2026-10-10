@@ -5,6 +5,7 @@ import type { Json } from '@/lib/database.types'
 import {
   blankCorrectionRow,
   canApproveAsIs,
+  evidenceDisplaySource,
   isBlankLeaf,
   type CorrectionReviewRow,
   type CorrectionReviewsPage,
@@ -12,6 +13,7 @@ import {
   type TaxonomySearchHit,
 } from '@/lib/corrections.shared'
 import { searchTaxonomyNodes as searchTaxonomyNodesShared } from '@/lib/taxonomy'
+import { createAdminSupabaseClient } from '@/lib/supabase-admin'
 
 export type {
   CorrectionReviewRow,
@@ -116,7 +118,7 @@ async function hydrateCorrectionRows(
     variantsByProduct.set(pid, list)
   }
 
-  return baseRows.map((row) => {
+  const hydrated = baseRows.map((row) => {
     const product = productById.get(row.product_id)
     let proposedNodeId = row.proposed_taxonomy_node_id != null
       ? Number(row.proposed_taxonomy_node_id)
@@ -149,6 +151,39 @@ async function hydrateCorrectionRows(
       variants: variantList,
     }
   })
+  return attachEvidencePreviews(hydrated)
+}
+
+const EVIDENCE_SIGN_TTL_SEC = 60 * 60 * 4
+
+/** Sign private correction photos. https URLs pass through. The stored ref is left unchanged. */
+async function attachEvidencePreviews(
+  rows: CorrectionReviewRow[]
+): Promise<CorrectionReviewRow[]> {
+  const captures: { id: string; path: string }[] = []
+  const preview = new Map<string, string | null>()
+  for (const row of rows) {
+    const src = evidenceDisplaySource(row.evidence_image_url)
+    if (!src) preview.set(row.id, null)
+    else if (src.kind === 'http') preview.set(row.id, src.url)
+    else captures.push({ id: row.id, path: src.path })
+  }
+  if (captures.length > 0) {
+    try {
+      const admin = createAdminSupabaseClient()
+      await Promise.all(
+        captures.map(async (item) => {
+          const { data, error } = await admin.storage
+            .from('captures')
+            .createSignedUrl(item.path, EVIDENCE_SIGN_TTL_SEC)
+          preview.set(item.id, error || !data?.signedUrl ? null : data.signedUrl)
+        })
+      )
+    } catch (e) {
+      console.warn('[corrections] could not sign evidence photos', e)
+    }
+  }
+  return rows.map((row) => ({ ...row, evidence_preview_url: preview.get(row.id) ?? null }))
 }
 
 function asRecord(v: unknown): Record<string, unknown> | null {

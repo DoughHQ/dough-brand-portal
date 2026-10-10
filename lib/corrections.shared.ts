@@ -22,6 +22,8 @@ export type CorrectionReviewRow = {
   human_corrected_value: Record<string, unknown> | null
   user_notes: string | null
   evidence_image_url: string | null
+  /** Display-only. https passes through; captures refs are signed on the server. Never write this back. */
+  evidence_preview_url: string | null
   product_image_url: string | null
   proposed_taxonomy_node_id: number | null
   proposed_category_label: string | null
@@ -80,6 +82,7 @@ export function blankCorrectionRow(
     human_corrected_value: null,
     user_notes: null,
     evidence_image_url: null,
+    evidence_preview_url: null,
     product_image_url: null,
     proposed_taxonomy_node_id: null,
     proposed_category_label: null,
@@ -101,6 +104,23 @@ export function blankCorrectionRow(
 
 /** Types where the user supplies a photo and structured proposed_value is empty/`{}`. */
 export const PHOTO_ONLY_TYPES = new Set(['nutrition_facts', 'ingredients'])
+
+const CAPTURES_PREFIX = 'captures:'
+
+/** https evidence displays as itself. A captures ref must be signed; anything else is not an image URL. */
+export function evidenceDisplaySource(
+  value: string | null | undefined
+): { kind: 'http'; url: string } | { kind: 'captures'; path: string } | null {
+  const trimmed = value?.trim() ?? ''
+  if (!trimmed) return null
+  if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+    return { kind: 'http', url: trimmed }
+  }
+  if (!trimmed.startsWith(CAPTURES_PREFIX)) return null
+  const path = trimmed.slice(CAPTURES_PREFIX.length)
+  if (!path.startsWith('correction/') || path.includes('..')) return null
+  return { kind: 'captures', path }
+}
 
 export function isBlankLeaf(v: unknown): boolean {
   if (v == null) return true

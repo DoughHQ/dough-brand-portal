@@ -4,7 +4,11 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SEARCH_ROOTS=("$ROOT/app" "$ROOT/components" "$ROOT/lib")
-EXPECTED_CALLERS="lib/checkout/invoiceContact.server.ts"
+# corrections.ts signs evidence the reviewer was already allowed to load.
+# It only signs correction/ paths and does not replace the stored ref.
+EXPECTED_CALLERS="$(printf '%s\n' \
+  lib/checkout/invoiceContact.server.ts \
+  lib/corrections.ts)"
 EXPECTED_KEY_OWNER="lib/supabase-admin.ts"
 
 relative_matches() {
