@@ -56,7 +56,7 @@ function operatorNote(
 }
 
 export default function ChoiceScreen({ screen, subject, onAnswer }: Props) {
-  const config = screen.config ?? {}
+  const config = useMemo(() => screen.config ?? {}, [screen.config])
   const options = useMemo(() => normalizeOptions(config), [config])
   const maxSelect = Math.max(1, config.max_select ?? 1)
   const minSelect = Math.max(0, config.min_select ?? 1)

@@ -2,6 +2,10 @@
 
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { Json } from '@/lib/database.types'
+import { getPortalUser } from '@/lib/queries'
+import { canPublishStudies } from '@/lib/studies/canPublishStudies'
+import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
+import { operatorStudiesBrandId } from '@/lib/studies/operatorScope'
 
 export type StudyDraftTestType = 'concept' | 'ihut'
 
@@ -39,6 +43,7 @@ function extractHint(error: {
     'DRAFT_JSON_NOT_OBJECT',
     'NOT_A_BRAND_PORTAL_USER',
     'CROSS_TENANT_ACCESS_DENIED',
+    'NOT_ALLOWED_TO_PUBLISH',
   ]) {
     if (msg.includes(code)) return code
   }
@@ -55,9 +60,16 @@ function humanize(hint: string | null, fallback: string): string {
       return "You don't have access to save drafts."
     case 'CROSS_TENANT_ACCESS_DENIED':
       return "You don't have access to that draft."
+    case 'NOT_ALLOWED_TO_PUBLISH':
+      return 'Your role can view studies but not change drafts.'
     default:
       return fallback
   }
+}
+
+async function canWriteStudyDrafts(): Promise<boolean> {
+  const portalUser = await getPortalUser()
+  return portalUser != null && canPublishStudies(portalUser)
 }
 
 /**
@@ -72,6 +84,13 @@ export async function upsertStudyDraftAction(args: {
 }): Promise<
   { ok: true; draft: StudyDraftRow } | { ok: false; error: string; hint: string | null }
 > {
+  if (!(await canWriteStudyDrafts())) {
+    return {
+      ok: false,
+      error: 'Your role can view studies but not change drafts.',
+      hint: 'NOT_ALLOWED_TO_PUBLISH',
+    }
+  }
   const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase.rpc('upsert_study_draft', {
     p_test_type: args.testType,
@@ -114,14 +133,25 @@ export async function getStudyDraftAction(
   | { ok: true; draft: StudyDraftRow }
   | { ok: false; error: string; hint: string | null }
 > {
+  const scope = await getPortalBrandScope()
+  if (!scope) {
+    return { ok: false, error: 'Draft not found.', hint: null }
+  }
+
   const supabase = await createServerSupabaseClient()
-  const { data, error } = await supabase
+  let query = supabase
     .from('study_drafts')
     .select(
       'id, brand_id, test_type, title, draft_json, created_by, updated_by, created_at, updated_at, expires_at'
     )
     .eq('id', draftId)
-    .maybeSingle()
+
+  const brandId = operatorStudiesBrandId(scope)
+  if (brandId != null) {
+    query = query.eq('brand_id', brandId)
+  }
+
+  const { data, error } = await query.maybeSingle()
 
   if (error) {
     const hint = extractHint(error)
@@ -140,6 +170,9 @@ export async function getStudyDraftAction(
 export async function deleteStudyDraftAction(
   draftId: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!(await canWriteStudyDrafts())) {
+    return { ok: false, error: 'Your role can view studies but not change drafts.' }
+  }
   const supabase = await createServerSupabaseClient()
   const { error } = await supabase.rpc('delete_study_draft', {
     p_draft_id: draftId,

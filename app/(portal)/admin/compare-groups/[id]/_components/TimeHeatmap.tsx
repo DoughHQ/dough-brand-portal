@@ -64,8 +64,14 @@ function computePeak(
 }
 
 export default function TimeHeatmap({ metrics }: Props) {
-  const observed = metrics?.observed_time_of_day ?? []
-  const editorial = metrics?.editorial_time_priors ?? []
+  const observed = useMemo(
+    () => metrics?.observed_time_of_day ?? [],
+    [metrics?.observed_time_of_day]
+  )
+  const editorial = useMemo(
+    () => metrics?.editorial_time_priors ?? [],
+    [metrics?.editorial_time_priors]
+  )
   const observedEmpty = observed.length === 0
   const editorialEmpty = editorial.length === 0
 

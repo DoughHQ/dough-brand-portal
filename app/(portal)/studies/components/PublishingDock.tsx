@@ -164,6 +164,7 @@ export default function PublishingDock({
                       type="button"
                       className="cb-dock-panel-item"
                       role="option"
+                      aria-selected={false}
                       onClick={() => goTo(item.anchor)}
                     >
                       <span className="cb-dock-next-dot" aria-hidden />

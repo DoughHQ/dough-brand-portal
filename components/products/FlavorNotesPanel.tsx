@@ -55,13 +55,15 @@ export function FlavorNotesPanel({
   const [draftNote, setDraftNote] = useState('')
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editNote, setEditNote] = useState('')
+  const liveDeclarationIds = live.map((d) => d.declaration_id).join(',')
+  const pendingDeclarationIds = pending.map((d) => d.declaration_id).join(',')
 
   useEffect(() => {
     setDraftValue(null)
     setDraftNote('')
     setEditingId(null)
     setEditNote('')
-  }, [row.facet_type, live.map((d) => d.declaration_id).join(','), pending.map((d) => d.declaration_id).join(',')])
+  }, [row.facet_type, liveDeclarationIds, pendingDeclarationIds])
 
   const draftLabel = draftValue
     ? facetValueLabel(row, draftValue, available.find((o) => o.value === draftValue)?.label)

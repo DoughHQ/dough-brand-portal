@@ -191,6 +191,8 @@ function ShelfPhoto({
   return (
     <span className="cb-masthead-photo">
       {url ? (
+        // Study media can use remote catalog URLs that must not be server-fetched.
+        // eslint-disable-next-line @next/next/no-img-element
         <img src={url} alt="" />
       ) : (
         <span className="cb-masthead-letter" aria-hidden>

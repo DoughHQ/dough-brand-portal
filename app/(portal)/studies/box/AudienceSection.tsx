@@ -735,31 +735,6 @@ function BarInput({
   )
 }
 
-const card = {
-  background: 'var(--paper)',
-  border: '1px solid var(--ink-10)',
-  borderRadius: 'var(--r-lg)',
-  padding: 32,
-  marginBottom: 24,
-  boxShadow: 'var(--cb-shadow-card)',
-}
-const eyebrow = {
-  fontFamily: 'var(--font-sans)',
-  fontSize: 12,
-  fontWeight: 500,
-  letterSpacing: '0.1em',
-  textTransform: 'uppercase' as const,
-  color: 'var(--ink-50)',
-  marginBottom: 8,
-}
-const titleStyle = {
-  fontFamily: 'var(--font-serif)',
-  fontSize: 26,
-  fontWeight: 400,
-  letterSpacing: '-0.02em',
-  margin: '0 0 8px',
-  color: 'var(--ink-80)',
-}
 const optionalAffordance = {
   fontFamily: 'var(--font-sans)',
   fontSize: 13,

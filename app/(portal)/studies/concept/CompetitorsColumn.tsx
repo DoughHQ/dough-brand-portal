@@ -57,7 +57,6 @@ type Props = {
   priceMode: boolean
   /** Packaging / price force blind: no per-competitor price in those modes. */
   hidePrice: boolean
-  showMarketPrice?: boolean
   pricePosture: PricePosture
   /** Authoritative field-capacity verdict — owned by lib/concept/fieldSize. */
   addCompetitor: AddAvailability
@@ -74,7 +73,6 @@ export default function CompetitorsColumn({
   onProductsChange,
   priceMode,
   hidePrice,
-  showMarketPrice,
   pricePosture,
   addCompetitor: addAvailability,
   progressLabel,
@@ -94,7 +92,6 @@ export default function CompetitorsColumn({
 
   const selected = products.filter((p) => p.product_id != null)
   const taken = new Set(selected.map((p) => String(p.product_id)))
-  const count = selected.length
 
   function openAdd() {
     if (!addAvailability.allowed) return

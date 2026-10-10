@@ -313,15 +313,6 @@ function movementFor(
   return { kind: 'held' as const, label: 'Held' }
 }
 
-type Props = {
-  report: IhutCoreReport
-  productName: string
-  productRef: number
-  positionTitle: string
-  positionLead: string
-  chapterStart?: number
-}
-
 export function EvidencePackHeader({ pageCount }: { pageCount: number }) {
   return (
     <div className={ev.packDivider} id="evidence">

@@ -227,7 +227,6 @@ export default function OriginSheet({
 
       {coverageField && coverageRow ? (
         <CoverageStrip
-          field={coverageField}
           row={coverageRow}
           canEdit={canEdit}
           saving={savingSubject === coverageRow.key}
@@ -375,14 +374,12 @@ export default function OriginSheet({
 }
 
 function CoverageStrip({
-  field,
   row,
   canEdit,
   saving,
   onChange,
   onSave,
 }: {
-  field: ProofSubMetricRow
   row: OriginLocalRow
   canEdit: boolean
   saving: boolean

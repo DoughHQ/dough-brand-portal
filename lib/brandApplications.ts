@@ -1,3 +1,6 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/database.types'
+
 export const APPLICATION_STATUSES = ['pending', 'approved', 'rejected', 'invited'] as const
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
 
@@ -169,12 +172,7 @@ function extractCode(message: string): string {
   return 'review_failed'
 }
 
-type ApplicationsRpcClient = {
-  rpc: (
-    fn: any,
-    args?: any
-  ) => PromiseLike<{ data: unknown; error: { message: string } | null }>
-}
+type ApplicationsRpcClient = Pick<SupabaseClient<Database>, 'rpc'>
 
 export type BrandApplicationsPageCursor = {
   statusRank: number
@@ -256,11 +254,15 @@ export async function setBrandApplicationStatus(
     reviewNotes?: string | null
   }
 ): Promise<SetBrandApplicationStatusResult> {
-  const { data, error } = await supabase.rpc('set_brand_application_status', {
+  const args = {
     p_waitlist_id: input.waitlistId,
     p_decision: input.decision,
     p_review_notes: input.reviewNotes?.trim().slice(0, 2000) || null,
-  })
+  }
+  const { data, error } = await supabase.rpc(
+    'set_brand_application_status',
+    args as unknown as Database['public']['Functions']['set_brand_application_status']['Args']
+  )
 
   if (error) {
     throw new BrandApplicationsError(

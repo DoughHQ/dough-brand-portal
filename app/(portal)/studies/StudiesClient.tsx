@@ -69,10 +69,6 @@ function isDraftBucket(state: OperatorStudyLifecycleState): boolean {
   return state === 'draft'
 }
 
-function isInReview(state: OperatorStudyLifecycleState): boolean {
-  return state === 'in_review'
-}
-
 /** Same buckets the Active/Complete tabs used. Draft operator rows stay hidden; in_review is Active. */
 function bucketForRow(row: OperatorStudyRow): 'active' | 'complete' | null {
   const state = lifecycleOf(row)

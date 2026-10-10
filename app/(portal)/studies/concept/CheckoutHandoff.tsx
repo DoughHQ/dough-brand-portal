@@ -168,6 +168,8 @@ function HeroPhoto({ imageRef, letter }: { imageRef: string | null; letter: stri
       </div>
     )
   }
+  // Study media can use remote catalog URLs that must not be server-fetched.
+  // eslint-disable-next-line @next/next/no-img-element
   return <img className="cb-handoff-photo" src={src} alt="" />
 }
 

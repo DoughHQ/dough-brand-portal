@@ -9,6 +9,8 @@ import { brandCategoryOverviewHref } from '@/lib/categoryReport/href'
 import type { CommandSearchItem } from '@/lib/portal-ui/commandSearch'
 import { fetchOperatorStudiesPage } from '@/lib/studies/fetchOperatorStudies'
 import { isConceptStudy } from '@/lib/checkout/status'
+import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
+import { operatorStudiesBrandId } from '@/lib/studies/operatorScope'
 import type { OperatorStudyRow } from '@/lib/studies/types'
 
 function studyToHomeInput(row: OperatorStudyRow): HomeStudyInput {
@@ -87,6 +89,9 @@ async function categoryItems(needle: string | null): Promise<CommandSearchItem[]
  * Empty-query bootstrap for ⌘K: drafts + categories (recents are client-side).
  */
 export async function bootstrapPortalCommandAction(): Promise<CommandSearchItem[]> {
+  const scope = await getPortalBrandScope()
+  if (!scope) return []
+
   const [drafts, categories] = await Promise.all([
     draftItems(null),
     categoryItems(null),
@@ -100,12 +105,21 @@ export async function searchPortalCommandAction(
   const q = query.trim()
   if (q.length < 2) return []
 
+  const scope = await getPortalBrandScope()
+  if (!scope) return []
+  const brandId = operatorStudiesBrandId(scope)
+
   const needle = q.toLowerCase()
   const out: CommandSearchItem[] = []
 
   const [active, complete, products, drafts, categories] = await Promise.all([
-    fetchOperatorStudiesPage({ tab: 'active', limit: 25, includeDrafts: true }),
-    fetchOperatorStudiesPage({ tab: 'complete', limit: 25 }),
+    fetchOperatorStudiesPage({
+      tab: 'active',
+      limit: 25,
+      includeDrafts: true,
+      brandId,
+    }),
+    fetchOperatorStudiesPage({ tab: 'complete', limit: 25, brandId }),
     listBrandProductsPage({ limit: 20, search: q }),
     draftItems(needle),
     categoryItems(needle),

@@ -20,7 +20,7 @@ const inputStyle: CSSProperties = { ...masterInput }
 
 export function IdentityField({
   label,
-  field,
+  field: _field,
   value,
   editing,
   draft,

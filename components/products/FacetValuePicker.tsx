@@ -113,6 +113,7 @@ export function FacetSearchSelect({
                 <button
                   type="button"
                   role="option"
+                  aria-selected={o.value === value}
                   className="pf-combobox__option"
                   onClick={() => {
                     onChange(o.value)
@@ -233,6 +234,7 @@ export function FacetChipAdd({
                 <button
                   type="button"
                   role="option"
+                  aria-selected={false}
                   className="pf-combobox__option"
                   onClick={() => {
                     onAdd(o.value)
