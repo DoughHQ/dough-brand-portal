@@ -110,6 +110,8 @@ export default function BrandCorrectionsClient({
 
   const { rows, focusIndex } = queue
   const focused = rows[focusIndex] ?? null
+  const focusedId = focused?.id ?? null
+  const focusedProductId = focused?.product_id ?? null
   const related = focused ? relatedClaims(focused, rows, fetchedRelated) : []
   const headerLabel = waitingLabel(pendingCount, hasMore, rows.length)
 
@@ -128,17 +130,15 @@ export default function BrandCorrectionsClient({
   }, [notice])
 
   useEffect(() => {
-    if (!focused) {
+    if (focusedId == null || focusedProductId == null) {
       setFetchedRelated([])
       return
     }
-    const productId = focused.product_id
-    const openId = focused.id
     let cancelled = false
-    void listRelatedBrandCorrectionsAction(productId)
+    void listRelatedBrandCorrectionsAction(focusedProductId)
       .then((list) => {
         if (cancelled) return
-        setFetchedRelated(list.filter((r) => r.id !== openId))
+        setFetchedRelated(list.filter((r) => r.id !== focusedId))
       })
       .catch(() => {
         if (!cancelled) setFetchedRelated([])
@@ -146,7 +146,7 @@ export default function BrandCorrectionsClient({
     return () => {
       cancelled = true
     }
-  }, [focused?.id, focused?.product_id])
+  }, [focusedId, focusedProductId])
 
   const appendPage = useCallback(async () => {
     const pageCursor = cursorRef.current

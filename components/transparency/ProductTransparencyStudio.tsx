@@ -44,8 +44,8 @@ import {
   rowPresence,
   summarizeInventoryRow,
   type ProofChapterId,
-  type RowPresence,
 } from '@/lib/transparency/proofChapters'
+import { presencePillClass } from '@/lib/transparency/presencePresentation'
 import {
   displayAllCapsPhrase,
   splitIngredientStatement,
@@ -105,19 +105,6 @@ function subjectNoun(kind: string): string {
   if (kind === 'facility') return 'facility'
   if (kind === 'date_type') return 'date type'
   return 'subject'
-}
-
-function pillClass(p: RowPresence): string {
-  switch (p) {
-    case 'published':
-      return 'tx-pill tx-pill--public'
-    case 'private':
-      return 'tx-pill tx-pill--private'
-    case 'declined':
-      return 'tx-pill tx-pill--declined'
-    default:
-      return 'tx-pill tx-pill--idle'
-  }
 }
 
 function Label({ children }: { children: ReactNode }) {
@@ -1449,7 +1436,7 @@ export default function ProductTransparencyStudio({
                       ) : null}
                     </span>
                     <span className="tx-row__meta">
-                      <span className={pillClass(summary.presence)}>
+                      <span className={presencePillClass(summary.presence)}>
                         {summary.presenceLabel}
                       </span>
                       {summary.whisper || summary.asOf ? (

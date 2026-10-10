@@ -13,6 +13,8 @@ function Thumb({ item, size }: { item: CheckoutThumb; size: 'stage' | 'quiet' })
   return (
     <figure className={size === 'stage' ? 'checkout-pack' : 'checkout-face'}>
       {item.imageUrl ? (
+        // Study media can use remote catalog URLs that must not be server-fetched.
+        // eslint-disable-next-line @next/next/no-img-element
         <img src={item.imageUrl} alt="" />
       ) : (
         <div className="checkout-pack-fallback" aria-hidden>

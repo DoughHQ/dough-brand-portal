@@ -8,7 +8,11 @@ import {
   type SourceTier,
 } from '@/lib/transparency/disclosures'
 import { formatProofCode, formatUnitSuffix } from '@/lib/transparency/displayMap'
-import { rowPresence, type RowPresence } from '@/lib/transparency/proofChapters'
+import { rowPresence } from '@/lib/transparency/proofChapters'
+import {
+  presenceLabel,
+  presencePillClass,
+} from '@/lib/transparency/presencePresentation'
 import {
   composePackLine,
   composePcfLine,
@@ -16,6 +20,7 @@ import {
 } from '@/lib/transparency/storyLines'
 import ShopperPreview from '@/components/transparency/ShopperPreview'
 import PlanetDemand from '@/components/transparency/PlanetDemand'
+import TransparencyRoom from '@/components/transparency/TransparencyRoom'
 import {
   planetDemandCopy,
   type BrandProofAskCount,
@@ -88,32 +93,6 @@ function findSubject(rows: PlanetLocalRow[], subject: string): PlanetLocalRow | 
   return rows.find((r) => norm(r.draft.subjectLabel ?? '') === n)
 }
 
-function pillClass(p: RowPresence): string {
-  switch (p) {
-    case 'published':
-      return 'tx-pill tx-pill--public'
-    case 'private':
-      return 'tx-pill tx-pill--private'
-    case 'declined':
-      return 'tx-pill tx-pill--declined'
-    default:
-      return 'tx-pill tx-pill--idle'
-  }
-}
-
-function presenceCopy(p: RowPresence): string {
-  switch (p) {
-    case 'published':
-      return 'Published'
-    case 'private':
-      return 'Private'
-    case 'declined':
-      return 'Not reporting'
-    default:
-      return '—'
-  }
-}
-
 export default function PlanetSheet({
   fieldsByCode,
   rowsByCode,
@@ -169,14 +148,11 @@ export default function PlanetSheet({
     <div className="tx-ops">
       {storyError ? <p className="tx-error">{storyError}</p> : null}
 
-      <section className="tx-ops__room">
-        <header className="tx-ops__room-head">
-          <p className="tx-ops__room-kicker">Footprint</p>
-          <h4 className="tx-ops__room-title">Product carbon claim</h4>
-          <p className="tx-ops__room-lede">
-            Number, boundary, method, and data quality as one claim — never green theatre.
-          </p>
-        </header>
+      <TransparencyRoom
+        kicker="Footprint"
+        title="Product carbon claim"
+        lede="Number, boundary, method, and data quality as one claim — never green theatre."
+      >
         {demand ? <PlanetDemand copy={demand} /> : null}
         {pcfField && pcfRow ? (
           <FootprintEditor
@@ -193,16 +169,13 @@ export default function PlanetSheet({
         ) : (
           <p className="tx-ops__empty">No product footprint fields in the registry.</p>
         )}
-      </section>
+      </TransparencyRoom>
 
-      <section className="tx-ops__room">
-        <header className="tx-ops__room-head">
-          <p className="tx-ops__room-kicker">Pack</p>
-          <h4 className="tx-ops__room-title">Packaging components</h4>
-          <p className="tx-ops__room-lede">
-            Material, disposal, recycled content — per bottle, cap, sleeve, or tray.
-          </p>
-        </header>
+      <TransparencyRoom
+        kicker="Pack"
+        title="Packaging components"
+        lede="Material, disposal, recycled content — per bottle, cap, sleeve, or tray."
+      >
         {!materialField && !disposalField ? (
           <p className="tx-ops__empty">No packaging fields in the registry.</p>
         ) : (
@@ -225,7 +198,7 @@ export default function PlanetSheet({
             onSeed={() => onSeedPackComponents([...DEFAULT_PACK_COMPONENTS])}
           />
         )}
-      </section>
+      </TransparencyRoom>
     </div>
   )
 }
@@ -298,7 +271,7 @@ function FootprintEditor({
   return (
     <div className="tx-ops__card">
       <div className="tx-ops__card-top">
-        <span className={pillClass(presence)}>{presenceCopy(presence)}</span>
+        <span className={presencePillClass(presence)}>{presenceLabel(presence)}</span>
       </div>
       <ShopperPreview line={preview} whisper={whisper} />
 
@@ -621,7 +594,9 @@ function PackSheet({
                   <span className="tx-formula__name-text">{name}</span>
                   <span className="tx-origin__place">{line.includes('·') ? line : '—'}</span>
                   <span className="tx-formula__status">
-                    <span className={pillClass(presence)}>{presenceCopy(presence)}</span>
+                    <span className={presencePillClass(presence)}>
+                      {presenceLabel(presence)}
+                    </span>
                     <span className="tx-row__chev" aria-hidden>
                       ›
                     </span>

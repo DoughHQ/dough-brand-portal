@@ -1,3 +1,5 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/database.types'
 import { createClient } from '@/lib/supabase'
 
 export type PendingOwnershipCorrection = {
@@ -127,14 +129,7 @@ function extractCode(message: string): string {
   return m ? m[1].toLowerCase() : 'review_failed'
 }
 
-type OwnershipRpcClient = {
-  // Supabase client's rpc is typed to a function-name union; keep this loose so
-  // server + browser clients both type-check when calling SECURITY DEFINER RPCs.
-  rpc: (
-    fn: any,
-    args?: any
-  ) => PromiseLike<{ data: unknown; error: { message: string } | null }>
-}
+type OwnershipRpcClient = Pick<SupabaseClient<Database>, 'rpc'>
 
 export type OwnershipCorrectionsPageCursor = {
   submittedAt: string
@@ -202,12 +197,16 @@ export async function reviewBrandOwnershipCorrection(
     overrideStale?: boolean
   }
 ): Promise<ReviewOwnershipResult> {
-  const { data, error } = await supabase.rpc('review_brand_ownership_correction', {
+  const args = {
     p_correction_id: input.correctionId,
     p_decision: input.decision,
     p_review_notes: input.reviewNotes?.trim().slice(0, 2000) || null,
     p_override_stale: input.overrideStale === true,
-  })
+  }
+  const { data, error } = await supabase.rpc(
+    'review_brand_ownership_correction',
+    args as unknown as Database['public']['Functions']['review_brand_ownership_correction']['Args']
+  )
 
   if (error) {
     throw new OwnershipReviewError(

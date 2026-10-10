@@ -102,19 +102,20 @@ export default function BoxProductSearchSlot({
   )
 
   const ta = useTypeahead<AdminProductSearchResult>(fetchProducts, { minChars: 2 })
+  const { open: typeaheadOpen, close: closeTypeahead } = ta
 
   useEffect(() => {
     if (autoFocus) inputRef.current?.focus()
   }, [autoFocus])
 
   useEffect(() => {
-    if (!ta.open) return
+    if (!typeaheadOpen) return
     function onDoc(e: MouseEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) ta.close()
+      if (!rootRef.current?.contains(e.target as Node)) closeTypeahead()
     }
     document.addEventListener('mousedown', onDoc)
     return () => document.removeEventListener('mousedown', onDoc)
-  }, [ta.open, ta.close])
+  }, [typeaheadOpen, closeTypeahead])
 
   function pickProduct(item: AdminProductSearchResult) {
     if (taken.has(String(item.product_id))) return

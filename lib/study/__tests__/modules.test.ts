@@ -11,45 +11,44 @@ import {
 } from '../modules'
 
 describe('pickableModulesFor', () => {
-  it('offers value + ranking on both types, loyalty only on iHUT', () => {
-    expect(pickableModulesFor('concept').map((m) => m.code)).toEqual([
-      MODULE_VALUE,
-      MODULE_FIELD_RANKING,
-    ])
-    expect(pickableModulesFor('ihut').map((m) => m.code)).toEqual([
-      MODULE_VALUE,
-      MODULE_FIELD_RANKING,
-      MODULE_LOYALTY,
-    ])
+  it('offers only the supported Day 2 module on iHUT', () => {
+    expect(pickableModulesFor('concept').map((m) => m.code)).toEqual([])
+    expect(pickableModulesFor('ihut').map((m) => m.code)).toEqual([MODULE_LOYALTY])
   })
 })
 
 describe('sanitizeSelectedModules', () => {
-  it('drops derived codes, duplicates, and loyalty on concept', () => {
+  it('drops retired, derived, unknown, and type-incompatible codes', () => {
     expect(
       sanitizeSelectedModules(
-        [MODULE_VALUE, MODULE_VALUE, MODULE_PACKAGING, MODULE_LOYALTY, 'nope'],
+        [
+          MODULE_VALUE,
+          MODULE_FIELD_RANKING,
+          MODULE_PACKAGING,
+          MODULE_LOYALTY,
+          'nope',
+        ],
         'concept'
       )
-    ).toEqual([MODULE_VALUE])
+    ).toEqual([])
   })
 })
 
 describe('composeConceptPublishModules', () => {
-  it('keeps the derived base first', () => {
-    expect(
-      composeConceptPublishModules('package', [MODULE_FIELD_RANKING])
-    ).toEqual([MODULE_PACKAGING, MODULE_FIELD_RANKING])
+  it('keeps the derived base and drops retired extras', () => {
+    expect(composeConceptPublishModules('package', [MODULE_FIELD_RANKING])).toEqual([
+      MODULE_PACKAGING,
+    ])
   })
 })
 
 describe('resolveBoxSelectedModules', () => {
-  it('seeds loyalty from the legacy boolean', () => {
+  it('seeds loyalty from the legacy boolean and drops retired extras', () => {
     expect(
       resolveBoxSelectedModules({
         selectedModules: [MODULE_VALUE],
         loyaltyFollowUp: true,
       })
-    ).toEqual([MODULE_VALUE, MODULE_LOYALTY])
+    ).toEqual([MODULE_LOYALTY])
   })
 })

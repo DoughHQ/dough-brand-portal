@@ -17,7 +17,7 @@ type ActionOk<T> = { ok: true; data: T }
 type ActionErr = { ok: false; error: string }
 type ActionResult<T> = ActionOk<T> | ActionErr
 
-async function requireBrandScope(): Promise<
+async function requireBrandScope(options?: { write?: boolean }): Promise<
   | { ok: true; brandId: number; supabase: Awaited<ReturnType<typeof createServerSupabaseClient>> }
   | ActionErr
 > {
@@ -25,6 +25,9 @@ async function requireBrandScope(): Promise<
   if (!scope) return { ok: false, error: 'Sign in to manage prototypes.' }
   if (scope.portalUser.role === 'dough_admin' && !scope.isImpersonating) {
     return { ok: false, error: 'Impersonate a brand to manage its prototypes.' }
+  }
+  if (options?.write && scope.portalUser.role === 'brand_viewer') {
+    return { ok: false, error: 'Your role can view prototypes but not change them.' }
   }
   if (scope.effectiveBrandId == null) {
     return { ok: false, error: 'No brand selected.' }
@@ -95,7 +98,7 @@ export async function listBrandPrototypesAction(opts?: {
 export async function saveBrandPrototypeAction(
   input: PrototypeSaveInput
 ): Promise<ActionResult<PrototypeListItem>> {
-  const scope = await requireBrandScope()
+  const scope = await requireBrandScope({ write: true })
   if (!scope.ok) return scope
   const { brandId, supabase } = scope
 
@@ -135,7 +138,7 @@ export async function saveBrandPrototypeAction(
 export async function declarePrototypeAllergensAction(
   input: PrototypeAllergenInput
 ): Promise<ActionResult<PrototypeListItem>> {
-  const scope = await requireBrandScope()
+  const scope = await requireBrandScope({ write: true })
   if (!scope.ok) return scope
   const { brandId, supabase } = scope
 
@@ -165,7 +168,7 @@ export async function declarePrototypeAllergensAction(
 export async function archiveBrandPrototypeAction(
   prototypeId: string
 ): Promise<ActionResult<{ prototypeId: string }>> {
-  const scope = await requireBrandScope()
+  const scope = await requireBrandScope({ write: true })
   if (!scope.ok) return scope
   const { supabase } = scope
 

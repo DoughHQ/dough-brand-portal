@@ -1,6 +1,7 @@
 'use server'
 
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { isDoughAdminRequest } from '@/lib/portal/isDoughAdminRequest'
 
 export type MissionTrashResult =
   | { ok: true; message?: string }
@@ -28,8 +29,15 @@ function classifyError(message: string): MissionTrashResult {
   return { ok: false, error: message, code: 'UNKNOWN' }
 }
 
+async function canManageStudies(): Promise<boolean> {
+  return isDoughAdminRequest()
+}
+
 export async function withdrawMissionAction(missionId: string): Promise<MissionTrashResult> {
   if (!missionId) return { ok: false, error: 'Missing mission id', code: 'UNKNOWN' }
+  if (!(await canManageStudies())) {
+    return { ok: false, error: 'Your role can view studies but not change them.' }
+  }
 
   const supabase = await createServerSupabaseClient()
   const { error } = await supabase.rpc('withdraw_mission', {
@@ -42,6 +50,9 @@ export async function withdrawMissionAction(missionId: string): Promise<MissionT
 
 export async function restoreMissionAction(missionId: string): Promise<MissionTrashResult> {
   if (!missionId) return { ok: false, error: 'Missing mission id', code: 'UNKNOWN' }
+  if (!(await canManageStudies())) {
+    return { ok: false, error: 'Your role can view studies but not change them.' }
+  }
 
   const supabase = await createServerSupabaseClient()
   const { error } = await supabase.rpc('restore_mission', {
@@ -54,6 +65,9 @@ export async function restoreMissionAction(missionId: string): Promise<MissionTr
 
 export async function hardDeleteMissionAction(missionId: string): Promise<MissionTrashResult> {
   if (!missionId) return { ok: false, error: 'Missing mission id', code: 'UNKNOWN' }
+  if (!(await canManageStudies())) {
+    return { ok: false, error: 'Your role can view studies but not change them.' }
+  }
 
   const supabase = await createServerSupabaseClient()
   const { error } = await supabase.rpc('hard_delete_mission', {

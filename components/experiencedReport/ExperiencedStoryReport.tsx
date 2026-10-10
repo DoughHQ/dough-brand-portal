@@ -13,7 +13,6 @@ import type {
   AttributeImportance,
   DriverRow,
   ExperiencedReportEnvelope,
-  OpponentRow,
   RepurchaseSessionMetric,
 } from "@/lib/experiencedReport/types";
 import {
@@ -56,13 +55,6 @@ function formatDate(value: string | null): string | null {
     year: "numeric",
     timeZone: "UTC",
   }).format(date);
-}
-
-function splitLabel(split: string): string {
-  if (split === "experienced_vs_experienced") return "Consumed vs consumed";
-  if (split === "experienced_vs_hypothetical")
-    return "Consumed vs hypothetical";
-  return split.replace(/_/g, " ");
 }
 
 function displayLabel(value: string): string {
@@ -372,43 +364,6 @@ function RepurchaseChart({ rows }: { rows: RepurchaseSessionMetric[] }) {
       </p>
     </div>
   );
-}
-
-function ReliabilityVisual({
-  value,
-  note,
-}: {
-  value: number;
-  note?: string | null;
-}) {
-  const share = clampUnit(value);
-  return (
-    <div className={viz.ringLayout}>
-      <div
-        className={viz.ring}
-        style={{ "--ring-value": `${share * 100}%` } as CSSProperties}
-        role="img"
-        aria-label={`${pct(share)} test-retest consistency`}
-      >
-        <span className={viz.ringValue}>{pct(share)}</span>
-      </div>
-      <div className={viz.ringCopy}>
-        <strong>Test–retest consistency</strong>
-        <p>
-          {note ??
-            "Consistency among respondents who repeated a decisive choice."}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function rankTitle(envelope: ExperiencedReportEnvelope): string {
-  const rows = envelope.report.rank_validation?.by_pair_class ?? [];
-  const best = rows.find((row) => row.reportable && row.agreement_rate != null);
-  return best?.agreement_rate != null
-    ? `${pct(best.agreement_rate)} of reportable ranking pairs agreed with observed choices.`
-    : "Ranking consistency is not reportable yet.";
 }
 
 function movementTitle(envelope: ExperiencedReportEnvelope): string {

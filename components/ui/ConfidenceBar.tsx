@@ -41,7 +41,6 @@ export function ConfidenceBar({
 
   const showBar = reportable && value != null
   const isWinning = showBar && value >= 0.5
-  const barHue = isWinning ? 'sage' : 'clay'
   const targetWidth = showBar ? Math.min(100, Math.max(0, value * 100)) : 0
 
   useEffect(() => {

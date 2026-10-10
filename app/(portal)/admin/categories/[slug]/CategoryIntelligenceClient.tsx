@@ -305,6 +305,8 @@ export default function CategoryIntelligenceClient({
                 flexShrink: 0,
               }}>
                 {product.image_url ? (
+                  // Remote catalog URLs are not safe inputs to the server-side image optimizer.
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={product.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 ) : (
                   <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--ink-30)' }}>

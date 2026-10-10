@@ -1,6 +1,7 @@
 'use server'
 
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { isDoughAdminRequest } from '@/lib/portal/isDoughAdminRequest'
 
 export type CloseStudyResult =
   | {
@@ -38,6 +39,13 @@ function classifyError(message: string): CloseStudyResult {
  */
 export async function closeStudyAction(missionId: string): Promise<CloseStudyResult> {
   if (!missionId) return { ok: false, error: 'Missing mission id', code: 'UNKNOWN' }
+  if (!(await isDoughAdminRequest())) {
+    return {
+      ok: false,
+      error: 'Only Dough admins can close a study.',
+      code: 'NOT_AUTHORIZED',
+    }
+  }
 
   const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase.rpc('close_study', {

@@ -6,7 +6,11 @@ import {
   type DisclosureDraft,
   type ProofSubMetricRow,
 } from '@/lib/transparency/disclosures'
-import { rowPresence, type RowPresence } from '@/lib/transparency/proofChapters'
+import { rowPresence } from '@/lib/transparency/proofChapters'
+import {
+  presenceLabel,
+  presencePillClass,
+} from '@/lib/transparency/presencePresentation'
 import { composeFormulaLine } from '@/lib/transparency/storyLines'
 import ShopperPreview from '@/components/transparency/ShopperPreview'
 import {
@@ -42,32 +46,6 @@ function norm(s: string): string {
 function findRow(rows: FormulaLocalRow[], subject: string): FormulaLocalRow | undefined {
   const n = norm(subject)
   return rows.find((r) => norm(r.draft.subjectLabel ?? '') === n)
-}
-
-function pillClass(p: RowPresence): string {
-  switch (p) {
-    case 'published':
-      return 'tx-pill tx-pill--public'
-    case 'private':
-      return 'tx-pill tx-pill--private'
-    case 'declined':
-      return 'tx-pill tx-pill--declined'
-    default:
-      return 'tx-pill tx-pill--idle'
-  }
-}
-
-function presenceCopy(p: RowPresence): string {
-  switch (p) {
-    case 'published':
-      return 'Published'
-    case 'private':
-      return 'Private'
-    case 'declined':
-      return 'Not reporting'
-    default:
-      return '—'
-  }
 }
 
 type IngredientLine = {
@@ -201,7 +179,9 @@ export default function FormulaSheet({
                   </span>
                   <span className="tx-formula__amount">{pctDisplay}</span>
                   <span className="tx-formula__status">
-                    <span className={pillClass(pctPresence)}>{presenceCopy(pctPresence)}</span>
+                    <span className={presencePillClass(pctPresence)}>
+                      {presenceLabel(pctPresence)}
+                    </span>
                     <span className="tx-row__chev" aria-hidden>
                       ›
                     </span>

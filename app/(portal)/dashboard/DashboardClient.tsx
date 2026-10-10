@@ -357,7 +357,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
                               }}
                               onMouseEnter={e => (e.currentTarget.style.background = 'var(--paper)')}
                               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                              onClick={() => { window.location.href = `/products/${prod.product_id}` }}
+                              onClick={() => router.push(`/products/${prod.product_id}`)}
                             >
                               <div style={{
                                 width: 28,
@@ -371,6 +371,8 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
                                 flexShrink: 0,
                               }}>
                                 {prod.image_url ? (
+                                  // Remote catalog URLs bypass the server-side image optimizer.
+                                  // eslint-disable-next-line @next/next/no-img-element
                                   <img
                                     src={prod.image_url}
                                     alt=""
@@ -546,7 +548,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
               {!productIntelligence.length && (
                 <div style={{ padding:'40px 20px', textAlign:'center' }}>
                   <div style={{ fontFamily:'var(--font-serif)', fontSize:16, fontWeight:500, color:'var(--ink-50)', marginBottom:6 }}>Claim your first SKU</div>
-                  <div style={{ fontSize:12, color:'var(--ink-30)', lineHeight:1.6, maxWidth:280, margin:'0 auto 16px' }}>Search for your product in Dough's database and activate it to start seeing data.</div>
+                  <div style={{ fontSize:12, color:'var(--ink-30)', lineHeight:1.6, maxWidth:280, margin:'0 auto 16px' }}>Search for your product in Dough&apos;s database and activate it to start seeing data.</div>
                   <button
                     onClick={() => {
                       router.push('/products')

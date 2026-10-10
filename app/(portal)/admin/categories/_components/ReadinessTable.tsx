@@ -211,7 +211,7 @@ export default function ReadinessTable(props: Props) {
     setSortDir('desc')
   }
 
-  const th = (key: SortKey, label: string): CSSProperties => ({
+  const th = (key: SortKey): CSSProperties => ({
     padding: '8px 12px',
     fontSize: 10,
     fontWeight: 500,
@@ -395,19 +395,19 @@ export default function ReadinessTable(props: Props) {
               {showL1 && <th style={staticTh}>L1</th>}
               <th style={staticTh}>{nameHeader}</th>
               <th
-                style={th('raters', 'Raters')}
+                style={th('raters')}
                 onClick={() => toggleSort('raters')}
               >
                 Raters{sortKey === 'raters' ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}
               </th>
               <th
-                style={th('battles', 'Battles')}
+                style={th('battles')}
                 onClick={() => toggleSort('battles')}
               >
                 Battles{sortKey === 'battles' ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}
               </th>
               <th
-                style={th('products', 'Products')}
+                style={th('products')}
                 onClick={() => toggleSort('products')}
               >
                 Products{sortKey === 'products' ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}

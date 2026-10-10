@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import AuthShell from '@/components/auth/AuthShell'
 
@@ -10,6 +11,7 @@ type Status = 'checking' | 'ready' | 'invalid' | 'success'
 const MIN_PASSWORD_LENGTH = 8
 
 export default function UpdatePasswordPage() {
+  const router = useRouter()
   const supabase = createClient()
   const [status, setStatus] = useState<Status>('checking')
   const [password, setPassword] = useState('')
@@ -72,7 +74,7 @@ export default function UpdatePasswordPage() {
 
     setStatus('success')
     setTimeout(() => {
-      window.location.href = '/dashboard'
+      router.push('/dashboard')
     }, 1200)
   }
 

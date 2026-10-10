@@ -7,6 +7,7 @@ import { listStudyDraftsAction } from './drafts/actions'
 import { fetchAwaitingOrders, fetchConceptPrice, attachOrderStatus } from '@/lib/checkout/load'
 import { fetchInvoiceContactLabels } from '@/lib/checkout/invoiceContact.server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { operatorStudiesBrandId } from '@/lib/studies/operatorScope'
 import StudiesClient from './StudiesClient'
 
 export default async function StudiesPage() {
@@ -15,7 +16,7 @@ export default async function StudiesPage() {
 
   const { portalUser, effectiveBrandId, isImpersonating } = scope
   const canOperate = portalUser.role === 'dough_admin' && !isImpersonating
-  const brandId = canOperate ? null : effectiveBrandId
+  const brandId = operatorStudiesBrandId(scope)
 
   const [activeResult, completeResult, withdrawn, draftsResult] = await Promise.all([
     fetchOperatorStudiesPage({
@@ -48,7 +49,7 @@ export default async function StudiesPage() {
   ])
 
   let awaitingOrders: Awaited<ReturnType<typeof fetchAwaitingOrders>> = []
-  let orderBrandNames: Record<number, string> = {}
+  const orderBrandNames: Record<number, string> = {}
   let invoiceContactLabels: Record<string, string> = {}
   let conceptUnitPriceCents: number | null = null
   let conceptCurrency = 'usd'

@@ -8,6 +8,7 @@ import {
 } from '@/lib/studies/fetchOperatorStudies'
 import { attachOrderStatus } from '@/lib/checkout/load'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { operatorStudiesBrandId } from '@/lib/studies/operatorScope'
 import type { OperatorStudyRow } from '@/lib/studies/types'
 
 export async function listOperatorStudiesPageAction(opts: {
@@ -25,10 +26,7 @@ export async function listOperatorStudiesPageAction(opts: {
   const scope = await getPortalBrandScope()
   if (!scope) return { ok: false, error: 'Not signed in.' }
 
-  const brandId =
-    scope.portalUser.role === 'dough_admin' && !scope.isImpersonating
-      ? null
-      : scope.effectiveBrandId
+  const brandId = operatorStudiesBrandId(scope)
 
   const result = await fetchOperatorStudiesPage({
     tab: opts.tab,

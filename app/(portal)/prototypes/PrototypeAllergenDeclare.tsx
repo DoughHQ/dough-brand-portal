@@ -64,7 +64,6 @@ export default function PrototypeAllergenDeclare({
   const [editing, setEditing] = useState(!declared)
   const containsSet = new Set(contains)
   const maySet = new Set(mayContain)
-  const showPicker = !declared || editing
 
   function toggle(code: AllergenCode, list: 'contains' | 'may') {
     const nextContains = new Set(contains)

@@ -297,7 +297,13 @@ function FieldOptionPhoto({
   }, [imageRef, src])
   return (
     <span className="cb-bq-field-photo">
-      {url ? <img src={url} alt="" /> : null}
+      {url ? (
+        <>
+          {/* Study media can use remote catalog URLs that must not be server-fetched. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={url} alt="" />
+        </>
+      ) : null}
     </span>
   )
 }

@@ -8,9 +8,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ConceptStudyDraft } from '@/lib/concept/types'
 import {
   BATTLE_PROMPT_OPTIONS,
-  type BattlePromptCode,
-  type BrandQuestionDraft,
-  brandQuestionKind,
   DEFAULT_DECOY_OPTION,
   defaultSuccessBarsDraft,
   emptyBrandQuestion,
@@ -53,7 +50,6 @@ import {
 import {
   checkConceptDecoyAction,
   previewConceptJourneyAction,
-  searchVerificationBrandsAction,
 } from './actions'
 
 type Props = {

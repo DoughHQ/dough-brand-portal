@@ -8,30 +8,30 @@ import {
 } from '../resolveFocalSubject'
 import type { ConceptPlanSubject } from '../planTypes'
 
-const conceptA: ConceptPlanSubject = {
+const conceptA = {
   ref: 1,
   kind: 'concept',
   name: 'Concept A',
   brand: null,
   image_url: null,
   price: null,
-}
-const conceptB: ConceptPlanSubject = {
+} satisfies ConceptPlanSubject
+const conceptB = {
   ref: 2,
   kind: 'concept',
   name: 'Concept B',
   brand: null,
   image_url: null,
   price: null,
-}
-const product: ConceptPlanSubject = {
+} satisfies ConceptPlanSubject
+const product = {
   ref: 3,
   kind: 'product',
   name: 'PB Blondie Bestie Sundae',
   brand: "Ben & Jerry's",
   image_url: null,
   price: null,
-}
+} satisfies ConceptPlanSubject
 
 const byRef = subjectIndexFromCombatants([conceptA, conceptB, product])
 const conceptRefs = [1, 2]
