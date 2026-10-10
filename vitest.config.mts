@@ -3,5 +3,11 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   resolve: { alias: { '@': path.resolve(import.meta.dirname, '.') } },
-  test: { environment: 'node', include: ['lib/**/*.{test,spec,matrix}.ts'] },
+  test: {
+    environment: 'node',
+    include: [
+      'lib/**/*.{test,spec,matrix}.ts',
+      'components/**/*.{test,spec}.tsx',
+    ],
+  },
 })

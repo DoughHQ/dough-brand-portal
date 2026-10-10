@@ -9,6 +9,10 @@ import {
 } from '@/lib/transparency/disclosures'
 import { formatProofCode } from '@/lib/transparency/displayMap'
 import { rowPresence, type RowPresence } from '@/lib/transparency/proofChapters'
+import {
+  presenceLabel,
+  presencePillClass,
+} from '@/lib/transparency/presencePresentation'
 import { composePlaceLine, provenanceWhisperFromTier } from '@/lib/transparency/storyLines'
 import ShopperPreview from '@/components/transparency/ShopperPreview'
 import {
@@ -74,32 +78,6 @@ function norm(s: string): string {
 function findRow(rows: OriginLocalRow[], subject: string): OriginLocalRow | undefined {
   const n = norm(subject)
   return rows.find((r) => norm(r.draft.subjectLabel ?? '') === n)
-}
-
-function pillClass(p: RowPresence): string {
-  switch (p) {
-    case 'published':
-      return 'tx-pill tx-pill--public'
-    case 'private':
-      return 'tx-pill tx-pill--private'
-    case 'declined':
-      return 'tx-pill tx-pill--declined'
-    default:
-      return 'tx-pill tx-pill--idle'
-  }
-}
-
-function presenceCopy(p: RowPresence): string {
-  switch (p) {
-    case 'published':
-      return 'Published'
-    case 'private':
-      return 'Private'
-    case 'declined':
-      return 'Not reporting'
-    default:
-      return '—'
-  }
 }
 
 function storyPresence(
@@ -295,7 +273,9 @@ export default function OriginSheet({
                 </span>
                 <span className="tx-origin__place">{place || '—'}</span>
                 <span className="tx-formula__status">
-                  <span className={pillClass(presence)}>{presenceCopy(presence)}</span>
+                  <span className={presencePillClass(presence)}>
+                    {presenceLabel(presence)}
+                  </span>
                   <span className="tx-row__chev" aria-hidden>
                     ›
                   </span>

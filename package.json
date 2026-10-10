@@ -21,7 +21,8 @@
     "check:service-role-callers-ban": "bash scripts/check-service-role-callers-ban.sh",
     "check:page-root-containment-ban": "bash scripts/check-page-root-containment-ban.sh",
     "check:dark-mode-ban": "bash scripts/check-dark-mode-token-ban.sh",
-    "pretest": "npm run check:home-ban && npm run check:reports-ban && npm run check:products-ban && npm run check:corrections-ban && npm run check:admin-ops-ban && npm run check:studies-ban && npm run check:claim-array-ban && npm run check:landmine-callers-ban && npm run check:admin-action-auth-ban && npm run check:service-role-callers-ban && npm run check:page-root-containment-ban && npm run check:dark-mode-ban"
+    "check:transparency-ban": "bash scripts/check-transparency-architecture-ban.sh",
+    "pretest": "npm run check:home-ban && npm run check:reports-ban && npm run check:products-ban && npm run check:corrections-ban && npm run check:admin-ops-ban && npm run check:studies-ban && npm run check:claim-array-ban && npm run check:landmine-callers-ban && npm run check:admin-action-auth-ban && npm run check:service-role-callers-ban && npm run check:page-root-containment-ban && npm run check:dark-mode-ban && npm run check:transparency-ban"
   },
   "keywords": [],
   "author": "",
@@ -38,11 +39,14 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/node": "^20.19.41",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "eslint": "10.12.0",
     "eslint-config-next": "16.4.0",
+    "jsdom": "^29.1.1",
     "typescript": "^5.9.3",
     "vitest": "4.1.11"
   }
