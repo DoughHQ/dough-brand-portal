@@ -27,6 +27,9 @@ import {
   type TaxonomyL3Child,
   type TaxonomySearchHit,
 } from '@/lib/taxonomy'
+import { isDoughAdminRequest } from '@/lib/portal/isDoughAdminRequest'
+
+const NOT_AUTHORIZED = 'Not authorized.'
 
 function fail(e: unknown): { ok: false; error: string } {
   const message = e instanceof Error ? e.message : 'Request failed'
@@ -41,6 +44,7 @@ function revalidateGroup(id?: number) {
 export async function getCompareGroupDetailAction(
   id: number
 ): Promise<ActionResult<CompareGroupDetail>> {
+  if (!(await isDoughAdminRequest())) return { ok: false, error: NOT_AUTHORIZED }
   try {
     const data = await getCompareGroupDetail(id)
     return { ok: true, data }
@@ -52,6 +56,7 @@ export async function getCompareGroupDetailAction(
 export async function getCompareGroupMetricsAction(
   id: number
 ): Promise<ActionResult<CompareGroupMetrics>> {
+  if (!(await isDoughAdminRequest())) return { ok: false, error: NOT_AUTHORIZED }
   try {
     const data = await getCompareGroupMetrics(id)
     return { ok: true, data }
@@ -65,6 +70,7 @@ export async function checkSimilarityAction(
   question: string | null,
   excludeId: number | null
 ): Promise<ActionResult<SimilarityResult>> {
+  if (!(await isDoughAdminRequest())) return { ok: false, error: NOT_AUTHORIZED }
   try {
     const data = await checkCompareGroupSimilarity(nodeIds, question, excludeId)
     return { ok: true, data }
@@ -76,6 +82,7 @@ export async function checkSimilarityAction(
 export async function createCompareGroupAction(
   input: CreateCompareGroupInput
 ): Promise<ActionResult<CompareGroupDetail>> {
+  if (!(await isDoughAdminRequest())) return { ok: false, error: NOT_AUTHORIZED }
   try {
     const data = await createCompareGroup(input)
     const id = data.group?.compare_group_id
@@ -90,6 +97,7 @@ export async function updateFieldsAction(
   id: number,
   patch: UpdateCompareGroupPatch
 ): Promise<ActionResult<CompareGroupDetail>> {
+  if (!(await isDoughAdminRequest())) return { ok: false, error: NOT_AUTHORIZED }
   try {
     const data = await updateCompareGroupFields(id, patch)
     revalidateGroup(id)
@@ -104,6 +112,7 @@ export async function setMembersAction(
   nodeIds: number[],
   note?: string | null
 ): Promise<ActionResult<CompareGroupDetail>> {
+  if (!(await isDoughAdminRequest())) return { ok: false, error: NOT_AUTHORIZED }
   try {
     const data = await setCompareGroupMembers(id, nodeIds, note)
     revalidateGroup(id)
@@ -116,10 +125,12 @@ export async function setMembersAction(
 export async function searchTaxonomyForPickerAction(
   query: string
 ): Promise<TaxonomySearchHit[]> {
+  if (!(await isDoughAdminRequest())) return []
   return searchTaxonomyNodes(query, 25)
 }
 
 export async function listL2ParentsAction(): Promise<TaxonomyL2Parent[]> {
+  if (!(await isDoughAdminRequest())) return []
   try {
     return await listTaxonomyL2Parents()
   } catch {
@@ -128,6 +139,7 @@ export async function listL2ParentsAction(): Promise<TaxonomyL2Parent[]> {
 }
 
 export async function listL3ChildrenAction(l2Id: number): Promise<TaxonomyL3Child[]> {
+  if (!(await isDoughAdminRequest())) return []
   try {
     return await listTaxonomyL3Children(l2Id)
   } catch {
@@ -138,6 +150,7 @@ export async function listL3ChildrenAction(l2Id: number): Promise<TaxonomyL3Chil
 export async function resolveL2LabelsAction(
   nodeIds: number[]
 ): Promise<TaxonomyL2Label[]> {
+  if (!(await isDoughAdminRequest())) return []
   try {
     return await resolveTaxonomyL2Labels(nodeIds)
   } catch {

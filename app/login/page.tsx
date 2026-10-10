@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import ApplyBrandFlow, { type ApplyStep } from '@/components/auth/ApplyBrandFlow'
 import AuthShell, {
@@ -28,6 +29,7 @@ function parseUrlErrors(): { error: string | null; errorCode: string | null } {
 }
 
 export default function LoginPage() {
+  const router = useRouter()
   const [step, setStep] = useState<Step>('search')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -60,7 +62,7 @@ export default function LoginPage() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
-        window.location.replace('/auth/update-password')
+        router.replace('/auth/update-password')
       }
     })
 
@@ -69,7 +71,7 @@ export default function LoginPage() {
       : window.location.hash
     const hashParams = new URLSearchParams(hashRaw)
     if (hashParams.get('type') === 'recovery') {
-      window.location.replace('/auth/update-password')
+      router.replace('/auth/update-password')
     }
 
     return () => subscription.unsubscribe()
@@ -92,7 +94,7 @@ export default function LoginPage() {
       setError('Invalid credentials.')
       return
     }
-    window.location.href = '/dashboard'
+    router.push('/dashboard')
   }
 
   async function handleForgotPassword() {

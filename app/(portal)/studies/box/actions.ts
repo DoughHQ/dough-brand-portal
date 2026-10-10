@@ -23,6 +23,9 @@ import {
   type IhutPreviewJourney,
 } from '@/lib/box/preview/screensFromIhutJourney'
 import { IHUT_MAX_TARGET_COMPLETIONS } from '@/lib/box/completionContract'
+import { canPublishStudies } from '@/lib/studies/canPublishStudies'
+import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
+import { studyBrandIdForRequest } from '@/lib/studies/studyBrandScope'
 
 export type BoxPublishResult =
   | { ok: true; meta: BoxPublishSuccessMeta }
@@ -74,8 +77,19 @@ export async function createBoxCampaignAction(args: {
   brandId: number
   campaignName: string
 }): Promise<{ ok: true; campaignId: string } | { ok: false; error: string }> {
-  const portalUser = await getPortalUser()
-  if (!portalUser) return { ok: false, error: "You don't have access to that brand." }
+  const scope = await getPortalBrandScope()
+  if (!scope) return { ok: false, error: "You don't have access to that brand." }
+  const { portalUser } = scope
+  if (!canPublishStudies(portalUser)) {
+    return {
+      ok: false,
+      error: 'Your role can view studies but not create them; ask a brand admin.',
+    }
+  }
+  const brandId = studyBrandIdForRequest(scope, args.brandId)
+  if (brandId == null) {
+    return { ok: false, error: "You don't have access to that brand." }
+  }
 
   const name = args.campaignName.trim() || 'Box study campaign'
   const now = new Date()
@@ -83,7 +97,7 @@ export async function createBoxCampaignAction(args: {
 
   const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase.rpc('create_campaign_draft', {
-    p_brand_id: args.brandId,
+    p_brand_id: brandId,
     p_campaign_name: name,
     p_starts_at: now.toISOString(),
     p_expires_at: expires.toISOString(),
@@ -110,13 +124,30 @@ export async function createBoxCampaignAction(args: {
 export async function publishBoxStudyAction(
   draft: BoxStudyDraft
 ): Promise<BoxPublishResult> {
-  const portalUser = await getPortalUser()
-  if (!portalUser) {
+  const scope = await getPortalBrandScope()
+  if (!scope) {
     return {
       ok: false,
       error: "You don't have access to that brand.",
       section: 'publish',
       hint: 'NOT_A_BRAND_PORTAL_USER',
+    }
+  }
+  const { portalUser } = scope
+  if (!canPublishStudies(portalUser)) {
+    return {
+      ok: false,
+      error: 'Your role can view studies but not publish them; ask a brand admin.',
+      section: 'publish',
+      hint: 'NOT_ALLOWED_TO_PUBLISH',
+    }
+  }
+  if (studyBrandIdForRequest(scope, draft.brandId) == null) {
+    return {
+      ok: false,
+      error: "You don't have access to that brand.",
+      section: 'publish',
+      hint: 'CROSS_TENANT_ACCESS_DENIED',
     }
   }
   if (!portalUser.auth_uid) {

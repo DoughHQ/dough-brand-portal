@@ -109,7 +109,7 @@ export function armsLostByModeSwitch(
  * never plural-by-default. Pass 3 splits it into dialog parts: the title asks,
  * the body names the consequence, the action names itself.
  */
-export function modeSwitchLossMessage(lostCount: number, mode: StimulusMode): string {
+export function modeSwitchLossMessage(lostCount: number, _mode: StimulusMode): string {
   const noun = lostCount === 1 ? '1 configured variant' : `${lostCount} configured variants`
   return `Price studies use one product. Switching will keep one product and remove ${noun}.`
 }

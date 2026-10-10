@@ -1,13 +1,16 @@
 'use client'
 
-import { type ReactNode } from 'react'
 import {
   type DisclosureDraft,
   type ProofSubMetricRow,
   type SourceTier,
 } from '@/lib/transparency/disclosures'
 import { formatProofCode } from '@/lib/transparency/displayMap'
-import { rowPresence, type RowPresence } from '@/lib/transparency/proofChapters'
+import { rowPresence } from '@/lib/transparency/proofChapters'
+import {
+  presenceLabel,
+  presencePillClass,
+} from '@/lib/transparency/presencePresentation'
 import {
   composeDiligenceLine,
   composeGrievanceLine,
@@ -18,6 +21,7 @@ import {
   provenanceWhisperFromTier,
 } from '@/lib/transparency/storyLines'
 import ShopperPreview from '@/components/transparency/ShopperPreview'
+import TransparencyRoom from '@/components/transparency/TransparencyRoom'
 
 export const RIGHTS_LIVING_CODES = [
   'animal_welfare_standard',
@@ -88,32 +92,6 @@ function wholeRow(rows: RightsLocalRow[] | undefined): RightsLocalRow | undefine
   return rows?.[0]
 }
 
-function pillClass(p: RowPresence): string {
-  switch (p) {
-    case 'published':
-      return 'tx-pill tx-pill--public'
-    case 'private':
-      return 'tx-pill tx-pill--private'
-    case 'declined':
-      return 'tx-pill tx-pill--declined'
-    default:
-      return 'tx-pill tx-pill--idle'
-  }
-}
-
-function presenceCopy(p: RowPresence): string {
-  switch (p) {
-    case 'published':
-      return 'Published'
-    case 'private':
-      return 'Private'
-    case 'declined':
-      return 'Not reporting'
-    default:
-      return '—'
-  }
-}
-
 function disclosedText(row: RightsLocalRow | undefined): string | null {
   if (!row || row.draft.status !== 'disclosed') return null
   return row.draft.valueText
@@ -170,7 +148,7 @@ export default function RightsSheet({
 
       {storyError ? <p className="tx-error">{storyError}</p> : null}
 
-      <Room
+      <TransparencyRoom
         kicker="Living things"
         title="Animals in this product"
         lede="Welfare standard and antibiotic or hormone policy — only when animals are part of the story."
@@ -190,9 +168,9 @@ export default function RightsSheet({
         ) : (
           <p className="tx-ops__empty">No animal-welfare fields in the registry.</p>
         )}
-      </Room>
+      </TransparencyRoom>
 
-      <Room
+      <TransparencyRoom
         kicker="People"
         title="Labor, certifications, diligence"
         lede="How far the code reaches, what you’ve earned, and what you do when something goes wrong."
@@ -269,9 +247,9 @@ export default function RightsSheet({
             <p className="tx-ops__empty">No people fields in the registry.</p>
           ) : null}
         </div>
-      </Room>
+      </TransparencyRoom>
 
-      <Room
+      <TransparencyRoom
         kicker="Named suppliers"
         title="How far you name them"
         lede="Depth of the published supplier list and how much volume it covers."
@@ -291,31 +269,8 @@ export default function RightsSheet({
         ) : (
           <p className="tx-ops__empty">No supplier-visibility fields in the registry.</p>
         )}
-      </Room>
+      </TransparencyRoom>
     </div>
-  )
-}
-
-function Room({
-  kicker,
-  title,
-  lede,
-  children,
-}: {
-  kicker: string
-  title: string
-  lede: string
-  children: ReactNode
-}) {
-  return (
-    <section className="tx-ops__room">
-      <header className="tx-ops__room-head">
-        <p className="tx-ops__room-kicker">{kicker}</p>
-        <h4 className="tx-ops__room-title">{title}</h4>
-        <p className="tx-ops__room-lede">{lede}</p>
-      </header>
-      {children}
-    </section>
   )
 }
 
@@ -471,7 +426,7 @@ function LivingEditor({
           <p className="tx-ops__card-title">Animal care claim</p>
           <p className="tx-ops__card-hint">Skip entirely if this product has no animal inputs.</p>
         </div>
-        <span className={pillClass(presence)}>{presenceCopy(presence)}</span>
+        <span className={presencePillClass(presence)}>{presenceLabel(presence)}</span>
       </div>
       <ShopperPreview
         line={line}
@@ -606,7 +561,7 @@ function LaborEditor({
           <p className="tx-ops__card-title">Labor code</p>
           <p className="tx-ops__card-hint">What you align to, and how far down the chain it reaches.</p>
         </div>
-        <span className={pillClass(presence)}>{presenceCopy(presence)}</span>
+        <span className={presencePillClass(presence)}>{presenceLabel(presence)}</span>
       </div>
       <ShopperPreview
         line={line}
@@ -753,7 +708,7 @@ function DiligenceEditor({
             One OECD-aligned step, plus how you handle high-risk geographies and remediation.
           </p>
         </div>
-        <span className={pillClass(presence)}>{presenceCopy(presence)}</span>
+        <span className={presencePillClass(presence)}>{presenceLabel(presence)}</span>
       </div>
       <ShopperPreview
         line={line}
@@ -901,7 +856,7 @@ function SupplierEditor({
           <p className="tx-ops__card-title">Supplier list claim</p>
           <p className="tx-ops__card-hint">Depth of naming, and coverage of spend or volume.</p>
         </div>
-        <span className={pillClass(presence)}>{presenceCopy(presence)}</span>
+        <span className={presencePillClass(presence)}>{presenceLabel(presence)}</span>
       </div>
       <ShopperPreview
         line={line}
@@ -1027,7 +982,7 @@ function SingleEnumCard({
           <p className="tx-ops__card-title">{title}</p>
           <p className="tx-ops__card-hint">{hint}</p>
         </div>
-        <span className={pillClass(presence)}>{presenceCopy(presence)}</span>
+        <span className={presencePillClass(presence)}>{presenceLabel(presence)}</span>
       </div>
       <ShopperPreview
         line={previewLine}
@@ -1133,7 +1088,7 @@ function SingleTextCard({
           <p className="tx-ops__card-title">{title}</p>
           <p className="tx-ops__card-hint">{hint}</p>
         </div>
-        <span className={pillClass(presence)}>{presenceCopy(presence)}</span>
+        <span className={presencePillClass(presence)}>{presenceLabel(presence)}</span>
       </div>
       <ShopperPreview
         line={previewLine}

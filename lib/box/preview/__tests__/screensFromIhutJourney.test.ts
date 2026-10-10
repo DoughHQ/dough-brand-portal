@@ -79,6 +79,7 @@ describe('IHUT preview walkthrough mapping', () => {
     const base = {
       screens: [{ kind: 'summary' as const }],
       field_issues: [] as string[],
+      needs_review: false,
     }
     expect(
       ihutJourneyLengthLabel({

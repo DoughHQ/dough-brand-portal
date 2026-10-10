@@ -8,6 +8,8 @@ import DashboardClient from './DashboardClient'
 import AdminDashboardClient from './AdminDashboardClient'
 import BrandHomeUnavailable from './BrandHomeUnavailable'
 
+export const dynamic = 'force-dynamic'
+
 function isAuthError(error: unknown): boolean {
   const msg = error instanceof Error ? error.message : String(error)
   return /auth|session|jwt|not authenticated|login/i.test(msg)

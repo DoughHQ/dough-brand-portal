@@ -159,7 +159,6 @@ export default function AudienceSection({
         opacity: disabled ? 0.55 : 1,
         pointerEvents: disabled ? 'none' : 'auto',
       }}
-      aria-disabled={disabled || undefined}
     >
       <div style={sectionEyebrow}>Section 4 · Audience</div>
       <h2 className="cb-section-title" style={sectionTitle}>

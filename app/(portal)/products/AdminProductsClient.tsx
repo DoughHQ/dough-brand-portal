@@ -26,7 +26,7 @@ interface Props {
   statsLagHint?: string
 }
 
-export default function AdminProductsClient({ portalUser, categoryStats, milestoneAlerts, statsLagHint }: Props) {
+export default function AdminProductsClient({ portalUser: _portalUser, categoryStats, milestoneAlerts, statsLagHint }: Props) {
   const router = useRouter()
   const { enterAsBrand, loading: entering } = useEnterImpersonation()
 

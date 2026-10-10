@@ -10,6 +10,7 @@ type Props = {
 }
 
 export default function NodesPanel({ detail, metrics }: Props) {
+  const nodes = detail.nodes
   const perNodeMap = useMemo(() => {
     const map = new Map<number, CompareGroupMetrics['per_node'][number]>()
     if (metrics?.per_node) {
@@ -36,8 +37,8 @@ export default function NodesPanel({ detail, metrics }: Props) {
   }, [metrics])
 
   const grouped = useMemo(() => {
-    const map = new Map<string, typeof detail.nodes>()
-    for (const node of detail.nodes) {
+    const map = new Map<string, typeof nodes>()
+    for (const node of nodes) {
       const key = node.l2_node_name?.trim() || 'Ungrouped'
       const list = map.get(key) ?? []
       list.push(node)
@@ -48,15 +49,15 @@ export default function NodesPanel({ detail, metrics }: Props) {
       if (b === 'Ungrouped') return -1
       return a.localeCompare(b)
     })
-  }, [detail.nodes])
+  }, [nodes])
 
   const hasMetrics = metrics != null
 
   return (
     <section style={{ marginBottom: 32 }}>
-      <div style={sectionTitle}>Nodes ({detail.nodes.length})</div>
+      <div style={sectionTitle}>Nodes ({nodes.length})</div>
 
-      {detail.nodes.length === 0 ? (
+      {nodes.length === 0 ? (
         <div style={emptyBox}>No nodes in this group.</div>
       ) : (
         <>

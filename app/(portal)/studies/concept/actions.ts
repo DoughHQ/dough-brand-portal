@@ -3,9 +3,11 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalUser } from '@/lib/queries'
 import { parseCreateCampaignDraftResult } from '@/lib/studies/parseCampaignDraft'
+import { canPublishStudies } from '@/lib/studies/canPublishStudies'
+import { studyBrandIdForRequest } from '@/lib/studies/studyBrandScope'
+import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import { draftToConceptPublishStudyArgs } from '@/lib/concept/publish'
 import { resolvePublishError, type ConceptErrorSection } from '@/lib/concept/errors'
-import { templateConfigToWire } from '@/lib/concept/templateConfig'
 import { rpcPublishConceptStudy } from '@/lib/concept/rpc'
 import type {
   ConceptPublishSuccessMeta,
@@ -124,11 +126,16 @@ function asFail(
 export async function listBrandCampaignsAction(
   brandId: number = CONCEPT_DEFAULT_BRAND_ID
 ): Promise<ConceptCampaignOption[]> {
+  const scope = await getPortalBrandScope()
+  if (!scope) return []
+  const scopedBrandId = studyBrandIdForRequest(scope, brandId)
+  if (scopedBrandId == null) return []
+
   const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase
     .from('brand_campaigns')
     .select('id, name, created_at')
-    .eq('brand_id', brandId)
+    .eq('brand_id', scopedBrandId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(40)
@@ -149,10 +156,21 @@ export async function createConceptCampaignAction(args: {
   campaignName: string
   taxonomyNodeId: number
 }): Promise<{ ok: true; campaignId: string } | { ok: false; error: string }> {
-  const portalUser = await getPortalUser()
-  if (!portalUser) return { ok: false, error: "You don't have access to that brand." }
+  const scope = await getPortalBrandScope()
+  if (!scope) return { ok: false, error: "You don't have access to that brand." }
+  const { portalUser } = scope
+  if (!canPublishStudies(portalUser)) {
+    return {
+      ok: false,
+      error: 'Your role can view studies but not create them; ask a brand admin.',
+    }
+  }
 
-  const brandId = args.brandId ?? CONCEPT_DEFAULT_BRAND_ID
+  const requestedBrandId = args.brandId ?? CONCEPT_DEFAULT_BRAND_ID
+  const brandId = studyBrandIdForRequest(scope, requestedBrandId)
+  if (brandId == null) {
+    return { ok: false, error: "You don't have access to that brand." }
+  }
   const taxonomyNodeId = args.taxonomyNodeId
   if (!taxonomyNodeId) {
     return { ok: false, error: 'Choose a category for this study.' }
@@ -197,8 +215,8 @@ export async function createConceptCampaignAction(args: {
 export async function publishConceptStudyAction(
   draft: ConceptStudyDraft
 ): Promise<ConceptPublishResult> {
-  const portalUser = await getPortalUser()
-  if (!portalUser) {
+  const scope = await getPortalBrandScope()
+  if (!scope) {
     return {
       ok: false,
       error: "You don't have access to that brand.",
@@ -206,14 +224,23 @@ export async function publishConceptStudyAction(
       hint: 'NOT_A_BRAND_PORTAL_USER',
     }
   }
+  const { portalUser } = scope
 
-  if (portalUser.role === 'brand_viewer') {
+  if (!canPublishStudies(portalUser)) {
     return {
       ok: false,
       error:
         'Your role can view studies but not publish them; ask a brand admin.',
       section: 'publish',
       hint: 'NOT_ALLOWED_TO_PUBLISH',
+    }
+  }
+  if (studyBrandIdForRequest(scope, draft.brandId) == null) {
+    return {
+      ok: false,
+      error: "You don't have access to that brand.",
+      section: 'publish',
+      hint: 'CROSS_TENANT_ACCESS_DENIED',
     }
   }
 
@@ -505,7 +532,7 @@ export type VerificationBrandHit = {
 export async function searchVerificationBrandsAction(
   query: string
 ): Promise<VerificationBrandHit[]> {
-  const q = query.trim()
+  const q = query.trim().slice(0, 80)
   if (q.length < 2) return []
   const portalUser = await getPortalUser()
   if (!portalUser) {
@@ -513,6 +540,9 @@ export async function searchVerificationBrandsAction(
   }
 
   const supabase = await createServerSupabaseClient()
+  // This intentionally searches the global active-brand directory: respondents
+  // need plausible recognition choices beyond the author's own brand. The RPC
+  // returns only public brand labels and aggregate counts, never tenant records.
   const { data, error } = await supabase.rpc('search_brands_admin', {
     p_query: q,
   })
@@ -562,7 +592,7 @@ export async function searchTaxonomyNodesAction(
   return (data as Parameters<typeof toNodeInfo>[0][]).map(toNodeInfo)
 }
 
-/** Decoy attention-check validation. Falls back to local heuristics if RPC is dark. */
+/** Decoy attention-check validation. Never reports success if the authoritative check is dark. */
 export async function checkConceptDecoyAction(
   decoy: string
 ): Promise<{ ok: true; decoy: string } | { ok: false; reason: string }> {
@@ -585,16 +615,18 @@ export async function checkConceptDecoyAction(
       p_decoy: trimmed,
     })
     if (error) {
-      // Dark backend — local checks only.
-      return { ok: true, decoy: trimmed }
+      return { ok: false, reason: 'VALIDATION_UNAVAILABLE' }
     }
     const row = data as { ok?: boolean; reason?: string; decoy?: string } | null
-    if (row && row.ok === false) {
+    if (!row || typeof row.ok !== 'boolean') {
+      return { ok: false, reason: 'VALIDATION_UNAVAILABLE' }
+    }
+    if (!row.ok) {
       return { ok: false, reason: row.reason ?? 'REAL_BRAND' }
     }
     return { ok: true, decoy: typeof row?.decoy === 'string' ? row.decoy : trimmed }
   } catch {
-    return { ok: true, decoy: trimmed }
+    return { ok: false, reason: 'VALIDATION_UNAVAILABLE' }
   }
 }
 

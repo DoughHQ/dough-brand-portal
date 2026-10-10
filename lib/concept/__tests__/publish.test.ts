@@ -48,8 +48,8 @@ function draftWithProduct(
       expected_price: '4.99',
       decoy_option: 'Frostline',
       verification_options: [
-        { id: 'a', label: 'Brand A' },
-        { id: 'b', label: 'Brand B' },
+        { id: 'brand:1', label: 'Brand A', brand_id: 1 },
+        { id: 'brand:2', label: 'Brand B', brand_id: 2 },
         { id: 'decoy', label: 'Frostline' },
         { id: 'none_of_these', label: 'None of these' },
       ],

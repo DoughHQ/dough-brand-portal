@@ -133,9 +133,6 @@ function overallCopy(
   const close = metrics.filter(
     (metric) => metric.result === 'too_close_to_call',
   )
-  const forming = metrics.filter(
-    (metric) => metric.result === 'not_enough_responses',
-  )
   const cleared = metrics.filter((metric) => metric.result === 'cleared')
 
   if (verdict.overall === 'cleared') {

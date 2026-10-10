@@ -338,12 +338,12 @@ export async function getTopBrandProducts(
     .order('total_battles', { ascending: false })
     .limit(safeLimit)
   if (!data) return []
-  return data.map((row: any) => ({
+  return data.map((row) => ({
     product_id: row.product_id,
     product_name_display: row.product_name_display,
     taxonomy_node_id: row.taxonomy_node_id,
     total_battles: row.total_battles ?? 0,
-    status: row.status,
+    status: row.status!,
     l2_name: row.taxonomy_nodes?.node_name_display ?? null,
   }))
 }
@@ -462,7 +462,7 @@ export async function searchBrands(query: string): Promise<BrandSearchResult[]> 
   const supabase = await createServerSupabaseClient()
   const { data } = await supabase.rpc('search_brands_admin', { p_query: query })
   if (!data) return []
-  return (data as any[]).map(r => ({
+  return data.map(r => ({
     brand_id: r.brand_id,
     brand_name: r.brand_name,
     product_count: Number(r.product_count),

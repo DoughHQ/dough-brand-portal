@@ -234,7 +234,6 @@ export default function OwnProductColumn({
                       arm={arm}
                       index={index}
                       isLast={isLast}
-                      multi={multi}
                       nameFocusRef={isLast ? nameFocusRef : undefined}
                       brandId={brandId}
                       draftId={draftId}
@@ -413,7 +412,6 @@ function ConceptCardBody({
   arm,
   index,
   isLast,
-  multi,
   nameFocusRef,
   brandId,
   draftId,
@@ -426,7 +424,6 @@ function ConceptCardBody({
   arm: ConceptArmRow
   index: number
   isLast: boolean
-  multi: boolean
   nameFocusRef?: Ref<HTMLInputElement>
   brandId: number
   draftId: string
