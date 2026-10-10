@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
-# Keeps shared transparency presentation rules centralized and OperationsSheet orchestration-only.
+# Keeps shared transparency presentation rules centralized and sheet modules orchestration-only.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TRANSPARENCY="$ROOT/components/transparency"
 OPERATIONS="$TRANSPARENCY/OperationsSheet.tsx"
+RIGHTS="$TRANSPARENCY/RightsSheet.tsx"
+STUDIO="$TRANSPARENCY/ProductTransparencyStudio.tsx"
 FAIL=0
+
+if ! node "$ROOT/scripts/check-transparency-module-boundaries.mjs"; then
+  FAIL=1
+fi
 
 for REQUIRED in \
   "$TRANSPARENCY/TransparencyRoom.tsx" \
@@ -66,6 +72,99 @@ if (( OPERATIONS_LINES > 350 )); then
   echo "BAN FAIL: OperationsSheet grew past its 350-line orchestration budget ($OPERATIONS_LINES)"
   FAIL=1
 fi
+
+for REQUIRED in \
+  "$TRANSPARENCY/rights/types.ts" \
+  "$TRANSPARENCY/rights/helpers.ts"; do
+  if [[ ! -f "$REQUIRED" ]]; then
+    echo "BAN FAIL: missing RightsSheet support module"
+    echo "  ${REQUIRED#"$ROOT/"}"
+    FAIL=1
+  fi
+done
+
+for EDITOR in \
+  ProvenanceFields \
+  LivingEditor \
+  LaborEditor \
+  DiligenceEditor \
+  SupplierEditor \
+  SingleEnumCard \
+  SingleTextCard; do
+  if [[ ! -f "$TRANSPARENCY/rights/$EDITOR.tsx" ]]; then
+    echo "BAN FAIL: missing extracted RightsSheet editor: $EDITOR"
+    FAIL=1
+  fi
+  case "$EDITOR" in
+    ProvenanceFields) ;;
+    *)
+      if ! rg -q "rights/$EDITOR'" "$RIGHTS"; then
+        echo "BAN FAIL: RightsSheet must import extracted editor: $EDITOR"
+        FAIL=1
+      fi
+      ;;
+  esac
+done
+
+if rg -n '\b(function|const|class) (ProvenanceFields|LivingEditor|LaborEditor|DiligenceEditor|SupplierEditor|SingleEnumCard|SingleTextCard)\b' \
+  "$RIGHTS" >/dev/null 2>&1; then
+  echo "BAN FAIL: RightsSheet must remain an orchestration shell"
+  FAIL=1
+fi
+
+RIGHTS_LINES="$(wc -l < "$RIGHTS" | tr -d ' ')"
+if (( RIGHTS_LINES > 300 )); then
+  echo "BAN FAIL: RightsSheet grew past its 300-line orchestration budget ($RIGHTS_LINES)"
+  FAIL=1
+fi
+
+for MODULE in \
+  types.ts \
+  progress.ts \
+  useTransparencyStudio.ts \
+  DisclosureRowEditor.tsx \
+  InventoryGroups.tsx; do
+  if [[ ! -f "$TRANSPARENCY/studio/$MODULE" ]]; then
+    echo "BAN FAIL: missing transparency studio module: $MODULE"
+    FAIL=1
+  fi
+done
+
+for MODULE in progress useTransparencyStudio InventoryGroups; do
+  if ! rg -q "studio/$MODULE'" "$STUDIO"; then
+    echo "BAN FAIL: ProductTransparencyStudio must import extracted module: $MODULE"
+    FAIL=1
+  fi
+done
+
+if rg -n '\b(function|const|class) (DisclosureRowEditor|InventoryGroups|useTransparencyStudio)\b' \
+  "$STUDIO" >/dev/null 2>&1; then
+  echo "BAN FAIL: ProductTransparencyStudio must remain an orchestration shell"
+  FAIL=1
+fi
+
+STUDIO_LINES="$(wc -l < "$STUDIO" | tr -d ' ')"
+if (( STUDIO_LINES > 500 )); then
+  echo "BAN FAIL: ProductTransparencyStudio grew past its 500-line orchestration budget ($STUDIO_LINES)"
+  FAIL=1
+fi
+
+while IFS='|' read -r MODULE LIMIT; do
+  MODULE_PATH="$TRANSPARENCY/studio/$MODULE"
+  if [[ ! -f "$MODULE_PATH" ]]; then
+    continue
+  fi
+  MODULE_LINES="$(wc -l < "$MODULE_PATH" | tr -d ' ')"
+  if (( MODULE_LINES > LIMIT )); then
+    echo "BAN FAIL: studio/$MODULE grew past its $LIMIT-line responsibility budget ($MODULE_LINES)"
+    FAIL=1
+  fi
+done <<'EOF'
+useTransparencyStudio.ts|525
+DisclosureRowEditor.tsx|500
+progress.ts|450
+InventoryGroups.tsx|175
+EOF
 
 if [[ "$FAIL" -ne 0 ]]; then
   echo "check-transparency-architecture-ban: FAILED"
