@@ -35,7 +35,7 @@ export function ImagesTab({
           <ProposalBadge types={pendingFields} match="images" />
         </SectionHeading>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
-          {master.images.filter((img) => img.public_url?.trim()).map((img) => (
+          {master.images.map((img) => (
             <div key={img.product_image_id} style={{ width: 100, textAlign: 'center' }}>
               <div
                 style={{
@@ -48,10 +48,14 @@ export function ImagesTab({
                   border: img.is_primary ? '2px solid var(--sage)' : '1px solid var(--ink-10)',
                 }}
               >
-                {img.public_url ? (
+                {img.public_url?.trim() ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={img.public_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                ) : null}
+                ) : (
+                  <span style={{ display: 'grid', placeItems: 'center', height: '100%', fontSize: 12, color: 'var(--ink-30)' }}>
+                    Private
+                  </span>
+                )}
               </div>
               <div style={{ marginTop: 4 }}>
                 <EvidenceRungChip rung={img.evidence_rung} />
