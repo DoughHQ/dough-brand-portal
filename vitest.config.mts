@@ -8,6 +8,7 @@ export default defineConfig({
     include: [
       'lib/**/*.{test,spec,matrix}.ts',
       'components/**/*.{test,spec}.tsx',
+      'app/**/*.{test,spec}.{ts,tsx}',
     ],
   },
 })
