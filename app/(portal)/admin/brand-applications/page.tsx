@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalUser } from '@/lib/queries'
 import { listBrandWaitlistApplicationsPage } from '@/lib/brandApplications'
+import { parseImpersonatedBrandIdFromAccessToken } from '@/lib/portal/parseImpersonationClaim'
 import BrandApplicationsClient from './BrandApplicationsClient'
 
 export default async function AdminBrandApplicationsPage() {
@@ -13,6 +14,13 @@ export default async function AdminBrandApplicationsPage() {
 
   const portalUser = await getPortalUser()
   if (!portalUser || portalUser.role !== 'dough_admin') redirect('/dashboard')
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  const impersonating =
+    session?.access_token != null &&
+    parseImpersonatedBrandIdFromAccessToken(session.access_token) != null
 
   let initialRows: Awaited<ReturnType<typeof listBrandWaitlistApplicationsPage>>['rows'] = []
   let initialHasMore = false
@@ -34,6 +42,7 @@ export default async function AdminBrandApplicationsPage() {
       initialHasMore={initialHasMore}
       initialCursor={initialCursor}
       initialError={loadError}
+      impersonating={impersonating}
     />
   )
 }

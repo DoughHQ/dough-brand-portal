@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   applicationChip,
   asApplicationRow,
+  describeDecisionResult,
   extractApplications,
   formatProductCount,
   friendlyBrandApplicationsError,
@@ -258,6 +259,85 @@ describe('friendlyBrandApplicationsError', () => {
     expect(friendlyBrandApplicationsError('not authorized')).toMatch(/permission/i)
     expect(friendlyBrandApplicationsError('42501')).toMatch(/permission/i)
     expect(friendlyBrandApplicationsError('invites_disabled')).toMatch(/switched off/i)
+  })
+})
+
+describe('describeDecisionResult', () => {
+  it('maps every refusal code to copy and close/refresh behaviour', () => {
+    expect(describeDecisionResult('not_found')).toEqual({
+      message: 'This application is no longer in the queue.',
+      tone: 'info',
+      closeAndRefresh: true,
+    })
+
+    for (const code of [
+      'not_pending',
+      'not_invited',
+      'not_rejectable',
+      'already_accepted',
+    ] as const) {
+      const d = describeDecisionResult(code)
+      expect(d.closeAndRefresh).toBe(true)
+      expect(d.message).toMatch(/already decided/i)
+    }
+
+    expect(describeDecisionResult('already_invited')).toMatchObject({
+      closeAndRefresh: true,
+      message: expect.stringMatching(/already pending/i),
+    })
+
+    expect(
+      describeDecisionResult('possible_duplicate', { hasCandidates: true })
+    ).toMatchObject({
+      closeAndRefresh: false,
+      tone: 'warn',
+      message: expect.stringMatching(/Pick the brand/i),
+    })
+    expect(
+      describeDecisionResult('possible_duplicate', { hasCandidates: false })
+    ).toMatchObject({
+      closeAndRefresh: false,
+      message: expect.stringMatching(/Refresh and try again/i),
+    })
+
+    expect(describeDecisionResult('brand_not_active').message).toMatch(/isn’t active/i)
+    expect(describeDecisionResult('brand_already_has_admin').message).toMatch(
+      /already has an admin/i
+    )
+
+    const pending = describeDecisionResult('brand_has_pending_invite', {
+      invitedEmail: 'alex@brand.com',
+    })
+    expect(pending.message).toMatch(/^alex@brand\.com already has a pending invite/)
+    expect(pending.closeAndRefresh).toBe(false)
+
+    expect(describeDecisionResult('invalid_brand_name').message).toMatch(/1–200/)
+    expect(describeDecisionResult('invalid_body').message).toMatch(/Couldn’t prepare/)
+    expect(describeDecisionResult('invalid_waitlist_id').message).toMatch(/Couldn’t prepare/)
+    expect(describeDecisionResult('invalid_token_hash').message).toMatch(/Couldn’t prepare/)
+
+    expect(describeDecisionResult('rpc_failed').message).toMatch(/wasn’t saved/)
+    expect(describeDecisionResult('misconfigured').message).toMatch(/wasn’t saved/)
+    // Bare 5xx without an edge code is ambiguous — do not claim nothing changed.
+    expect(describeDecisionResult('unknown', { httpStatus: 502 }).message).toMatch(
+      /Couldn’t confirm whether it went through/i
+    )
+    expect(describeDecisionResult('boom', { httpStatus: 500 }).message).toMatch(
+      /Couldn’t confirm whether it went through/i
+    )
+
+    expect(describeDecisionResult('401').message).toMatch(/session expired/i)
+    expect(describeDecisionResult('x', { httpStatus: 401 }).message).toMatch(/session expired/i)
+
+    expect(describeDecisionResult('not_authorized').message).toMatch(/permission/i)
+    expect(describeDecisionResult('impersonating').message).toMatch(/stop impersonating/i)
+    expect(describeDecisionResult('impersonation').message).toMatch(/stop impersonating/i)
+    expect(describeDecisionResult('invites_disabled').message).toMatch(/switched off/i)
+
+    expect(describeDecisionResult('mystery_code')).toMatchObject({
+      closeAndRefresh: false,
+      message: expect.stringMatching(/Couldn’t confirm whether it went through/i),
+    })
   })
 })
 
