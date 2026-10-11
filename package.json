@@ -24,7 +24,8 @@
     "check:transparency-ban": "bash scripts/check-transparency-architecture-ban.sh",
     "check:distribution-ban": "node scripts/check-distribution-module-boundaries.mjs",
     "check:audience-ban": "node scripts/check-audience-module-boundaries.mjs",
-    "pretest": "npm run check:home-ban && npm run check:reports-ban && npm run check:products-ban && npm run check:corrections-ban && npm run check:admin-ops-ban && npm run check:studies-ban && npm run check:claim-array-ban && npm run check:landmine-callers-ban && npm run check:admin-action-auth-ban && npm run check:service-role-callers-ban && npm run check:page-root-containment-ban && npm run check:dark-mode-ban && npm run check:transparency-ban && npm run check:distribution-ban && npm run check:audience-ban"
+    "check:report-decks-ban": "node scripts/check-report-deck-module-boundaries.mjs",
+    "pretest": "npm run check:home-ban && npm run check:reports-ban && npm run check:products-ban && npm run check:corrections-ban && npm run check:admin-ops-ban && npm run check:studies-ban && npm run check:claim-array-ban && npm run check:landmine-callers-ban && npm run check:admin-action-auth-ban && npm run check:service-role-callers-ban && npm run check:page-root-containment-ban && npm run check:dark-mode-ban && npm run check:transparency-ban && npm run check:distribution-ban && npm run check:audience-ban && npm run check:report-decks-ban"
   },
   "keywords": [],
   "author": "",
