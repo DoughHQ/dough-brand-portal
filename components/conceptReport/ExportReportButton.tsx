@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 /** Legacy deck control — prefer ReportToolbar on story reports. */
 export function ExportReportButton({
@@ -14,8 +15,8 @@ export function ExportReportButton({
     const prev = document.title
     if (productName) {
       document.title = snapshotLabel
-        ? `${productName} · Dough decision report · ${snapshotLabel}`
-        : `${productName} · Dough decision report`
+        ? `${productName} · ${PRODUCT_NAME} decision report · ${snapshotLabel}`
+        : `${productName} · ${PRODUCT_NAME} decision report`
     }
     const restore = () => {
       document.title = prev

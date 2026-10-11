@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
+import { PRODUCT_NAME } from '@/lib/brand'
 import { createClient } from '@/lib/supabase'
 import type { PortalUser } from '@/lib/queries'
 import type { AdminQueueBadges } from '@/lib/adminHome/types'
@@ -179,7 +180,7 @@ function currentSectionLabel(pathname: string, sections: NavSection[]): string {
     }
   }
   if (pathname.startsWith('/admin/')) return 'Admin'
-  return 'Dough'
+  return PRODUCT_NAME
 }
 
 function isMacPlatform(): boolean {
@@ -243,7 +244,7 @@ export default function PortalLayoutClient({
 
   const accountName =
     portalUser.display_name?.trim() ||
-    (isPlatform ? 'Dough admin' : sidebarBrandName)
+    (isPlatform ? `${PRODUCT_NAME} admin` : sidebarBrandName)
 
   const brandNav: NavSection[] = [
     {
@@ -544,7 +545,7 @@ export default function PortalLayoutClient({
                 height={36}
               />
               <div>
-                <div className="portal-mark-name">Dough</div>
+                <div className="portal-mark-name">{PRODUCT_NAME}</div>
                 <div className="portal-mark-sub">
                   {isPlatform ? 'Platform' : 'Brand Intelligence'}
                 </div>

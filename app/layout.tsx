@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { DM_Serif_Display, DM_Sans, DM_Mono } from 'next/font/google'
+import { PRODUCT_NAME } from '@/lib/brand'
 import './globals.css'
 
 const dmSerifDisplay = DM_Serif_Display({
@@ -24,7 +25,7 @@ const dmMono = DM_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Dough — Brand Intelligence',
+  title: `${PRODUCT_NAME} — Brand Intelligence`,
   description: 'Real consumer preference data for your brand.',
 }
 

@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { PRODUCT_NAME } from '@/lib/brand'
 import styles from './reportStory.module.css'
 
 export { ReportToolbar } from './ReportToolbar'
@@ -191,7 +192,7 @@ export function Scorecard({ items }: { items: ScorecardItem[] }) {
 
 export function ReportFooter({
   left,
-  right = 'Dough · Decision evidence, plainly told',
+  right = `${PRODUCT_NAME} · Decision evidence, plainly told`,
 }: {
   left: string
   right?: string
