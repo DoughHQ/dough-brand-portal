@@ -47535,6 +47535,7 @@ export type Database = {
         Args: { p_product_id: number; p_slot_index: number; p_user_id: number }
         Returns: Json
       }
+      portal_account_needs_password: { Args: never; Returns: boolean }
       preview_concept_journey: {
         Args: { p_battle_prompt?: string; p_field: Json; p_module_config: Json }
         Returns: Json

@@ -5,10 +5,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import AuthShell from '@/components/auth/AuthShell'
+import { MIN_PASSWORD_LENGTH, validateNewPassword } from '@/lib/auth/passwordRules'
 
 type Status = 'checking' | 'ready' | 'invalid' | 'success'
-
-const MIN_PASSWORD_LENGTH = 8
 
 export default function UpdatePasswordPage() {
   const router = useRouter()
@@ -50,16 +49,17 @@ export default function UpdatePasswordPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const passwordsMatch = confirm.length > 0 && password === confirm
+  const ruleError = validateNewPassword(password, confirm)
   const passwordsMismatch = confirm.length > 0 && password !== confirm
-  const canSave =
-    status === 'ready' &&
-    password.length >= MIN_PASSWORD_LENGTH &&
-    passwordsMatch &&
-    !loading
+  const canSave = status === 'ready' && ruleError === null && !loading
 
   async function handleSave() {
     if (!canSave) return
+    const validation = validateNewPassword(password, confirm)
+    if (validation) {
+      setError(validation)
+      return
+    }
     setLoading(true)
     setError(null)
 
