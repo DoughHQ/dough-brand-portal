@@ -14,8 +14,6 @@ import {
   type TaxonomySearchHit,
 } from '@/lib/corrections.shared'
 import { searchTaxonomyNodes as searchTaxonomyNodesShared } from '@/lib/taxonomy'
-import { createAdminSupabaseClient } from '@/lib/supabase-admin'
-
 export type {
   CorrectionReviewRow,
   CorrectionReviewsPage,
@@ -178,50 +176,34 @@ async function attachEvidencePreviews(
   return rows.map((row) => ({ ...row, evidence_preview_url: preview.get(row.id) ?? null }))
 }
 
-/**
- * The reviewer's session can read a capture once a submission they can see names it.
- * Until that policy is applied, the service role still signs the same path.
- */
+/** The reviewer's session signs a capture a submission they can see names. */
 async function signCapturePaths(
   supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
   items: { id: string; path: string }[]
 ): Promise<Map<string, string | null>> {
   const preview = new Map<string, string | null>()
-  const unresolved: { id: string; path: string }[] = []
   try {
     const { data, error } = await supabase.storage
       .from('captures')
       .createSignedUrls(items.map((item) => item.path), EVIDENCE_SIGN_TTL_SEC)
     if (error || !data) {
-      unresolved.push(...items)
-    } else {
-      data.forEach((entry, index) => {
-        const item = items[index]
-        if (!item) return
-        if (entry?.signedUrl && !entry.error) preview.set(item.id, entry.signedUrl)
-        else unresolved.push(item)
-      })
+      console.warn('[corrections] session sign failed', error?.message ?? 'empty')
+      for (const item of items) preview.set(item.id, null)
+      return preview
     }
+    data.forEach((entry, index) => {
+      const item = items[index]
+      if (!item) return
+      if (entry?.signedUrl && !entry.error) preview.set(item.id, entry.signedUrl)
+      else {
+        console.warn('[corrections] session sign failed', entry?.error ?? 'empty')
+        preview.set(item.id, null)
+      }
+    })
   } catch (e) {
-    console.warn('[corrections] session sign failed', e)
-    unresolved.push(...items)
-  }
-  if (unresolved.length === 0) return preview
-  try {
-    const admin = createAdminSupabaseClient()
-    await Promise.all(
-      unresolved.map(async (item) => {
-        const { data, error } = await admin.storage
-          .from('captures')
-          .createSignedUrl(item.path, EVIDENCE_SIGN_TTL_SEC)
-        preview.set(item.id, error || !data?.signedUrl ? null : data.signedUrl)
-      })
-    )
-  } catch (e) {
-    console.warn('[corrections] could not sign evidence photos', e)
-    for (const item of unresolved) {
-      if (!preview.has(item.id)) preview.set(item.id, null)
-    }
+    const message = e instanceof Error ? e.message : 'empty'
+    console.warn('[corrections] session sign failed', message)
+    for (const item of items) preview.set(item.id, null)
   }
   return preview
 }

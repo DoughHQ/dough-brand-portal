@@ -377,6 +377,8 @@ function StatusStage({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={row.evidence_preview_url!} alt="Submitted evidence" />
             </button>
+          ) : row.evidence_capture_path ? (
+            <p className="corr-sentence">Photo unavailable</p>
           ) : null}
 
           <div className="corr-actions">
