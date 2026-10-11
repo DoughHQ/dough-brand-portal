@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import {
   contactFirstName,
   formatProductCount,
@@ -183,6 +183,14 @@ export function ApproveInviteDialog({
   const [choice, setChoice] = useState<'new' | number | null>(
     linked ? row.selected_brand_id : candidates.length === 0 ? 'new' : null
   )
+
+  // When the edge returns possible_duplicate candidates, force an explicit pick —
+  // do not keep the initial "Create new brand" selection.
+  useEffect(() => {
+    if (candidateOverride && candidateOverride.length > 0) {
+      setChoice(null)
+    }
+  }, [candidateOverride])
 
   const canSubmit = useMemo(() => {
     if (row.already_claimed) return false

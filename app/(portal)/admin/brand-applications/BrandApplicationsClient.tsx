@@ -126,23 +126,35 @@ function MetaLine({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
+type QueueBanner = {
+  message: string
+  tone: 'error' | 'warn' | 'info' | 'success'
+  detail?: string | null
+}
+
+const REACH_SERVER =
+  'Couldn’t reach the server. Refresh to check whether it went through.'
+
 export default function BrandApplicationsClient({
   initialRows,
   initialHasMore = false,
   initialCursor = null,
   initialError,
+  impersonating = false,
 }: {
   initialRows: BrandApplication[]
   initialHasMore?: boolean
   initialCursor?: BrandApplicationsPageCursor | null
   initialError?: string | null
+  /** True when the access token carries any impersonated_brand_id claim. */
+  impersonating?: boolean
 }) {
   const [rows, setRows] = useState(initialRows)
   const [hasMore, setHasMore] = useState(initialHasMore)
   const [cursor, setCursor] = useState<BrandApplicationsPageCursor | null>(initialCursor)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(initialError ?? null)
-  const [flash, setFlash] = useState<string | null>(null)
+  const [banner, setBanner] = useState<QueueBanner | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [dialog, setDialog] = useState<
@@ -152,10 +164,10 @@ export default function BrandApplicationsClient({
   const [candidateOverride, setCandidateOverride] = useState<CatalogCandidate[] | null>(null)
 
   useEffect(() => {
-    if (!flash) return
-    const t = window.setTimeout(() => setFlash(null), 6000)
+    if (!banner || banner.tone !== 'success') return
+    const t = window.setTimeout(() => setBanner(null), 6000)
     return () => window.clearTimeout(t)
-  }, [flash])
+  }, [banner])
 
   const pendingCount = useMemo(
     () => rows.filter((r) => r.status === 'pending').length,
@@ -164,35 +176,45 @@ export default function BrandApplicationsClient({
 
   const refresh = useCallback(async () => {
     setRefreshing(true)
-    const res = await listBrandWaitlistApplicationsAction()
-    setRefreshing(false)
-    if (!res.ok) {
-      setError(res.error ?? 'Couldn’t refresh the queue.')
-      return
+    try {
+      const res = await listBrandWaitlistApplicationsAction()
+      if (!res.ok) {
+        setError(res.error ?? 'Couldn’t refresh the queue.')
+        return
+      }
+      setRows(res.rows ?? [])
+      setHasMore(Boolean(res.hasMore))
+      setCursor(res.nextCursor ?? null)
+      setError(null)
+    } catch {
+      setError(REACH_SERVER)
+    } finally {
+      setRefreshing(false)
     }
-    setRows(res.rows ?? [])
-    setHasMore(Boolean(res.hasMore))
-    setCursor(res.nextCursor ?? null)
-    setError(null)
   }, [])
 
   const loadMore = useCallback(async () => {
     if (!cursor || loadingMore) return
     setLoadingMore(true)
-    const res = await listBrandWaitlistApplicationsAction({ cursor })
-    setLoadingMore(false)
-    if (!res.ok) {
-      setError(res.error ?? 'Couldn’t load more.')
-      return
+    try {
+      const res = await listBrandWaitlistApplicationsAction({ cursor })
+      if (!res.ok) {
+        setError(res.error ?? 'Couldn’t load more.')
+        return
+      }
+      setRows((prev) =>
+        sortApplicationsForQueue([
+          ...prev,
+          ...(res.rows ?? []).filter((r) => !prev.some((p) => p.waitlist_id === r.waitlist_id)),
+        ])
+      )
+      setHasMore(Boolean(res.hasMore))
+      setCursor(res.nextCursor ?? null)
+    } catch {
+      setError(REACH_SERVER)
+    } finally {
+      setLoadingMore(false)
     }
-    setRows((prev) =>
-      sortApplicationsForQueue([
-        ...prev,
-        ...(res.rows ?? []).filter((r) => !prev.some((p) => p.waitlist_id === r.waitlist_id)),
-      ])
-    )
-    setHasMore(Boolean(res.hasMore))
-    setCursor(res.nextCursor ?? null)
   }, [cursor, loadingMore])
 
   const closeDialog = useCallback(() => {
@@ -210,57 +232,76 @@ export default function BrandApplicationsClient({
       setBusyId(row.waitlist_id)
       setDialogError(null)
       setError(null)
-      const res = await decideBrandApplicationAction(input)
-      setBusyId(null)
+      try {
+        const res = await decideBrandApplicationAction(input)
 
-      if (res.code === 'invites_disabled') {
-        setDialogError(res.error ?? 'Invites are switched off.')
-        return
-      }
-
-      if (res.code === 'possible_duplicate' && res.candidates && res.candidates.length > 0) {
-        setCandidateOverride(res.candidates)
-        setDialogError('Possible catalog match — pick one, then try again.')
-        return
-      }
-
-      if (!res.ok) {
-        if (res.code === 'not_found') {
-          setFlash(res.error ?? 'Removed from queue.')
-          setDialog(null)
-          setCandidateOverride(null)
-          void refresh()
+        if (res.code === 'possible_duplicate' && res.candidates && res.candidates.length > 0) {
+          setCandidateOverride(res.candidates)
+          setDialogError(
+            res.error ??
+              'This may already be in the catalog. Pick the brand to link, or choose Create new brand.'
+          )
           return
         }
-        setDialogError(res.error ?? 'Couldn’t complete the review. Try again.')
-        return
-      }
 
-      setDialog(null)
-      setCandidateOverride(null)
-
-      if (input.action === 'approve' || input.action === 'resend') {
-        if (res.sent === false) {
-          setFlash(
-            `Invite saved, but the email didn’t send${
-              res.send_error ? ` (${res.send_error})` : ''
-            }. Use Resend invite.`
-          )
-        } else {
-          setFlash(`Invite sent to ${res.invited_email ?? row.contact_email}.`)
+        if (!res.ok) {
+          if (res.closeAndRefresh) {
+            setBanner({
+              message: res.error ?? 'Couldn’t complete the review. Refresh to see where it stands.',
+              tone: res.tone ?? 'info',
+            })
+            setDialog(null)
+            setCandidateOverride(null)
+            void refresh()
+            return
+          }
+          setDialogError(res.error ?? 'Couldn’t complete the review. Try again.')
+          return
         }
-      } else if (input.action === 'reject') {
-        setFlash(
-          res.sent === false
-            ? 'Rejected — reply email didn’t send.'
-            : res.sent === true
-              ? 'Application rejected; reply sent.'
-              : 'Application rejected.'
-        )
-      } else {
-        setFlash('Invite revoked.')
+
+        setDialog(null)
+        setCandidateOverride(null)
+
+        if (input.action === 'approve' || input.action === 'resend') {
+          if (res.sent === true) {
+            setBanner({
+              message: `Invite sent to ${res.invited_email ?? row.contact_email}.`,
+              tone: 'success',
+            })
+          } else if (res.sent === false) {
+            setBanner({
+              message: 'Approved, but the invite email didn’t send. Use Resend.',
+              tone: 'warn',
+              detail: res.send_error ?? null,
+            })
+          } else {
+            setBanner({
+              message: `Invite saved for ${res.invited_email ?? row.contact_email}.`,
+              tone: 'success',
+            })
+          }
+        } else if (input.action === 'reject') {
+          if (res.sent === true) {
+            setBanner({ message: 'Rejected. Reply sent.', tone: 'success' })
+          } else if (res.sent === false) {
+            setBanner({
+              message: 'Rejected, but the reply email didn’t send.',
+              tone: 'warn',
+            })
+          } else {
+            setBanner({ message: 'Rejected. No reply sent.', tone: 'success' })
+          }
+        } else if (res.revoked === 0) {
+          setBanner({ message: 'No pending invite to revoke.', tone: 'info' })
+        } else {
+          setBanner({ message: 'Invite revoked.', tone: 'success' })
+        }
+        void refresh()
+      } catch {
+        setBanner({ message: REACH_SERVER, tone: 'error' })
+      } finally {
+        setBusyId(null)
       }
-      void refresh()
     },
     [refresh]
   )
@@ -348,19 +389,81 @@ export default function BrandApplicationsClient({
         </div>
       </div>
 
-      {flash ? (
+      {impersonating ? (
         <div
           style={{
             marginBottom: 16,
             padding: '10px 14px',
             borderRadius: 8,
-            background: 'var(--sage-soft, rgba(74, 103, 65, 0.12))',
-            color: 'var(--heading)',
+            background: 'var(--amber-pale, rgba(192,120,24,0.12))',
+            color: 'var(--amber, #a66a14)',
             fontSize: 13,
             lineHeight: 1.45,
           }}
         >
-          {flash}
+          Leave the brand workspace (stop impersonating) before reviewing applications.
+        </div>
+      ) : null}
+
+      {banner ? (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: '10px 14px',
+            borderRadius: 8,
+            display: 'flex',
+            gap: 12,
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            ...(banner.tone === 'success'
+              ? {
+                  background: 'var(--sage-soft, rgba(74, 103, 65, 0.12))',
+                  color: 'var(--heading)',
+                }
+              : banner.tone === 'warn'
+                ? {
+                    background: 'var(--amber-pale, rgba(192,120,24,0.12))',
+                    color: 'var(--amber, #a66a14)',
+                  }
+                : banner.tone === 'info'
+                  ? {
+                      background: 'var(--surface-1)',
+                      color: 'var(--ink)',
+                      border: '1px solid var(--ink-10)',
+                    }
+                  : {
+                      background: 'rgba(180, 35, 24, 0.08)',
+                      color: 'var(--red, #b42318)',
+                    }),
+            fontSize: 13,
+            lineHeight: 1.45,
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div>{banner.message}</div>
+            {banner.detail ? (
+              <div style={{ fontSize: 11, opacity: 0.85, marginTop: 4 }}>{banner.detail}</div>
+            ) : null}
+          </div>
+          {banner.tone !== 'success' ? (
+            <button
+              type="button"
+              onClick={() => setBanner(null)}
+              style={{
+                flexShrink: 0,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 12,
+                color: 'inherit',
+                fontFamily: 'var(--font-sans)',
+                padding: 0,
+                opacity: 0.75,
+              }}
+            >
+              Dismiss
+            </button>
+          ) : null}
         </div>
       ) : null}
 
@@ -654,7 +757,7 @@ export default function BrandApplicationsClient({
                   </div>
                 ) : null}
 
-                {pending ? (
+                {!impersonating && pending ? (
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                     <button
                       type="button"
@@ -704,7 +807,10 @@ export default function BrandApplicationsClient({
                   </div>
                 ) : null}
 
-                {row.status === 'invited' && row.invitation?.status !== 'accepted' ? (
+                {!impersonating &&
+                row.status === 'invited' &&
+                (row.invitation?.status === 'pending' ||
+                  row.invitation?.status === 'expired') ? (
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                     <button
                       type="button"

@@ -2,14 +2,16 @@
 
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
+import { parseImpersonatedBrandIdFromAccessToken } from '@/lib/portal/parseImpersonationClaim'
 import {
   BrandApplicationsError,
   asCatalogCandidates,
-  friendlyBrandApplicationsError,
+  describeDecisionResult,
   listBrandWaitlistApplicationsPage,
   type BrandApplication,
   type BrandApplicationsPageCursor,
   type CatalogCandidate,
+  type DecisionResultTone,
 } from '@/lib/brandApplications'
 
 async function requireDoughAdminNotImpersonating() {
@@ -74,6 +76,8 @@ export type DecideBrandApplicationResult = {
   ok: boolean
   error?: string
   code?: string
+  tone?: DecisionResultTone
+  closeAndRefresh?: boolean
   invitation_id?: string
   brand_id?: number
   brand_name?: string
@@ -84,6 +88,31 @@ export type DecideBrandApplicationResult = {
   revoked?: number
   candidates?: CatalogCandidate[]
   status?: number
+}
+
+function refusalResult(
+  code: string,
+  extras?: {
+    invitedEmail?: string | null
+    candidates?: CatalogCandidate[]
+    httpStatus?: number
+  }
+): DecideBrandApplicationResult {
+  const described = describeDecisionResult(code, {
+    invitedEmail: extras?.invitedEmail,
+    hasCandidates: (extras?.candidates?.length ?? 0) > 0,
+    httpStatus: extras?.httpStatus,
+  })
+  return {
+    ok: false,
+    code,
+    error: described.message,
+    tone: described.tone,
+    closeAndRefresh: described.closeAndRefresh,
+    candidates: extras?.candidates,
+    invited_email: extras?.invitedEmail ?? undefined,
+    status: extras?.httpStatus,
+  }
 }
 
 /**
@@ -98,7 +127,13 @@ export async function decideBrandApplicationAction(
 
     const base = process.env.NEXT_PUBLIC_SUPABASE_URL
     if (!base) {
-      return { ok: false, error: 'Supabase env not configured', code: 'not_configured' }
+      return {
+        ok: false,
+        error: 'Supabase env not configured',
+        code: 'not_configured',
+        tone: 'error',
+        closeAndRefresh: false,
+      }
     }
 
     const supabase = await createServerSupabaseClient()
@@ -106,7 +141,12 @@ export async function decideBrandApplicationAction(
       data: { session },
     } = await supabase.auth.getSession()
     if (!session?.access_token) {
-      return { ok: false, error: 'Not authenticated', code: 'not_authorized' }
+      return refusalResult('401', { httpStatus: 401 })
+    }
+
+    // Database refuses any non-null claim; match that even when claim == admin brand_id.
+    if (parseImpersonatedBrandIdFromAccessToken(session.access_token) != null) {
+      return refusalResult('impersonating')
     }
 
     const body: Record<string, unknown> = {
@@ -136,45 +176,40 @@ export async function decideBrandApplicationAction(
       parsed = {}
     }
 
-    if (res.status === 409 || parsed.error === 'invites_disabled') {
-      return {
-        ok: false,
-        code: 'invites_disabled',
-        error: friendlyBrandApplicationsError('invites_disabled'),
-        status: res.status,
-      }
-    }
-
-    if (res.status === 403) {
-      return {
-        ok: false,
-        code: 'not_authorized',
-        error: friendlyBrandApplicationsError('not_authorized'),
-        status: res.status,
-      }
-    }
-
-    if (!res.ok && parsed.ok !== true && parsed.ok !== false) {
-      return {
-        ok: false,
-        code: String(parsed.error ?? 'review_failed'),
-        error: friendlyBrandApplicationsError(String(parsed.error ?? res.status)),
-        status: res.status,
-      }
-    }
-
     const candidates = asCatalogCandidates(parsed.candidates)
-    const businessCode =
-      parsed.ok === false ? String(parsed.error ?? 'review_failed') : undefined
+    const invitedEmail =
+      parsed.invited_email != null ? String(parsed.invited_email) : null
+
+    if (res.status === 401) {
+      return refusalResult('401', { httpStatus: 401 })
+    }
+
+    if (res.status === 409 || parsed.error === 'invites_disabled') {
+      return refusalResult('invites_disabled', { httpStatus: res.status })
+    }
+
+    if (res.status === 403 || parsed.error === 'not_authorized') {
+      return refusalResult('not_authorized', { httpStatus: res.status })
+    }
+
+    if (parsed.ok === false) {
+      const code = String(parsed.error ?? (res.status >= 500 ? 'rpc_failed' : 'unknown'))
+      return refusalResult(code, {
+        invitedEmail,
+        candidates: candidates.length > 0 ? candidates : undefined,
+        httpStatus: res.status,
+      })
+    }
+
+    if (!res.ok) {
+      const code = String(
+        parsed.error ?? (res.status >= 500 ? 'rpc_failed' : res.status === 401 ? '401' : 'unknown')
+      )
+      return refusalResult(code, { httpStatus: res.status })
+    }
+
     return {
       ok: parsed.ok === true,
-      error:
-        parsed.ok === false
-          ? String(parsed.error ?? 'review_failed')
-          : parsed.send_error != null
-            ? String(parsed.send_error)
-            : undefined,
-      code: businessCode,
       invitation_id:
         parsed.invitation_id != null ? String(parsed.invitation_id) : undefined,
       brand_id:
@@ -185,8 +220,7 @@ export async function decideBrandApplicationAction(
             : undefined,
       brand_name: parsed.brand_name != null ? String(parsed.brand_name) : undefined,
       brand_created: typeof parsed.brand_created === 'boolean' ? parsed.brand_created : undefined,
-      invited_email:
-        parsed.invited_email != null ? String(parsed.invited_email) : undefined,
+      invited_email: invitedEmail ?? undefined,
       sent: typeof parsed.sent === 'boolean' ? parsed.sent : parsed.sent === null ? null : undefined,
       send_error: parsed.send_error != null ? String(parsed.send_error) : undefined,
       revoked: typeof parsed.revoked === 'number' ? parsed.revoked : undefined,
@@ -195,8 +229,22 @@ export async function decideBrandApplicationAction(
     }
   } catch (err) {
     if (err instanceof BrandApplicationsError) {
-      return { ok: false, error: err.message, code: err.code }
+      const described = describeDecisionResult(err.code)
+      return {
+        ok: false,
+        error: err.message || described.message,
+        code: err.code,
+        tone: described.tone,
+        closeAndRefresh: described.closeAndRefresh,
+      }
     }
-    return { ok: false, error: 'Couldn’t complete the review. Try again.', code: 'review_failed' }
+    const described = describeDecisionResult('unknown')
+    return {
+      ok: false,
+      error: described.message,
+      code: 'unknown',
+      tone: described.tone,
+      closeAndRefresh: described.closeAndRefresh,
+    }
   }
 }
