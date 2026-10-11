@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createClient } from '@/lib/supabase'
 import {
+  isValidBrandWebsite,
   isValidWorkEmail,
+  normalizeBrandWebsite,
   normalizeLinkedInInput,
   normalizeRoleTitle,
   parseBrandSearchHits,
@@ -61,6 +63,7 @@ export default function ApplyBrandFlow({
   const [contactEmail, setContactEmail] = useState('')
   const [roleTitle, setRoleTitle] = useState('')
   const [linkedinUrl, setLinkedinUrl] = useState('')
+  const [brandWebsite, setBrandWebsite] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -136,13 +139,22 @@ export default function ApplyBrandFlow({
       setError('LinkedIn should be a normal web link (linkedin.com/…).')
       return
     }
+    const websiteRequired = selectedBrand == null
+    if (websiteRequired && !brandWebsite.trim()) {
+      setError('Brand website is required when your brand isn’t in the catalog yet.')
+      return
+    }
+    if (!isValidBrandWebsite(brandWebsite)) {
+      setError('Enter a normal website (yourbrand.com).')
+      return
+    }
 
     setSubmitting(true)
     setError(null)
 
     const supabase = createClient()
     // Anon RLS rejects booking_scheduled_at / booking_ref / invited_at / non-pending status.
-    // Do not send those fields. Do not send brand_website / primary_category.
+    // Do not send those fields or primary_category.
     const { error: insertError } = await supabase.from('brand_waitlist').insert({
       brand_name: brandName.slice(0, 200),
       contact_name: contactName.trim().slice(0, 200),
@@ -150,11 +162,17 @@ export default function ApplyBrandFlow({
       brand_id: selectedBrand?.brand_id ?? null,
       role_title: normalizeRoleTitle(roleTitle),
       linkedin_url: normalizeLinkedInInput(linkedinUrl),
+      brand_website: normalizeBrandWebsite(brandWebsite),
       flagged_not_mine_product_ids: [],
     })
 
     setSubmitting(false)
     if (insertError) {
+      // One pending request per email — show the same confirmation; reveals nothing.
+      if (insertError.code === '23505') {
+        setStep('booking')
+        return
+      }
       console.error('brand_waitlist insert', insertError)
       setError('Something went wrong. Please try again.')
       return
@@ -394,6 +412,31 @@ export default function ApplyBrandFlow({
                 value={linkedinUrl}
                 onChange={(e) => setLinkedinUrl(e.target.value)}
                 placeholder="linkedin.com/in/you"
+                style={styles.inputStyle}
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'var(--sage)'
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
+                  e.target.style.boxShadow = 'none'
+                }}
+              />
+            </div>
+
+            <div>
+              <div style={styles.labelStyle}>
+                Brand website
+                {selectedBrand == null ? (
+                  <span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>
+                ) : null}
+              </div>
+              <input
+                type="text"
+                className="auth-input"
+                value={brandWebsite}
+                onChange={(e) => setBrandWebsite(e.target.value)}
+                placeholder="yourbrand.com"
+                autoComplete="url"
                 style={styles.inputStyle}
                 onFocus={(e) => {
                   e.target.style.borderColor = 'var(--sage)'

@@ -4,6 +4,12 @@ import type { Database } from '@/lib/database.types'
 export const APPLICATION_STATUSES = ['pending', 'approved', 'rejected', 'invited'] as const
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
 
+export type CatalogCandidate = {
+  brand_id: number
+  brand_name: string
+  product_count: number
+}
+
 export type BrandApplication = {
   waitlist_id: string
   status: ApplicationStatus
@@ -12,6 +18,13 @@ export type BrandApplication = {
   contact_email: string
   role_title: string | null
   linkedin_url: string | null
+  brand_website: string | null
+  site_host: string | null
+  email_domain: string | null
+  /** true / false when comparable; null when no website (or pre–Migration A). */
+  domain_match: boolean | null
+  free_email: boolean
+  catalog_candidates: CatalogCandidate[]
   selected_brand_id: number | null
   selected_brand_name: string | null
   selected_brand_product_count: number | null
@@ -21,6 +34,9 @@ export type BrandApplication = {
   created_at: string
   reviewed_at: string | null
   review_notes: string | null
+  alert_sent_at: string | null
+  alert_attempts: number
+  alert_last_error: string | null
 }
 
 export type SetBrandApplicationStatusResult = {
@@ -60,6 +76,31 @@ function asNullableTrimmed(value: unknown): string | null {
   return t.length > 0 ? t : null
 }
 
+function asDomainMatch(value: unknown): boolean | null {
+  if (value === true) return true
+  if (value === false) return false
+  return null
+}
+
+function asCatalogCandidates(value: unknown): CatalogCandidate[] {
+  if (!Array.isArray(value)) return []
+  const out: CatalogCandidate[] = []
+  for (const raw of value) {
+    if (!raw || typeof raw !== 'object') continue
+    const o = raw as Record<string, unknown>
+    const brandId = asFiniteNumber(o.brand_id)
+    const brandName = String(o.brand_name ?? '').trim()
+    const productCount = asFiniteNumber(o.product_count)
+    if (brandId == null || brandId <= 0 || !brandName) continue
+    out.push({
+      brand_id: brandId,
+      brand_name: brandName,
+      product_count: productCount != null && productCount >= 0 ? Math.floor(productCount) : 0,
+    })
+  }
+  return out
+}
+
 /** Exported for tests — drop a row rather than invent an application. */
 export function asApplicationRow(raw: unknown): BrandApplication | null {
   if (!raw || typeof raw !== 'object') return null
@@ -81,6 +122,8 @@ export function asApplicationRow(raw: unknown): BrandApplication | null {
   const createdAt = o.created_at != null ? String(o.created_at) : ''
   if (!createdAt) return null
 
+  const alertAttemptsRaw = asFiniteNumber(o.alert_attempts)
+
   return {
     waitlist_id: waitlistId,
     status: asStatus(o.status),
@@ -89,6 +132,12 @@ export function asApplicationRow(raw: unknown): BrandApplication | null {
     contact_email: contactEmail,
     role_title: asNullableTrimmed(o.role_title),
     linkedin_url: asNullableTrimmed(o.linkedin_url),
+    brand_website: asNullableTrimmed(o.brand_website),
+    site_host: asNullableTrimmed(o.site_host),
+    email_domain: asNullableTrimmed(o.email_domain),
+    domain_match: asDomainMatch(o.domain_match),
+    free_email: Boolean(o.free_email),
+    catalog_candidates: asCatalogCandidates(o.catalog_candidates),
     selected_brand_id: selectedBrandId,
     selected_brand_name: asNullableTrimmed(o.selected_brand_name),
     selected_brand_product_count: selectedBrandProductCount,
@@ -98,6 +147,10 @@ export function asApplicationRow(raw: unknown): BrandApplication | null {
     created_at: createdAt,
     reviewed_at: asNullableTrimmed(o.reviewed_at),
     review_notes: asNullableTrimmed(o.review_notes),
+    alert_sent_at: asNullableTrimmed(o.alert_sent_at),
+    alert_attempts:
+      alertAttemptsRaw != null && alertAttemptsRaw > 0 ? Math.floor(alertAttemptsRaw) : 0,
+    alert_last_error: asNullableTrimmed(o.alert_last_error),
   }
 }
 
@@ -117,10 +170,15 @@ export function sortApplicationsForQueue(rows: BrandApplication[]): BrandApplica
   })
 }
 
+/**
+ * Prefer `items` (live list_brand_waitlist_applications_page), then legacy
+ * `applications`, then a bare array.
+ */
 export function extractApplications(data: unknown): unknown[] {
   if (Array.isArray(data)) return data
   if (!data || typeof data !== 'object') return []
   const o = data as Record<string, unknown>
+  if (Array.isArray(o.items)) return o.items
   if (Array.isArray(o.applications)) return o.applications
   return []
 }
@@ -142,6 +200,11 @@ export function safeLinkedInHref(raw: string | null | undefined): string | null 
   } catch {
     return null
   }
+}
+
+/** Same rules as safeLinkedInHref — brand websites must be http(s) only. */
+export function safeWebHref(raw: string | null | undefined): string | null {
+  return safeLinkedInHref(raw)
 }
 
 export function friendlyBrandApplicationsError(codeOrMessage: string): string {
