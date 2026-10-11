@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
+import { portalAccountNeedsPassword } from '@/lib/portal/needsPassword.server'
 import { perfLog, perfNow, timed } from '@/lib/perf'
 import PortalLayoutClient from './PortalLayoutClient'
 import LegacyBrandIdGate from './components/LegacyBrandIdGate'
@@ -36,6 +37,10 @@ export default async function PortalLayout({ children }: { children: React.React
   const t0 = perfNow()
   const scope = await getPortalBrandScope()
   if (!scope) redirect('/login')
+
+  // Invite-created accounts must choose a password first. /welcome/* lives outside this
+  // layout, so this cannot loop.
+  if (await portalAccountNeedsPassword()) redirect('/welcome/password')
 
   const { portalUser, isImpersonating } = scope
   const isAdmin = portalUser.role === 'dough_admin'

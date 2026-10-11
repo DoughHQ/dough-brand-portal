@@ -134,20 +134,25 @@ export default function AuthShell({
   children,
   wide = false,
   align = 'center',
+  wordmark = 'Dough',
 }: {
   children: React.ReactNode
   wide?: boolean
   align?: 'center' | 'start'
+  /** Runoff is a text wordmark only (no Dough mark image). Only invite/welcome pages pass it. */
+  wordmark?: 'Dough' | 'Runoff'
 }) {
   return (
     <div className={`auth-shell${align === 'start' ? ' auth-shell--start' : ''}`}>
       <div className="auth-shell__brand">
-        <div className="auth-shell__mark" aria-hidden>
-          {/* App icon mark — rolling-pin D on sage */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/dough-mark.png" alt="" width={72} height={72} />
-        </div>
-        <div className="auth-shell__wordmark">Dough</div>
+        {wordmark === 'Dough' ? (
+          <div className="auth-shell__mark" aria-hidden>
+            {/* App icon mark — rolling-pin D on sage */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/dough-mark.png" alt="" width={72} height={72} />
+          </div>
+        ) : null}
+        <div className="auth-shell__wordmark">{wordmark}</div>
       </div>
 
       <div className={`auth-shell__panel${wide ? ' auth-shell__panel--wide' : ''}`}>
