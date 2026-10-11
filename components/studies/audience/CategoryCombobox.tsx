@@ -3,9 +3,9 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import {
   searchTaxonomyNodesAction,
-  type TaxonomyNodeInfo,
-} from './actions'
-import { inputBase, labelSm } from './conceptStyles'
+} from '@/app/(portal)/studies/audienceActions'
+import type { TaxonomyNodeInfo } from '@/lib/studies/taxonomy'
+import { inputBase, labelSm } from './styles'
 
 type Props = {
   selected: TaxonomyNodeInfo | null
@@ -219,7 +219,7 @@ export default function CategoryCombobox({
           // Was a hand-copied duplicate of the shared control recipe, which could
           // silently drift from it. Now it IS the shared recipe, with only the
           // icon padding overridden.
-          style={{ ...inputBase, padding: '0 48px 0 40px' }}
+          style={{ ...inputBase, width: '100%', padding: '0 48px 0 40px' }}
         />
         {query ? (
           <button

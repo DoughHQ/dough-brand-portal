@@ -1,6 +1,7 @@
 /** Taxonomy helpers for category picker + legibility chips. */
 
 import type { LegibilityOption } from './types'
+export { taxonomyBreadcrumb } from '@/lib/studies/taxonomy'
 
 export type TaxonomySibling = {
   taxonomy_node_id: number
@@ -10,17 +11,6 @@ export type TaxonomySibling = {
 
 export function categoryPluralFromNodeName(nodeNameDisplay: string): string {
   return nodeNameDisplay.trim().toLowerCase()
-}
-
-export function taxonomyBreadcrumb(node: {
-  l1_node_name?: string | null
-  l2_node_name?: string | null
-  node_name_display: string
-}): string {
-  const parts = [node.l1_node_name, node.l2_node_name, node.node_name_display]
-    .map((p) => (p ?? '').trim())
-    .filter(Boolean)
-  return parts.join(' › ')
 }
 
 /**

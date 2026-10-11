@@ -44,6 +44,9 @@ jobs:
       - run: npm run check:service-role-callers-ban
       - run: npm run check:page-root-containment-ban
       - run: npm run check:dark-mode-ban
+      - run: npm run check:transparency-ban
+      - run: npm run check:distribution-ban
+      - run: npm run check:audience-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run

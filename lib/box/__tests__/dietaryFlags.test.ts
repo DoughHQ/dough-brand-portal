@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { groupDietaryFlags, type DietaryFlagDef } from '../dietaryFlags'
+import {
+  groupDietaryFlags,
+  type DietaryFlagDef,
+} from '@/lib/studies/audience/dietaryFlags'
 
 function flag(
   flag_code: string,

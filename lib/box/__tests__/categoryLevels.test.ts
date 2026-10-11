@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   categoryLevelLoopCopy,
   loopsForCategoryLevel,
-} from '../categoryLevels'
+} from '@/lib/studies/audience/categoryLevels'
 
 describe('loopsForCategoryLevel', () => {
   it('matches the category_level_thresholds table', () => {

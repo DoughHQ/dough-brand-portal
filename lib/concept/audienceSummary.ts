@@ -1,4 +1,4 @@
-import { stateDisplayName } from '@/lib/box/usStates'
+import { stateDisplayName } from '@/lib/studies/audience/usStates'
 import type { ConceptEligibilityDraft, ConceptStudyDraft } from './types'
 
 export function eligibilityBarsSet(e: ConceptEligibilityDraft): boolean {

@@ -1,11 +1,9 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import CategoryCombobox from '@/app/(portal)/studies/concept/CategoryCombobox'
-import {
-  getTaxonomyNodeAction,
-  type TaxonomyNodeInfo,
-} from '@/app/(portal)/studies/concept/actions'
+import { getTaxonomyNodeAction } from '@/app/(portal)/studies/audienceActions'
+import CategoryCombobox from '@/components/studies/audience/CategoryCombobox'
+import type { TaxonomyNodeInfo } from '@/lib/studies/taxonomy'
 import {
   archiveBrandPrototypeAction,
   declarePrototypeAllergensAction,

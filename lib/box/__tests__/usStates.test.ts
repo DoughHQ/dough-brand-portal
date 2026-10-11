@@ -5,7 +5,7 @@ import {
   filterUsStates,
   lookupUsState,
   stateDisplayName,
-} from '../usStates'
+} from '@/lib/studies/audience/usStates'
 
 describe('US_STATES', () => {
   it('lists 50 states plus DC with unique 2-letter codes', () => {
