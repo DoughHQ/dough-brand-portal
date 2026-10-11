@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
+import { getTaxonomyNodeAction } from '@/app/(portal)/studies/audienceActions'
+import CategoryCombobox from '@/components/studies/audience/CategoryCombobox'
 import type { ConceptStudyDraft, StimulusMode } from '@/lib/concept/types'
 import { templateFieldAnchor } from '@/lib/concept/templateConfig'
 import { STIMULUS_MODE_OPTIONS } from '@/lib/concept/constants'
@@ -17,13 +19,9 @@ import {
   rehydrateCategoryDerived,
   titleAfterCategory,
 } from '@/lib/concept/modeTransition'
-import {
-  getTaxonomyNodeAction,
-  listTaxonomySiblingsAction,
-  type TaxonomyNodeInfo,
-} from './actions'
+import type { TaxonomyNodeInfo } from '@/lib/studies/taxonomy'
+import { listTaxonomySiblingsAction } from './actions'
 import BuilderSectionChrome from './BuilderSectionChrome'
-import CategoryCombobox from './CategoryCombobox'
 import ConfirmDialog, { type ConfirmRequest } from './ConfirmDialog'
 import { summarizeSetup } from '@/lib/concept/builderSummaries'
 import {

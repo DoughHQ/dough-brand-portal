@@ -7,11 +7,6 @@ export const BOX_TRIED_LOOP_TITLE = 'What counts as "tried"?'
 export const BOX_TRIED_LOOP_BODY =
   'Not a tap. In Dough, "tried" means someone actually lived with your product — they scanned it, ranked it head-to-head against real competitors, and came back to battle it again. A completed loop. That\'s the difference between "I think I\'d like this" and "I bought it, tasted it, and here\'s exactly where it lands against the shelf." Every "tried" taster in your audience is a verdict you can trust — earned, not self-reported.'
 
-export const BOX_BATTLE_INFO_TITLE = 'What is a battle?'
-
-export const BOX_BATTLE_INFO_BODY =
-  'A battle is a head-to-head comparison in this category — someone ranks two products against each other. Battles are engagement; they can be farmed. A completed loop (scan, try, battle, return) is what earns level. Leave blank for no engagement bar.'
-
 export const BOX_DEFAULT_BATTLE_QUESTION = 'Which would you buy?'
 
 export const BOX_BATTLE_QUESTION_TITLE = 'Writing a good battle question'

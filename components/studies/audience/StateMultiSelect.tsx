@@ -6,7 +6,7 @@ import {
   filterUsStates,
   stateDisplayName,
   type UsState,
-} from '@/lib/box/usStates'
+} from '@/lib/studies/audience/usStates'
 
 type Props = {
   selected: string[]

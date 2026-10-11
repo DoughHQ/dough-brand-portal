@@ -1,5 +1,6 @@
 'use server'
 
+import { getTaxonomyNodeAction } from '../audienceActions'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalUser } from '@/lib/queries'
 import { parseCreateCampaignDraftResult } from '@/lib/studies/parseCampaignDraft'
@@ -22,9 +23,9 @@ import {
 } from '@/lib/concept/constants'
 import {
   preselectSiblingOptions,
-  taxonomyBreadcrumb,
   type TaxonomySibling,
 } from '@/lib/concept/taxonomySiblings'
+import type { TaxonomyNodeInfo } from '@/lib/studies/taxonomy'
 import {
   mapJourneyForPhonePreview,
   parseConceptJourney,
@@ -378,46 +379,6 @@ export async function publishConceptStudyAction(
   }
 }
 
-export type TaxonomyNodeInfo = {
-  taxonomy_node_id: number
-  node_name_display: string
-  node_name_normalized: string
-  parent_taxonomy_node_id: number | null
-  l1_node_name: string | null
-  l2_node_name: string | null
-  breadcrumb: string
-}
-
-const TAXONOMY_SELECT =
-  'taxonomy_node_id, node_name_display, node_name_normalized, parent_taxonomy_node_id, l1_node_name, l2_node_name'
-
-function toNodeInfo(row: {
-  taxonomy_node_id: number
-  node_name_display: string
-  node_name_normalized: string
-  parent_taxonomy_node_id: number | null
-  l1_node_name: string | null
-  l2_node_name: string | null
-}): TaxonomyNodeInfo {
-  return {
-    ...row,
-    breadcrumb: taxonomyBreadcrumb(row),
-  }
-}
-
-export async function getTaxonomyNodeAction(
-  nodeId: number
-): Promise<TaxonomyNodeInfo | null> {
-  const supabase = await createServerSupabaseClient()
-  const { data, error } = await supabase
-    .from('taxonomy_nodes')
-    .select(TAXONOMY_SELECT)
-    .eq('taxonomy_node_id', nodeId)
-    .maybeSingle()
-  if (error || !data) return null
-  return toNodeInfo(data as Parameters<typeof toNodeInfo>[0])
-}
-
 export type PackSizeOptionsResult = {
   options: PackSizeOption[]
   family_code: string | null
@@ -570,26 +531,6 @@ export async function searchVerificationBrandsAction(
     })
     .filter((r): r is VerificationBrandHit => r != null)
     .slice(0, 12)
-}
-
-/** L3 assignable active nodes — search-as-you-type for Section 0. */
-export async function searchTaxonomyNodesAction(
-  query: string
-): Promise<TaxonomyNodeInfo[]> {
-  const q = query.trim()
-  if (q.length < 2) return []
-  const supabase = await createServerSupabaseClient()
-  const { data, error } = await supabase
-    .from('taxonomy_nodes')
-    .select(TAXONOMY_SELECT)
-    .eq('status', 'active')
-    .eq('is_assignable', true)
-    .eq('node_level', 3)
-    .ilike('node_name_display', `%${q}%`)
-    .order('node_name_display', { ascending: true })
-    .limit(20)
-  if (error || !data) return []
-  return (data as Parameters<typeof toNodeInfo>[0][]).map(toNodeInfo)
 }
 
 /** Decoy attention-check validation. Never reports success if the authoritative check is dark. */

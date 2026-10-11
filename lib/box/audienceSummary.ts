@@ -1,4 +1,4 @@
-import { stateDisplayName } from './usStates'
+import { stateDisplayName } from '@/lib/studies/audience/usStates'
 import type { BoxStudyDraft } from './types'
 
 export function hasNarrowAudienceFilters(draft: BoxStudyDraft): boolean {

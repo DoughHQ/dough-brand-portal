@@ -1,14 +1,12 @@
 'use client'
 
 import { useEffect, useState, type CSSProperties } from 'react'
+import { getTaxonomyNodeAction } from '@/app/(portal)/studies/audienceActions'
+import CategoryCombobox from '@/components/studies/audience/CategoryCombobox'
 import type { BoxStudyDraft } from '@/lib/box/types'
 import { BOX_ANCHORS, type BoxPublishFailure } from '@/lib/box/validity'
 import { summarizeBoxSetup } from '@/lib/box/builderSummaries'
-import {
-  getTaxonomyNodeAction,
-  type TaxonomyNodeInfo,
-} from '../concept/actions'
-import CategoryCombobox from '../concept/CategoryCombobox'
+import type { TaxonomyNodeInfo } from '@/lib/studies/taxonomy'
 import BuilderSectionChrome from '../concept/BuilderSectionChrome'
 import {
   IHUT_COMPLETION_OVERAGE_PERCENT,
