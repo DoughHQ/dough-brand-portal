@@ -50,6 +50,7 @@ jobs:
       - run: npm run check:report-decks-ban
       - run: npm run check:study-setup-ban
       - run: npm run check:journey-ban
+      - run: npm run check:box-method-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
