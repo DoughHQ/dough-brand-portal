@@ -10,6 +10,28 @@ export type CatalogCandidate = {
   product_count: number
 }
 
+export const INVITATION_STATUSES = [
+  'pending',
+  'accepted',
+  'expired',
+  'revoked',
+] as const
+export type InvitationStatus = (typeof INVITATION_STATUSES)[number]
+
+export type ApplicationInvitation = {
+  invitation_id: string
+  invited_email: string
+  brand_id: number
+  status: InvitationStatus
+  sent_at: string | null
+  send_attempts: number
+  last_send_error: string | null
+  expires_at: string | null
+  accepted_at: string | null
+  revoked_at: string | null
+  created_at: string
+}
+
 export type BrandApplication = {
   waitlist_id: string
   status: ApplicationStatus
@@ -37,14 +59,15 @@ export type BrandApplication = {
   alert_sent_at: string | null
   alert_attempts: number
   alert_last_error: string | null
+  invitation: ApplicationInvitation | null
+  decision_email_sent_at: string | null
+  decision_email_attempts: number
+  decision_email_error: string | null
 }
 
-export type SetBrandApplicationStatusResult = {
-  waitlist_id: string
-  status: ApplicationStatus
-  idempotent_noop: boolean
-  grants_access: boolean
-  note: string | null
+export type ApplicationChip = {
+  label: string
+  tone: 'sage' | 'amber' | 'ink'
 }
 
 export class BrandApplicationsError extends Error {
@@ -82,7 +105,7 @@ function asDomainMatch(value: unknown): boolean | null {
   return null
 }
 
-function asCatalogCandidates(value: unknown): CatalogCandidate[] {
+export function asCatalogCandidates(value: unknown): CatalogCandidate[] {
   if (!Array.isArray(value)) return []
   const out: CatalogCandidate[] = []
   for (const raw of value) {
@@ -99,6 +122,90 @@ function asCatalogCandidates(value: unknown): CatalogCandidate[] {
     })
   }
   return out
+}
+
+function asInvitationStatus(value: unknown): InvitationStatus {
+  const s = String(value ?? '').toLowerCase()
+  return (INVITATION_STATUSES as readonly string[]).includes(s)
+    ? (s as InvitationStatus)
+    : 'pending'
+}
+
+export function asInvitation(raw: unknown): ApplicationInvitation | null {
+  if (!raw || typeof raw !== 'object') return null
+  const o = raw as Record<string, unknown>
+  const invitationId = o.invitation_id != null ? String(o.invitation_id).trim() : ''
+  const invitedEmail = String(o.invited_email ?? '').trim()
+  const brandId = asFiniteNumber(o.brand_id)
+  const createdAt = o.created_at != null ? String(o.created_at) : ''
+  if (!invitationId || !invitedEmail || brandId == null || !createdAt) return null
+  const sendAttempts = asFiniteNumber(o.send_attempts)
+  return {
+    invitation_id: invitationId,
+    invited_email: invitedEmail,
+    brand_id: brandId,
+    status: asInvitationStatus(o.status),
+    sent_at: asNullableTrimmed(o.sent_at),
+    send_attempts: sendAttempts != null && sendAttempts > 0 ? Math.floor(sendAttempts) : 0,
+    last_send_error: asNullableTrimmed(o.last_send_error),
+    expires_at: asNullableTrimmed(o.expires_at),
+    accepted_at: asNullableTrimmed(o.accepted_at),
+    revoked_at: asNullableTrimmed(o.revoked_at),
+    created_at: createdAt,
+  }
+}
+
+export function contactFirstName(contactName: string): string {
+  const first = contactName.trim().split(/\s+/)[0] ?? ''
+  return first.slice(0, 60)
+}
+
+function chipTime(iso: string | null): string {
+  if (!iso) return ''
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(new Date(iso))
+  } catch {
+    return ''
+  }
+}
+
+/** Queue status chip — safe defaults when invitation / decision-email keys are absent. */
+export function applicationChip(row: BrandApplication): ApplicationChip {
+  if (row.status === 'pending') {
+    return { label: 'Pending', tone: 'ink' }
+  }
+
+  if (row.status === 'invited') {
+    const inv = row.invitation
+    if (inv?.status === 'accepted') return { label: 'Joined', tone: 'sage' }
+    if (inv?.status === 'expired') return { label: 'Invite expired', tone: 'amber' }
+    if (inv?.status === 'revoked') return { label: 'Invite revoked', tone: 'ink' }
+    if (inv?.sent_at) {
+      const t = chipTime(inv.sent_at)
+      return { label: t ? `Invited · sent ${t}` : 'Invited · sent', tone: 'sage' }
+    }
+    if (inv?.last_send_error || (inv != null && inv.send_attempts > 0)) {
+      return { label: 'Invited · email failed', tone: 'amber' }
+    }
+    return { label: 'Invited · not sent', tone: 'amber' }
+  }
+
+  if (row.status === 'rejected') {
+    if (row.decision_email_sent_at) {
+      return { label: 'Rejected · reply sent', tone: 'ink' }
+    }
+    if (row.decision_email_error || row.decision_email_attempts > 0) {
+      return { label: 'Rejected · reply failed', tone: 'amber' }
+    }
+    return { label: 'Rejected · no reply', tone: 'ink' }
+  }
+
+  return { label: 'Approved', tone: 'sage' }
 }
 
 /** Exported for tests — drop a row rather than invent an application. */
@@ -123,6 +230,7 @@ export function asApplicationRow(raw: unknown): BrandApplication | null {
   if (!createdAt) return null
 
   const alertAttemptsRaw = asFiniteNumber(o.alert_attempts)
+  const decisionAttemptsRaw = asFiniteNumber(o.decision_email_attempts)
 
   return {
     waitlist_id: waitlistId,
@@ -151,6 +259,13 @@ export function asApplicationRow(raw: unknown): BrandApplication | null {
     alert_attempts:
       alertAttemptsRaw != null && alertAttemptsRaw > 0 ? Math.floor(alertAttemptsRaw) : 0,
     alert_last_error: asNullableTrimmed(o.alert_last_error),
+    invitation: asInvitation(o.invitation),
+    decision_email_sent_at: asNullableTrimmed(o.decision_email_sent_at),
+    decision_email_attempts:
+      decisionAttemptsRaw != null && decisionAttemptsRaw > 0
+        ? Math.floor(decisionAttemptsRaw)
+        : 0,
+    decision_email_error: asNullableTrimmed(o.decision_email_error),
   }
 }
 
@@ -215,6 +330,12 @@ export function friendlyBrandApplicationsError(codeOrMessage: string): string {
   if (lower.includes('not_found') || lower.includes('application_not_found')) {
     return 'This application is no longer in the queue. Refreshing…'
   }
+  if (lower.includes('invites_disabled')) {
+    return 'Invites are switched off until the join page and security checks ship. Nothing was changed.'
+  }
+  if (lower.includes('impersonat')) {
+    return 'Leave the brand workspace (stop impersonating) before reviewing applications.'
+  }
   if (lower.includes('invalid_decision')) {
     return 'That decision isn’t valid. Try again.'
   }
@@ -228,6 +349,9 @@ function extractCode(message: string): string {
   }
   if (lower.includes('not_found') || lower.includes('application_not_found')) {
     return 'not_found'
+  }
+  if (lower.includes('invites_disabled')) {
+    return 'invites_disabled'
   }
   if (lower.includes('invalid_decision')) {
     return 'invalid_decision'
@@ -307,47 +431,6 @@ export async function listBrandWaitlistApplications(
 ): Promise<BrandApplication[]> {
   const page = await listBrandWaitlistApplicationsPage(supabase, { limit: 50 })
   return page.rows
-}
-
-export async function setBrandApplicationStatus(
-  supabase: ApplicationsRpcClient,
-  input: {
-    waitlistId: string
-    decision: 'approve' | 'reject'
-    reviewNotes?: string | null
-  }
-): Promise<SetBrandApplicationStatusResult> {
-  const args = {
-    p_waitlist_id: input.waitlistId,
-    p_decision: input.decision,
-    p_review_notes: input.reviewNotes?.trim().slice(0, 2000) || null,
-  }
-  const { data, error } = await supabase.rpc(
-    'set_brand_application_status',
-    args as unknown as Database['public']['Functions']['set_brand_application_status']['Args']
-  )
-
-  if (error) {
-    throw new BrandApplicationsError(
-      extractCode(error.message),
-      friendlyBrandApplicationsError(error.message)
-    )
-  }
-
-  const row = (data && typeof data === 'object' ? data : {}) as Record<string, unknown>
-  const waitlistId =
-    row.waitlist_id != null ? String(row.waitlist_id) : input.waitlistId
-  const status = asStatus(
-    row.status ?? (input.decision === 'approve' ? 'approved' : 'rejected')
-  )
-
-  return {
-    waitlist_id: waitlistId,
-    status,
-    idempotent_noop: Boolean(row.idempotent_noop),
-    grants_access: Boolean(row.grants_access),
-    note: asNullableTrimmed(row.note),
-  }
 }
 
 export function formatProductCount(row: BrandApplication): string {

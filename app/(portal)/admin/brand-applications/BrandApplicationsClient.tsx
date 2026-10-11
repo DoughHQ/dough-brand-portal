@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import {
+  applicationChip,
   brandDecisionLabel,
   formatProductCount,
   safeLinkedInHref,
@@ -10,12 +11,18 @@ import {
   sortApplicationsForQueue,
   type BrandApplication,
   type BrandApplicationsPageCursor,
-  type ApplicationStatus,
+  type CatalogCandidate,
 } from '@/lib/brandApplications'
 import {
+  decideBrandApplicationAction,
   listBrandWaitlistApplicationsAction,
-  setBrandApplicationStatusAction,
 } from './actions'
+import {
+  ApproveInviteDialog,
+  ConfirmDialog,
+  RejectDialog,
+  type ApproveSubmit,
+} from './ApplicationDecisionDialogs'
 import { formatUtcStamp } from '@/lib/portal-ui/format'
 
 function formatWhen(iso: string | null): string {
@@ -23,15 +30,26 @@ function formatWhen(iso: string | null): string {
   return formatUtcStamp(iso)
 }
 
-const STATUS_LABEL: Record<ApplicationStatus, string> = {
-  pending: 'Pending',
-  invited: 'Invited',
-  approved: 'Approved',
-  rejected: 'Rejected',
-}
-
-function StatusPill({ status }: { status: ApplicationStatus }) {
-  const pending = status === 'pending'
+function StatusChip({ row }: { row: BrandApplication }) {
+  const chip = applicationChip(row)
+  const styles =
+    chip.tone === 'amber'
+      ? {
+          background: 'var(--amber-pale, rgba(192,120,24,0.12))',
+          color: 'var(--amber, #a66a14)',
+          border: '1px solid rgba(192,120,24,0.28)',
+        }
+      : chip.tone === 'sage'
+        ? {
+            background: 'var(--sage-soft)',
+            color: 'var(--heading)',
+            border: '1px solid rgba(62,107,74,0.22)',
+          }
+        : {
+            background: 'var(--surface-1)',
+            color: 'var(--ink-50)',
+            border: '1px solid var(--ink-10)',
+          }
   return (
     <span
       style={{
@@ -39,16 +57,14 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
         alignItems: 'center',
         fontSize: 10,
         fontWeight: 600,
-        letterSpacing: '0.06em',
+        letterSpacing: '0.04em',
         textTransform: 'uppercase',
         padding: '3px 8px',
         borderRadius: 999,
-        background: pending ? 'var(--sage-soft)' : 'var(--surface-1)',
-        color: pending ? 'var(--heading)' : 'var(--ink-50)',
-        border: `1px solid ${pending ? 'rgba(62,107,74,0.22)' : 'var(--ink-10)'}`,
+        ...styles,
       }}
     >
-      {STATUS_LABEL[status]}
+      {chip.label}
     </span>
   )
 }
@@ -129,11 +145,15 @@ export default function BrandApplicationsClient({
   const [flash, setFlash] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [notesById, setNotesById] = useState<Record<string, string>>({})
+  const [dialog, setDialog] = useState<
+    null | { kind: 'approve' | 'reject' | 'resend' | 'revoke'; row: BrandApplication }
+  >(null)
+  const [dialogError, setDialogError] = useState<string | null>(null)
+  const [candidateOverride, setCandidateOverride] = useState<CatalogCandidate[] | null>(null)
 
   useEffect(() => {
     if (!flash) return
-    const t = window.setTimeout(() => setFlash(null), 5000)
+    const t = window.setTimeout(() => setFlash(null), 6000)
     return () => window.clearTimeout(t)
   }, [flash])
 
@@ -175,83 +195,88 @@ export default function BrandApplicationsClient({
     setCursor(res.nextCursor ?? null)
   }, [cursor, loadingMore])
 
-  const patchRow = useCallback(
-    (
-      waitlistId: string,
-      patch: Partial<Pick<BrandApplication, 'status' | 'reviewed_at' | 'review_notes'>>
-    ) => {
-      setRows((prev) =>
-        sortApplicationsForQueue(
-          prev.map((r) => (r.waitlist_id === waitlistId ? { ...r, ...patch } : r))
-        )
-      )
-      setNotesById((prev) => {
-        const next = { ...prev }
-        delete next[waitlistId]
-        return next
-      })
-    },
-    []
-  )
+  const closeDialog = useCallback(() => {
+    if (busyId) return
+    setDialog(null)
+    setDialogError(null)
+    setCandidateOverride(null)
+  }, [busyId])
 
-  const decide = useCallback(
-    async (row: BrandApplication, decision: 'approve' | 'reject') => {
+  const runDecision = useCallback(
+    async (
+      row: BrandApplication,
+      input: Parameters<typeof decideBrandApplicationAction>[0]
+    ) => {
       setBusyId(row.waitlist_id)
+      setDialogError(null)
       setError(null)
-      const reviewNotes = notesById[row.waitlist_id] ?? null
-      const res = await setBrandApplicationStatusAction({
-        waitlistId: row.waitlist_id,
-        decision,
-        reviewNotes,
-      })
+      const res = await decideBrandApplicationAction(input)
       setBusyId(null)
 
-      if (!res.ok || !res.result) {
+      if (res.code === 'invites_disabled') {
+        setDialogError(res.error ?? 'Invites are switched off.')
+        return
+      }
+
+      if (res.code === 'possible_duplicate' && res.candidates && res.candidates.length > 0) {
+        setCandidateOverride(res.candidates)
+        setDialogError('Possible catalog match — pick one, then try again.')
+        return
+      }
+
+      if (!res.ok) {
         if (res.code === 'not_found') {
           setFlash(res.error ?? 'Removed from queue.')
+          setDialog(null)
+          setCandidateOverride(null)
           void refresh()
           return
         }
-        setError(res.error ?? 'Couldn’t complete the review. Try again.')
+        setDialogError(res.error ?? 'Couldn’t complete the review. Try again.')
         return
       }
 
-      const result = res.result
-      const notesTrimmed = reviewNotes?.trim().slice(0, 2000) || null
+      setDialog(null)
+      setCandidateOverride(null)
 
-      if (result.idempotent_noop) {
-        patchRow(row.waitlist_id, {
-          status: result.status,
-          reviewed_at: row.reviewed_at ?? new Date().toISOString(),
-          review_notes: row.review_notes ?? notesTrimmed,
-        })
-        setFlash('Already decided — showing the recorded status.')
-        void refresh()
-        return
-      }
-
-      patchRow(row.waitlist_id, {
-        status: result.status,
-        reviewed_at: new Date().toISOString(),
-        review_notes: notesTrimmed,
-      })
-
-      if (decision === 'approve') {
-        const accessNote =
-          result.note?.trim() ||
-          (result.grants_access
-            ? null
-            : 'Portal access is not granted yet — this only records the application decision.')
+      if (input.action === 'approve' || input.action === 'resend') {
+        if (res.sent === false) {
+          setFlash(
+            `Invite saved, but the email didn’t send${
+              res.send_error ? ` (${res.send_error})` : ''
+            }. Use Resend invite.`
+          )
+        } else {
+          setFlash(`Invite sent to ${res.invited_email ?? row.contact_email}.`)
+        }
+      } else if (input.action === 'reject') {
         setFlash(
-          accessNote
-            ? `Marked approved. ${accessNote}`
-            : 'Marked approved.'
+          res.sent === false
+            ? 'Rejected — reply email didn’t send.'
+            : res.sent === true
+              ? 'Application rejected; reply sent.'
+              : 'Application rejected.'
         )
       } else {
-        setFlash('Application rejected.')
+        setFlash('Invite revoked.')
       }
+      void refresh()
     },
-    [notesById, patchRow, refresh]
+    [refresh]
+  )
+
+  const submitApprove = useCallback(
+    (row: BrandApplication, input: ApproveSubmit) => {
+      void runDecision(row, {
+        action: 'approve',
+        waitlistId: row.waitlist_id,
+        brandName: input.brandName,
+        existingBrandId: input.existingBrandId,
+        confirmNew: input.confirmNew,
+        reviewNotes: input.reviewNotes,
+      })
+    },
+    [runDecision]
   )
 
   return (
@@ -288,8 +313,10 @@ export default function BrandApplicationsClient({
           Brand applications
         </h1>
         <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55, maxWidth: 640, margin: 0 }}>
-          Pre-call queue from the invite-only signup. Pending applications sit at the top.
-          Approving records a decision only — it does not create a portal login or send credentials.
+          Requests to join Runoff. Pending first. <strong style={{ color: 'var(--ink)', fontWeight: 600 }}>Approve &amp; invite</strong>{' '}
+          creates the brand if it&apos;s new and emails a 7-day invite.{' '}
+          <strong style={{ color: 'var(--ink)', fontWeight: 600 }}>Reject</strong> sends a short reply
+          unless you untick it.
         </p>
         <div style={{ marginTop: 12, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
           <Link
@@ -461,7 +488,7 @@ export default function BrandApplicationsClient({
                     </div>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <StatusPill status={row.status} />
+                    <StatusChip row={row} />
                     <div style={{ fontSize: 12, color: 'var(--ink-50)', marginTop: 6 }}>
                       Applied {formatWhen(row.created_at)}
                     </div>
@@ -628,55 +655,15 @@ export default function BrandApplicationsClient({
                 ) : null}
 
                 {pending ? (
-                  <div style={{ marginBottom: 14 }}>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: 11,
-                        fontWeight: 600,
-                        letterSpacing: '0.06em',
-                        textTransform: 'uppercase',
-                        color: 'var(--ink-30)',
-                        marginBottom: 6,
-                      }}
-                    >
-                      Review notes{' '}
-                      <span style={{ fontWeight: 400, textTransform: 'none' }}>(optional)</span>
-                    </label>
-                    <textarea
-                      value={notesById[row.waitlist_id] ?? ''}
-                      onChange={(e) =>
-                        setNotesById((prev) => ({
-                          ...prev,
-                          [row.waitlist_id]: e.target.value.slice(0, 2000),
-                        }))
-                      }
-                      rows={2}
-                      placeholder="Internal note for this decision…"
-                      disabled={busy}
-                      style={{
-                        width: '100%',
-                        boxSizing: 'border-box',
-                        padding: '8px 12px',
-                        borderRadius: 6,
-                        border: '1px solid var(--ink-10)',
-                        fontSize: 13,
-                        fontFamily: 'var(--font-sans)',
-                        color: 'var(--ink)',
-                        resize: 'vertical',
-                        outline: 'none',
-                      }}
-                    />
-                  </div>
-                ) : null}
-
-                {pending ? (
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                     <button
                       type="button"
                       disabled={busy}
-                      onClick={() => void decide(row, 'approve')}
-                      title="Records approval only — does not create portal access"
+                      onClick={() => {
+                        setDialogError(null)
+                        setCandidateOverride(null)
+                        setDialog({ kind: 'approve', row })
+                      }}
                       style={{
                         padding: '8px 14px',
                         background: 'var(--sage)',
@@ -690,12 +677,15 @@ export default function BrandApplicationsClient({
                         opacity: busy ? 0.55 : 1,
                       }}
                     >
-                      {busy ? 'Working…' : 'Approve application'}
+                      Approve &amp; invite
                     </button>
                     <button
                       type="button"
                       disabled={busy}
-                      onClick={() => void decide(row, 'reject')}
+                      onClick={() => {
+                        setDialogError(null)
+                        setDialog({ kind: 'reject', row })
+                      }}
                       style={{
                         padding: '8px 14px',
                         background: 'transparent',
@@ -711,9 +701,55 @@ export default function BrandApplicationsClient({
                     >
                       Reject
                     </button>
-                    <span style={{ fontSize: 12, color: 'var(--ink-30)', lineHeight: 1.4, maxWidth: 360 }}>
-                      Does not create an account or send invite credentials.
-                    </span>
+                  </div>
+                ) : null}
+
+                {row.status === 'invited' && row.invitation?.status !== 'accepted' ? (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        setDialogError(null)
+                        setDialog({ kind: 'resend', row })
+                      }}
+                      style={{
+                        padding: '8px 14px',
+                        background: 'var(--sage)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: 6,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: busy ? 'default' : 'pointer',
+                        fontFamily: 'var(--font-sans)',
+                        opacity: busy ? 0.55 : 1,
+                      }}
+                    >
+                      Resend invite
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        setDialogError(null)
+                        setDialog({ kind: 'revoke', row })
+                      }}
+                      style={{
+                        padding: '8px 14px',
+                        background: 'transparent',
+                        color: 'var(--ink)',
+                        border: '1px solid var(--ink-10)',
+                        borderRadius: 6,
+                        fontSize: 13,
+                        fontWeight: 500,
+                        cursor: busy ? 'default' : 'pointer',
+                        fontFamily: 'var(--font-sans)',
+                        opacity: busy ? 0.55 : 1,
+                      }}
+                    >
+                      Revoke
+                    </button>
                   </div>
                 ) : null}
               </article>
@@ -728,6 +764,65 @@ export default function BrandApplicationsClient({
             {loadingMore ? 'Loading…' : 'Load more'}
           </button>
         </div>
+      ) : null}
+
+      {dialog?.kind === 'approve' ? (
+        <ApproveInviteDialog
+          row={dialog.row}
+          busy={busyId === dialog.row.waitlist_id}
+          error={dialogError}
+          candidateOverride={candidateOverride}
+          onClose={closeDialog}
+          onSubmit={(input) => submitApprove(dialog.row, input)}
+        />
+      ) : null}
+      {dialog?.kind === 'reject' ? (
+        <RejectDialog
+          row={dialog.row}
+          busy={busyId === dialog.row.waitlist_id}
+          error={dialogError}
+          onClose={closeDialog}
+          onSubmit={(input) =>
+            void runDecision(dialog.row, {
+              action: 'reject',
+              waitlistId: dialog.row.waitlist_id,
+              reviewNotes: input.reviewNotes,
+              sendEmail: input.sendEmail,
+            })
+          }
+        />
+      ) : null}
+      {dialog?.kind === 'resend' ? (
+        <ConfirmDialog
+          title="Resend invite"
+          body={`Send a new link to ${dialog.row.contact_email}? The old link stops working.`}
+          primaryLabel="Resend invite"
+          busy={busyId === dialog.row.waitlist_id}
+          error={dialogError}
+          onClose={closeDialog}
+          onConfirm={() =>
+            void runDecision(dialog.row, {
+              action: 'resend',
+              waitlistId: dialog.row.waitlist_id,
+            })
+          }
+        />
+      ) : null}
+      {dialog?.kind === 'revoke' ? (
+        <ConfirmDialog
+          title="Revoke invite"
+          body={`Revoke the invite for ${dialog.row.contact_email}? The link stops working.`}
+          primaryLabel="Revoke"
+          busy={busyId === dialog.row.waitlist_id}
+          error={dialogError}
+          onClose={closeDialog}
+          onConfirm={() =>
+            void runDecision(dialog.row, {
+              action: 'revoke',
+              waitlistId: dialog.row.waitlist_id,
+            })
+          }
+        />
       ) : null}
     </div>
   )

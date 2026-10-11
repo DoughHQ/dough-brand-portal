@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
+  applicationChip,
   asApplicationRow,
   extractApplications,
   formatProductCount,
@@ -38,6 +39,10 @@ function row(partial: Partial<BrandApplication> = {}): BrandApplication {
     alert_sent_at: null,
     alert_attempts: 0,
     alert_last_error: null,
+    invitation: null,
+    decision_email_sent_at: null,
+    decision_email_attempts: 0,
+    decision_email_error: null,
     ...partial,
   }
 }
@@ -252,5 +257,175 @@ describe('friendlyBrandApplicationsError', () => {
   it('maps the RPC space-separated not authorized token', () => {
     expect(friendlyBrandApplicationsError('not authorized')).toMatch(/permission/i)
     expect(friendlyBrandApplicationsError('42501')).toMatch(/permission/i)
+    expect(friendlyBrandApplicationsError('invites_disabled')).toMatch(/switched off/i)
+  })
+})
+
+describe('applicationChip', () => {
+  it('covers pending / invited / rejected chip table', () => {
+    expect(applicationChip(row()).label).toBe('Pending')
+
+    expect(
+      applicationChip(
+        row({
+          status: 'invited',
+          invitation: {
+            invitation_id: 'i1',
+            invited_email: 'jane@hershey.com',
+            brand_id: 1,
+            status: 'pending',
+            sent_at: '2026-10-11T12:00:00.000Z',
+            send_attempts: 1,
+            last_send_error: null,
+            expires_at: '2026-10-18T12:00:00.000Z',
+            accepted_at: null,
+            revoked_at: null,
+            created_at: '2026-10-11T12:00:00.000Z',
+          },
+        })
+      ).label
+    ).toMatch(/^Invited · sent/)
+
+    expect(
+      applicationChip(
+        row({
+          status: 'invited',
+          invitation: {
+            invitation_id: 'i2',
+            invited_email: 'jane@hershey.com',
+            brand_id: 1,
+            status: 'pending',
+            sent_at: null,
+            send_attempts: 1,
+            last_send_error: 'boom',
+            expires_at: null,
+            accepted_at: null,
+            revoked_at: null,
+            created_at: '2026-10-11T12:00:00.000Z',
+          },
+        })
+      )
+    ).toEqual({ label: 'Invited · email failed', tone: 'amber' })
+
+    expect(
+      applicationChip(
+        row({
+          status: 'invited',
+          invitation: {
+            invitation_id: 'i3',
+            invited_email: 'jane@hershey.com',
+            brand_id: 1,
+            status: 'pending',
+            sent_at: null,
+            send_attempts: 0,
+            last_send_error: null,
+            expires_at: null,
+            accepted_at: null,
+            revoked_at: null,
+            created_at: '2026-10-11T12:00:00.000Z',
+          },
+        })
+      )
+    ).toEqual({ label: 'Invited · not sent', tone: 'amber' })
+
+    expect(
+      applicationChip(
+        row({
+          status: 'invited',
+          invitation: {
+            invitation_id: 'i4',
+            invited_email: 'jane@hershey.com',
+            brand_id: 1,
+            status: 'expired',
+            sent_at: '2026-10-01T12:00:00.000Z',
+            send_attempts: 1,
+            last_send_error: null,
+            expires_at: '2026-10-08T12:00:00.000Z',
+            accepted_at: null,
+            revoked_at: null,
+            created_at: '2026-10-01T12:00:00.000Z',
+          },
+        })
+      )
+    ).toEqual({ label: 'Invite expired', tone: 'amber' })
+
+    expect(
+      applicationChip(
+        row({
+          status: 'invited',
+          invitation: {
+            invitation_id: 'i5',
+            invited_email: 'jane@hershey.com',
+            brand_id: 1,
+            status: 'revoked',
+            sent_at: null,
+            send_attempts: 0,
+            last_send_error: null,
+            expires_at: null,
+            accepted_at: null,
+            revoked_at: '2026-10-11T12:00:00.000Z',
+            created_at: '2026-10-11T12:00:00.000Z',
+          },
+        })
+      )
+    ).toEqual({ label: 'Invite revoked', tone: 'ink' })
+
+    expect(
+      applicationChip(
+        row({
+          status: 'invited',
+          invitation: {
+            invitation_id: 'i6',
+            invited_email: 'jane@hershey.com',
+            brand_id: 1,
+            status: 'accepted',
+            sent_at: '2026-10-11T12:00:00.000Z',
+            send_attempts: 1,
+            last_send_error: null,
+            expires_at: null,
+            accepted_at: '2026-10-12T12:00:00.000Z',
+            revoked_at: null,
+            created_at: '2026-10-11T12:00:00.000Z',
+          },
+        })
+      )
+    ).toEqual({ label: 'Joined', tone: 'sage' })
+
+    expect(
+      applicationChip(
+        row({
+          status: 'rejected',
+          decision_email_sent_at: '2026-10-11T12:00:00.000Z',
+        })
+      )
+    ).toEqual({ label: 'Rejected · reply sent', tone: 'ink' })
+
+    expect(
+      applicationChip(
+        row({
+          status: 'rejected',
+          decision_email_attempts: 1,
+          decision_email_error: 'boom',
+        })
+      )
+    ).toEqual({ label: 'Rejected · reply failed', tone: 'amber' })
+
+    expect(applicationChip(row({ status: 'rejected' }))).toEqual({
+      label: 'Rejected · no reply',
+      tone: 'ink',
+    })
+  })
+
+  it('defaults invitation fields when Migration Phase 3 keys are absent', () => {
+    const parsed = asApplicationRow({
+      waitlist_id: 'x',
+      status: 'pending',
+      brand_name_typed: 'A',
+      contact_name: 'B',
+      contact_email: 'b@c.com',
+      created_at: '2026-09-03T16:00:00.000Z',
+    })
+    expect(parsed?.invitation).toBeNull()
+    expect(parsed?.decision_email_attempts).toBe(0)
   })
 })
