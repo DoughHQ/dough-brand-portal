@@ -216,6 +216,7 @@ function inStudyTree(relativePath) {
 const journeyRoot = `${conceptRoot}journey/`
 const methodRoot = `${boxRoot}method/`
 const clientRoot = `${boxRoot}client/`
+const conceptClientRoot = `${conceptRoot}client/`
 
 function isSetupModule(relativePath) {
   return (
@@ -223,6 +224,7 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(journeyRoot) &&
     !relativePath?.startsWith(methodRoot) &&
     !relativePath?.startsWith(clientRoot) &&
+    !relativePath?.startsWith(conceptClientRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)
