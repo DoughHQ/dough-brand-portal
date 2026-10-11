@@ -33,6 +33,12 @@ function formatCount(n: number): string {
   return Math.max(0, Math.trunc(n)).toLocaleString()
 }
 
+/** Singular when n === 1 so search hits never say "1 products". */
+function formatProducts(n: number): string {
+  const count = Math.max(0, Math.trunc(n))
+  return count === 1 ? '1 product' : `${formatCount(count)} products`
+}
+
 export default function ApplyBrandFlow({
   step,
   setStep,
@@ -217,7 +223,7 @@ export default function ApplyBrandFlow({
                   >
                     <span className="auth-hit__name">{hit.brand_name}</span>
                     <span className="auth-hit__count">
-                      {formatCount(hit.product_count)} products
+                      {formatProducts(hit.product_count)}
                     </span>
                   </button>
                 ))}
@@ -283,7 +289,7 @@ export default function ApplyBrandFlow({
                   {selectedBrand.product_count > 0 ? (
                     <>
                       {' '}
-                      · {formatCount(selectedBrand.product_count)} products already in Dough
+                      · {formatProducts(selectedBrand.product_count)} already in Dough
                     </>
                   ) : null}
                   .
@@ -450,46 +456,17 @@ export default function ApplyBrandFlow({
             Application received.
           </div>
           <div style={{ fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.7, marginBottom: 20 }}>
-            Thanks{contactName.trim() ? `, ${contactName.trim().split(/\s+/)[0]}` : ''}. We review
-            every request personally
             {contactEmail.trim() ? (
               <>
-                {' '}
-                and will follow up at <strong style={{ color: 'var(--ink)' }}>{contactEmail.trim()}</strong>
+                Thanks
+                {contactName.trim() ? `, ${contactName.trim().split(/\s+/)[0]}` : ''}. We review
+                every request personally and will reply to{' '}
+                <strong style={{ color: 'var(--ink)' }}>{contactEmail.trim()}</strong> within 3
+                business days.
               </>
-            ) : null}
-            .
-          </div>
-
-          {/* TODO: Cal.com / Calendly embed — do not write booking_scheduled_at from the client. */}
-          <div
-            style={{
-              border: '1px dashed rgba(62,107,74,0.35)',
-              borderRadius: 12,
-              padding: '28px 20px',
-              background: 'var(--sage-soft)',
-              marginBottom: 18,
-              textAlign: 'left',
-            }}
-          >
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'var(--heading)',
-                marginBottom: 8,
-              }}
-            >
-              Book a call
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.55, marginBottom: 8 }}>
-              Scheduling embed goes here (Cal.com / Calendly).
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--ink-50)', lineHeight: 1.5 }}>
-              Until that’s live, we’ll email you a booking link — no need to refresh this page.
-            </div>
+            ) : (
+              <>We review every request personally and will reply within 3 business days.</>
+            )}
           </div>
 
           <div style={{ fontSize: 12, color: 'var(--ink-30)' }}>Questions? {SUPPORT_EMAIL}</div>
