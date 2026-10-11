@@ -48,7 +48,7 @@ function legacyGridEnvelope(): ExperiencedReportEnvelope {
     ...envelope,
     report: {
       ...envelope.report,
-      ihut_core: { version: 'legacy' } as NonNullable<
+      ihut_core: { version: 'legacy' } as unknown as NonNullable<
         ExperiencedReportEnvelope['report']['ihut_core']
       >,
     },
