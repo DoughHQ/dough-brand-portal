@@ -217,6 +217,7 @@ const journeyRoot = `${conceptRoot}journey/`
 const methodRoot = `${boxRoot}method/`
 const clientRoot = `${boxRoot}client/`
 const conceptClientRoot = `${conceptRoot}client/`
+const cardsRoot = `${conceptRoot}cards/`
 
 function isSetupModule(relativePath) {
   return (
@@ -225,6 +226,7 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(methodRoot) &&
     !relativePath?.startsWith(clientRoot) &&
     !relativePath?.startsWith(conceptClientRoot) &&
+    !relativePath?.startsWith(cardsRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)

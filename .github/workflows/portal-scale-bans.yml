@@ -53,6 +53,7 @@ jobs:
       - run: npm run check:box-method-ban
       - run: npm run check:box-client-ban
       - run: npm run check:concept-client-ban
+      - run: npm run check:concept-cards-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
