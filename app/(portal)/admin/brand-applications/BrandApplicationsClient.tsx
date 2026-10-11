@@ -6,6 +6,7 @@ import {
   brandDecisionLabel,
   formatProductCount,
   safeLinkedInHref,
+  safeWebHref,
   sortApplicationsForQueue,
   type BrandApplication,
   type BrandApplicationsPageCursor,
@@ -50,6 +51,11 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
       {STATUS_LABEL[status]}
     </span>
   )
+}
+
+function formatProductsShort(n: number): string {
+  const count = Math.max(0, Math.trunc(n))
+  return count === 1 ? '1 product' : `${count.toLocaleString()} products`
 }
 
 function DecisionBadge({
@@ -375,11 +381,16 @@ export default function BrandApplicationsClient({
           {rows.map((row) => {
             const netNew = row.selected_brand_id == null
             const linkedInHref = safeLinkedInHref(row.linkedin_url)
+            const websiteHref = safeWebHref(row.brand_website)
             const pending = row.status === 'pending'
             const busy = busyId === row.waitlist_id
             const brandLabel = brandDecisionLabel(row)
             const productCount = formatProductCount(row)
-            const warningBorder = row.already_claimed || row.flagged_not_mine_count > 0
+            const warningBorder =
+              row.already_claimed ||
+              row.flagged_not_mine_count > 0 ||
+              row.domain_match === false ||
+              row.free_email
 
             return (
               <article
@@ -420,13 +431,32 @@ export default function BrandApplicationsClient({
                     </div>
                     <div style={{ fontSize: 13, color: 'var(--ink-50)', marginTop: 3 }}>
                       <a
-                        href={`mailto:${row.contact_email}`}
+                        href={`mailto:${encodeURIComponent(row.contact_email)}`}
                         style={{ color: 'var(--sage)', fontWeight: 500 }}
                       >
                         {row.contact_email}
                       </a>
                       {row.role_title ? (
                         <span style={{ color: 'var(--ink-30)' }}> · {row.role_title}</span>
+                      ) : null}
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 6,
+                        marginTop: 8,
+                      }}
+                    >
+                      {row.domain_match === true ? (
+                        <DecisionBadge tone="sage">Email matches website</DecisionBadge>
+                      ) : row.domain_match === false ? (
+                        <DecisionBadge tone="amber">Email domain ≠ website</DecisionBadge>
+                      ) : (
+                        <DecisionBadge tone="ink">No website</DecisionBadge>
+                      )}
+                      {row.free_email ? (
+                        <DecisionBadge tone="amber">Personal email</DecisionBadge>
                       ) : null}
                     </div>
                   </div>
@@ -438,6 +468,16 @@ export default function BrandApplicationsClient({
                     {!pending && row.reviewed_at ? (
                       <div style={{ fontSize: 12, color: 'var(--ink-30)', marginTop: 2 }}>
                         Reviewed {formatWhen(row.reviewed_at)}
+                      </div>
+                    ) : null}
+                    {pending && row.alert_sent_at ? (
+                      <div style={{ fontSize: 12, color: 'var(--ink-50)', marginTop: 2 }}>
+                        Alert sent {formatWhen(row.alert_sent_at)}
+                      </div>
+                    ) : null}
+                    {pending && !row.alert_sent_at && row.alert_last_error ? (
+                      <div style={{ fontSize: 12, color: 'var(--amber, #a66a14)', marginTop: 2 }}>
+                        Alert failing ({row.alert_attempts}/5)
                       </div>
                     ) : null}
                   </div>
@@ -461,6 +501,13 @@ export default function BrandApplicationsClient({
                       {row.flagged_not_mine_count === 1 ? '' : 's'} as not theirs
                     </DecisionBadge>
                   ) : null}
+                  {netNew
+                    ? row.catalog_candidates.map((c) => (
+                        <DecisionBadge key={c.brand_id} tone="ink">
+                          Possible catalog match: {c.brand_name} ({formatProductsShort(c.product_count)})
+                        </DecisionBadge>
+                      ))
+                    : null}
                 </div>
 
                 {row.already_claimed ? (
@@ -537,6 +584,22 @@ export default function BrandApplicationsClient({
                       </a>
                     ) : row.linkedin_url ? (
                       <span style={{ color: 'var(--ink-50)' }}>{row.linkedin_url}</span>
+                    ) : (
+                      <span>—</span>
+                    )}
+                  </MetaLine>
+                  <MetaLine label="Website">
+                    {websiteHref ? (
+                      <a
+                        href={websiteHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'var(--sage)' }}
+                      >
+                        {row.brand_website}
+                      </a>
+                    ) : row.brand_website ? (
+                      <span style={{ color: 'var(--ink-50)' }}>{row.brand_website}</span>
                     ) : (
                       <span>—</span>
                     )}

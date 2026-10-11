@@ -40,9 +40,30 @@ export function parseBrandSearchHits(data: unknown): ApplicationBrandHit[] {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+/** Same shape as brand_waitlist_website_shape (Postgres POSIX, case-insensitive). */
+const BRAND_WEBSITE_RE =
+  /^(https?:\/\/)?[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[0-9]{1,5})?([/?#]\S*)?$/i
+
 export function isValidWorkEmail(email: string): boolean {
   const t = email.trim()
   return t.length > 0 && t.length <= 320 && EMAIL_RE.test(t)
+}
+
+/**
+ * Empty is valid (caller decides required vs optional). Non-empty must match
+ * the DB CHECK and stay ≤ 300 characters.
+ */
+export function isValidBrandWebsite(raw: string): boolean {
+  const t = raw.trim()
+  if (!t) return true
+  if (t.length > 300) return false
+  return BRAND_WEBSITE_RE.test(t)
+}
+
+export function normalizeBrandWebsite(raw: string): string | null {
+  const t = raw.trim()
+  if (!t) return null
+  return t.slice(0, 300)
 }
 
 export function normalizeLinkedInInput(raw: string): string | null {
