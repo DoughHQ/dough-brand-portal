@@ -108,7 +108,6 @@ export function blankCorrectionRow(
 /** Types where the user supplies a photo and structured proposed_value is empty/`{}`. */
 export const PHOTO_ONLY_TYPES = new Set(['nutrition_facts', 'ingredients'])
 
-const CAPTURES_PREFIX = 'captures:'
 const PRIVATE_LEGACY = /^legacy\/corrections\/[A-Za-z0-9._/-]+$/
 
 export type EvidenceSource =
@@ -122,20 +121,13 @@ function privateCapturesPath(path: string): string | null {
   return null
 }
 
-/** https evidence displays as itself. A captures ref must be signed; anything else is not an image URL. */
+/** https evidence displays as itself. Anything else is not an image URL. */
 export function evidenceDisplaySource(
   value: string | null | undefined
 ): EvidenceSource | null {
   const trimmed = value?.trim() ?? ''
-  if (!trimmed) return null
-  if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
-    return { kind: 'http', url: trimmed }
-  }
-  if (!trimmed.startsWith(CAPTURES_PREFIX)) return null
-  const path = privateCapturesPath(trimmed.slice(CAPTURES_PREFIX.length))
-  if (!path) return null
-  if (!path.startsWith('correction/') && !path.startsWith('legacy/corrections/')) return null
-  return { kind: 'captures', path }
+  if (!trimmed.startsWith('https://') && !trimmed.startsWith('http://')) return null
+  return { kind: 'http', url: trimmed }
 }
 
 /** Prefer the private capture path. Fall back to the URL older builds stored. */
