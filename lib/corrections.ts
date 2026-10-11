@@ -5,8 +5,9 @@ import type { Json } from '@/lib/database.types'
 import {
   blankCorrectionRow,
   canApproveAsIs,
-  evidenceDisplaySource,
+  evidenceToSign,
   isBlankLeaf,
+  isCaptureProductImage,
   type CorrectionReviewRow,
   type CorrectionReviewsPage,
   type CorrectionReviewsPageCursor,
@@ -26,6 +27,7 @@ export {
   canApproveAsIs,
   isEmptyApplicableProposal,
   isBlankLeaf,
+  isCaptureProductImage,
 } from '@/lib/corrections.shared'
 
 const PAGE_DEFAULT_LIMIT = 25
@@ -151,39 +153,77 @@ async function hydrateCorrectionRows(
       variants: variantList,
     }
   })
-  return attachEvidencePreviews(hydrated)
+  return attachEvidencePreviews(supabase, hydrated)
 }
 
 const EVIDENCE_SIGN_TTL_SEC = 60 * 60 * 4
 
 /** Sign private correction photos. https URLs pass through. The stored ref is left unchanged. */
 async function attachEvidencePreviews(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
   rows: CorrectionReviewRow[]
 ): Promise<CorrectionReviewRow[]> {
   const captures: { id: string; path: string }[] = []
   const preview = new Map<string, string | null>()
   for (const row of rows) {
-    const src = evidenceDisplaySource(row.evidence_image_url)
+    const src = evidenceToSign(row)
     if (!src) preview.set(row.id, null)
     else if (src.kind === 'http') preview.set(row.id, src.url)
     else captures.push({ id: row.id, path: src.path })
   }
   if (captures.length > 0) {
-    try {
-      const admin = createAdminSupabaseClient()
-      await Promise.all(
-        captures.map(async (item) => {
-          const { data, error } = await admin.storage
-            .from('captures')
-            .createSignedUrl(item.path, EVIDENCE_SIGN_TTL_SEC)
-          preview.set(item.id, error || !data?.signedUrl ? null : data.signedUrl)
-        })
-      )
-    } catch (e) {
-      console.warn('[corrections] could not sign evidence photos', e)
-    }
+    const signed = await signCapturePaths(supabase, captures)
+    for (const [id, url] of signed) preview.set(id, url)
   }
   return rows.map((row) => ({ ...row, evidence_preview_url: preview.get(row.id) ?? null }))
+}
+
+/**
+ * The reviewer's session can read a capture once a submission they can see names it.
+ * Until that policy is applied, the service role still signs the same path.
+ */
+async function signCapturePaths(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  items: { id: string; path: string }[]
+): Promise<Map<string, string | null>> {
+  const preview = new Map<string, string | null>()
+  const unresolved: { id: string; path: string }[] = []
+  try {
+    const { data, error } = await supabase.storage
+      .from('captures')
+      .createSignedUrls(items.map((item) => item.path), EVIDENCE_SIGN_TTL_SEC)
+    if (error || !data) {
+      unresolved.push(...items)
+    } else {
+      data.forEach((entry, index) => {
+        const item = items[index]
+        if (!item) return
+        if (entry?.signedUrl && !entry.error) preview.set(item.id, entry.signedUrl)
+        else unresolved.push(item)
+      })
+    }
+  } catch (e) {
+    console.warn('[corrections] session sign failed', e)
+    unresolved.push(...items)
+  }
+  if (unresolved.length === 0) return preview
+  try {
+    const admin = createAdminSupabaseClient()
+    await Promise.all(
+      unresolved.map(async (item) => {
+        const { data, error } = await admin.storage
+          .from('captures')
+          .createSignedUrl(item.path, EVIDENCE_SIGN_TTL_SEC)
+        preview.set(item.id, error || !data?.signedUrl ? null : data.signedUrl)
+      })
+    )
+  } catch (e) {
+    console.warn('[corrections] could not sign evidence photos', e)
+    for (const item of unresolved) {
+      if (!preview.has(item.id)) preview.set(item.id, null)
+    }
+  }
+  return preview
 }
 
 function asRecord(v: unknown): Record<string, unknown> | null {
@@ -210,6 +250,7 @@ function mapQueueItem(raw: unknown): CorrectionReviewRow | null {
     human_corrected_value: (asRecord(r.human_corrected_value) as Record<string, unknown> | null) ?? null,
     user_notes: r.user_notes == null ? null : String(r.user_notes),
     evidence_image_url: r.evidence_image_url == null ? null : String(r.evidence_image_url),
+    evidence_capture_path: r.evidence_capture_path == null ? null : String(r.evidence_capture_path),
     proposed_taxonomy_node_id:
       r.proposed_taxonomy_node_id == null ? null : Number(r.proposed_taxonomy_node_id),
     other_category_description:
@@ -325,6 +366,34 @@ export async function getBrandPendingCorrectionsPage(opts?: {
   }
 }
 
+async function publishCorrectionImage(
+  submissionId: string
+): Promise<{ ok: boolean; error?: string }> {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!base) return { ok: false, error: 'Supabase env not configured' }
+  const supabase = await createServerSupabaseClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.access_token) return { ok: false, error: 'Not authenticated' }
+
+  const res = await fetch(`${base}/functions/v1/publish_correction_image`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ submission_id: submissionId }),
+  })
+  const body = (await res.json().catch(() => ({}))) as {
+    ok?: boolean
+    error?: string
+    message?: string
+  }
+  if (!res.ok || body.ok === false) {
+    return { ok: false, error: body.message ?? body.error ?? `HTTP ${res.status}` }
+  }
+  return { ok: true }
+}
+
 export async function reviewCorrectionSubmission(
   submissionId: string,
   decision: 'approved' | 'rejected' | 'overridden',
@@ -340,33 +409,48 @@ export async function reviewCorrectionSubmission(
     return { ok: false, error: 'A reject reason is required.' }
   }
 
-  if (decision === 'approved') {
+  if (decision === 'approved' || decision === 'overridden') {
     const { data: sub, error: loadErr } = await supabase
       .from('product_correction_submissions')
-      .select('id, correction_type, proposed_value, proposed_taxonomy_node_id, proposed_price_amount, evidence_image_url, status')
+      .select('*')
       .eq('id', submissionId)
       .maybeSingle()
 
     if (loadErr || !sub) return { ok: false, error: loadErr?.message ?? 'Submission not found' }
-    if (sub.status !== 'pending_human_review') {
+    const row = sub as Record<string, unknown>
+    if (row.status !== 'pending_human_review') {
       return { ok: false, error: 'Submission is not pending review' }
     }
-
-    const probe = blankCorrectionRow({
-      id: sub.id as string,
-      correction_type: sub.correction_type as string | null,
-      proposed_value: (sub.proposed_value ?? {}) as Record<string, unknown>,
-      evidence_image_url: sub.evidence_image_url as string | null,
-      proposed_taxonomy_node_id: sub.proposed_taxonomy_node_id as number | null,
-      proposed_price_amount: sub.proposed_price_amount as number | string | null,
-      status: sub.status as string | null,
+    const capturePath = typeof row.evidence_capture_path === 'string' ? row.evidence_capture_path : ''
+    const capturePhoto = isCaptureProductImage({
+      correction_type: row.correction_type == null ? null : String(row.correction_type),
+      evidence_capture_path: capturePath,
     })
+    if (capturePhoto && decision === 'overridden') {
+      return { ok: false, error: 'A photo correction cannot be overridden. Apply the photo or reject it.' }
+    }
+    if (capturePhoto && decision === 'approved') {
+      return publishCorrectionImage(submissionId)
+    }
 
-    if (!canApproveAsIs(probe)) {
-      return {
-        ok: false,
-        error:
-          'Cannot apply an empty value. Extract from the photo or enter values, then apply — or reject.',
+    if (decision === 'approved') {
+      const probe = blankCorrectionRow({
+        id: String(row.id),
+        correction_type: row.correction_type == null ? null : String(row.correction_type),
+        proposed_value: (row.proposed_value ?? {}) as Record<string, unknown>,
+        evidence_image_url: row.evidence_image_url == null ? null : String(row.evidence_image_url),
+        evidence_capture_path: capturePath || null,
+        proposed_taxonomy_node_id: row.proposed_taxonomy_node_id == null ? null : Number(row.proposed_taxonomy_node_id),
+        proposed_price_amount: row.proposed_price_amount as number | string | null,
+        status: row.status == null ? null : String(row.status),
+      })
+
+      if (!canApproveAsIs(probe)) {
+        return {
+          ok: false,
+          error:
+            'Cannot apply an empty value. Extract from the photo or enter values, then apply — or reject.',
+        }
       }
     }
   }

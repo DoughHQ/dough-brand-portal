@@ -4,6 +4,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   canApproveAsIs,
+  isCaptureProductImage,
   PHOTO_ONLY_TYPES,
   type CorrectionReviewRow,
   type CorrectionReviewsPageCursor,
@@ -356,12 +357,13 @@ export default function CorrectionsReviewClient({
       }
       if (e.key === 'o' || e.key === 'O') {
         e.preventDefault()
+        if (isCaptureProductImage(current)) return
         setEditorOpenId(current.id)
         return
       }
       if (e.key === 'e' || e.key === 'E') {
         const ct = (current.correction_type ?? '').toLowerCase()
-        if (PHOTO_ONLY_TYPES.has(ct) && current.evidence_image_url) {
+        if (PHOTO_ONLY_TYPES.has(ct) && (current.evidence_preview_url || current.evidence_capture_path || current.evidence_image_url)) {
           e.preventDefault()
           void handleExtract(current.id)
         }
@@ -718,14 +720,16 @@ function CaseStage({
                   >
                     {busy ? 'Working…' : applyLabel}
                   </button>
-                  <button
-                    type="button"
-                    className="corr-btn corr-btn-ghost"
-                    disabled={busy}
-                    onClick={onOpenEditor}
-                  >
-                    {ct === 'category' ? 'Pick a different category' : 'Enter a different value'}
-                  </button>
+                  {isCaptureProductImage(row) ? null : (
+                    <button
+                      type="button"
+                      className="corr-btn corr-btn-ghost"
+                      disabled={busy}
+                      onClick={onOpenEditor}
+                    >
+                      {ct === 'category' ? 'Pick a different category' : 'Enter a different value'}
+                    </button>
+                  )}
                 </>
               ) : (
                 <button

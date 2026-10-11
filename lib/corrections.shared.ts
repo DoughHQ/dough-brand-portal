@@ -22,6 +22,8 @@ export type CorrectionReviewRow = {
   human_corrected_value: Record<string, unknown> | null
   user_notes: string | null
   evidence_image_url: string | null
+  /** Path in the private captures bucket. Mutually exclusive with evidence_image_url. */
+  evidence_capture_path: string | null
   /** Display-only. https passes through; captures refs are signed on the server. Never write this back. */
   evidence_preview_url: string | null
   product_image_url: string | null
@@ -82,6 +84,7 @@ export function blankCorrectionRow(
     human_corrected_value: null,
     user_notes: null,
     evidence_image_url: null,
+    evidence_capture_path: null,
     evidence_preview_url: null,
     product_image_url: null,
     proposed_taxonomy_node_id: null,
@@ -106,20 +109,51 @@ export function blankCorrectionRow(
 export const PHOTO_ONLY_TYPES = new Set(['nutrition_facts', 'ingredients'])
 
 const CAPTURES_PREFIX = 'captures:'
+const PRIVATE_LEGACY = /^legacy\/corrections\/[A-Za-z0-9._/-]+$/
+
+export type EvidenceSource =
+  | { kind: 'http'; url: string }
+  | { kind: 'captures'; path: string }
+
+function privateCapturesPath(path: string): string | null {
+  if (!path || path.includes('..') || path.includes('\\')) return null
+  if (path.startsWith('correction/')) return path
+  if (PRIVATE_LEGACY.test(path)) return path
+  return null
+}
 
 /** https evidence displays as itself. A captures ref must be signed; anything else is not an image URL. */
 export function evidenceDisplaySource(
   value: string | null | undefined
-): { kind: 'http'; url: string } | { kind: 'captures'; path: string } | null {
+): EvidenceSource | null {
   const trimmed = value?.trim() ?? ''
   if (!trimmed) return null
   if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
     return { kind: 'http', url: trimmed }
   }
   if (!trimmed.startsWith(CAPTURES_PREFIX)) return null
-  const path = trimmed.slice(CAPTURES_PREFIX.length)
-  if (!path.startsWith('correction/') || path.includes('..')) return null
+  const path = privateCapturesPath(trimmed.slice(CAPTURES_PREFIX.length))
+  if (!path) return null
+  if (!path.startsWith('correction/') && !path.startsWith('legacy/corrections/')) return null
   return { kind: 'captures', path }
+}
+
+/** Prefer the private capture path. Fall back to the URL older builds stored. */
+export function evidenceToSign(row: {
+  evidence_capture_path?: string | null
+  evidence_image_url?: string | null
+}): EvidenceSource | null {
+  const capture = privateCapturesPath(row.evidence_capture_path?.trim() ?? '')
+  if (capture) return { kind: 'captures', path: capture }
+  return evidenceDisplaySource(row.evidence_image_url)
+}
+
+export function isCaptureProductImage(row: {
+  correction_type?: string | null
+  evidence_capture_path?: string | null
+}): boolean {
+  return (row.correction_type ?? '').toLowerCase() === 'product_image'
+    && Boolean(row.evidence_capture_path?.trim())
 }
 
 export function isBlankLeaf(v: unknown): boolean {
@@ -148,6 +182,7 @@ export function isEmptyApplicableProposal(row: CorrectionReviewRow): boolean {
   }
 
   if (ct === 'product_image') {
+    if (row.evidence_capture_path?.trim()) return false
     const url =
       (row.proposed_value?.image_url as string | undefined) ??
       row.evidence_image_url
