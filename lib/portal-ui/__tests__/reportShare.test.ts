@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { PRODUCT_NAME } from '@/lib/brand'
 import {
   buildShareLinkMessage,
   buildShareText,
@@ -33,6 +34,6 @@ describe('reportShare', () => {
   it('names the print document', () => {
     expect(
       reportPrintTitle({ productName: 'Keel Lemon Water', snapshotLabel: 'Oct 7' }),
-    ).toBe('Keel Lemon Water · Dough decision report · Oct 7')
+    ).toBe(`Keel Lemon Water · ${PRODUCT_NAME} decision report · Oct 7`)
   })
 })

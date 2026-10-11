@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { SUPPORT_EMAIL } from '@/lib/productMaster/support'
+import { MARKETING_ORIGIN, PRODUCT_NAME, SUPPORT_EMAIL } from '@/lib/brand'
 import './authShell.css'
 
 export const authInputStyle: CSSProperties = {
@@ -134,18 +134,22 @@ export default function AuthShell({
   children,
   wide = false,
   align = 'center',
-  wordmark = 'Dough',
+  wordmark = PRODUCT_NAME,
 }: {
   children: React.ReactNode
   wide?: boolean
   align?: 'center' | 'start'
-  /** Runoff is a text wordmark only (no Dough mark image). Only invite/welcome pages pass it. */
-  wordmark?: 'Dough' | 'Runoff'
+  /**
+   * Default PRODUCT_NAME shows the Dough mark image. Invite/welcome pass
+   * "Runoff" for a text-only wordmark (no mark image) ahead of Train B.
+   */
+  wordmark?: typeof PRODUCT_NAME | 'Runoff'
 }) {
+  const marketingHost = MARKETING_ORIGIN.replace(/^https?:\/\//, '')
   return (
     <div className={`auth-shell${align === 'start' ? ' auth-shell--start' : ''}`}>
       <div className="auth-shell__brand">
-        {wordmark === 'Dough' ? (
+        {wordmark === PRODUCT_NAME ? (
           <div className="auth-shell__mark" aria-hidden>
             {/* App icon mark — rolling-pin D on sage */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -160,8 +164,8 @@ export default function AuthShell({
       </div>
 
       <div className="auth-shell__footer">
-        <a href="https://www.itsarunoff.com" style={{ color: 'inherit', textDecoration: 'none' }}>
-          itsarunoff.com
+        <a href={MARKETING_ORIGIN} style={{ color: 'inherit', textDecoration: 'none' }}>
+          {marketingHost}
         </a>
         {' · '}
         {SUPPORT_EMAIL}

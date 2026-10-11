@@ -1,5 +1,7 @@
 /** Share / print helpers for decision reports — pure strings only. */
 
+import { PRODUCT_NAME } from '@/lib/brand'
+
 export type ReportSharePayload = {
   productName: string
   finding: string
@@ -9,7 +11,7 @@ export type ReportSharePayload = {
 }
 
 export function reportPrintTitle(payload: Pick<ReportSharePayload, 'productName' | 'snapshotLabel'>): string {
-  const base = `${payload.productName} · Dough decision report`
+  const base = `${payload.productName} · ${PRODUCT_NAME} decision report`
   return payload.snapshotLabel ? `${base} · ${payload.snapshotLabel}` : base
 }
 
