@@ -213,6 +213,37 @@ describe('decideBrandApplicationAction', () => {
     expect(res.error).toMatch(/wasn’t saved/i)
   })
 
+  it('maps gateway 502 with no JSON body to ambiguous confirm copy', async () => {
+    getPortalBrandScope.mockResolvedValue(adminScope())
+    createServerSupabaseClient.mockResolvedValue({
+      auth: {
+        getSession: async () => ({
+          data: { session: { access_token: jwtWithClaim(null) } },
+        }),
+      },
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        status: 502,
+        ok: false,
+        json: async () => {
+          throw new Error('not json')
+        },
+      })
+    )
+
+    const { decideBrandApplicationAction } = await import(actionsPath)
+    const res = await decideBrandApplicationAction({
+      action: 'approve',
+      waitlistId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    })
+    expect(res.ok).toBe(false)
+    expect(res.code).toBe('unknown')
+    expect(res.error).toMatch(/Couldn’t confirm whether it went through/i)
+    expect(res.error).not.toMatch(/Nothing was changed/i)
+  })
+
   it('maps 401 to session-expired copy', async () => {
     getPortalBrandScope.mockResolvedValue(adminScope())
     createServerSupabaseClient.mockResolvedValue({

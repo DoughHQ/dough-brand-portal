@@ -193,7 +193,7 @@ export async function decideBrandApplicationAction(
     }
 
     if (parsed.ok === false) {
-      const code = String(parsed.error ?? (res.status >= 500 ? 'rpc_failed' : 'unknown'))
+      const code = String(parsed.error ?? 'unknown')
       return refusalResult(code, {
         invitedEmail,
         candidates: candidates.length > 0 ? candidates : undefined,
@@ -202,9 +202,8 @@ export async function decideBrandApplicationAction(
     }
 
     if (!res.ok) {
-      const code = String(
-        parsed.error ?? (res.status >= 500 ? 'rpc_failed' : res.status === 401 ? '401' : 'unknown')
-      )
+      // Gateway/timeout 5xx with no edge body is ambiguous — may have saved already.
+      const code = String(parsed.error ?? 'unknown')
       return refusalResult(code, { httpStatus: res.status })
     }
 

@@ -508,11 +508,7 @@ export function describeDecisionResult(
     }
   }
 
-  if (
-    normalized === 'rpc_failed' ||
-    normalized === 'misconfigured' ||
-    (httpStatus != null && httpStatus >= 500)
-  ) {
+  if (normalized === 'rpc_failed' || normalized === 'misconfigured') {
     return {
       message: 'The decision wasn’t saved. Nothing was changed. Try again.',
       tone: 'error',
@@ -521,7 +517,7 @@ export function describeDecisionResult(
   }
 
   return {
-    message: 'Couldn’t complete the review. Refresh to see where it stands.',
+    message: 'Couldn’t confirm whether it went through. Refresh to see where it stands.',
     tone: 'error',
     closeAndRefresh: false,
   }

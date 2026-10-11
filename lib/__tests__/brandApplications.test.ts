@@ -318,7 +318,13 @@ describe('describeDecisionResult', () => {
 
     expect(describeDecisionResult('rpc_failed').message).toMatch(/wasn’t saved/)
     expect(describeDecisionResult('misconfigured').message).toMatch(/wasn’t saved/)
-    expect(describeDecisionResult('boom', { httpStatus: 500 }).message).toMatch(/wasn’t saved/)
+    // Bare 5xx without an edge code is ambiguous — do not claim nothing changed.
+    expect(describeDecisionResult('unknown', { httpStatus: 502 }).message).toMatch(
+      /Couldn’t confirm whether it went through/i
+    )
+    expect(describeDecisionResult('boom', { httpStatus: 500 }).message).toMatch(
+      /Couldn’t confirm whether it went through/i
+    )
 
     expect(describeDecisionResult('401').message).toMatch(/session expired/i)
     expect(describeDecisionResult('x', { httpStatus: 401 }).message).toMatch(/session expired/i)
@@ -330,7 +336,7 @@ describe('describeDecisionResult', () => {
 
     expect(describeDecisionResult('mystery_code')).toMatchObject({
       closeAndRefresh: false,
-      message: expect.stringMatching(/Refresh to see where it stands/i),
+      message: expect.stringMatching(/Couldn’t confirm whether it went through/i),
     })
   })
 })

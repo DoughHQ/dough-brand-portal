@@ -8,14 +8,18 @@ import BrandApplicationsClient from './BrandApplicationsClient'
 export default async function AdminBrandApplicationsPage() {
   const supabase = await createServerSupabaseClient()
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  if (!session?.user) redirect('/login')
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
   const portalUser = await getPortalUser()
   if (!portalUser || portalUser.role !== 'dough_admin') redirect('/dashboard')
 
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
   const impersonating =
+    session?.access_token != null &&
     parseImpersonatedBrandIdFromAccessToken(session.access_token) != null
 
   let initialRows: Awaited<ReturnType<typeof listBrandWaitlistApplicationsPage>>['rows'] = []

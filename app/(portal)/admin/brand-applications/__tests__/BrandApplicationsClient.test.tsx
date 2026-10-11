@@ -89,9 +89,18 @@ describe('BrandApplicationsClient decision outcomes', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Couldn’t reach the server\. Refresh to check whether it went through\./i)
-      ).toBeTruthy()
+        screen.getAllByText(
+          /Couldn’t reach the server\. Refresh to check whether it went through\./i
+        ).length
+      ).toBeGreaterThanOrEqual(1)
     })
+    // Still inside the open dialog, not only behind it.
+    const openDialog = screen.getByRole('dialog', { name: /Revoke invite/i })
+    expect(
+      within(openDialog).getByText(
+        /Couldn’t reach the server\. Refresh to check whether it went through\./i
+      )
+    ).toBeTruthy()
     expect(screen.queryByText(/Working…/i)).toBeNull()
   })
 
@@ -119,7 +128,7 @@ describe('BrandApplicationsClient decision outcomes', () => {
     })
   })
 
-  it('hides Revoke when the invite is already revoked', () => {
+  it('hides Revoke but keeps Resend when the invite is already revoked', () => {
     render(
       <BrandApplicationsClient
         initialRows={[
@@ -142,5 +151,6 @@ describe('BrandApplicationsClient decision outcomes', () => {
       />
     )
     expect(screen.queryByRole('button', { name: /^Revoke$/i })).toBeNull()
+    expect(screen.getByRole('button', { name: /Resend invite/i })).toBeTruthy()
   })
 })

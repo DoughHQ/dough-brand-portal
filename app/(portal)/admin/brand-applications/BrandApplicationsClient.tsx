@@ -299,6 +299,7 @@ export default function BrandApplicationsClient({
         void refresh()
       } catch {
         setBanner({ message: REACH_SERVER, tone: 'error' })
+        setDialogError(REACH_SERVER)
       } finally {
         setBusyId(null)
       }
@@ -809,8 +810,7 @@ export default function BrandApplicationsClient({
 
                 {!impersonating &&
                 row.status === 'invited' &&
-                (row.invitation?.status === 'pending' ||
-                  row.invitation?.status === 'expired') ? (
+                row.invitation?.status !== 'accepted' ? (
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                     <button
                       type="button"
@@ -834,28 +834,31 @@ export default function BrandApplicationsClient({
                     >
                       Resend invite
                     </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        setDialogError(null)
-                        setDialog({ kind: 'revoke', row })
-                      }}
-                      style={{
-                        padding: '8px 14px',
-                        background: 'transparent',
-                        color: 'var(--ink)',
-                        border: '1px solid var(--ink-10)',
-                        borderRadius: 6,
-                        fontSize: 13,
-                        fontWeight: 500,
-                        cursor: busy ? 'default' : 'pointer',
-                        fontFamily: 'var(--font-sans)',
-                        opacity: busy ? 0.55 : 1,
-                      }}
-                    >
-                      Revoke
-                    </button>
+                    {row.invitation?.status === 'pending' ||
+                    row.invitation?.status === 'expired' ? (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => {
+                          setDialogError(null)
+                          setDialog({ kind: 'revoke', row })
+                        }}
+                        style={{
+                          padding: '8px 14px',
+                          background: 'transparent',
+                          color: 'var(--ink)',
+                          border: '1px solid var(--ink-10)',
+                          borderRadius: 6,
+                          fontSize: 13,
+                          fontWeight: 500,
+                          cursor: busy ? 'default' : 'pointer',
+                          fontFamily: 'var(--font-sans)',
+                          opacity: busy ? 0.55 : 1,
+                        }}
+                      >
+                        Revoke
+                      </button>
+                    ) : null}
                   </div>
                 ) : null}
               </article>
