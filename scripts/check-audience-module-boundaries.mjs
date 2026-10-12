@@ -208,6 +208,11 @@ function enforceAcyclicGraph(relativePaths) {
 }
 
 const boxShell = 'app/(portal)/studies/box/AudienceSection.tsx'
+const boxEstimateHead = 'app/(portal)/studies/box/audience/AudienceEstimateHead.tsx'
+const boxEstimateNote = 'app/(portal)/studies/box/audience/AudienceEstimateNote.tsx'
+const boxAudienceCategory = 'app/(portal)/studies/box/audience/BoxAudienceCategory.tsx'
+const boxAudienceNarrowing = 'app/(portal)/studies/box/audience/BoxAudienceNarrowing.tsx'
+const boxAudienceHook = 'app/(portal)/studies/box/audience/useBoxAudience.ts'
 const conceptShell = 'app/(portal)/studies/concept/AudienceSection.tsx'
 const shellImports = [
   '@/components/studies/audience/AudienceSummary',
@@ -217,19 +222,67 @@ const shellImports = [
   '@/components/studies/audience/useAudienceReferenceData',
 ]
 requireImports(boxShell, [
-  ...shellImports,
+  '@/components/studies/audience/AudienceSummary',
   '@/components/studies/audience/BoxExperienceTier',
+])
+requireImports(boxEstimateHead, ['@/components/studies/audience/styles'])
+requireImports(boxEstimateNote, ['@/components/studies/audience/styles'])
+requireImports(boxAudienceCategory, [
+  '@/components/studies/audience/CategoryRequirementPanel',
+  '@/components/studies/audience/types',
+])
+requireImports(boxAudienceNarrowing, [
+  '@/components/studies/audience/NarrowingPanel',
+  '@/components/studies/audience/types',
+])
+requireImports(boxAudienceHook, [
+  '@/components/studies/audience/useAudiencePanelState',
+  '@/components/studies/audience/useAudienceReferenceData',
   '@/components/studies/audience/useBoxQualifierEstimate',
 ])
 requireImports(conceptShell, shellImports)
 enforceAllowedAudienceImports(
   boxShell,
   [
-    ...shellImports,
+    '@/components/studies/audience/AudienceSummary',
     '@/components/studies/audience/BoxExperienceTier',
-    '@/components/studies/audience/useBoxQualifierEstimate',
-    '@/components/studies/audience/styles',
   ].map((specifier) => resolveImport(boxShell, specifier)),
+)
+enforceAllowedAudienceImports(
+  boxEstimateHead,
+  ['@/components/studies/audience/styles'].map((specifier) =>
+    resolveImport(boxEstimateHead, specifier),
+  ),
+)
+enforceAllowedAudienceImports(
+  boxEstimateNote,
+  ['@/components/studies/audience/styles'].map((specifier) =>
+    resolveImport(boxEstimateNote, specifier),
+  ),
+)
+enforceAllowedAudienceImports(
+  boxAudienceCategory,
+  [
+    '@/components/studies/audience/CategoryRequirementPanel',
+    '@/components/studies/audience/types',
+    '@/lib/studies/taxonomy',
+  ].map((specifier) => resolveImport(boxAudienceCategory, specifier)),
+)
+enforceAllowedAudienceImports(
+  boxAudienceNarrowing,
+  [
+    '@/components/studies/audience/NarrowingPanel',
+    '@/components/studies/audience/types',
+    '@/lib/studies/audience/dietaryFlags',
+  ].map((specifier) => resolveImport(boxAudienceNarrowing, specifier)),
+)
+enforceAllowedAudienceImports(
+  boxAudienceHook,
+  [
+    '@/components/studies/audience/useAudiencePanelState',
+    '@/components/studies/audience/useAudienceReferenceData',
+    '@/components/studies/audience/useBoxQualifierEstimate',
+  ].map((specifier) => resolveImport(boxAudienceHook, specifier)),
 )
 enforceAllowedAudienceImports(
   conceptShell,
@@ -402,6 +455,11 @@ for (const [relativePath, limit] of Object.entries({
 
 enforceAcyclicGraph([
   boxShell,
+  boxEstimateHead,
+  boxEstimateNote,
+  boxAudienceCategory,
+  boxAudienceNarrowing,
+  boxAudienceHook,
   conceptShell,
   ...Object.keys(internalDependencies),
 ])

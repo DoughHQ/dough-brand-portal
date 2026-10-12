@@ -229,6 +229,7 @@ const prototypePickRoot = `${boxRoot}prototypePick/`
 const upcFieldRoot = `${boxRoot}upcField/`
 const mastheadRoot = `${conceptRoot}masthead/`
 const handoffRoot = `${conceptRoot}handoff/`
+const boxAudienceRoot = `${boxRoot}audience/`
 
 function isSetupModule(relativePath) {
   return (
@@ -249,6 +250,7 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(upcFieldRoot) &&
     !relativePath?.startsWith(mastheadRoot) &&
     !relativePath?.startsWith(handoffRoot) &&
+    !relativePath?.startsWith(boxAudienceRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)

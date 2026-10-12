@@ -66,6 +66,7 @@ jobs:
       - run: npm run check:box-upc-ban
       - run: npm run check:study-masthead-ban
       - run: npm run check:checkout-handoff-ban
+      - run: npm run check:box-audience-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
