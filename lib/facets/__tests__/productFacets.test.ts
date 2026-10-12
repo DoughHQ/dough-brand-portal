@@ -18,6 +18,7 @@ import {
   FACET_LIST_SEARCH_THRESHOLD,
   type DeclarableFacetRow,
 } from '@/lib/facets/productFacets'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 function row(partial: Partial<DeclarableFacetRow> & Pick<DeclarableFacetRow, 'facet_type'>): DeclarableFacetRow {
   return {
@@ -46,7 +47,7 @@ describe('productFacets helpers', () => {
         declarable_filled: 0,
         completeness_pct: 0,
       }),
-    ).toBe('4 attributes from Dough · add what only you know')
+    ).toBe(`4 attributes from ${PRODUCT_NAME} · add what only you know`)
   })
 
   it('shows remaining count once the brand has started filling', () => {
@@ -60,7 +61,7 @@ describe('productFacets helpers', () => {
         declarable_filled: 6,
         completeness_pct: 60,
       }),
-    ).toBe("4 attributes from Dough · 2 you've added · 4 you can add")
+    ).toBe(`4 attributes from ${PRODUCT_NAME} · 2 you've added · 4 you can add`)
   })
 
   it('keeps styled footer parts in sync with the plain line', () => {
@@ -356,7 +357,7 @@ describe('productFacets helpers', () => {
 
   it('maps provenance without leaking batch names', () => {
     expect(provenanceLabelFromSource('product_name')).toBe('From the product name')
-    expect(provenanceLabelFromSource('node_merge_juice_20260829')).toBe('Derived by Dough')
+    expect(provenanceLabelFromSource('node_merge_juice_20260829')).toBe(`Derived by ${PRODUCT_NAME}`)
   })
 
   it('treats editable=false as read-only', () => {

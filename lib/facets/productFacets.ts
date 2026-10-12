@@ -1,6 +1,7 @@
 /** Brand-declarable product facet surface — portal types. */
 
 import { formatProofCode } from '@/lib/transparency/displayMap'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export type FacetSummaryRow = {
   product_id: number
@@ -191,16 +192,16 @@ const SOURCE_LABELS: Record<string, string> = {
 
 /** Human provenance for derived chips — never surface batch/migration names. */
 export function provenanceLabelFromSource(source: string | null | undefined): string {
-  if (!source?.trim()) return 'Derived by Dough'
+  if (!source?.trim()) return `Derived by ${PRODUCT_NAME}`
   const key = source.trim().toLowerCase()
   if (SOURCE_LABELS[key]) return SOURCE_LABELS[key]!
   // Batch / merge / job names → generic
   if (/^(node_|job_|batch_|mig_|merge_)/i.test(source) || /_20\d{6}/.test(source)) {
-    return 'Derived by Dough'
+    return `Derived by ${PRODUCT_NAME}`
   }
   if (key.includes('product_name') || key.includes('name')) return 'From the product name'
   if (key.includes('ingredient')) return 'From the ingredient list'
-  return 'Derived by Dough'
+  return `Derived by ${PRODUCT_NAME}`
 }
 
 export function rowIsPickerEditable(row: Pick<DeclarableFacetRow, 'editable' | 'available_values'>): boolean {
@@ -211,7 +212,7 @@ export function rowIsPickerEditable(row: Pick<DeclarableFacetRow, 'editable' | '
 export function formatFacetFooterLine(row: FacetSummaryRow): string | null {
   if (row.declarable_total === 0) return null
   const canAdd = Math.max(0, row.declarable_total - row.declarable_filled)
-  const parts: string[] = [`${row.derived_count} attributes from Dough`]
+  const parts: string[] = [`${row.derived_count} attributes from ${PRODUCT_NAME}`]
   if (row.declared_count > 0) {
     parts.push(`${row.declared_count} you've added`)
   }
@@ -231,7 +232,7 @@ export function facetFooterParts(
   if (row.declarable_total === 0) return null
   const canAdd = Math.max(0, row.declarable_total - row.declarable_filled)
   const parts: { text: string; className?: string }[] = [
-    { text: `${row.derived_count} attributes from Dough` },
+    { text: `${row.derived_count} attributes from ${PRODUCT_NAME}` },
   ]
   if (row.declared_count > 0) {
     parts.push({ text: `${row.declared_count} you've added`, className: 'pf-footer__added' })
@@ -291,7 +292,7 @@ export function composeShopperFacetLine(rows: DeclarableFacetRow[]): string {
 export const FACET_LIST_SEARCH_THRESHOLD = 8
 
 const HINT_MESSAGES: Record<string, string> = {
-  FACET_TYPE_DERIVED_ONLY: "Dough derives this from the ingredient list. It can't be edited here.",
+  FACET_TYPE_DERIVED_ONLY: `${PRODUCT_NAME} derives this from the ingredient list. It can't be edited here.`,
   FACET_VALUE_NOT_IN_VOCABULARY: 'Choose a value from the list.',
   FACET_OUT_OF_SCOPE: "This attribute doesn't apply to this category.",
   FACET_VALUE_OUT_OF_SCOPE: "That value isn't offered for this product's category.",

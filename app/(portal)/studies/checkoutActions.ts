@@ -5,12 +5,13 @@ import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import { checkoutErrorMessage, recordPaymentArgs } from '@/lib/checkout/payment'
 import { dollarsToCents } from '@/lib/checkout/money'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 async function requireStaff(): Promise<{ ok: true } | { ok: false; error: string }> {
   const scope = await getPortalBrandScope()
   if (!scope) return { ok: false, error: 'Not signed in.' }
   if (scope.portalUser.role !== 'dough_admin' || scope.isImpersonating) {
-    return { ok: false, error: 'Only Dough staff can do this.' }
+    return { ok: false, error: `Only ${PRODUCT_NAME} staff can do this.` }
   }
   return { ok: true }
 }

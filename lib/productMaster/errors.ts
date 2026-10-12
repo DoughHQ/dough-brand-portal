@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@/lib/brand'
 /** Classify PostgREST / RPC errors from `get_product_master` and write RPCs. */
 
 export type RpcHint =
@@ -62,7 +63,7 @@ export function humanizeRpcError(error: RpcErrorLike): string {
     case 'STALE_WRITE':
       return 'This product changed while you were editing.'
     case 'HUMAN_VERIFIED_LOCKED':
-      return 'Dough verified this against the label. Contact us to change it.'
+      return `${PRODUCT_NAME} verified this against the label. Contact us to change it.`
     case 'PRODUCT_IS_TOMBSTONE':
       return 'This product was merged into another. Redirecting…'
     case 'PRODUCT_NOT_FOUND':

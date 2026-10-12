@@ -19,6 +19,7 @@ import {
   type DistributionRow,
 } from '@/lib/distribution/grouping'
 import type { DistributionActionRuntime } from './types'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export default function useReviewActions({
   productId,
@@ -149,8 +150,8 @@ export default function useReviewActions({
       const count = result.result?.reportsAffected ?? 0
       await afterWrite(
         count > 1
-          ? `Disputed ${count} reports — escalated to Dough. Sightings stay visible.`
-          : 'Disputed — escalated to Dough. The shopper report stays visible.',
+          ? `Disputed ${count} reports — escalated to ${PRODUCT_NAME}. Sightings stay visible.`
+          : `Disputed — escalated to ${PRODUCT_NAME}. The shopper report stays visible.`,
         expectedProductId,
       )
     },

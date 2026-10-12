@@ -8,6 +8,7 @@ import {
   isBrandFacingDesignLabel,
   respondentLabelForArm,
 } from './designLetters'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export type JourneySubject = {
   arm_label?: string | null
@@ -187,7 +188,7 @@ export function phonePreviewScreenLabel(kind: string): string {
   }
 }
 
-export type PhonePreviewOwnership = 'Dough method' | 'Yours to write'
+export type PhonePreviewOwnership = `${typeof PRODUCT_NAME} method` | 'Yours to write'
 
 export function phonePreviewOwnership(kind: string): PhonePreviewOwnership {
   switch (kind) {
@@ -197,7 +198,7 @@ export function phonePreviewOwnership(kind: string): PhonePreviewOwnership {
     case 'brand_question':
       return 'Yours to write'
     default:
-      return 'Dough method'
+      return `${PRODUCT_NAME} method`
   }
 }
 

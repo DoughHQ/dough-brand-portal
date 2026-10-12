@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@/lib/brand'
 /** Map Postgres HINT / message → operator-facing copy for prototype RPCs. */
 
 const BY_HINT: Record<string, string> = {
@@ -7,7 +8,7 @@ const BY_HINT: Record<string, string> = {
   PROTOTYPE_NOT_FOUND: 'That prototype was removed or belongs to another brand.',
   PROTOTYPE_ARCHIVED: "This prototype is archived and can't be edited.",
   DECLARATION_REQUIRED: 'Declare both contains and may-contain (empty means none).',
-  UNKNOWN_ALLERGEN: "One of the allergen codes isn't in Dough's vocabulary.",
+  UNKNOWN_ALLERGEN: `One of the allergen codes isn't in ${PRODUCT_NAME}'s vocabulary.`,
   NOT_BRAND_EDITOR: 'You need product-edit access for this brand to change prototypes.',
 }
 

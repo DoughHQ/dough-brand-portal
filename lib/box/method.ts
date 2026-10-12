@@ -10,6 +10,7 @@ import {
 } from '@/lib/concept/singleTest'
 import { isResolvedBoxSeat } from './fieldSize'
 import type { BoxFieldRow, BoxStudyDraft } from './types'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export const IHUT_SHELF_BATTLE_PROMPT = 'Which would you pick up?'
 export const IHUT_TASTE_BATTLE_PROMPT = 'Which did you enjoy more?'
@@ -123,7 +124,7 @@ export const IHUT_DAY1_JOURNEY: readonly IhutJourneyStep[] = [
     id: 'brand_questions',
     title: 'Your questions',
     prompt: null,
-    measures: 'Brand-written · reviewed by Dough',
+    measures: `Brand-written · reviewed by ${PRODUCT_NAME}`,
     editable: 'brand_questions',
     note: '0–2 closed questions, asked last so they can’t color the core.',
   },

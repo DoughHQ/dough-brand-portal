@@ -1,4 +1,5 @@
 import type { BoxPublishSuccessMeta } from '@/lib/box/types'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export default function BoxPublishedDialog({
   publishMeta,
@@ -47,7 +48,7 @@ export default function BoxPublishedDialog({
         </h2>
         <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.45 }}>
           The study is open. Qualified users can claim it now — the field is
-          frozen and the Dough method prompts are locked.
+          frozen and the {PRODUCT_NAME} method prompts are locked.
           {publishMeta.taste_only
             ? ' Plain samples made this study taste-only.'
             : ''}
@@ -93,7 +94,7 @@ export default function BoxPublishedDialog({
               ))}
             </ul>
             <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--ink-50)' }}>
-              Respondents scanning these codes see only “Dough study sample.” Never print
+              Respondents scanning these codes see only “{PRODUCT_NAME} study sample.” Never print
               internal formula names on respondent-facing packaging.
             </p>
           </div>

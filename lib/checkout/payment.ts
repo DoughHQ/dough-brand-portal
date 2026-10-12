@@ -1,4 +1,5 @@
 import type { StudyOrderStatus } from './status'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export type StudyOrderRow = {
   mission_id: string
@@ -47,7 +48,7 @@ export function recordPaymentArgs(input: {
 }
 
 const HINT_COPY: Record<string, string> = {
-  NOT_DOUGH_ADMIN: 'Only Dough staff can do this.',
+  NOT_DOUGH_ADMIN: `Only ${PRODUCT_NAME} staff can do this.`,
   PAYMENT_REFERENCE_REQUIRED:
     'Add a reference: an invoice number, a payment id, or why it was waived.',
   ORDER_NOT_FOUND: 'This study has no order.',

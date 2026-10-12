@@ -4,6 +4,7 @@ import {
   phonePreviewOwnership,
   phonePreviewScreenLabel,
 } from '../journey'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 describe('phonePreviewScreenLabel', () => {
   it('matches journey-card vocabulary', () => {
@@ -18,7 +19,7 @@ describe('phonePreviewScreenLabel', () => {
 describe('phonePreviewOwnership', () => {
   it('marks operator-owned steps', () => {
     expect(phonePreviewOwnership('battles')).toBe('Yours to write')
-    expect(phonePreviewOwnership('rating')).toBe('Dough method')
+    expect(phonePreviewOwnership('rating')).toBe(`${PRODUCT_NAME} method`)
   })
 })
 

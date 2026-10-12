@@ -30,9 +30,10 @@ import {
   FacetSearchGlyph,
 } from '@/components/products/facetGlyphs'
 import './productFacets.css'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export const FACETS_LEDE =
-  "We derive what we can from labels and ingredients. Add what only you know — it helps shoppers find your product. Allergens and ingredients are derived by Dough and can't be edited here."
+  `We derive what we can from labels and ingredients. Add what only you know — it helps shoppers find your product. Allergens and ingredients are derived by ${PRODUCT_NAME} and can't be edited here.`
 
 function sectionHasContent(row: DeclarableFacetRow): boolean {
   const derived = filterDerivedValues(row.facet_type, row.derived_values)
@@ -157,7 +158,7 @@ export default function ProductAttributesEditor({
               </ul>
             ) : (
               <p className="pf-discovery__empty">
-                Nothing shoppers can filter on yet — Dough will fill what it can; you add the rest.
+                Nothing shoppers can filter on yet — {PRODUCT_NAME} will fill what it can; you add the rest.
               </p>
             )}
           </div>

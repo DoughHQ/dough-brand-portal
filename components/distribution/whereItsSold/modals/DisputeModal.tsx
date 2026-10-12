@@ -2,6 +2,7 @@
 
 import { useId, useState } from 'react'
 import ModalFrame from './ModalFrame'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export default function DisputeModal({
   place,
@@ -19,7 +20,7 @@ export default function DisputeModal({
   return (
     <ModalFrame
       title={`Dispute ${place}`}
-      description="Every pending shopper report at this place stays on file and visible. Nothing is deleted — Dough will review."
+      description={`Every pending shopper report at this place stays on file and visible. Nothing is deleted — ${PRODUCT_NAME} will review.`}
       busy={busy}
       onClose={onClose}
     >

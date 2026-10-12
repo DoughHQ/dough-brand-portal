@@ -1,4 +1,5 @@
 import type { EvidenceRung } from './types'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export const RUNG_TOOLTIPS: Record<EvidenceRung, string> = {
   synthetic: 'fabricated to fill a blank',
@@ -8,7 +9,7 @@ export const RUNG_TOOLTIPS: Record<EvidenceRung, string> = {
   brand_added: 'you filled a blank',
   brand_stated: 'you stated this',
   brand_verified: 'you stated this, domain verified',
-  human_verified: 'Dough checked this against the label photo',
+  human_verified: `${PRODUCT_NAME} checked this against the label photo`,
 }
 
 export function isEvidenceRung(value: string | null | undefined): value is EvidenceRung {

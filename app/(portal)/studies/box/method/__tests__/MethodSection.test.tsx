@@ -9,6 +9,7 @@ import { IHUT_DEFAULT_ATTRIBUTES, IHUT_DEFAULT_SUCCESS_BARS } from '@/lib/box/me
 import MethodSection from '../../MethodSection'
 import AttributeEditor from '../AttributeEditor'
 import SuccessBarsEditor from '../SuccessBarsEditor'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 vi.mock('server-only', () => ({}))
 
@@ -41,7 +42,7 @@ describe('MethodSection', () => {
     expect(markup).not.toContain('Default 48 hours.')
     expectOrder(markup, [
       'Questions',
-      'The Dough in-home method',
+      `The ${PRODUCT_NAME} in-home method`,
       'id="ihut-step-shelf_battles"',
       'Battles',
       'Which would you pick up?',

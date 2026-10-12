@@ -13,6 +13,7 @@ import {
   IHUT_RESPONDENT_WINDOW_DAYS,
   ihutInventoryPlan,
 } from '@/lib/box/completionContract'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 type Props = {
   draft: BoxStudyDraft
@@ -67,7 +68,7 @@ export default function SetupSection({
     >
       <p style={helpStyle}>
         Name the study, pick the category, and choose the completed responses
-        your report needs. Dough handles inventory and timing.
+        your report needs. {PRODUCT_NAME} handles inventory and timing.
       </p>
 
       <div style={{ marginBottom: 24, maxWidth: 480 }}>
@@ -137,7 +138,7 @@ export default function SetupSection({
 
         {inventory ? (
           <div className="box-completion-contract" role="status">
-            <div className="box-completion-contract__eyebrow">Dough fielding plan</div>
+            <div className="box-completion-contract__eyebrow">{PRODUCT_NAME} fielding plan</div>
             <div className="box-completion-contract__headline">
               Prepare {inventory.physicalUnits} boxes
             </div>

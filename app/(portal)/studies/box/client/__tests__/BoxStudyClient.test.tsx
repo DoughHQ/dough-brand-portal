@@ -6,6 +6,7 @@ import type { BoxPublishSuccessMeta } from '@/lib/box/types'
 import BoxStudyClient from '../../BoxStudyClient'
 import BoxOpenAudienceDialog from '../BoxOpenAudienceDialog'
 import BoxPublishedDialog from '../BoxPublishedDialog'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 vi.mock('server-only', () => ({}))
 vi.mock('next/navigation', () => ({
@@ -151,7 +152,7 @@ describe('BoxStudyClient', () => {
       'Citrus sample',
       'internal: Formula A',
       'plain sample',
-      'Dough study sample.',
+      `${PRODUCT_NAME} study sample.`,
       'Products in box',
       '3',
       '120 respondents',

@@ -10,6 +10,7 @@ import type {
 } from '@/lib/distribution/grouping'
 import CoordCard from './CoordCard'
 import type { CardHandlers } from './types'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 type SeedSectionProps = CardHandlers & {
   section: DistributionSection
@@ -79,7 +80,7 @@ export default function SeedSection({
           </span>
           <span className="wis-seed-expand__copy">
             <span className="wis-bucket-title">
-              Dough found this at {count} more retailer
+              {PRODUCT_NAME} found this at {count} more retailer
               {count === 1 ? '' : 's'}
             </span>
             {!open && peekText ? (

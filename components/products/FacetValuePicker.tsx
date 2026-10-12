@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { FacetAvailableValue } from '@/lib/facets/productFacets'
 import { FACET_LIST_SEARCH_THRESHOLD } from '@/lib/facets/productFacets'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 type CommonProps = {
   options: FacetAvailableValue[]
@@ -61,7 +62,7 @@ export function FacetSearchSelect({
         {options.map((o) => (
           <option key={o.value} value={o.value} disabled={lockedValues?.has(o.value)}>
             {o.label}
-            {lockedValues?.has(o.value) ? ' (Derived by Dough)' : ''}
+            {lockedValues?.has(o.value) ? ` (Derived by ${PRODUCT_NAME})` : ''}
           </option>
         ))}
       </select>

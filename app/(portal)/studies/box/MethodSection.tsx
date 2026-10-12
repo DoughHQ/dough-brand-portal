@@ -8,6 +8,7 @@ import Day1Steps from './method/Day1Steps'
 import Day2Panel from './method/Day2Panel'
 import { helpStyle, warnStyle } from './method/methodStyles'
 import { useBoxMethod } from './method/useBoxMethod'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 type Props = {
   draft: BoxStudyDraft
@@ -31,7 +32,7 @@ export default function MethodSection({
       done={sectionDone}
     >
       <p style={helpStyle}>
-        The Dough in-home method. Two battle tracks on the same scale — shelf
+        The {PRODUCT_NAME} in-home method. Two battle tracks on the same scale — shelf
         before opening, taste after — so the report can separate pack from
         recipe. Prompts and order are locked; you pick attributes, optional
         questions, and success bars.

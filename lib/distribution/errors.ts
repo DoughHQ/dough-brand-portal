@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@/lib/brand'
 /** Map PostgREST HINT codes from availability RPCs to portal copy. */
 
 const HINT_MESSAGES: Record<string, string> = {
@@ -20,7 +21,7 @@ const HINT_MESSAGES: Record<string, string> = {
   REVIEW_NEEDS_REASON: 'Add a short note explaining why.',
   REPORT_NOT_FOUND: 'That shopper report is no longer available.',
   REVIEW_ACTION_INVALID: 'That review action is not supported.',
-  REPORT_ALREADY_ADJUDICATED: 'Dough has already reviewed this report.',
+  REPORT_ALREADY_ADJUDICATED: `${PRODUCT_NAME} has already reviewed this report.`,
   NO_PENDING_REPORTS: 'Nothing is waiting for your review at that place anymore.',
   DECLARATION_NOT_FOUND: 'That distribution declaration was not found.',
   DELIST_DATE_FUTURE: "A delisting date can't be in the future.",

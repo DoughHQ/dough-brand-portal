@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
 import type { Metadata } from 'next'
 import './marketingWorkspace.css'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export const metadata: Metadata = {
-  title: 'Dough workspace preview',
+  title: `${PRODUCT_NAME} workspace preview`,
   robots: 'noindex, nofollow',
 }
 
@@ -14,7 +15,7 @@ export default function MarketingWorkspaceLayout({ children }: { children: React
         <div className="mw-brand">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/dough-mark.png" alt="" width={28} height={28} />
-          <span>Dough</span>
+          <span>{PRODUCT_NAME}</span>
         </div>
         <nav>
           <span className="mw-nav-item is-on">Home</span>

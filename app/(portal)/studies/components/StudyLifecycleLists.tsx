@@ -19,6 +19,7 @@ import {
   ICON_FLASK,
   StudiesGlyph,
 } from './studiesIcons'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 function studyLabel(missionType: string): string {
   if (missionType === 'concept_test') return 'Concept'
@@ -312,8 +313,8 @@ export function ActiveStudyList({
                     )
                   ) : showState ? (
                     state === 'in_review' ? (
-                      <span className="studies-status-pill" title="Awaiting Dough review">
-                        In review: Dough is checking your wording
+                      <span className="studies-status-pill" title={`Awaiting ${PRODUCT_NAME} review`}>
+                        {`In review: ${PRODUCT_NAME} is checking your wording`}
                       </span>
                     ) : (
                       <StatusPillView state={state} />
