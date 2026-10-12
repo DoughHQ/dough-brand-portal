@@ -219,13 +219,13 @@ const clientRoot = `${boxRoot}client/`
 const conceptClientRoot = `${conceptRoot}client/`
 const cardsRoot = `${conceptRoot}cards/`
 const ownProductRoot = `${conceptRoot}ownProduct/`
-
 const studyTypeRoot = `${conceptRoot}setup/`
 const armImageRoot = `${conceptRoot}armImage/`
 const conceptFieldRoot = `${conceptRoot}field/`
 const productSearchRoot = `${boxRoot}productSearch/`
 const boxSetupRoot = `${boxRoot}setup/`
 const allergenConfirmRoot = `${boxRoot}allergenConfirm/`
+
 function isSetupModule(relativePath) {
   return (
     inStudyTree(relativePath) &&
