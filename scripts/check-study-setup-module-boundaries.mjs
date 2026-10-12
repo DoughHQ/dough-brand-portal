@@ -221,6 +221,7 @@ const cardsRoot = `${conceptRoot}cards/`
 const ownProductRoot = `${conceptRoot}ownProduct/`
 
 const studyTypeRoot = `${conceptRoot}setup/`
+const armImageRoot = `${conceptRoot}armImage/`
 function isSetupModule(relativePath) {
   return (
     inStudyTree(relativePath) &&
@@ -231,6 +232,7 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(cardsRoot) &&
     !relativePath?.startsWith(ownProductRoot) &&
     !relativePath?.startsWith(studyTypeRoot) &&
+    !relativePath?.startsWith(armImageRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)
