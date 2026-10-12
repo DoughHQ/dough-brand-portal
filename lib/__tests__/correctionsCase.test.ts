@@ -16,6 +16,7 @@ import {
   relatedBrandClaim,
   waitingAge,
 } from '../correctionsCase'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 const CLASSICO_DISPLAY =
   'CLASSICO VIRGIN OLIVE OIL SNACK SIZE ITALIAN BRUSCHETTA TOASTS, CLASSICO VIRGIN OLIVE OIL'
@@ -84,7 +85,7 @@ describe('Classico golden case', () => {
     expect(copy.sentence).toBe(
       'They say this belongs with “Crackers or toasts, crispy bread,” not Other Olives.'
     )
-    expect(copy.status).toBe('Dough is reviewing the category.')
+    expect(copy.status).toBe(`${PRODUCT_NAME} is reviewing the category.`)
     expect(`${copy.sentence} ${copy.status}`).not.toMatch(/Pick|File|Apply|Override/)
   })
 
@@ -175,7 +176,7 @@ describe('extract mode', () => {
     })
     expect(correctionCaseMode(row)).toBe('extract')
     expect(claimCopy(row).headline).toBe('Nutrition from a label photo')
-    expect(brandClaimCopy(row).sentence).toBe('A label photo was sent. Dough is reading it.')
+    expect(brandClaimCopy(row).sentence).toBe(`A label photo was sent. ${PRODUCT_NAME} is reading it.`)
     expect(brandClaimCopy(row).sentence).not.toMatch(/apply/)
   })
 })
@@ -189,7 +190,7 @@ describe('brand classifier copy', () => {
       proposed_value: { review_reason: 'no_match_auto_classify' },
     })
     const copy = brandClaimCopy(row)
-    expect(copy.sentence).toBe('This product still needs a category. Dough is assigning one.')
+    expect(copy.sentence).toBe(`This product still needs a category. ${PRODUCT_NAME} is assigning one.`)
     expect(copy.sentence).not.toMatch(/Pick a category/)
     expect(claimCopy(row).sentence).toMatch(/Pick a category/)
   })

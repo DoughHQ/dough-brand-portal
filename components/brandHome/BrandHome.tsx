@@ -9,6 +9,7 @@ import CatalogHealthCard from '@/components/brandHome/CatalogHealthCard'
 import WhatChangedStrip from '@/components/brandHome/WhatChangedStrip'
 import { buildHomeAttention } from '@/lib/brandHome/homeAttention'
 import type { CatalogHealth } from '@/lib/brandHome/catalogHealth'
+import { PRODUCT_NAME } from '@/lib/brand'
 import './brandHome.css'
 
 function pulseItem(model: BrandHomeModel, key: string) {
@@ -238,7 +239,7 @@ export default function BrandHome({
             </div>
             {!hasCatalogProducts ? (
               <EmptyPanel
-                title="Bring your products into Dough"
+                title={`Bring your products into ${PRODUCT_NAME}`}
                 body="Add products to start building your brand workspace."
                 href="/products"
                 cta="Add products →"
@@ -246,7 +247,7 @@ export default function BrandHome({
             ) : !hasProductSignal ? (
               <EmptyPanel
                 title="No product signal yet"
-                body="Your products are on Dough. As consumers compare products they’ve tried, preference signals will begin appearing here."
+                body={`Your products are on ${PRODUCT_NAME}. As consumers compare products they’ve tried, preference signals will begin appearing here.`}
                 href="/products"
                 cta="See all products →"
               />

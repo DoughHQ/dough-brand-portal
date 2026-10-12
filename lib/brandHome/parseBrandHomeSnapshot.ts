@@ -12,6 +12,7 @@ import { studyHref, type HomeStudyInput } from '@/lib/brandHome/selectHomeModel'
 import { conceptListStatus, type StudyOrderStatus } from '@/lib/checkout/status'
 import type { Brand, BrandSnapshot, TopOccasion } from '@/lib/queries'
 import { generateBrandHomeNarrative } from '@/lib/brandHome/narrative'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export type BrandPortalChrome = {
   brandId: number
@@ -417,7 +418,7 @@ export function parseBrandHomeSnapshot(
   const narrative = snapshot
     ? generateBrandHomeNarrative(snapshot, brand.brand_name, totalBattles)
     : {
-        headline: `${brand.brand_name} is in the Dough database. Data builds as battles are recorded.`,
+        headline: `${brand.brand_name} is in the ${PRODUCT_NAME} database. Data builds as battles are recorded.`,
         sub: 'Catalog summary updates as products change',
       }
 

@@ -11,6 +11,7 @@ import {
   type ProductCategoryStandingRow,
   type StandingConfidence,
 } from '@/lib/brandHome/productCategoryStanding'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 function confidenceChip(confidence: StandingConfidence | null) {
   if (!confidence || confidence === 'INSUFFICIENT') return null
@@ -82,13 +83,13 @@ function EmptyStanding({ productCount }: { productCount: number }) {
           maxWidth: 520,
         }}
       >
-        Your products are on Dough. As consumers compare products they’ve tried, product-level
-        standings will appear here.
+        {`Your products are on ${PRODUCT_NAME}. As consumers compare products they’ve tried, product-level
+        standings will appear here.`}
       </p>
       {productCount > 0 ? (
         <p style={{ fontSize: 12, color: 'var(--ink-30)', margin: '0 0 16px' }}>
-          {productCount.toLocaleString()} product{productCount === 1 ? '' : 's'} on Dough, gathering
-          signal.
+          {productCount.toLocaleString()} product{productCount === 1 ? '' : 's'} on {PRODUCT_NAME},
+          gathering signal.
         </p>
       ) : null}
       <Link

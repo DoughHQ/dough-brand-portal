@@ -10,6 +10,7 @@ import BrandHome from '@/components/brandHome/BrandHome'
 import BrandProfileCard from '@/components/brandHome/BrandProfileCard'
 import ProductCategoryStandingCard from '@/components/brandHome/ProductCategoryStandingCard'
 import Link from 'next/link'
+import { PRODUCT_NAME } from '@/lib/brand'
 import '@/components/brandHome/brandHome.css'
 
 type Period = '7d' | '30d' | '90d' | 'all'
@@ -189,7 +190,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
                 color: 'var(--ink)',
                 marginBottom: 12,
               }}>
-                Your categories on Dough
+                Your categories on {PRODUCT_NAME}
               </div>
               <div style={{
                 background: 'var(--paper)',
@@ -519,7 +520,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
             <div style={{ background:'var(--paper)', borderRadius:'var(--r-lg)', border:'1px solid var(--ink-10)', overflow:'hidden' }}>
               <div style={{ padding:'18px 20px 16px', borderBottom:'1px solid var(--ink-10)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                 <div>
-                  <div style={{ fontFamily:'var(--font-serif)', fontSize:15, fontWeight:500, color:'var(--ink)' }}>Active SKUs on Dough</div>
+                  <div style={{ fontFamily:'var(--font-serif)', fontSize:15, fontWeight:500, color:'var(--ink)' }}>Active SKUs on {PRODUCT_NAME}</div>
                   <div style={{ fontSize:12, color:'var(--ink-50)', marginTop:1 }}>{claimedCount} active · {lockedCount} locked · {totalProductCount ?? allProducts.length} total in database</div>
                 </div>
                 <button style={{ padding:'6px 12px', borderRadius:'var(--r-sm)', fontSize:12, fontWeight:500, color:'var(--ink-50)', border:'1px solid var(--ink-10)', background:'transparent', cursor:'pointer', fontFamily:'var(--font-sans)' }}>Export CSV</button>
@@ -548,7 +549,7 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
               {!productIntelligence.length && (
                 <div style={{ padding:'40px 20px', textAlign:'center' }}>
                   <div style={{ fontFamily:'var(--font-serif)', fontSize:16, fontWeight:500, color:'var(--ink-50)', marginBottom:6 }}>Claim your first SKU</div>
-                  <div style={{ fontSize:12, color:'var(--ink-30)', lineHeight:1.6, maxWidth:280, margin:'0 auto 16px' }}>Search for your product in Dough&apos;s database and activate it to start seeing data.</div>
+                  <div style={{ fontSize:12, color:'var(--ink-30)', lineHeight:1.6, maxWidth:280, margin:'0 auto 16px' }}>Search for your product in {PRODUCT_NAME}&apos;s database and activate it to start seeing data.</div>
                   <button
                     onClick={() => {
                       router.push('/products')

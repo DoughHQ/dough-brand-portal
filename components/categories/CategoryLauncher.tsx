@@ -14,6 +14,7 @@ import { brandCategoryOverviewHref } from '@/lib/categoryReport/href'
 import BannerArt from '@/components/categories/BannerArt'
 import CategoriesSkeleton from '@/components/categories/categories_skeleton'
 import type { AdjacentCategory } from '@/lib/adjacentCategories'
+import { PRODUCT_NAME } from '@/lib/brand'
 import '@/components/categories/categoriesPage.css'
 
 const SEARCH_DEBOUNCE_MS = 280
@@ -147,8 +148,8 @@ function OwnedEmpty() {
           maxWidth: 520,
         }}
       >
-        Below are the categories where your products already compete on Dough. Unlock a dashboard
-        when you’re ready for the full Overview — standings stay honest until then.
+        {`Below are the categories where your products already compete on ${PRODUCT_NAME}. Unlock a dashboard
+        when you’re ready for the full Overview — standings stay honest until then.`}
       </p>
     </div>
   )

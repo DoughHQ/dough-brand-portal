@@ -10,6 +10,7 @@ import {
   type LockedCategoryProduct,
 } from '@/lib/categoryProductsByL2'
 import CatPage from '@/components/categories/CatPage'
+import { PRODUCT_NAME } from '@/lib/brand'
 import '@/components/categories/categoriesPage.css'
 
 function n(value: number): string {
@@ -124,7 +125,7 @@ export default function LockedCategoryPreview({
   const cta = lockedCategoryCta(summary.totalComparisons, categoryName)
 
   return (
-    <LockedShell categoryName={categoryName} lede="Your products in this category on Dough.">
+    <LockedShell categoryName={categoryName} lede={`Your products in this category on ${PRODUCT_NAME}.`}>
       <div className="cat-locked-summary">
         <div className="cat-summary-card">
           <div>

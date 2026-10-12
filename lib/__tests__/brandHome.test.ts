@@ -7,6 +7,7 @@ import {
 } from '../brandHome/selectHomeModel'
 import type { BrandCategoryL2 } from '../brandCategories'
 import type { BrandSnapshot, ProductIntelligence } from '../queries'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 function cat(partial: Partial<BrandCategoryL2> & Pick<BrandCategoryL2, 'l2NodeId' | 'l2Name'>): BrandCategoryL2 {
   return {
@@ -100,7 +101,7 @@ describe('selectHomeModel', () => {
     const model = selectHomeModel({
       brandName: 'Odwalla, Inc.',
       narrative: {
-        headline: 'Odwalla, Inc. is getting started on Dough. Early data is coming in.',
+        headline: `Odwalla, Inc. is getting started on ${PRODUCT_NAME}. Early data is coming in.`,
         sub: '48 battles counted so far · Data updates daily',
       },
       snapshot: { total_battles_all_time: 48, elo_velocity_30d: 0 } as BrandSnapshot,

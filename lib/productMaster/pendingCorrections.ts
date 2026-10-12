@@ -1,5 +1,6 @@
 import { brandCorrectionsHref, correctionsDeskHref } from '@/lib/correctionsDesk'
 import type { OpenCorrection } from './types'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export const IDENTITY_LABELS: Record<string, string> = {
   product_name_display: 'Display name',
@@ -34,7 +35,7 @@ export function catalogCorrectionHref(
 export function systemFlagTitle(c: OpenCorrection): string {
   if (c.review_reason === 'no_match_auto_classify') return "We're classifying this product"
   if (c.review_reason === 'low_confidence_auto_classify') return "We're double-checking the category"
-  return 'Dough is reviewing this product'
+  return `${PRODUCT_NAME} is reviewing this product`
 }
 
 export function proposalHeadline(c: OpenCorrection): string {

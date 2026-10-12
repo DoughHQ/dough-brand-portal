@@ -1,4 +1,5 @@
 import type { BrandSnapshot } from '@/lib/queries'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 /** Pure narrative from intel stub — safe for parsers/tests (no server imports). */
 export function generateBrandHomeNarrative(
@@ -20,7 +21,7 @@ export function generateBrandHomeNarrative(
   const ledgerBattles = Number.isFinite(totalBattles) ? Math.max(0, Math.trunc(totalBattles)) : 0
   if (delta30 > 20 && momentum === 'rising') {
     return {
-      headline: `${brandName} is having its best 30 days since joining Dough — up ${Math.round(delta30)} points and winning ${Math.round(winRate * 100)}% of battles.`,
+      headline: `${brandName} is having its best 30 days since joining ${PRODUCT_NAME} — up ${Math.round(delta30)} points and winning ${Math.round(winRate * 100)}% of battles.`,
       sub: `Strongest momentum in its category this month · Updated daily`,
     }
   }
@@ -44,12 +45,12 @@ export function generateBrandHomeNarrative(
   }
   if (snapshot.total_battles_all_time < 50) {
     return {
-      headline: `${brandName} is getting started on Dough. Early data is coming in.`,
+      headline: `${brandName} is getting started on ${PRODUCT_NAME}. Early data is coming in.`,
       sub: `${ledgerBattles.toLocaleString()} battles counted so far · Data updates daily`,
     }
   }
   return {
-    headline: `${brandName} has completed ${ledgerBattles.toLocaleString()} battles on Dough.`,
+    headline: `${brandName} has completed ${ledgerBattles.toLocaleString()} battles on ${PRODUCT_NAME}.`,
     sub: `${snapshot.total_battles_30d} battles in the last 30 days · Updated daily`,
   }
 }

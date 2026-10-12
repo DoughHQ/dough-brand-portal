@@ -13,6 +13,7 @@ import {
 import { formatMoney, skuLabel } from '@/lib/productMaster/format'
 import type { MasterSku } from '@/lib/productMaster/types'
 import { ProposalBadge } from './productMasterBits'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 const UNMAPPED_NUTRIENT = /^nutrient_\d+$/
 
@@ -185,7 +186,7 @@ export function SkuBlock({
           <>
             {n.locked && (
               <p style={{ ...muted, marginBottom: 8 }}>
-                🔒 Dough verified this against the label.{' '}
+                🔒 {PRODUCT_NAME} verified this against the label.{' '}
                 <SupportLink subject={`Locked nutrition — SKU ${sku.sku_variant_id}`}>
                   Contact us to change it
                 </SupportLink>
@@ -310,7 +311,7 @@ export function SkuBlock({
           <>
             {ing.locked && (
               <p style={{ ...muted, marginBottom: 8 }}>
-                🔒 Dough verified this against the label.{' '}
+                🔒 {PRODUCT_NAME} verified this against the label.{' '}
                 <SupportLink subject={`Locked ingredients — SKU ${sku.sku_variant_id}`}>
                   Contact us to change it
                 </SupportLink>
