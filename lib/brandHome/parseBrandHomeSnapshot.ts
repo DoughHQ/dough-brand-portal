@@ -365,7 +365,7 @@ function buildHeroFromSnapshot(
     kind: 'empty',
     eyebrow: brandName,
     headline: 'Your brand command center',
-    body: 'Claim products, open a study, or explore categories to build signal.',
+    body: 'Open a study or explore categories to build signal.',
     ctaLabel: 'Browse products',
     ctaHref: '/products',
   }

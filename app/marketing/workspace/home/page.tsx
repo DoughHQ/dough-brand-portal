@@ -11,7 +11,6 @@ export default function MarketingWorkspaceHomePage() {
           model={marketingHomeModel}
           totalProductCount={42}
           totalBattles={1840}
-          catalogReady
           domainVerified
         />
       </div>
