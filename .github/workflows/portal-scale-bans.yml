@@ -55,6 +55,7 @@ jobs:
       - run: npm run check:concept-client-ban
       - run: npm run check:concept-cards-ban
       - run: npm run check:own-product-ban
+      - run: npm run check:study-type-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run

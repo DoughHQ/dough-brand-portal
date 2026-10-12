@@ -220,6 +220,7 @@ const conceptClientRoot = `${conceptRoot}client/`
 const cardsRoot = `${conceptRoot}cards/`
 const ownProductRoot = `${conceptRoot}ownProduct/`
 
+const studyTypeRoot = `${conceptRoot}setup/`
 function isSetupModule(relativePath) {
   return (
     inStudyTree(relativePath) &&
@@ -229,6 +230,7 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(conceptClientRoot) &&
     !relativePath?.startsWith(cardsRoot) &&
     !relativePath?.startsWith(ownProductRoot) &&
+    !relativePath?.startsWith(studyTypeRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)
