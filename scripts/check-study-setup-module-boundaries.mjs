@@ -226,6 +226,7 @@ const productSearchRoot = `${boxRoot}productSearch/`
 const boxSetupRoot = `${boxRoot}setup/`
 const allergenConfirmRoot = `${boxRoot}allergenConfirm/`
 const prototypePickRoot = `${boxRoot}prototypePick/`
+const upcFieldRoot = `${boxRoot}upcField/`
 
 function isSetupModule(relativePath) {
   return (
@@ -243,6 +244,7 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(boxSetupRoot) &&
     !relativePath?.startsWith(allergenConfirmRoot) &&
     !relativePath?.startsWith(prototypePickRoot) &&
+    !relativePath?.startsWith(upcFieldRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)

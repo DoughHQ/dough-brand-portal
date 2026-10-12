@@ -63,6 +63,7 @@ jobs:
       - run: npm run check:box-setup-ban
       - run: npm run check:box-allergen-ban
       - run: npm run check:box-prototype-pick-ban
+      - run: npm run check:box-upc-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
