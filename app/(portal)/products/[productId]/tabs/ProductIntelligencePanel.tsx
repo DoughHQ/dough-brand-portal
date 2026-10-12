@@ -13,6 +13,7 @@ import {
   type IntelligenceVolumeStat,
   type JobStandingView,
 } from './intelligencePresentation'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 function Meter({
   pct,
@@ -130,7 +131,7 @@ export default function ProductIntelligencePanel({
       <header className="pm-intel-header">
         <h2 className="pm-intel-title">Intelligence</h2>
         <p className="pm-intel-sub">
-          How this product stands in Dough head-to-heads — the jobs shoppers actually vote on.
+          How this product stands in {PRODUCT_NAME} head-to-heads — the jobs shoppers actually vote on.
         </p>
       </header>
 
@@ -215,7 +216,7 @@ export default function ProductIntelligencePanel({
         <div className="pm-intel-empty portal-panel">
           <h3>No comparison jobs on file</h3>
           <p>
-            This product isn’t in a Dough head-to-head yet. Jobs appear once the category has an
+            This product isn’t in a {PRODUCT_NAME} head-to-head yet. Jobs appear once the category has an
             active compare group.
           </p>
         </div>

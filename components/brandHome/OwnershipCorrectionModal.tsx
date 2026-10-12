@@ -7,6 +7,7 @@ import {
   submitBrandOwnershipCorrection,
   type ConglomerateOption,
 } from '@/lib/brandHome/brandOwnershipPortal'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 type Mode = 'has_parent' | 'independent'
 
@@ -150,8 +151,8 @@ export default function OwnershipCorrectionModal({
         </h2>
         <p style={{ fontSize: 13, color: 'var(--ink-50)', margin: '0 0 18px', lineHeight: 1.5 }}>
           {currentParentName
-            ? `Currently recorded as ${currentParentName}. Your suggestion goes to Dough for review — the displayed parent won’t change until it’s accepted.`
-            : 'No parent is currently recorded. Suggest a parent company, or confirm this brand is independent. Dough will review before anything changes.'}
+            ? `Currently recorded as ${currentParentName}. Your suggestion goes to ${PRODUCT_NAME} for review — the displayed parent won’t change until it’s accepted.`
+            : `No parent is currently recorded. Suggest a parent company, or confirm this brand is independent. ${PRODUCT_NAME} will review before anything changes.`}
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>

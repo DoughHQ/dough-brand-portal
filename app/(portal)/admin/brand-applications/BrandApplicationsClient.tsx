@@ -24,6 +24,7 @@ import {
   type ApproveSubmit,
 } from './ApplicationDecisionDialogs'
 import { formatUtcStamp } from '@/lib/portal-ui/format'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 function formatWhen(iso: string | null): string {
   if (!iso) return '—'
@@ -698,7 +699,7 @@ export default function BrandApplicationsClient({
                       </div>
                     ) : null}
                   </MetaLine>
-                  <MetaLine label="Products on Dough">
+                  <MetaLine label={`Products on ${PRODUCT_NAME}`}>
                     <span style={{ color: 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>
                       {productCount}
                     </span>

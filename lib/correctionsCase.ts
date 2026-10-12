@@ -9,6 +9,7 @@ import {
   type CorrectionReviewRow,
   type TaxonomySearchHit,
 } from '@/lib/corrections.shared'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export type CorrectionCaseMode = 'confirm' | 'assign' | 'extract'
 
@@ -218,16 +219,16 @@ export function brandClaimCopy(row: CorrectionReviewRow): {
       return {
         field: ops.field,
         headline: 'Category needs a home',
-        sentence: 'This product still needs a category. Dough is assigning one.',
-        status: 'Dough is assigning a category.',
+        sentence: `This product still needs a category. ${PRODUCT_NAME} is assigning one.`,
+        status: `${PRODUCT_NAME} is assigning a category.`,
       }
     }
     if (reason === 'low_confidence_auto_classify') {
       return {
         field: ops.field,
         headline: 'Category needs a check',
-        sentence: `Filed in ${current} — Dough is double-checking it.`,
-        status: 'Dough is double-checking the category.',
+        sentence: `Filed in ${current} — ${PRODUCT_NAME} is double-checking it.`,
+        status: `${PRODUCT_NAME} is double-checking the category.`,
       }
     }
     if (row.other_category_description?.trim() || row.proposed_category_label) {
@@ -235,14 +236,14 @@ export function brandClaimCopy(row: CorrectionReviewRow): {
         field: ops.field,
         headline: ops.headline,
         sentence: ops.sentence,
-        status: 'Dough is reviewing the category.',
+        status: `${PRODUCT_NAME} is reviewing the category.`,
       }
     }
     return {
       field: ops.field,
       headline: 'Category looks wrong',
-      sentence: 'The category may be wrong. Dough is reviewing it.',
-      status: 'Dough is reviewing the category.',
+      sentence: `The category may be wrong. ${PRODUCT_NAME} is reviewing it.`,
+      status: `${PRODUCT_NAME} is reviewing the category.`,
     }
   }
 
@@ -253,8 +254,8 @@ export function brandClaimCopy(row: CorrectionReviewRow): {
       headline: ops.headline,
       sentence: notes
         ? `A label photo was sent. ${notes}`
-        : 'A label photo was sent. Dough is reading it.',
-      status: 'Dough is reading the label.',
+        : `A label photo was sent. ${PRODUCT_NAME} is reading it.`,
+      status: `${PRODUCT_NAME} is reading the label.`,
     }
   }
 
@@ -263,7 +264,7 @@ export function brandClaimCopy(row: CorrectionReviewRow): {
       field: ops.field,
       headline: ops.headline,
       sentence: ops.sentence,
-      status: 'Dough is reviewing the photo.',
+      status: `${PRODUCT_NAME} is reviewing the photo.`,
     }
   }
 
@@ -271,8 +272,8 @@ export function brandClaimCopy(row: CorrectionReviewRow): {
     return {
       field: ops.field,
       headline: ops.headline,
-      sentence: 'A shopper sent a correction. Dough is reviewing it.',
-      status: 'Dough is reviewing this.',
+      sentence: `A shopper sent a correction. ${PRODUCT_NAME} is reviewing it.`,
+      status: `${PRODUCT_NAME} is reviewing this.`,
     }
   }
 
@@ -280,7 +281,7 @@ export function brandClaimCopy(row: CorrectionReviewRow): {
     field: ops.field,
     headline: ops.headline,
     sentence: ops.sentence,
-    status: 'Dough is reviewing this.',
+    status: `${PRODUCT_NAME} is reviewing this.`,
   }
 }
 

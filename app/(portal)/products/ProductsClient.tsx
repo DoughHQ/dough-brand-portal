@@ -18,6 +18,7 @@ import type {
 } from '@/lib/brandHome/parseBrandProductPage'
 import { parseBrandProductPage } from '@/lib/brandHome/parseBrandProductPage'
 import CatPage from '@/components/categories/CatPage'
+import { PRODUCT_NAME } from '@/lib/brand'
 import '@/components/categories/categoriesPage.css'
 import '@/components/products/productTile.css'
 import '@/components/products/productFacets.css'
@@ -329,7 +330,8 @@ export default function ProductsClient({
           <div className="cat-eyebrow">{brand.brand_name}</div>
           <h1 className="cat-title cat-title-sr">Products</h1>
           <p className="cat-lede">
-            Manage the products your brand has on Dough and see where signal is beginning to build.
+            Manage the products your brand has on {PRODUCT_NAME} and see where signal is beginning to
+            build.
           </p>
           {summary?.catalogRefreshedAt ? (
             <p style={{ fontSize: 12, color: 'var(--ink-30)', marginTop: 8, lineHeight: 1.45 }}>
@@ -502,7 +504,7 @@ export default function ProductsClient({
                       className="pf-list-facet"
                     >
                       <span>
-                        {summaryRow.derived_count} from Dough
+                        {summaryRow.derived_count} from {PRODUCT_NAME}
                         {summaryRow.declared_count > 0 ? (
                           <>
                             {' · '}

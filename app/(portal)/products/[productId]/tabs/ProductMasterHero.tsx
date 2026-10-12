@@ -25,6 +25,7 @@ import type { ProductMasterWrites } from './useProductMasterWrites'
 import type { ProductDetailTab } from './productDetailTabs'
 import type { ProductStudyCard } from '@/lib/productMaster/productHeroStudies'
 import ProductDetailTabBar from './ProductDetailTabBar'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export function ProductMasterHero({
   master,
@@ -251,7 +252,7 @@ function SystemFlagBanner({ c, isAdmin }: { c: OpenCorrection; isAdmin: boolean 
       </div>
       <div style={{ ...caption, marginTop: 8 }}>
         Category is highlighted below.
-        {!isAdmin && ' Follow it in Corrections — Dough is reviewing it.'}
+        {!isAdmin && ` Follow it in Corrections — ${PRODUCT_NAME} is reviewing it.`}
         {isAdmin && ' Assign or confirm the category in Corrections.'}
       </div>
       <Link
@@ -289,7 +290,7 @@ function ProposalBanner({ c, isAdmin }: { c: OpenCorrection; isAdmin: boolean })
       </div>
       <div style={{ ...caption }}>
         The {fieldKey === 'other' ? 'related' : fieldKey} field is highlighted on this page.
-        {!isAdmin && ' Dough reviews shared fields before they go live. Follow it in Corrections.'}
+        {!isAdmin && ` ${PRODUCT_NAME} reviews shared fields before they go live. Follow it in Corrections.`}
       </div>
       <Link
         href={catalogCorrectionHref(isAdmin, c.id)}

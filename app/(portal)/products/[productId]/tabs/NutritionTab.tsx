@@ -19,6 +19,7 @@ import {
 } from './compositionPresentation'
 import { ProductNutritionTab } from './ProductDetailTabPanels'
 import { ProposalBadge } from './productMasterBits'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export function NutritionTab({
   master,
@@ -64,7 +65,7 @@ export function NutritionTab({
                   </ul>
                   {ing.locked && (
                     <p className="pm-comp-locked">
-                      Dough verified this against the label.{' '}
+                      {PRODUCT_NAME} verified this against the label.{' '}
                       <SupportLink subject={`Locked ingredients — SKU ${sku.sku_variant_id}`}>
                         Contact us to change it
                       </SupportLink>
@@ -151,7 +152,7 @@ export function NutritionTab({
                 <div key={sku.sku_variant_id} className="pm-comp-sku">
                   {n.locked && (
                     <p className="pm-comp-locked">
-                      Dough verified this against the label.{' '}
+                      {PRODUCT_NAME} verified this against the label.{' '}
                       <SupportLink subject={`Locked nutrition — SKU ${sku.sku_variant_id}`}>
                         Contact us to change it
                       </SupportLink>

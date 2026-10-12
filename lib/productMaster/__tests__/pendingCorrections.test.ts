@@ -11,6 +11,7 @@ import {
   systemFlagTitle,
 } from '../pendingCorrections'
 import type { OpenCorrection } from '../types'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 function correction(partial: Partial<OpenCorrection> & Pick<OpenCorrection, 'id'>): OpenCorrection {
   return {
@@ -59,7 +60,7 @@ describe('systemFlagTitle / proposalHeadline', () => {
       )
     ).toBe("We're double-checking the category")
     expect(systemFlagTitle(correction({ id: '3', kind: 'system_flag', review_reason: null }))).toBe(
-      'Dough is reviewing this product'
+      `${PRODUCT_NAME} is reviewing this product`
     )
   })
 

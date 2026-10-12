@@ -3,6 +3,7 @@ import type { BrandSnapshot, ProductIntelligence } from '@/lib/queries'
 import { brandCategoryOverviewHref } from '@/lib/categoryReport/href'
 import type { OperatorStudyRow } from '@/lib/studies/types'
 import { checkoutHref, conceptListStatus, isConceptStudy } from '@/lib/checkout/status'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export type HomeHeroKind = 'study_ready' | 'narrative' | 'category' | 'empty'
 
@@ -340,7 +341,7 @@ function buildHero(args: {
     kind: 'empty',
     eyebrow: 'Your strongest signal',
     headline: 'No major changes yet',
-    body: `${args.brandName} is on Dough. Claim products and grow organic category battles — Home will surface what matters as signal arrives.`,
+    body: `${args.brandName} is on ${PRODUCT_NAME}. Claim products and grow organic category battles — Home will surface what matters as signal arrives.`,
     ctaLabel:
       args.categories.length > 0 ? 'Browse categories →' : 'Go to products →',
     ctaHref: args.categories.length > 0 ? '/categories' : '/products',

@@ -10,6 +10,7 @@ import {
   productTitle,
   waitingAge,
 } from '@/lib/correctionsCase'
+import { PRODUCT_NAME } from '@/lib/brand'
 import {
   BRAND_FOCUS_COPY,
   correctionsDeskHref,
@@ -64,8 +65,8 @@ function ProductArt({
 
 function waitingLabel(count: number, hasMore: boolean, inView: number): string {
   if (count <= 0 && inView === 0) return 'Nothing waiting'
-  if (count === 1) return '1 waiting on Dough'
-  if (count > 0) return `${count} waiting on Dough`
+  if (count === 1) return `1 waiting on ${PRODUCT_NAME}`
+  if (count > 0) return `${count} waiting on ${PRODUCT_NAME}`
   return `${inView} in view${hasMore ? ' · more' : ''}`
 }
 
@@ -220,7 +221,7 @@ export default function BrandCorrectionsClient({
               <p className="corr-empty-title">Quiet catalog</p>
               <p className="corr-empty-body">
                 No shopper reports waiting on your products. When someone flags a name, photo, or
-                shelf, it shows up here while Dough reviews it.
+                shelf, it shows up here while {PRODUCT_NAME} reviews it.
               </p>
             </>
           )}
@@ -354,7 +355,7 @@ function StatusStage({
           </p>
 
           <div className="corr-wait">
-            <span className="corr-wait-pill">Waiting on Dough</span>
+            <span className="corr-wait-pill">Waiting on {PRODUCT_NAME}</span>
             <p className="corr-wait-copy">{copy.status}</p>
           </div>
 

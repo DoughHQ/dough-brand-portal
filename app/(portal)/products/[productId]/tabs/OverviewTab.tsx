@@ -24,6 +24,7 @@ import {
   ProposalBadge,
 } from './productMasterBits'
 import type { ProductMasterWrites } from './useProductMasterWrites'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 const muted: CSSProperties = { ...caption }
 const secondaryBtn: CSSProperties = { ...button }
@@ -127,7 +128,7 @@ export function OverviewTab({
           {pendingFields.has('category')
             ? isAdmin
               ? ' Approve or assign the category in Corrections — not on this page.'
-              : ' Dough is reviewing the category. Follow it in Corrections.'
+              : ` ${PRODUCT_NAME} is reviewing the category. Follow it in Corrections.`
             : ''}
         </p>
         {pendingFields.has('category') && (

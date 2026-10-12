@@ -12,6 +12,7 @@ import {
   type ApplicationBrandHit,
 } from '@/lib/brandApplicationFlow'
 import { safeLinkedInHref } from '@/lib/brandApplications'
+import { PRODUCT_NAME } from '@/lib/brand'
 import { SUPPORT_EMAIL } from '@/lib/productMaster/support'
 import '@/components/auth/authShell.css'
 
@@ -199,7 +200,7 @@ export default function ApplyBrandFlow({
               What’s your brand?
             </div>
             <div style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.5 }}>
-              Dough is where shoppers compare real products — find your brand and apply.
+              {`${PRODUCT_NAME} is where shoppers compare real products — find your brand and apply.`}
             </div>
           </div>
 
@@ -307,7 +308,8 @@ export default function ApplyBrandFlow({
                   {selectedBrand.product_count > 0 ? (
                     <>
                       {' '}
-                      · {formatProducts(selectedBrand.product_count)} already in Dough
+                      · {formatProducts(selectedBrand.product_count)} already in{' '}
+                      {PRODUCT_NAME}
                     </>
                   ) : null}
                   .
