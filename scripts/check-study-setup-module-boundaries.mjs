@@ -225,6 +225,12 @@ const conceptFieldRoot = `${conceptRoot}field/`
 const productSearchRoot = `${boxRoot}productSearch/`
 const boxSetupRoot = `${boxRoot}setup/`
 const allergenConfirmRoot = `${boxRoot}allergenConfirm/`
+const prototypePickRoot = `${boxRoot}prototypePick/`
+const upcFieldRoot = `${boxRoot}upcField/`
+const mastheadRoot = `${conceptRoot}masthead/`
+const handoffRoot = `${conceptRoot}handoff/`
+const boxAudienceRoot = `${boxRoot}audience/`
+const packSizeRoot = `${conceptRoot}packSize/`
 
 function isSetupModule(relativePath) {
   return (
@@ -241,6 +247,12 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(productSearchRoot) &&
     !relativePath?.startsWith(boxSetupRoot) &&
     !relativePath?.startsWith(allergenConfirmRoot) &&
+    !relativePath?.startsWith(prototypePickRoot) &&
+    !relativePath?.startsWith(upcFieldRoot) &&
+    !relativePath?.startsWith(mastheadRoot) &&
+    !relativePath?.startsWith(handoffRoot) &&
+    !relativePath?.startsWith(boxAudienceRoot) &&
+    !relativePath?.startsWith(packSizeRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)
