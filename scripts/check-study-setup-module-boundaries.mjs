@@ -223,6 +223,7 @@ const ownProductRoot = `${conceptRoot}ownProduct/`
 const studyTypeRoot = `${conceptRoot}setup/`
 const armImageRoot = `${conceptRoot}armImage/`
 const conceptFieldRoot = `${conceptRoot}field/`
+const productSearchRoot = `${boxRoot}productSearch/`
 function isSetupModule(relativePath) {
   return (
     inStudyTree(relativePath) &&
@@ -235,6 +236,7 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(studyTypeRoot) &&
     !relativePath?.startsWith(armImageRoot) &&
     !relativePath?.startsWith(conceptFieldRoot) &&
+    !relativePath?.startsWith(productSearchRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)

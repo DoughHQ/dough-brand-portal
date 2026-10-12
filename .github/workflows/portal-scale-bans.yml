@@ -59,6 +59,7 @@ jobs:
       - run: npm run check:arm-image-ban
       - run: npm run check:study-lifecycle-ban
       - run: npm run check:concept-field-ban
+      - run: npm run check:box-product-search-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
