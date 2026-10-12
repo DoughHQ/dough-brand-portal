@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@/lib/brand'
 /** Scan/pay copy — respondents physically scan the package. Do not reuse concept identity copy. */
 export const BOX_UPC_SCAN_HELP =
   "This barcode is how we confirm the respondent tried the product. If it's wrong, they can't complete the box and won't be paid. Check it against the physical package."
@@ -5,7 +6,7 @@ export const BOX_UPC_SCAN_HELP =
 export const BOX_TRIED_LOOP_TITLE = 'What counts as "tried"?'
 
 export const BOX_TRIED_LOOP_BODY =
-  'Not a tap. In Dough, "tried" means someone actually lived with your product — they scanned it, ranked it head-to-head against real competitors, and came back to battle it again. A completed loop. That\'s the difference between "I think I\'d like this" and "I bought it, tasted it, and here\'s exactly where it lands against the shelf." Every "tried" taster in your audience is a verdict you can trust — earned, not self-reported.'
+  `Not a tap. In ${PRODUCT_NAME}, "tried" means someone actually lived with your product — they scanned it, ranked it head-to-head against real competitors, and came back to battle it again. A completed loop. That's the difference between "I think I'd like this" and "I bought it, tasted it, and here's exactly where it lands against the shelf." Every "tried" taster in your audience is a verdict you can trust — earned, not self-reported.`
 
 export const BOX_DEFAULT_BATTLE_QUESTION = 'Which would you buy?'
 

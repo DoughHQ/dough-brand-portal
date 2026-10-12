@@ -1,7 +1,8 @@
 import DesignPreviewClient from './DesignPreviewClient'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export const metadata = {
-  title: 'Dough — Design preview',
+  title: `${PRODUCT_NAME} — Design preview`,
   robots: 'noindex',
 }
 

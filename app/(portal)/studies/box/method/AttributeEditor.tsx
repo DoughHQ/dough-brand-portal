@@ -2,6 +2,7 @@ import {
   IHUT_GENERIC_ATTRIBUTES,
   type IhutAttributeCode,
 } from '@/lib/box/method'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export default function AttributeEditor({
   selected,
@@ -13,7 +14,7 @@ export default function AttributeEditor({
   return (
     <div style={{ marginTop: 12 }}>
       <p className="cb-acc-note" style={{ marginBottom: 10 }}>
-        Pick 1–3 just-right checks. Dough defaults are preselected.
+        Pick 1–3 just-right checks. {PRODUCT_NAME} defaults are preselected.
       </p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {IHUT_GENERIC_ATTRIBUTES.map((a) => {

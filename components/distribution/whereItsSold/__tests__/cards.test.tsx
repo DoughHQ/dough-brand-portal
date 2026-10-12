@@ -7,6 +7,7 @@ import { partitionDistribution } from '@/lib/distribution/grouping'
 import CoordCard from '../CoordCard'
 import SeedSection from '../SeedSection'
 import { report, row } from './fixtures'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 afterEach(cleanup)
 
@@ -127,7 +128,7 @@ describe('distribution cards and seed section', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: /Dough found this at 1 more retailer/,
+        name: new RegExp(`${PRODUCT_NAME} found this at 1 more retailer`),
       }),
     )
     await user.click(screen.getByRole('button', { name: 'Claim all (1)' }))

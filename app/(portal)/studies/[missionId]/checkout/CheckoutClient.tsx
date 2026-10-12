@@ -7,6 +7,7 @@ import { formatOrderMoney } from '@/lib/checkout/money'
 import type { CheckoutThumb, StudyOrderRow } from '@/lib/checkout/payment'
 import { checkoutWindowFacts } from '@/lib/checkout/windowFacts'
 import './checkout.css'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 function Thumb({ item, size }: { item: CheckoutThumb; size: 'stage' | 'quiet' }) {
   const letter = item.name.trim().charAt(0).toUpperCase() || (item.kind === 'design' ? 'A' : '·')
@@ -191,7 +192,7 @@ export default function CheckoutClient({
                 <li key={line}>{line}</li>
               ))}
               <li>Invoice to {invoiceEmail}.</li>
-              <li>Dough does not review the study.</li>
+              <li>{PRODUCT_NAME} does not review the study.</li>
             </ul>
           ) : null}
         </aside>

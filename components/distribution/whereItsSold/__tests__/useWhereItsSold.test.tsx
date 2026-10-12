@@ -4,6 +4,7 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import useWhereItsSold from '../useWhereItsSold'
 import { report, row } from './fixtures'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 const mocks = vi.hoisted(() => ({
   createClient: vi.fn(),
@@ -445,7 +446,7 @@ describe('useWhereItsSold review and lifecycle orchestration', () => {
       },
     )
     expect(result.current.toast).toBe(
-      'Disputed 2 reports — escalated to Dough. Sightings stay visible.',
+      `Disputed 2 reports — escalated to ${PRODUCT_NAME}. Sightings stay visible.`,
     )
   })
 })

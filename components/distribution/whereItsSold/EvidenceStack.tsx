@@ -6,6 +6,7 @@ import {
   shopperLine,
 } from '@/lib/distribution/actions'
 import type { DistributionRow } from '@/lib/distribution/grouping'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export default function EvidenceStack({
   row,
@@ -50,7 +51,7 @@ export default function EvidenceStack({
       className: 'wis-ev--dough',
       node: (
         <>
-          Dough found this
+          {PRODUCT_NAME} found this
           {row.seed_found_at
             ? ` · ${formatRelativeTimestamp(row.seed_found_at)}`
             : ''}
@@ -87,7 +88,7 @@ export default function EvidenceStack({
             <>
               <br />
               <span className="wis-ev-hint">
-                Dough also found this banner — thin shopper signal
+                {PRODUCT_NAME} also found this banner — thin shopper signal
               </span>
             </>
           ) : null}

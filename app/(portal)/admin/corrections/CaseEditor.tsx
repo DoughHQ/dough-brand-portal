@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import type { CorrectionReviewRow, TaxonomySearchHit } from '@/lib/corrections.shared'
 import { assignSearchSeed, preferredTaxonomyHit } from '@/lib/correctionsCase'
 import { searchBrandsAction, searchTaxonomyAction } from './actions'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 const NUTRITION_FIELDS: Array<{ key: string; label: string; step?: string }> = [
   { key: 'serving_size_value', label: 'Serving size' },
@@ -213,7 +214,7 @@ export default function CaseEditor({ row, busy, onCancel, onSubmit }: Props) {
     <div className="corr-editor">
       <div className="corr-editor-kicker">
         {ct === 'category'
-          ? 'Pick the Dough category'
+          ? `Pick the ${PRODUCT_NAME} category`
           : ct === 'nutrition_facts' || ct === 'ingredients'
             ? 'Review the draft, then apply'
             : 'Enter the correct value'}

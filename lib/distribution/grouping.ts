@@ -1,5 +1,6 @@
 import type { DistributionCoord } from './coords'
 import { coordsEqual, coordFromRow } from './coords'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export type DistributionRow = {
   retailer_id: number
@@ -104,7 +105,7 @@ export function partitionDistribution(rows: DistributionRow[]): DistributionSect
     },
     {
       id: 'dough_seeds',
-      title: 'Also found by Dough',
+      title: `Also found by ${PRODUCT_NAME}`,
       rows: seeds,
       groups: groupDistributionByBanner(seeds),
     },

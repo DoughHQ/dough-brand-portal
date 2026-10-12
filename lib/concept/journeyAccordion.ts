@@ -10,6 +10,7 @@ import {
 } from './singleTest'
 import { editableVerificationOptions, previewPriceBands } from './templateConfig'
 import type { ConceptStudyDraft } from './types'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export const JOURNEY_STEP_IDS = [
   'screeners',
@@ -465,7 +466,7 @@ export function journeyClosedLine(
       bars.h2h.kind === 'custom' ||
       bars.price.kind === 'custom' ||
       bars.likingMode.kind === 'custom'
-    return { kind: 'status', text: custom ? 'Your thresholds' : 'Dough defaults' }
+    return { kind: 'status', text: custom ? 'Your thresholds' : `${PRODUCT_NAME} defaults` }
   }
   if (id === 'brand_questions') {
     const questions = draft.brandQuestions ?? []

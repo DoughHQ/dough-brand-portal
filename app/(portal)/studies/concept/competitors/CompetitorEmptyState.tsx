@@ -1,5 +1,6 @@
 import type { AddAvailability } from '@/lib/concept/fieldSize'
 import ShelfGlyph from './ShelfGlyph'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export default function CompetitorEmptyState({
   disabled,
@@ -40,7 +41,7 @@ export default function CompetitorEmptyState({
           lineHeight: 1.45,
         }}
       >
-        Search Dough&rsquo;s product database for the products shoppers would see as
+        Search {PRODUCT_NAME}&rsquo;s product database for the products shoppers would see as
         alternatives.
       </p>
       <button

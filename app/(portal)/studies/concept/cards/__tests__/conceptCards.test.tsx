@@ -9,6 +9,7 @@ import {
   QCard,
   VerificationCard,
 } from '../../conceptCards'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 vi.mock('server-only', () => ({}))
 
@@ -20,7 +21,7 @@ describe('concept questionnaire cards', () => {
       createElement(QCard, {
         id: 'concept-q-sample',
         title: 'How often',
-        help: 'Locked by the Dough method.',
+        help: `Locked by the ${PRODUCT_NAME} method.`,
         locked: true,
       }),
     )
@@ -28,7 +29,7 @@ describe('concept questionnaire cards', () => {
     expect(markup).toContain('id="concept-q-sample"')
     expect(markup).toContain('How often')
     expect(markup).toContain('SYSTEM-MANAGED')
-    expect(markup).toContain('Locked by the Dough method.')
+    expect(markup).toContain(`Locked by the ${PRODUCT_NAME} method.`)
   })
 
   it('locks a chip and shows a remove mark on an editable one', () => {

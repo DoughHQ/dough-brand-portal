@@ -2,6 +2,7 @@
 
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { isDoughAdminRequest } from '@/lib/portal/isDoughAdminRequest'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export type CloseStudyResult =
   | {
@@ -20,7 +21,7 @@ function classifyError(message: string): CloseStudyResult {
   if (message.startsWith('NOT_AUTHORIZED') || message.includes('NOT_AUTHORIZED')) {
     return {
       ok: false,
-      error: 'Only Dough admins can close a study.',
+      error: `Only ${PRODUCT_NAME} admins can close a study.`,
       code: 'NOT_AUTHORIZED',
     }
   }
@@ -42,7 +43,7 @@ export async function closeStudyAction(missionId: string): Promise<CloseStudyRes
   if (!(await isDoughAdminRequest())) {
     return {
       ok: false,
-      error: 'Only Dough admins can close a study.',
+      error: `Only ${PRODUCT_NAME} admins can close a study.`,
       code: 'NOT_AUTHORIZED',
     }
   }

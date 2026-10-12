@@ -5,6 +5,7 @@ import { newProductCompetitor } from '@/lib/concept/defaults'
 import type { ProductCompetitorRow } from '@/lib/concept/types'
 import CompetitorsColumn from '../../CompetitorsColumn'
 import CompetitorSearchSlot from '../CompetitorSearchSlot'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 vi.mock('@/lib/supabase', () => ({
   createClient: () => ({
@@ -51,7 +52,7 @@ describe('CompetitorsColumn', () => {
     expect(markup).toContain('Competitors')
     expect(markup).toContain('Add the real products shoppers would compare yours against.')
     expect(markup).toContain('Add competitors')
-    expect(markup).toContain('Search Dough’s product database')
+    expect(markup).toContain(`Search ${PRODUCT_NAME}’s product database`)
     expect(markup).toContain('+ Add competitor')
     expect(markup).toContain('Add at least one competitor')
     expect(markup).not.toContain('field-seat-product-')
