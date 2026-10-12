@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase'
 import type { BrandHomeModel } from '@/lib/brandHome/selectHomeModel'
 import type { ProductSignalCardModel } from '@/lib/brandHome/productSignalCards'
 import type { CatalogHealth } from '@/lib/brandHome/catalogHealth'
+import type { OnboardingChecklistInput } from '@/lib/brandHome/onboardingChecklist'
 import BrandHome from '@/components/brandHome/BrandHome'
 import BrandProfileCard from '@/components/brandHome/BrandProfileCard'
 import ProductCategoryStandingCard from '@/components/brandHome/ProductCategoryStandingCard'
@@ -62,8 +63,8 @@ type Props = {
   catalogHealth?: CatalogHealth
   /** Prefer over subscription.claimed_product_ids.length — chrome denorm. */
   claimedSkuCount?: number
-  /** False when Home pulse used live fallback (cold still warming). */
-  catalogReady?: boolean
+  onboardingChecklist?: OnboardingChecklistInput | null
+  welcome?: boolean
 }
 
 function fmt(n: number | null | undefined): string {
@@ -80,7 +81,7 @@ function delta(n: number | null | undefined): string {
   return r > 0 ? `+${r}` : `${r}`
 }
 
-export default function DashboardClient({ portalUser, brand, subscription, snapshot, history: _history, productIntelligence, competitive: _competitive, allProducts, narrative: _narrative, totalProductCount, totalBattles = 0, homeModel, categoriesCount, signalCards = [], domainVerified = false, catalogHealth, claimedSkuCount, catalogReady = true }: Props) {
+export default function DashboardClient({ portalUser, brand, subscription, snapshot, history: _history, productIntelligence, competitive: _competitive, allProducts, narrative: _narrative, totalProductCount, totalBattles = 0, homeModel, categoriesCount, signalCards = [], domainVerified = false, catalogHealth, claimedSkuCount, onboardingChecklist = null, welcome = false }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const [period, setPeriod] = useState<Period>('30d')
@@ -134,7 +135,8 @@ export default function DashboardClient({ portalUser, brand, subscription, snaps
           signalCards={signalCards}
           catalogHealth={catalogHealth}
           domainVerified={domainVerified}
-          catalogReady={catalogReady}
+          onboardingChecklist={onboardingChecklist}
+          welcome={welcome}
           profileSlot={
             <BrandProfileCard
               brand={brand}

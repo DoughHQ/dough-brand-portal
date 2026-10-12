@@ -45072,6 +45072,7 @@ export type Database = {
         Args: { p_display_name?: string; p_token: string }
         Returns: Json
       }
+      complete_brand_onboarding: { Args: never; Returns: Json }
       complete_concept_session: {
         Args: { p_mission_claim_id: string; p_session_number?: number }
         Returns: Json

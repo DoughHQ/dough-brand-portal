@@ -341,7 +341,7 @@ function buildHero(args: {
     kind: 'empty',
     eyebrow: 'Your strongest signal',
     headline: 'No major changes yet',
-    body: `${args.brandName} is on ${PRODUCT_NAME}. Claim products and grow organic category battles — Home will surface what matters as signal arrives.`,
+    body: `${args.brandName} is on ${PRODUCT_NAME}. Home fills in as shoppers compare your products and your studies come in.`,
     ctaLabel:
       args.categories.length > 0 ? 'Browse categories →' : 'Go to products →',
     ctaHref: args.categories.length > 0 ? '/categories' : '/products',

@@ -2,17 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import ApplyBrandFlow, { type ApplyStep } from '@/components/auth/ApplyBrandFlow'
 import AuthShell, {
-  authCardStyle,
   authInputStyle,
   authLabelStyle,
   authPrimaryBtnStyle,
 } from '@/components/auth/AuthShell'
-import { getPortalAppUrl } from '@/lib/brand'
+import { getPortalAppUrl, PRODUCT_NAME } from '@/lib/brand'
 
-type Step = ApplyStep | 'login' | 'forgot'
+type Step = 'login' | 'forgot'
 
 function parseUrlErrors(): { error: string | null; errorCode: string | null } {
   if (typeof window === 'undefined') return { error: null, errorCode: null }
@@ -31,7 +30,7 @@ function parseUrlErrors(): { error: string | null; errorCode: string | null } {
 
 export default function LoginPage() {
   const router = useRouter()
-  const [step, setStep] = useState<Step>('search')
+  const [step, setStep] = useState<Step>('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
@@ -124,30 +123,8 @@ export default function LoginPage() {
     )
   }
 
-  const isApplyStep = step === 'search' || step === 'details' || step === 'booking'
-
   return (
     <AuthShell>
-      {isApplyStep ? (
-        <ApplyBrandFlow
-          step={step}
-          setStep={setStep}
-          error={error}
-          setError={setError}
-          onGoToLogin={() => {
-            setStep('login')
-            setError(null)
-            setInfo(null)
-          }}
-          styles={{
-            cardStyle: authCardStyle,
-            inputStyle: authInputStyle,
-            labelStyle: authLabelStyle,
-            primaryBtnStyle: authPrimaryBtnStyle,
-          }}
-        />
-      ) : null}
-
       {step === 'login' && (
         <>
           <div style={{ marginBottom: 28 }}>
@@ -238,22 +215,22 @@ export default function LoginPage() {
               >
                 Forgot password?
               </button>
-              <button
-                onClick={() => {
-                  setStep('search')
-                  setError(null)
-                }}
+              <p
                 style={{
                   fontSize: 13,
                   color: 'var(--ink-50)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
                   fontFamily: 'var(--font-sans)',
+                  margin: 0,
                 }}
               >
-                Back to apply
-              </button>
+                New to {PRODUCT_NAME}?{' '}
+                <Link
+                  href="/apply"
+                  style={{ color: 'var(--sage)', fontWeight: 600, textDecoration: 'none' }}
+                >
+                  Request access
+                </Link>
+              </p>
             </div>
           </div>
         </>

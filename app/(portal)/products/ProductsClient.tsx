@@ -19,6 +19,7 @@ import type {
 import { parseBrandProductPage } from '@/lib/brandHome/parseBrandProductPage'
 import CatPage from '@/components/categories/CatPage'
 import { PRODUCT_NAME } from '@/lib/brand'
+import { supportHref } from '@/lib/productMaster/support'
 import '@/components/categories/categoriesPage.css'
 import '@/components/products/productTile.css'
 import '@/components/products/productFacets.css'
@@ -226,6 +227,7 @@ export default function ProductsClient({
   const [facetById, setFacetById] = useState<Record<number, FacetSummaryRow>>({})
   const [facetError, setFacetError] = useState<string | null>(null)
   const [listError, setListError] = useState<string | null>(null)
+  const [addOpen, setAddOpen] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [isPending, startTransition] = useTransition()
   const skipInitialFilterFetch = useRef(true)
@@ -349,14 +351,38 @@ export default function ProductsClient({
             </p>
           ) : null}
         </div>
-        <div className="prod-header-actions">
+        <div className="prod-header-actions" style={{ position: 'relative' }}>
           <button
             type="button"
             className="portal-btn portal-btn-cta cat-primary-cta"
-            onClick={() => alert('Add product coming soon')}
+            aria-expanded={addOpen}
+            aria-controls="prod-add-panel"
+            onClick={() => setAddOpen((open) => !open)}
           >
             + Add product
           </button>
+          {addOpen ? (
+            <div
+              id="prod-add-panel"
+              className="prod-add-panel portal-panel"
+              role="region"
+              aria-label="Add a product"
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <Link href="/prototypes" className="bh-link" onClick={() => setAddOpen(false)}>
+                  Not on shelves yet? <strong>Add it as a prototype</strong>
+                </Link>
+                <a
+                  href={supportHref(
+                    `Add my product: ${brand.brand_name_display ?? brand.brand_name}`
+                  )}
+                  className="bh-link"
+                >
+                  Already on shelves? <strong>Send us the barcode</strong>
+                </a>
+              </div>
+            </div>
+          ) : null}
         </div>
       </header>
 

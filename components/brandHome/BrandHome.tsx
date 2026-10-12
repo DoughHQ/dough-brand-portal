@@ -4,12 +4,14 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import type { BrandHomeModel } from '@/lib/brandHome/selectHomeModel'
 import type { ProductSignalCardModel } from '@/lib/brandHome/productSignalCards'
+import type { OnboardingChecklistInput } from '@/lib/brandHome/onboardingChecklist'
 import ProductSignalCard from '@/components/brandHome/ProductSignalCard'
 import CatalogHealthCard from '@/components/brandHome/CatalogHealthCard'
 import WhatChangedStrip from '@/components/brandHome/WhatChangedStrip'
 import { buildHomeAttention } from '@/lib/brandHome/homeAttention'
 import type { CatalogHealth } from '@/lib/brandHome/catalogHealth'
 import { PRODUCT_NAME } from '@/lib/brand'
+import OnboardingChecklistCard from '@/components/brandHome/OnboardingChecklist'
 import './brandHome.css'
 
 function pulseItem(model: BrandHomeModel, key: string) {
@@ -52,8 +54,9 @@ export default function BrandHome({
   signalCards = [],
   catalogHealth,
   domainVerified = false,
-  catalogReady = true,
   brandId,
+  onboardingChecklist = null,
+  welcome = false,
 }: {
   model: BrandHomeModel
   profileSlot?: ReactNode
@@ -62,8 +65,9 @@ export default function BrandHome({
   signalCards?: ProductSignalCardModel[]
   catalogHealth?: CatalogHealth
   domainVerified?: boolean
-  catalogReady?: boolean
   brandId?: number
+  onboardingChecklist?: OnboardingChecklistInput | null
+  welcome?: boolean
 }) {
   const hasCatalogProducts = totalProductCount > 0
   const hasProductSignal = signalCards.length > 0
@@ -120,11 +124,8 @@ export default function BrandHome({
 
   return (
     <div className="bh-page">
-      {!catalogReady ? (
-        <p className="bh-catalog-warming" role="status">
-          Catalog rollup is catching up — counts below are live. Cards refresh when the cold clock
-          finishes.
-        </p>
+      {onboardingChecklist ? (
+        <OnboardingChecklistCard input={onboardingChecklist} welcome={welcome} />
       ) : null}
       <header className="bh-top">
         <div className="bh-top-main">{profileSlot}</div>
@@ -275,10 +276,11 @@ export default function BrandHome({
             {model.categories.length === 0 ? (
               <EmptyPanel
                 title="No categories yet"
-                body="Claim products so they map into taxonomy categories."
+                body="Categories appear once your products are in the catalog."
                 href="/products"
                 cta="Go to products →"
               />
+
             ) : (
               <>
                 <div className="bh-cats bh-cats-desktop">
