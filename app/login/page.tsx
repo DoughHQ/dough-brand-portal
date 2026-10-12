@@ -10,6 +10,7 @@ import AuthShell, {
   authLabelStyle,
   authPrimaryBtnStyle,
 } from '@/components/auth/AuthShell'
+import { getPortalAppUrl } from '@/lib/brand'
 
 type Step = ApplyStep | 'login' | 'forgot'
 
@@ -106,7 +107,7 @@ export default function LoginPage() {
     setError(null)
     setInfo(null)
 
-    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).replace(/\/$/, '')
+    const appUrl = getPortalAppUrl()
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       forgotEmail.trim().toLowerCase(),
       {
