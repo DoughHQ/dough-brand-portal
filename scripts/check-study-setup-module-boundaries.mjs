@@ -228,6 +228,7 @@ const allergenConfirmRoot = `${boxRoot}allergenConfirm/`
 const prototypePickRoot = `${boxRoot}prototypePick/`
 const upcFieldRoot = `${boxRoot}upcField/`
 const mastheadRoot = `${conceptRoot}masthead/`
+const handoffRoot = `${conceptRoot}handoff/`
 
 function isSetupModule(relativePath) {
   return (
@@ -247,6 +248,7 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(prototypePickRoot) &&
     !relativePath?.startsWith(upcFieldRoot) &&
     !relativePath?.startsWith(mastheadRoot) &&
+    !relativePath?.startsWith(handoffRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)
