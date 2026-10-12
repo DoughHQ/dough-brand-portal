@@ -55,6 +55,13 @@ jobs:
       - run: npm run check:concept-client-ban
       - run: npm run check:concept-cards-ban
       - run: npm run check:own-product-ban
+      - run: npm run check:study-type-ban
+      - run: npm run check:arm-image-ban
+      - run: npm run check:study-lifecycle-ban
+      - run: npm run check:concept-field-ban
+      - run: npm run check:box-product-search-ban
+      - run: npm run check:box-setup-ban
+      - run: npm run check:box-allergen-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
