@@ -1,9 +1,10 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { fetchStudyOrder } from '@/lib/checkout/load'
 import { checkoutHref } from '@/lib/checkout/status'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import ConceptStudyStatusActions from './status/ConceptStudyStatusActions'
+import ConceptStudyStatusHeading from './status/ConceptStudyStatusHeading'
 
 type Props = {
   params: Promise<{ missionId: string }>
@@ -33,64 +34,8 @@ export default async function ConceptStudyStatusPage({ params }: Props) {
         padding: '64px 28px',
       }}
     >
-      <Link
-        href="/studies"
-        style={{ fontSize: 12, color: 'var(--ink-50)', textDecoration: 'none' }}
-      >
-        ← Studies
-      </Link>
-      <h1
-        style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize: 32,
-          fontWeight: 400,
-          letterSpacing: '-0.02em',
-          margin: '12px 0 8px',
-          color: 'var(--heading)',
-        }}
-      >
-        {live ? 'Your study is live' : 'Concept study'}
-      </h1>
-      <p style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.5, margin: '0 0 20px' }}>
-        {live
-          ? 'Respondents can take it. The report appears once enough people finish.'
-          : 'This study is not live. If it has an order, checkout is where it gets paid.'}
-      </p>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-        {live ? (
-          <Link
-            href={reportHref}
-            style={{
-              display: 'inline-block',
-              background: 'var(--sage)',
-              color: 'var(--on-fill)',
-              fontSize: 13,
-              fontWeight: 600,
-              padding: '10px 18px',
-              borderRadius: 'var(--r-sm)',
-              textDecoration: 'none',
-            }}
-          >
-            View report
-          </Link>
-        ) : null}
-        <Link
-          href="/studies"
-          style={{
-            display: 'inline-block',
-            background: 'var(--paper)',
-            color: 'var(--heading)',
-            border: '1px solid var(--mist)',
-            fontSize: 13,
-            fontWeight: 500,
-            padding: '10px 18px',
-            borderRadius: 'var(--r-sm)',
-            textDecoration: 'none',
-          }}
-        >
-          Back to studies
-        </Link>
-      </div>
+      <ConceptStudyStatusHeading live={live} />
+      <ConceptStudyStatusActions live={live} reportHref={reportHref} />
     </div>
   )
 }
