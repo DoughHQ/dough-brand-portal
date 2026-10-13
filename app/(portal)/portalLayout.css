@@ -56,23 +56,14 @@
   gap: 12px;
 }
 
-.portal-mark-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  object-fit: cover;
-  flex-shrink: 0;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
-  background: var(--sage, #3e6b4a);
+.portal-mark-logo {
+  display: block;
+  width: 140px;
+  height: auto;
 }
 
-.portal-mark-name {
-  font-family: var(--font-serif);
-  font-size: 22px;
-  font-weight: 500;
-  color: var(--on-fill, #faf8f3);
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+.portal-mark-logo + .portal-mark-sub {
+  margin-top: 14px;
 }
 
 .portal-mark-sub {
@@ -642,12 +633,12 @@
   }
 
   .portal-topbar-mark {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    object-fit: cover;
+    width: 32px;
+    height: 32px;
+    border-radius: 0;
+    object-fit: contain;
     flex-shrink: 0;
-    background: var(--sage, #3e6b4a);
+    background: transparent;
   }
 
   .portal-topbar-section {

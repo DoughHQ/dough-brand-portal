@@ -14,7 +14,7 @@ describe('lib/brand', () => {
   })
 
   it('keeps display name Dough until Train B', () => {
-    expect(PRODUCT_NAME).toBe('Dough')
+    expect(PRODUCT_NAME).toBe('Runoff')
   })
 
   it('owns marketing origin and re-exports support email', () => {
