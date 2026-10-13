@@ -82,6 +82,7 @@ jobs:
       - run: npm run check:box-draft-loader-ban
       - run: npm run check:product-identity-confirm-ban
       - run: npm run check:product-entry-mode-ban
+      - run: npm run check:checkout-page-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
