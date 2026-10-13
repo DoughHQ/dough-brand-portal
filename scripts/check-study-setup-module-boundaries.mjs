@@ -239,6 +239,7 @@ const sectionChromeRoot = `${conceptRoot}sectionChrome/`
 const conceptReportStateRoot = `${conceptRoot}[missionId]/report/states/`
 const conceptStudyStatusRoot = `${conceptRoot}[missionId]/status/`
 const conceptEditDraftRoot = `${conceptRoot}[missionId]/edit/draft/`
+const boxDraftLoaderRoot = `${boxRoot}draftLoader/`
 
 function isSetupModule(relativePath) {
   return (
@@ -269,6 +270,7 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(conceptReportStateRoot) &&
     !relativePath?.startsWith(conceptStudyStatusRoot) &&
     !relativePath?.startsWith(conceptEditDraftRoot) &&
+    !relativePath?.startsWith(boxDraftLoaderRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)
