@@ -1,6 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
+import { PRODUCT_NAME } from '@/lib/brand'
 import type { OperatorStudyRow } from '@/lib/studies/types'
 import {
   ActiveStudyList,
@@ -131,11 +132,11 @@ describe('StudyLifecycleLists', () => {
     expect(markup).toContain('Concept field')
     expect(markup).toContain('No responses yet')
     expect(markup).not.toContain('studies-progress-track')
-    expect(markup).not.toContain('In review: Dough is checking your wording')
+    expect(markup).not.toContain(`In review: ${PRODUCT_NAME} is checking your wording`)
     expect(markup).not.toContain('View report →')
   })
 
-  it('keeps a paid concept in review on its report, and shows Dough review for other studies', () => {
+  it('keeps a paid concept in review on its report, and shows product review for other studies', () => {
     const live = renderToStaticMarkup(
       createElement(ActiveStudyList, {
         ...listActions,
@@ -174,8 +175,8 @@ describe('StudyLifecycleLists', () => {
     expect(live).toContain('href="/studies/concept/concept-2/report"')
     expect(live).toContain('View report →')
     expect(live).not.toContain('Awaiting payment')
-    expect(review).toContain('title="Awaiting Dough review"')
-    expect(review).toContain('In review: Dough is checking your wording')
+    expect(review).toContain(`title="Awaiting ${PRODUCT_NAME} review"`)
+    expect(review).toContain(`In review: ${PRODUCT_NAME} is checking your wording`)
     expect(paused).toContain('Paused')
     expect(paused).toContain('iHUT · Odwalla')
     expect(paused).toContain('class="studies-kebab"')

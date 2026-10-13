@@ -1,6 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
+import { PRODUCT_NAME } from '@/lib/brand'
 import { createEmptyBoxDraft } from '@/lib/box/defaults'
 import SetupSection from '../../SetupSection'
 
@@ -35,12 +36,12 @@ describe('SetupSection', () => {
     expect(markup).toContain('Name the study · choose a category')
     expect(markup).toContain('data-done="false"')
     expect(markup).toContain('class="box-completion-contract is-empty"')
-    expect(markup).not.toContain('Dough fielding plan')
+    expect(markup).not.toContain(`${PRODUCT_NAME} fielding plan`)
     expect(markup).not.toContain('role="alert"')
     expectOrder(markup, [
       'Setup',
       'Name the study, pick the category, and choose the completed responses',
-      'Dough handles inventory and timing.',
+      `${PRODUCT_NAME} handles inventory and timing.`,
       'Study name',
       'id="box-study-name"',
       'placeholder="e.g. Gluten-free NYC discovery box"',
@@ -74,7 +75,7 @@ describe('SetupSection', () => {
     expect(markup).toContain('checked=""')
     expect(markup).not.toContain('is-empty')
     expectOrder(markup, [
-      'Dough fielding plan',
+      `${PRODUCT_NAME} fielding plan`,
       'Prepare 110 boxes',
       '100 for the completed field, plus 10 (10%) for expected non-completion.',
       'Each respondent gets 14 days after delivery.',
