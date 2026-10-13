@@ -80,6 +80,7 @@ jobs:
       - run: npm run check:concept-study-status-ban
       - run: npm run check:concept-draft-edit-ban
       - run: npm run check:box-draft-loader-ban
+      - run: npm run check:product-identity-confirm-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
