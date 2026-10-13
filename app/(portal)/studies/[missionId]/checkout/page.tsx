@@ -1,13 +1,8 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
-import {
-  fetchCheckoutField,
-  fetchMissionCheckoutWindow,
-  fetchStudyOrder,
-} from '@/lib/checkout/load'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
 import CheckoutClient from './CheckoutClient'
+import CheckoutEmptyOrder from './emptyOrder/CheckoutEmptyOrder'
+import { loadCheckoutPage } from './emptyOrder/loadCheckoutPage'
 import './checkout.css'
 
 type Props = {
@@ -19,35 +14,17 @@ export default async function CheckoutPage({ params }: Props) {
   if (!scope) redirect('/login')
 
   const { missionId } = await params
-  const supabase = await createServerSupabaseClient()
-  const order = await fetchStudyOrder(supabase, missionId)
-
-  if (!order) {
-    return (
-      <div className="checkout-page">
-        <Link href="/studies" className="checkout-back">
-          ← Studies
-        </Link>
-        <h1 className="checkout-title">No order</h1>
-        <p className="checkout-lede">This study has no order you can see.</p>
-      </div>
-    )
-  }
-
-  const [{ data: userData }, field, window] = await Promise.all([
-    supabase.auth.getUser(),
-    fetchCheckoutField(supabase, missionId),
-    fetchMissionCheckoutWindow(supabase, missionId),
-  ])
+  const loaded = await loadCheckoutPage(missionId)
+  if (!loaded) return <CheckoutEmptyOrder />
 
   return (
     <CheckoutClient
-      order={order}
-      designs={field.designs}
-      products={field.products}
-      email={userData.user?.email ?? null}
-      fieldingDays={window.fieldingDays}
-      expiresAt={window.expiresAt}
+      order={loaded.order}
+      designs={loaded.designs}
+      products={loaded.products}
+      email={loaded.email}
+      fieldingDays={loaded.fieldingDays}
+      expiresAt={loaded.expiresAt}
     />
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import type { ProductEntryMode } from '@/lib/productEntryMode'
+import ProductEntryModeTab from './entryMode/ProductEntryModeTab'
 
 type Props = {
   mode: ProductEntryMode
@@ -20,32 +21,14 @@ export default function ProductEntryModeToggle({ mode, onChange }: Props) {
         flexShrink: 0,
       }}
     >
-      {(['name', 'barcode'] as const).map((value) => {
-        const active = mode === value
-        return (
-          <button
-            key={value}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            onClick={() => onChange(value)}
-            style={{
-              border: 'none',
-              background: active ? 'var(--ink-80)' : 'var(--paper)',
-              color: active ? 'var(--on-fill)' : 'var(--ink-50)',
-              fontFamily: 'var(--font-sans)',
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: '0.02em',
-              height: 32,
-              padding: '0 12px',
-              cursor: 'pointer',
-            }}
-          >
-            {value === 'name' ? 'Name' : 'Barcode'}
-          </button>
-        )
-      })}
+      {(['name', 'barcode'] as const).map((value) => (
+        <ProductEntryModeTab
+          key={value}
+          value={value}
+          active={mode === value}
+          onChange={onChange}
+        />
+      ))}
     </div>
   )
 }

@@ -2,10 +2,10 @@
 
 import type { ConceptArmRow, PricePosture } from '@/lib/concept/types'
 import type { AddAvailability } from '@/lib/concept/fieldSize'
-import { fieldCard } from './conceptStyles'
-import ConceptDesignCard from './ownProduct/ConceptDesignCard'
+import OwnProductAddControl from './ownProduct/OwnProductAddControl'
+import OwnProductColumnHead from './ownProduct/OwnProductColumnHead'
 import OwnProductEmptyState from './ownProduct/OwnProductEmptyState'
-import OwnVariantCard from './ownProduct/OwnVariantCard'
+import OwnProductSeat from './ownProduct/OwnProductSeat'
 import { useOwnProductColumn } from './ownProduct/useOwnProductColumn'
 
 type Props = {
@@ -49,16 +49,7 @@ export default function OwnProductColumn({
 
   return (
     <>
-      <div className="cb-field-head-left">
-        <div className="cb-field-col-title">{singleTestMode ? 'Your concepts' : 'Your product'}</div>
-        <div className="cb-field-col-meta">
-          {singleTestMode
-            ? 'The designs respondents will evaluate.'
-            : priceMode
-              ? 'The product or concept you want respondents to evaluate.'
-              : 'Add the product or concept variants you want respondents to evaluate.'}
-        </div>
-      </div>
+      <OwnProductColumnHead singleTestMode={singleTestMode} priceMode={priceMode} />
 
       <div className="cb-field-body-left">
         {column.showEmptyState ? (
@@ -66,95 +57,39 @@ export default function OwnProductColumn({
         ) : null}
 
         {!column.showEmptyState
-          ? arms.map((arm, index) => {
-              const isLast = index === arms.length - 1
-              return (
-                <div
-                  key={arm.localId}
-                  id={`field-seat-arm-${arm.localId}`}
-                  draggable={column.multi && !priceMode}
-                  onDragStart={() => column.setDragArmId(arm.localId)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => {
-                    if (column.dragArmId) column.reorder(column.dragArmId, arm.localId)
-                    column.setDragArmId(null)
-                  }}
-                  className={singleTestMode ? 'cb-concept-card' : undefined}
-                  style={
-                    singleTestMode
-                      ? { cursor: column.multi && !priceMode ? 'grab' : 'default' }
-                      : {
-                          ...fieldCard,
-                          cursor: column.multi && !priceMode ? 'grab' : 'default',
-                        }
-                  }
-                >
-                  {singleTestMode ? (
-                    <ConceptDesignCard
-                      arm={arm}
-                      index={index}
-                      isLast={isLast}
-                      nameFocusRef={isLast ? column.nameFocusRef : undefined}
-                      brandId={brandId}
-                      draftId={draftId}
-                      blindImageMode={blindImageMode}
-                      disabled={disabled}
-                      onPatch={(patch) => column.patchArm(arm.localId, patch)}
-                      onNameKeyDown={(e) => column.onNameKeyDown(e, isLast)}
-                      onRemove={column.multi ? () => column.removeVariant(arm.localId) : undefined}
-                    />
-                  ) : (
-                    <OwnVariantCard
-                      arm={arm}
-                      index={index}
-                      isLast={isLast}
-                      nameFocusRef={isLast ? column.nameFocusRef : undefined}
-                      brandId={brandId}
-                      draftId={draftId}
-                      blindImageMode={blindImageMode}
-                      pricePosture={pricePosture}
-                      modeLabel={modeLabel}
-                      priceMode={priceMode}
-                      multi={column.multi}
-                      singleTestMode={singleTestMode}
-                      disabled={disabled}
-                      onPatch={(patch) => column.patchArm(arm.localId, patch)}
-                      onNameKeyDown={(e) => column.onNameKeyDown(e, isLast)}
-                      onRemove={() => column.removeVariant(arm.localId)}
-                    />
-                  )}
-                </div>
-              )
-            })
+          ? arms.map((arm, index) => (
+              <OwnProductSeat
+                key={arm.localId}
+                arm={arm}
+                index={index}
+                isLast={index === arms.length - 1}
+                singleTestMode={singleTestMode}
+                priceMode={priceMode}
+                multi={column.multi}
+                dragArmId={column.dragArmId}
+                setDragArmId={column.setDragArmId}
+                reorder={column.reorder}
+                nameFocusRef={column.nameFocusRef}
+                brandId={brandId}
+                draftId={draftId}
+                blindImageMode={blindImageMode}
+                pricePosture={pricePosture}
+                modeLabel={modeLabel}
+                disabled={disabled}
+                onPatch={(patch) => column.patchArm(arm.localId, patch)}
+                onNameKeyDown={column.onNameKeyDown}
+                onRemove={() => column.removeVariant(arm.localId)}
+              />
+            ))
           : null}
 
         {!column.showEmptyState && !priceMode ? (
-          <>
-            <button
-              type="button"
-              className={singleTestMode ? 'cb-concept-add' : 'cb-btn-outline'}
-              onClick={column.addVariant}
-              disabled={disabled || !addVariantAvailability.allowed}
-              aria-describedby={
-                addVariantAvailability.allowed ? undefined : 'cb-add-variant-reason'
-              }
-            >
-              {singleTestMode ? '+ Add another concept' : '+ Add another variant'}
-            </button>
-            {!addVariantAvailability.allowed ? (
-              <p
-                id="cb-add-variant-reason"
-                style={{
-                  margin: '8px 0 0',
-                  fontSize: 12,
-                  color: 'var(--ink-50)',
-                  lineHeight: 1.45,
-                }}
-              >
-                {addVariantAvailability.message}
-              </p>
-            ) : null}
-          </>
+          <OwnProductAddControl
+            singleTestMode={singleTestMode}
+            disabled={disabled}
+            addVariant={addVariantAvailability}
+            onAdd={column.addVariant}
+          />
         ) : null}
       </div>
     </>

@@ -4,11 +4,8 @@
  * Drafts live only in localStorage until publish, so the edit route must load
  * client-side. Missing draft → back to a fresh builder rather than a dead page.
  */
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import type { BoxStudyDraft } from '@/lib/box/types'
-import { loadBoxDraft, normalizeStoredBoxDraft } from '@/lib/box/draftStore'
 import BoxStudyClient from './BoxStudyClient'
+import { useBoxDraftLoader } from './draftLoader/useBoxDraftLoader'
 
 type Props = {
   draftId: string
@@ -21,22 +18,7 @@ export default function BoxDraftLoader({
   effectiveBrandId,
   isImpersonating,
 }: Props) {
-  const router = useRouter()
-  const [draft, setDraft] = useState<BoxStudyDraft | null>(null)
-  const [missing, setMissing] = useState(false)
-
-  useEffect(() => {
-    const stored = loadBoxDraft(draftId)
-    if (!stored) {
-      setMissing(true)
-      return
-    }
-    setDraft(normalizeStoredBoxDraft(stored, effectiveBrandId))
-  }, [draftId, effectiveBrandId])
-
-  useEffect(() => {
-    if (missing) router.replace('/studies/box/new')
-  }, [missing, router])
+  const draft = useBoxDraftLoader(draftId, effectiveBrandId)
 
   if (!draft) return null
 

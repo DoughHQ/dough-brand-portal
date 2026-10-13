@@ -96,10 +96,12 @@ function resolveImport(relativePath, specifier) {
 
 const dependencies = {
   [contentsShell]: [
-    `${contentsRoot}ContentsAddActions.tsx`,
     `${contentsRoot}ContentsComposer.tsx`,
     `${contentsRoot}ContentsEmptyState.tsx`,
-    `${contentsRoot}ContentsSeatCard.tsx`,
+    `${contentsRoot}ContentsFieldAlert.tsx`,
+    `${contentsRoot}ContentsFieldIntro.tsx`,
+    `${contentsRoot}ContentsOccupiedField.tsx`,
+    `${contentsRoot}ContentsReadinessNote.tsx`,
     `${contentsRoot}priceReadiness.ts`,
     `${contentsRoot}useContentsField.ts`,
   ],
@@ -110,6 +112,17 @@ const dependencies = {
     `${contentsRoot}ContentsAddActions.tsx`,
     `${contentsRoot}types.ts`,
   ],
+  [`${contentsRoot}ContentsFieldAlert.tsx`]: [],
+  [`${contentsRoot}ContentsFieldIntro.tsx`]: [],
+  [`${contentsRoot}ContentsFieldNotes.tsx`]: [`${contentsRoot}types.ts`],
+  [`${contentsRoot}ContentsOccupiedField.tsx`]: [
+    `${contentsRoot}ContentsAddActions.tsx`,
+    `${contentsRoot}ContentsComposer.tsx`,
+    `${contentsRoot}ContentsFieldNotes.tsx`,
+    `${contentsRoot}ContentsSeatCard.tsx`,
+    `${contentsRoot}types.ts`,
+  ],
+  [`${contentsRoot}ContentsReadinessNote.tsx`]: [],
   [`${contentsRoot}ContentsSeatCard.tsx`]: [
     `${contentsRoot}ShelfPriceInput.tsx`,
     `${contentsRoot}types.ts`,
@@ -237,6 +250,9 @@ const confirmRoot = `${conceptRoot}confirm/`
 const stepperRoot = `${conceptRoot}stepper/`
 const sectionChromeRoot = `${conceptRoot}sectionChrome/`
 const conceptReportStateRoot = `${conceptRoot}[missionId]/report/states/`
+const conceptStudyStatusRoot = `${conceptRoot}[missionId]/status/`
+const conceptEditDraftRoot = `${conceptRoot}[missionId]/edit/draft/`
+const boxDraftLoaderRoot = `${boxRoot}draftLoader/`
 
 function isSetupModule(relativePath) {
   return (
@@ -265,6 +281,9 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(stepperRoot) &&
     !relativePath?.startsWith(sectionChromeRoot) &&
     !relativePath?.startsWith(conceptReportStateRoot) &&
+    !relativePath?.startsWith(conceptStudyStatusRoot) &&
+    !relativePath?.startsWith(conceptEditDraftRoot) &&
+    !relativePath?.startsWith(boxDraftLoaderRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)
@@ -340,7 +359,8 @@ function follow(relativePath, trail, localSeen) {
 for (const relativePath of trackedModules) visit(relativePath, [])
 
 const budgets = {
-  [contentsShell]: 190,
+  [contentsShell]: 100,
+  [`${contentsRoot}ContentsOccupiedField.tsx`]: 110,
   [`${contentsRoot}ContentsComposer.tsx`]: 150,
   [`${contentsRoot}ContentsSeatCard.tsx`]: 340,
   [`${contentsRoot}useContentsField.ts`]: 240,
