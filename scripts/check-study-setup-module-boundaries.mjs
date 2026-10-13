@@ -96,10 +96,12 @@ function resolveImport(relativePath, specifier) {
 
 const dependencies = {
   [contentsShell]: [
-    `${contentsRoot}ContentsAddActions.tsx`,
     `${contentsRoot}ContentsComposer.tsx`,
     `${contentsRoot}ContentsEmptyState.tsx`,
-    `${contentsRoot}ContentsSeatCard.tsx`,
+    `${contentsRoot}ContentsFieldAlert.tsx`,
+    `${contentsRoot}ContentsFieldIntro.tsx`,
+    `${contentsRoot}ContentsOccupiedField.tsx`,
+    `${contentsRoot}ContentsReadinessNote.tsx`,
     `${contentsRoot}priceReadiness.ts`,
     `${contentsRoot}useContentsField.ts`,
   ],
@@ -110,6 +112,17 @@ const dependencies = {
     `${contentsRoot}ContentsAddActions.tsx`,
     `${contentsRoot}types.ts`,
   ],
+  [`${contentsRoot}ContentsFieldAlert.tsx`]: [],
+  [`${contentsRoot}ContentsFieldIntro.tsx`]: [],
+  [`${contentsRoot}ContentsFieldNotes.tsx`]: [`${contentsRoot}types.ts`],
+  [`${contentsRoot}ContentsOccupiedField.tsx`]: [
+    `${contentsRoot}ContentsAddActions.tsx`,
+    `${contentsRoot}ContentsComposer.tsx`,
+    `${contentsRoot}ContentsFieldNotes.tsx`,
+    `${contentsRoot}ContentsSeatCard.tsx`,
+    `${contentsRoot}types.ts`,
+  ],
+  [`${contentsRoot}ContentsReadinessNote.tsx`]: [],
   [`${contentsRoot}ContentsSeatCard.tsx`]: [
     `${contentsRoot}ShelfPriceInput.tsx`,
     `${contentsRoot}types.ts`,
@@ -346,7 +359,8 @@ function follow(relativePath, trail, localSeen) {
 for (const relativePath of trackedModules) visit(relativePath, [])
 
 const budgets = {
-  [contentsShell]: 190,
+  [contentsShell]: 100,
+  [`${contentsRoot}ContentsOccupiedField.tsx`]: 110,
   [`${contentsRoot}ContentsComposer.tsx`]: 150,
   [`${contentsRoot}ContentsSeatCard.tsx`]: 340,
   [`${contentsRoot}useContentsField.ts`]: 240,
