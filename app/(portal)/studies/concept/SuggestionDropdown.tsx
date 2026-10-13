@@ -1,7 +1,10 @@
 'use client'
 
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import type { TypeaheadStatus } from '@/lib/concept/useTypeahead'
+import SuggestionOptions from './suggestion/SuggestionOptions'
+import SuggestionStatusRows from './suggestion/SuggestionStatusRows'
+import { panelStyle } from './suggestion/suggestionStyles'
 
 type Props<T> = {
   id: string
@@ -20,43 +23,6 @@ type Props<T> = {
   errorLabel?: string
   /** Optional: render an item as present-but-unselectable (e.g. already chosen). */
   isDisabled?: (item: T) => boolean
-}
-
-const panelStyle: CSSProperties = {
-  position: 'absolute',
-  zIndex: 20,
-  left: 0,
-  right: 0,
-  top: '100%',
-  marginTop: 4,
-  padding: 0,
-  listStyle: 'none',
-  background: 'var(--paper)',
-  border: '1px solid var(--ink-10)',
-  borderRadius: 'var(--cb-radius-card)',
-  boxShadow: 'var(--cb-shadow-popover)',
-  maxHeight: 220,
-  overflowY: 'auto',
-}
-
-const rowStyle: CSSProperties = {
-  display: 'block',
-  width: '100%',
-  textAlign: 'left',
-  border: 'none',
-  borderBottom: '1px solid var(--cb-border-soft)',
-  background: 'transparent',
-  padding: 12,
-  cursor: 'pointer',
-  fontFamily: 'var(--font-sans)',
-  fontSize: 13,
-  color: 'var(--ink)',
-}
-
-const mutedRow: CSSProperties = {
-  padding: 12,
-  fontSize: 12,
-  color: 'var(--ink-50)',
 }
 
 /**
@@ -82,60 +48,24 @@ export default function SuggestionDropdown<T>({
 
   return (
     <ul id={id} role="listbox" style={panelStyle}>
-      {status === 'loading' ? (
-        <li style={mutedRow} role="presentation">
-          Searching…
-        </li>
-      ) : null}
-      {status === 'error' ? (
-        <li role="presentation">
-          <button
-            type="button"
-            onClick={onRetry}
-            style={{ ...rowStyle, color: 'var(--red)', borderBottom: 'none' }}
-          >
-            {errorLabel}
-          </button>
-        </li>
-      ) : null}
-      {status === 'empty' ? (
-        <li style={mutedRow} role="presentation">
-          <div>{emptyLabel}</div>
-          {emptyHint ? (
-            <div style={{ marginTop: 4, color: 'var(--ink-30)' }}>{emptyHint}</div>
-          ) : null}
-        </li>
-      ) : null}
-      {status === 'success'
-        ? results.map((item, i) => {
-            const key = getKey(item)
-            const active = i === activeIndex
-            const off = isDisabled ? isDisabled(item) : false
-            return (
-              <li key={key} role="presentation">
-                <button
-                  type="button"
-                  id={`${id}-opt-${key}`}
-                  role="option"
-                  aria-selected={active}
-                  aria-disabled={off || undefined}
-                  onMouseEnter={() => onActiveIndex(i)}
-                  onClick={() => {
-                    if (off) return
-                    onSelect(item)
-                  }}
-                  style={{
-                    ...rowStyle,
-                    cursor: off ? 'default' : 'pointer',
-                    background: active && !off ? 'var(--cb-sage-soft)' : 'transparent',
-                  }}
-                >
-                  {renderItem(item)}
-                </button>
-              </li>
-            )
-          })
-        : null}
+      <SuggestionStatusRows
+        status={status}
+        emptyLabel={emptyLabel}
+        emptyHint={emptyHint}
+        errorLabel={errorLabel}
+        onRetry={onRetry}
+      />
+      <SuggestionOptions
+        id={id}
+        status={status}
+        results={results}
+        activeIndex={activeIndex}
+        onActiveIndex={onActiveIndex}
+        onSelect={onSelect}
+        getKey={getKey}
+        renderItem={renderItem}
+        isDisabled={isDisabled}
+      />
     </ul>
   )
 }
