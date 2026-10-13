@@ -214,13 +214,11 @@ const boxAudienceCategory = 'app/(portal)/studies/box/audience/BoxAudienceCatego
 const boxAudienceNarrowing = 'app/(portal)/studies/box/audience/BoxAudienceNarrowing.tsx'
 const boxAudienceHook = 'app/(portal)/studies/box/audience/useBoxAudience.ts'
 const conceptShell = 'app/(portal)/studies/concept/AudienceSection.tsx'
-const shellImports = [
-  '@/components/studies/audience/AudienceSummary',
-  '@/components/studies/audience/CategoryRequirementPanel',
-  '@/components/studies/audience/NarrowingPanel',
-  '@/components/studies/audience/useAudiencePanelState',
-  '@/components/studies/audience/useAudienceReferenceData',
-]
+const conceptAudienceHead = 'app/(portal)/studies/concept/audience/ConceptAudienceHead.tsx'
+const conceptAudienceLocked = 'app/(portal)/studies/concept/audience/ConceptAudienceLocked.tsx'
+const conceptAudienceCategory = 'app/(portal)/studies/concept/audience/ConceptAudienceCategory.tsx'
+const conceptAudienceNarrowing = 'app/(portal)/studies/concept/audience/ConceptAudienceNarrowing.tsx'
+const conceptAudienceHook = 'app/(portal)/studies/concept/audience/useConceptAudience.ts'
 requireImports(boxShell, [
   '@/components/studies/audience/AudienceSummary',
   '@/components/studies/audience/BoxExperienceTier',
@@ -240,7 +238,20 @@ requireImports(boxAudienceHook, [
   '@/components/studies/audience/useAudienceReferenceData',
   '@/components/studies/audience/useBoxQualifierEstimate',
 ])
-requireImports(conceptShell, shellImports)
+requireImports(conceptShell, ['@/components/studies/audience/AudienceSummary'])
+requireImports(conceptAudienceHead, ['@/components/studies/audience/styles'])
+requireImports(conceptAudienceCategory, [
+  '@/components/studies/audience/CategoryRequirementPanel',
+  '@/components/studies/audience/types',
+])
+requireImports(conceptAudienceNarrowing, [
+  '@/components/studies/audience/NarrowingPanel',
+  '@/components/studies/audience/types',
+])
+requireImports(conceptAudienceHook, [
+  '@/components/studies/audience/useAudiencePanelState',
+  '@/components/studies/audience/useAudienceReferenceData',
+])
 enforceAllowedAudienceImports(
   boxShell,
   [
@@ -286,10 +297,38 @@ enforceAllowedAudienceImports(
 )
 enforceAllowedAudienceImports(
   conceptShell,
+  ['@/components/studies/audience/AudienceSummary'].map((specifier) =>
+    resolveImport(conceptShell, specifier),
+  ),
+)
+enforceAllowedAudienceImports(
+  conceptAudienceHead,
+  ['@/components/studies/audience/styles'].map((specifier) =>
+    resolveImport(conceptAudienceHead, specifier),
+  ),
+)
+enforceAllowedAudienceImports(
+  conceptAudienceCategory,
   [
-    ...shellImports,
-    '@/components/studies/audience/styles',
-  ].map((specifier) => resolveImport(conceptShell, specifier)),
+    '@/components/studies/audience/CategoryRequirementPanel',
+    '@/components/studies/audience/types',
+    '@/lib/studies/taxonomy',
+  ].map((specifier) => resolveImport(conceptAudienceCategory, specifier)),
+)
+enforceAllowedAudienceImports(
+  conceptAudienceNarrowing,
+  [
+    '@/components/studies/audience/NarrowingPanel',
+    '@/components/studies/audience/types',
+    '@/lib/studies/audience/dietaryFlags',
+  ].map((specifier) => resolveImport(conceptAudienceNarrowing, specifier)),
+)
+enforceAllowedAudienceImports(
+  conceptAudienceHook,
+  [
+    '@/components/studies/audience/useAudiencePanelState',
+    '@/components/studies/audience/useAudienceReferenceData',
+  ].map((specifier) => resolveImport(conceptAudienceHook, specifier)),
 )
 forbidDeclarations(boxShell, [
   'BarInput',
@@ -461,6 +500,11 @@ enforceAcyclicGraph([
   boxAudienceNarrowing,
   boxAudienceHook,
   conceptShell,
+  conceptAudienceHead,
+  conceptAudienceLocked,
+  conceptAudienceCategory,
+  conceptAudienceNarrowing,
+  conceptAudienceHook,
   ...Object.keys(internalDependencies),
 ])
 

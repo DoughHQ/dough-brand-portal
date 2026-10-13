@@ -231,6 +231,7 @@ const mastheadRoot = `${conceptRoot}masthead/`
 const handoffRoot = `${conceptRoot}handoff/`
 const boxAudienceRoot = `${boxRoot}audience/`
 const packSizeRoot = `${conceptRoot}packSize/`
+const conceptAudienceRoot = `${conceptRoot}audience/`
 
 function isSetupModule(relativePath) {
   return (
@@ -253,6 +254,7 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(handoffRoot) &&
     !relativePath?.startsWith(boxAudienceRoot) &&
     !relativePath?.startsWith(packSizeRoot) &&
+    !relativePath?.startsWith(conceptAudienceRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)
