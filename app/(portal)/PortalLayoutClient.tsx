@@ -4,10 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { PRODUCT_NAME } from '@/lib/brand'
-import {
-  dismissRenameNotice,
-  readRenameNoticeVisible,
-} from '@/lib/renameNotice'
 import { createClient } from '@/lib/supabase'
 import type { PortalUser } from '@/lib/queries'
 import type { AdminQueueBadges } from '@/lib/adminHome/types'
@@ -17,7 +13,6 @@ import {
   useCommandPaletteHotkey,
   type CommandItem,
 } from '@/components/portal/CommandPalette'
-import RenameNoticeBanner from '@/components/portal/RenameNoticeBanner'
 import { recordPathVisit } from '@/lib/portal-ui'
 import {
   bootstrapPortalCommandAction,
@@ -220,7 +215,6 @@ export default function PortalLayoutClient({
   const [isCompact, setIsCompact] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
-  const [showRenameNotice, setShowRenameNotice] = useState(false)
   const asideRef = useRef<HTMLElement>(null)
   const accountRef = useRef<HTMLDivElement>(null)
 
@@ -232,18 +226,9 @@ export default function PortalLayoutClient({
     }
   }, [dark])
 
-  useEffect(() => {
-    setShowRenameNotice(readRenameNoticeVisible())
-  }, [])
-
   /** Platform ops shell vs brand intelligence shell. */
   const shell: 'platform' | 'brand' = isAdmin && !isImpersonating ? 'platform' : 'brand'
   const isPlatform = shell === 'platform'
-
-  const onDismissRenameNotice = useCallback(() => {
-    dismissRenameNotice()
-    setShowRenameNotice(false)
-  }, [])
 
   const sidebarBrandName = isPlatform
     ? 'Platform view'
@@ -715,10 +700,6 @@ export default function PortalLayoutClient({
                 {exiting ? '…' : 'Exit brand'}
               </button>
             </div>
-          ) : null}
-
-          {!isPlatform && showRenameNotice ? (
-            <RenameNoticeBanner onDismiss={onDismissRenameNotice} />
           ) : null}
 
           <div className="portal-main-body">{children}</div>

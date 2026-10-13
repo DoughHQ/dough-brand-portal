@@ -773,65 +773,6 @@
 
 
 /* Full-width impersonation bar — never shares a row with ⌘K */
-.portal-rename-notice {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 28px;
-  background: var(--sage-soft, var(--sage-pale, #e8f0ea));
-  border-bottom: 1px solid rgba(62, 107, 74, 0.22);
-  font-family: var(--font-sans);
-}
-
-.portal-rename-notice-body {
-  margin: 0;
-  flex: 1;
-  min-width: 0;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--heading);
-}
-
-.portal-rename-notice-dismiss {
-  flex-shrink: 0;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(62, 107, 74, 0.14);
-  color: var(--heading);
-  padding: 7px 12px;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.portal-rename-notice-dismiss:hover {
-  background: rgba(62, 107, 74, 0.22);
-}
-
-.portal-shell.dark .portal-rename-notice {
-  background: rgba(62, 107, 74, 0.18);
-  border-bottom-color: rgba(144, 180, 152, 0.28);
-}
-
-.portal-shell.dark .portal-rename-notice-body {
-  color: var(--cream, #faf8f3);
-}
-
-.portal-shell.dark .portal-rename-notice-dismiss {
-  background: rgba(144, 180, 152, 0.22);
-  color: var(--cream, #faf8f3);
-}
-
-@media (max-width: 880px) {
-  .portal-rename-notice {
-    padding: 10px 16px;
-  }
-}
-
 .portal-impersonation-bar {
   display: flex;
   align-items: center;
