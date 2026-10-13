@@ -234,6 +234,7 @@ const packSizeRoot = `${conceptRoot}packSize/`
 const conceptAudienceRoot = `${conceptRoot}audience/`
 const suggestionRoot = `${conceptRoot}suggestion/`
 const confirmRoot = `${conceptRoot}confirm/`
+const stepperRoot = `${conceptRoot}stepper/`
 
 function isSetupModule(relativePath) {
   return (
@@ -259,6 +260,7 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(conceptAudienceRoot) &&
     !relativePath?.startsWith(suggestionRoot) &&
     !relativePath?.startsWith(confirmRoot) &&
+    !relativePath?.startsWith(stepperRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)
