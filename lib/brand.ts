@@ -6,7 +6,7 @@
  */
 
 /** User-visible product name — flip once for Train B. */
-export const PRODUCT_NAME = 'Dough'
+export const PRODUCT_NAME = 'Runoff'
 
 export const MARKETING_ORIGIN = 'https://www.itsarunoff.com'
 

@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
+import { PRODUCT_NAME } from '@/lib/brand'
 import type { StudyOrderRow } from '@/lib/checkout/payment'
 
 vi.mock('../../checkout.css', () => ({}))
@@ -65,7 +66,7 @@ describe('CheckoutClient', () => {
     expect(markup).toContain('1,500 completed responses × $4.00')
     expect(markup).toContain('>$6,000.00<')
     expect(markup).toContain('Invoice to your account email.')
-    expect(markup).toContain('Dough does not review the study.')
+    expect(markup).toContain(`${PRODUCT_NAME} does not review the study.`)
     expect(markup).not.toContain('This study is live.')
     expect(markup).not.toContain('We&#x27;ll email')
     expect(markup).not.toContain("We'll email")

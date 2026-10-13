@@ -485,10 +485,10 @@ export default function PortalLayoutClient({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className="portal-topbar-mark"
-              src="/dough-mark.png"
+              src="/brand/runoff-mark-32px-reversed.svg"
               alt=""
-              width={28}
-              height={28}
+              width={32}
+              height={32}
             />
             <span className="portal-topbar-section">{sectionLabel}</span>
           </div>
@@ -536,16 +536,15 @@ export default function PortalLayoutClient({
         >
           <div className="portal-mark">
             <div className="portal-mark-lockup">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                className="portal-mark-icon"
-                src="/dough-mark.png"
-                alt=""
-                width={36}
-                height={36}
-              />
               <div>
-                <div className="portal-mark-name">{PRODUCT_NAME}</div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className="portal-mark-logo"
+                  src="/brand/runoff-horizontal-reversed.svg"
+                  alt={PRODUCT_NAME}
+                  width={140}
+                  height={32}
+                />
                 <div className="portal-mark-sub">
                   {isPlatform ? 'Platform' : 'Brand Intelligence'}
                 </div>

@@ -139,23 +139,17 @@ export default function AuthShell({
   children: React.ReactNode
   wide?: boolean
   align?: 'center' | 'start'
-  /**
-   * Default PRODUCT_NAME shows the Dough mark image. Invite/welcome pass
-   * "Runoff" for a text-only wordmark (no mark image) ahead of Train B.
-   */
-  wordmark?: typeof PRODUCT_NAME | 'Runoff'
+  /** Display name under the mark. Defaults to PRODUCT_NAME. */
+  wordmark?: string
 }) {
   const marketingHost = MARKETING_ORIGIN.replace(/^https?:\/\//, '')
   return (
     <div className={`auth-shell${align === 'start' ? ' auth-shell--start' : ''}`}>
       <div className="auth-shell__brand">
-        {wordmark === PRODUCT_NAME ? (
-          <div className="auth-shell__mark" aria-hidden>
-            {/* App icon mark — rolling-pin D on sage */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/dough-mark.png" alt="" width={72} height={72} />
-          </div>
-        ) : null}
+        <div className="auth-shell__mark" aria-hidden>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/runoff-app-icon-256.png" alt="" width={72} height={72} />
+        </div>
         <div className="auth-shell__wordmark">{wordmark}</div>
       </div>
 
