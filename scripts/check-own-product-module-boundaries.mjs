@@ -92,13 +92,20 @@ function resolveImport(relativePath, specifier) {
 
 const dependencies = {
   [ownShell]: [
-    `${ownRoot}ConceptDesignCard.tsx`,
+    `${ownRoot}OwnProductAddControl.tsx`,
+    `${ownRoot}OwnProductColumnHead.tsx`,
     `${ownRoot}OwnProductEmptyState.tsx`,
-    `${ownRoot}OwnVariantCard.tsx`,
+    `${ownRoot}OwnProductSeat.tsx`,
     `${ownRoot}useOwnProductColumn.ts`,
   ],
   [`${ownRoot}ConceptDesignCard.tsx`]: [],
+  [`${ownRoot}OwnProductAddControl.tsx`]: [],
+  [`${ownRoot}OwnProductColumnHead.tsx`]: [],
   [`${ownRoot}OwnProductEmptyState.tsx`]: [],
+  [`${ownRoot}OwnProductSeat.tsx`]: [
+    `${ownRoot}ConceptDesignCard.tsx`,
+    `${ownRoot}OwnVariantCard.tsx`,
+  ],
   [`${ownRoot}OwnVariantCard.tsx`]: [],
   [`${ownRoot}useOwnProductColumn.ts`]: [],
 }
@@ -194,7 +201,8 @@ function follow(relativePath, trail, localSeen) {
 for (const relativePath of trackedModules) visit(relativePath, [])
 
 const budgets = {
-  [ownShell]: 180,
+  [ownShell]: 105,
+  [`${ownRoot}OwnProductSeat.tsx`]: 110,
   [`${ownRoot}OwnVariantCard.tsx`]: 190,
   [`${ownRoot}useOwnProductColumn.ts`]: 150,
 }
