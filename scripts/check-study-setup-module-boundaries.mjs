@@ -238,6 +238,7 @@ const stepperRoot = `${conceptRoot}stepper/`
 const sectionChromeRoot = `${conceptRoot}sectionChrome/`
 const conceptReportStateRoot = `${conceptRoot}[missionId]/report/states/`
 const conceptStudyStatusRoot = `${conceptRoot}[missionId]/status/`
+const conceptEditDraftRoot = `${conceptRoot}[missionId]/edit/draft/`
 
 function isSetupModule(relativePath) {
   return (
@@ -267,6 +268,7 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(sectionChromeRoot) &&
     !relativePath?.startsWith(conceptReportStateRoot) &&
     !relativePath?.startsWith(conceptStudyStatusRoot) &&
+    !relativePath?.startsWith(conceptEditDraftRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)
