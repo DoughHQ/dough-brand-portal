@@ -13,7 +13,7 @@ describe('lib/brand', () => {
     vi.unstubAllEnvs()
   })
 
-  it('keeps display name Dough until Train B', () => {
+  it('sets display name to Runoff (Train B)', () => {
     expect(PRODUCT_NAME).toBe('Runoff')
   })
 
