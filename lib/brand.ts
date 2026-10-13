@@ -1,11 +1,11 @@
 /**
  * Portal brand / domain constants.
  *
- * Display product name stays "Dough" until Train B + Runoff mark kit
- * (dough repo docs/runoff-phase0-decisions.md). Do not put storage keys here.
+ * Display product name is Runoff (Train B: name + mark flipped together).
+ * See dough repo docs/runoff-phase0-decisions.md. Do not put storage keys here.
  */
 
-/** User-visible product name — flip once for Train B. */
+/** User-visible product name. */
 export const PRODUCT_NAME = 'Runoff'
 
 export const MARKETING_ORIGIN = 'https://www.itsarunoff.com'
