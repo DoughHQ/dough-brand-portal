@@ -68,6 +68,15 @@ jobs:
       - run: npm run check:checkout-handoff-ban
       - run: npm run check:box-audience-ban
       - run: npm run check:pack-size-ban
+      - run: npm run check:concept-audience-ban
+      - run: npm run check:suggestion-dropdown-ban
+      - run: npm run check:confirm-dialog-ban
+      - run: npm run check:builder-stepper-ban
+      - run: npm run check:builder-section-chrome-ban
+      - run: npm run check:resume-draft-banner-ban
+      - run: npm run check:new-study-chooser-ban
+      - run: npm run check:checkout-desk-ban
+      - run: npm run check:concept-report-page-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run

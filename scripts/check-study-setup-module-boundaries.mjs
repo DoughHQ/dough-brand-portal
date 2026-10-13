@@ -231,6 +231,12 @@ const mastheadRoot = `${conceptRoot}masthead/`
 const handoffRoot = `${conceptRoot}handoff/`
 const boxAudienceRoot = `${boxRoot}audience/`
 const packSizeRoot = `${conceptRoot}packSize/`
+const conceptAudienceRoot = `${conceptRoot}audience/`
+const suggestionRoot = `${conceptRoot}suggestion/`
+const confirmRoot = `${conceptRoot}confirm/`
+const stepperRoot = `${conceptRoot}stepper/`
+const sectionChromeRoot = `${conceptRoot}sectionChrome/`
+const conceptReportStateRoot = `${conceptRoot}[missionId]/report/states/`
 
 function isSetupModule(relativePath) {
   return (
@@ -253,6 +259,12 @@ function isSetupModule(relativePath) {
     !relativePath?.startsWith(handoffRoot) &&
     !relativePath?.startsWith(boxAudienceRoot) &&
     !relativePath?.startsWith(packSizeRoot) &&
+    !relativePath?.startsWith(conceptAudienceRoot) &&
+    !relativePath?.startsWith(suggestionRoot) &&
+    !relativePath?.startsWith(confirmRoot) &&
+    !relativePath?.startsWith(stepperRoot) &&
+    !relativePath?.startsWith(sectionChromeRoot) &&
+    !relativePath?.startsWith(conceptReportStateRoot) &&
     /\.(ts|tsx|js|jsx)$/.test(relativePath) &&
     !relativePath.includes('/__tests__/') &&
     !neighborModules.has(relativePath)
