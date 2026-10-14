@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState, useTransition, type CSSProperties } from 'react'
+import { useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   deleteStudyDraftAction,
@@ -10,9 +10,7 @@ import {
 } from '@/app/(portal)/studies/drafts/actions'
 import { unbindByServerDraftId } from '@/lib/studies/draftServerBindings'
 import { openServerStudyDraft } from '@/lib/studies/openServerDraft'
-import { formatResumeWhen } from '@/lib/studies/useServerStudyDraft'
-import RowOverflowMenu from './RowOverflowMenu'
-import { ICON_FILE, StudiesGlyph } from './studiesIcons'
+import StudyDraftRow from './drafts/StudyDraftRow'
 
 type Props = {
   drafts: StudyDraftListItem[]
@@ -20,12 +18,6 @@ type Props = {
   onChange: (next: StudyDraftListItem[]) => void
   onError: (message: string) => void
   onToast: (message: string) => void
-}
-
-function typeLabel(testType: string): string {
-  if (testType === 'concept') return 'Concept'
-  if (testType === 'ihut') return 'iHUT'
-  return 'Study'
 }
 
 function asTestType(raw: string): StudyDraftTestType | null {
@@ -137,141 +129,22 @@ export default function StudyDraftsPanel({
 
   return (
     <div className="studies-list">
-      {drafts.map((row) => {
-        const busy = busyId === row.id || pending
-        const renaming = renamingId === row.id
-        return (
-          <div key={row.id} className="studies-study-row studies-study-row--draft">
-            {renaming ? (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  void saveRename(row)
-                }}
-                style={{
-                  display: 'flex',
-                  gap: 8,
-                  alignItems: 'center',
-                  flex: 1,
-                  minWidth: 0,
-                }}
-              >
-                <input
-                  autoFocus
-                  value={renameValue}
-                  onChange={(e) => setRenameValue(e.target.value)}
-                  disabled={busy}
-                  aria-label="Draft title"
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: 14,
-                    fontWeight: 500,
-                    padding: '8px 10px',
-                    borderRadius: 8,
-                    border: '1px solid var(--mist, var(--ink-10))',
-                    color: 'var(--ink)',
-                    background: 'var(--surface-1)',
-                  }}
-                />
-                <button
-                  type="submit"
-                  disabled={busy || !renameValue.trim()}
-                  style={quietPrimary}
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={cancelRename}
-                  style={quietGhost}
-                >
-                  Cancel
-                </button>
-              </form>
-            ) : (
-              <>
-                <div className="studies-study-main">
-                  <div className="studies-study-mark studies-study-mark-neutral">
-                    <StudiesGlyph d={ICON_FILE} size={16} />
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div className="studies-study-name">
-                      {row.title?.trim() || 'Untitled study'}
-                    </div>
-                    <div className="studies-study-meta">
-                      <span className="studies-type-badge">{typeLabel(row.test_type)}</span>
-                      <span className="studies-study-sub">
-                        Updated {formatResumeWhen(row.updated_at)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="studies-study-actions">
-                  <button
-                    type="button"
-                    className="studies-row-cta"
-                    disabled={busy}
-                    onClick={() => void openDraft(row)}
-                  >
-                    {busyId === row.id ? 'Opening…' : 'Continue →'}
-                  </button>
-                  <RowOverflowMenu
-                    actions={[
-                      {
-                        label: 'Rename',
-                        disabled: busy,
-                        onClick: () => startRename(row),
-                      },
-                      {
-                        label: 'Delete',
-                        tone: 'danger',
-                        disabled: busy,
-                        onClick: () => {
-                          if (
-                            typeof window !== 'undefined' &&
-                            !window.confirm(
-                              `Delete “${row.title?.trim() || 'Untitled study'}”? This can’t be undone.`
-                            )
-                          ) {
-                            return
-                          }
-                          void deleteDraft(row)
-                        },
-                      },
-                    ]}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-        )
-      })}
+      {drafts.map((row) => (
+        <StudyDraftRow
+          key={row.id}
+          row={row}
+          busy={busyId === row.id || pending}
+          opening={busyId === row.id}
+          renaming={renamingId === row.id}
+          renameValue={renameValue}
+          onRenameValue={setRenameValue}
+          onSaveRename={() => void saveRename(row)}
+          onCancelRename={cancelRename}
+          onOpen={() => void openDraft(row)}
+          onStartRename={() => startRename(row)}
+          onDelete={() => void deleteDraft(row)}
+        />
+      ))}
     </div>
   )
-}
-
-const quietGhost: CSSProperties = {
-  border: 'none',
-  background: 'transparent',
-  cursor: 'pointer',
-  fontFamily: 'var(--font-sans)',
-  fontSize: 13,
-  fontWeight: 500,
-  color: 'var(--ink-50)',
-  padding: '8px 10px',
-}
-
-const quietPrimary: CSSProperties = {
-  border: 'none',
-  background: 'var(--sage)',
-  color: 'var(--on-fill, #fff)',
-  cursor: 'pointer',
-  fontFamily: 'var(--font-sans)',
-  fontSize: 13,
-  fontWeight: 600,
-  padding: '9px 14px',
-  borderRadius: 8,
 }
