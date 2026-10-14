@@ -95,6 +95,7 @@ jobs:
       - run: npm run check:application-decision-dialogs-ban
       - run: npm run check:corrections-review-ban
       - run: npm run check:case-editor-ban
+      - run: npm run check:readiness-table-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
