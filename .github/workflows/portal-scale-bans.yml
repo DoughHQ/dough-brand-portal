@@ -92,6 +92,7 @@ jobs:
       - run: npm run check:studies-metrics-ban
       - run: npm run check:studies-confirm-dialog-ban
       - run: npm run check:brand-applications-ban
+      - run: npm run check:application-decision-dialogs-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
