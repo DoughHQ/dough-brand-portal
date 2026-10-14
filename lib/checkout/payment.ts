@@ -1,6 +1,8 @@
 import type { StudyOrderStatus } from './status'
 import { PRODUCT_NAME } from '@/lib/brand'
 
+export type StudyRefundMethod = 'refund' | 'credit'
+
 export type StudyOrderRow = {
   mission_id: string
   brand_id: number
@@ -13,12 +15,24 @@ export type StudyOrderRow = {
   payment_reference: string | null
   paid_at: string | null
   created_at: string
+  /** When the report settled the order (post-report). Null while unpaid or still collecting. */
+  settled_at: string | null
+  delivered_completions: number | null
+  refund_due_cents: number | null
+  refund_method: StudyRefundMethod | null
+  refund_reference: string | null
+  refunded_cents: number | null
+  refunded_at: string | null
 }
 
 export type CheckoutThumb = {
   name: string
   imageUrl: string | null
   kind: 'design' | 'product'
+}
+
+export function isOrderSettled(order: Pick<StudyOrderRow, 'settled_at'>): boolean {
+  return order.settled_at != null
 }
 
 export function recordPaymentArgs(input: {
@@ -47,12 +61,34 @@ export function recordPaymentArgs(input: {
   }
 }
 
+export function recordRefundArgs(input: {
+  missionId: string
+  reference: string
+  method: StudyRefundMethod
+}): {
+  p_mission_id: string
+  p_reference: string
+  p_method: StudyRefundMethod
+} {
+  return {
+    p_mission_id: input.missionId,
+    p_reference: input.reference.trim(),
+    p_method: input.method,
+  }
+}
+
 const HINT_COPY: Record<string, string> = {
   NOT_DOUGH_ADMIN: `Only ${PRODUCT_NAME} staff can do this.`,
   PAYMENT_REFERENCE_REQUIRED:
     'Add a reference: an invoice number, a payment id, or why it was waived.',
+  REFUND_REFERENCE_REQUIRED:
+    'Add a reference: a Stripe refund id, an invoice number, or a credit-note number.',
+  INVALID_REFUND_METHOD: 'Choose refund (money back) or credit (toward the next study).',
+  NOT_SETTLED: "This study isn't settled yet. The refund is worked out when its report is final.",
+  ALREADY_REFUNDED: 'A refund is already recorded for this study.',
+  NOTHING_DUE: 'This study owes no refund.',
   ORDER_NOT_FOUND: 'This study has no order.',
-  NOT_AWAITING_PAYMENT: 'This order is already settled.',
+  NOT_AWAITING_PAYMENT: 'This order is already paid or waived.',
   AMOUNT_REQUIRED: 'Enter the amount paid. It has to match the order.',
   AMOUNT_MISMATCH: 'That amount does not match the order.',
   MISSION_NOT_FOUND: 'That study is no longer there.',

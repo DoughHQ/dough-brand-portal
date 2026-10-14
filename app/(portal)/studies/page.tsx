@@ -26,6 +26,7 @@ export default async function StudiesPage() {
       brandName={loaded.brandName}
       loadError={loaded.loadError}
       awaitingOrders={loaded.awaitingOrders}
+      refundsOwed={loaded.refundsOwed}
       orderBrandNames={loaded.orderBrandNames}
       invoiceContactLabels={loaded.invoiceContactLabels}
       conceptUnitPriceCents={loaded.conceptUnitPriceCents}

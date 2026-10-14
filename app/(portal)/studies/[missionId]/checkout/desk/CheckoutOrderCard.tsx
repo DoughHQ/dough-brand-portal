@@ -12,7 +12,10 @@ type Props = {
   total: string
   when: string | null
   invoiceEmail: string
-  settled: boolean
+  orderPaidOrWaived: boolean
+  settlementLines: string[]
+  studyHref: string
+  studyLinkLabel: string
 }
 
 export default function CheckoutOrderCard({
@@ -23,7 +26,10 @@ export default function CheckoutOrderCard({
   total,
   when,
   invoiceEmail,
-  settled,
+  orderPaidOrWaived,
+  settlementLines,
+  studyHref,
+  studyLinkLabel,
 }: Props) {
   return (
     <aside className="checkout-card">
@@ -43,14 +49,24 @@ export default function CheckoutOrderCard({
       {order.status === 'waived' ? (
         <p className="checkout-receipt">Complimentary</p>
       ) : null}
-      {settled ? (
+      {orderPaidOrWaived ? (
         <>
-          <p className="checkout-receipt">Your study is live.</p>
-          <Link className="checkout-live" href={`/studies/concept/${order.mission_id}`}>
-            Open study
+          <p className="checkout-receipt">
+            {studyLinkLabel === 'View report'
+              ? 'Your study has ended.'
+              : 'Your study is live.'}
+          </p>
+          <Link className="checkout-live" href={studyHref}>
+            {studyLinkLabel}
           </Link>
         </>
       ) : null}
+
+      {settlementLines.map((line) => (
+        <p key={line} className="checkout-receipt">
+          {line}
+        </p>
+      ))}
 
       {order.status === 'awaiting_payment' && !requested ? (
         <button type="button" className="checkout-button" onClick={() => setRequested(true)}>

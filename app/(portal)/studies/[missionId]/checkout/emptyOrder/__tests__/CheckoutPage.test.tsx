@@ -45,6 +45,13 @@ const order = {
   payment_reference: null,
   paid_at: null,
   created_at: '2026-03-01T00:00:00.000Z',
+  settled_at: null,
+  delivered_completions: null,
+  refund_due_cents: null,
+  refund_method: null,
+  refund_reference: null,
+  refunded_cents: null,
+  refunded_at: null,
 }
 
 function expectOrder(markup: string, markers: string[]) {
@@ -80,7 +87,11 @@ describe('CheckoutPage', () => {
       designs: [{ name: 'Oat carton', imageUrl: null, kind: 'design' }],
       products: [],
     })
-    fetchMissionCheckoutWindow.mockResolvedValue({ fieldingDays: 14, expiresAt: null })
+    fetchMissionCheckoutWindow.mockResolvedValue({
+      fieldingDays: 14,
+      expiresAt: null,
+      status: 'active',
+    })
   })
 
   it('sends a signed-out visitor to login', async () => {

@@ -11,12 +11,9 @@ const {
   fetchOperatorStudiesPage,
   getWithdrawnStudies,
   listStudyDraftsAction,
-  fetchAwaitingOrders,
-  fetchConceptPrice,
   attachOrderStatus,
-  fetchInvoiceContactLabels,
+  loadStaffCheckoutDesk,
   createServerSupabaseClient,
-  brandIn,
 } = vi.hoisted(() => ({
   redirect: vi.fn((href: string) => {
     throw new Error(`REDIRECT ${href}`)
@@ -26,12 +23,9 @@ const {
   fetchOperatorStudiesPage: vi.fn(),
   getWithdrawnStudies: vi.fn(),
   listStudyDraftsAction: vi.fn(),
-  fetchAwaitingOrders: vi.fn(),
-  fetchConceptPrice: vi.fn(),
   attachOrderStatus: vi.fn(),
-  fetchInvoiceContactLabels: vi.fn(),
+  loadStaffCheckoutDesk: vi.fn(),
   createServerSupabaseClient: vi.fn(),
-  brandIn: vi.fn(),
 }))
 
 vi.mock('../../studiesPage.css', () => ({}))
@@ -45,11 +39,9 @@ vi.mock('@/lib/studies/fetchOperatorStudies', () => ({ fetchOperatorStudiesPage 
 vi.mock('@/lib/studies/fetchWithdrawnStudies', () => ({ getWithdrawnStudies }))
 vi.mock('../../drafts/actions', () => ({ listStudyDraftsAction }))
 vi.mock('@/lib/checkout/load', () => ({
-  fetchAwaitingOrders,
-  fetchConceptPrice,
   attachOrderStatus,
 }))
-vi.mock('@/lib/checkout/invoiceContact.server', () => ({ fetchInvoiceContactLabels }))
+vi.mock('@/lib/checkout/loadStaffDesk', () => ({ loadStaffCheckoutDesk }))
 vi.mock('@/lib/supabase-server', () => ({ createServerSupabaseClient }))
 
 import StudiesPage from '../../page'
@@ -105,12 +97,17 @@ describe('StudiesPage', () => {
     fetchOperatorStudiesPage.mockReset()
     getWithdrawnStudies.mockReset()
     listStudyDraftsAction.mockReset()
-    fetchAwaitingOrders.mockReset()
-    fetchConceptPrice.mockReset()
     attachOrderStatus.mockReset()
-    fetchInvoiceContactLabels.mockReset()
+    loadStaffCheckoutDesk.mockReset()
     createServerSupabaseClient.mockReset()
-    brandIn.mockReset()
+    loadStaffCheckoutDesk.mockResolvedValue({
+      awaitingOrders: [],
+      refundsOwed: [],
+      orderBrandNames: {},
+      invoiceContactLabels: {},
+      conceptUnitPriceCents: null,
+      conceptCurrency: 'usd',
+    })
     getPortalBrandScope.mockResolvedValue(scope('brand_admin'))
     getBrand.mockResolvedValue({ brand_id: 7, brand_name: 'Maple' })
     fetchOperatorStudiesPage.mockImplementation(async (opts: { tab: string }) => ({
@@ -161,30 +158,37 @@ describe('StudiesPage', () => {
         },
       ],
     })
-    fetchAwaitingOrders.mockResolvedValue([
-      {
-        mission_id: 'mission-9',
-        brand_id: 4,
-        title: 'Oat carton order',
-        completions: 1500,
-        unit_price_cents: 400,
-        amount_cents: 600000,
-        currency: 'usd',
-        status: 'awaiting_payment',
-        payment_reference: null,
-        paid_at: null,
-        created_at: '2026-03-01T00:00:00.000Z',
-      },
-    ])
-    fetchConceptPrice.mockResolvedValue({ unit_price_cents: 400, currency: 'usd' })
     attachOrderStatus.mockImplementation(async (_supabase: unknown, rows: unknown[]) => rows)
-    fetchInvoiceContactLabels.mockResolvedValue({ 'mission-9': 'ada@example.com' })
-    brandIn.mockResolvedValue({ data: [{ brand_id: 4, brand_name: 'Maple' }] })
-    createServerSupabaseClient.mockResolvedValue({
-      from: () => ({
-        select: () => ({ in: brandIn }),
-      }),
+    loadStaffCheckoutDesk.mockResolvedValue({
+      awaitingOrders: [
+        {
+          mission_id: 'mission-9',
+          brand_id: 4,
+          title: 'Oat carton order',
+          completions: 1500,
+          unit_price_cents: 400,
+          amount_cents: 600000,
+          currency: 'usd',
+          status: 'awaiting_payment',
+          payment_reference: null,
+          paid_at: null,
+          created_at: '2026-03-01T00:00:00.000Z',
+          settled_at: null,
+          delivered_completions: null,
+          refund_due_cents: null,
+          refund_method: null,
+          refund_reference: null,
+          refunded_cents: null,
+          refunded_at: null,
+        },
+      ],
+      refundsOwed: [],
+      orderBrandNames: { 4: 'Maple' },
+      invoiceContactLabels: { 'mission-9': 'ada@example.com' },
+      conceptUnitPriceCents: 400,
+      conceptCurrency: 'usd',
     })
+    createServerSupabaseClient.mockResolvedValue({})
   })
 
   it('sends a signed-out visitor to login before loading studies', async () => {
@@ -213,7 +217,7 @@ describe('StudiesPage', () => {
     })
     expect(getBrand).toHaveBeenCalledWith(7)
     expect(getWithdrawnStudies).not.toHaveBeenCalled()
-    expect(fetchAwaitingOrders).not.toHaveBeenCalled()
+    expect(loadStaffCheckoutDesk).not.toHaveBeenCalled()
     expect(markup).toContain('Live maple')
     expect(markup).toContain('Done maple')
     expect(markup).toContain('>Load more<')
@@ -242,12 +246,11 @@ describe('StudiesPage', () => {
       includeDrafts: false,
     })
     expect(getWithdrawnStudies).toHaveBeenCalledOnce()
-    expect(fetchAwaitingOrders).toHaveBeenCalledOnce()
-    expect(fetchConceptPrice).toHaveBeenCalledOnce()
-    expect(fetchInvoiceContactLabels).toHaveBeenCalledWith(['mission-9'])
-    expect(brandIn).toHaveBeenCalledWith('brand_id', [4])
+    expect(loadStaffCheckoutDesk).toHaveBeenCalledOnce()
     expect(getBrand).not.toHaveBeenCalled()
     expect(markup).toContain('Awaiting payment')
+    expect(markup).toContain('Refunds owed')
+    expect(markup).toContain('No refunds are waiting.')
     expect(markup).toContain('Oat carton order')
     expect(markup).toContain('Maple')
     expect(markup).toContain('ada@example.com')
