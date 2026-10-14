@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import AuthShell from '@/components/auth/AuthShell'
+import AuthShell, { AuthInput } from '@/components/auth/AuthShell'
 import { MIN_PASSWORD_LENGTH, validateNewPassword } from '@/lib/auth/passwordRules'
 
 type Status = 'checking' | 'ready' | 'invalid' | 'success'
@@ -163,83 +163,24 @@ export default function UpdatePasswordPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 500,
-                  color: 'var(--ink-50)',
-                  marginBottom: 6,
-                  letterSpacing: '0.04em',
-                }}
-              >
-                New password
-              </div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 8 characters"
-                autoComplete="new-password"
-                onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                style={{
-                  width: '100%',
-                  padding: '11px 14px',
-                  borderRadius: 'var(--r-sm)',
-                  border: '1px solid var(--ink-10)',
-                  background: 'var(--paper)',
-                  fontSize: 14,
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-sans)',
-                  outline: 'none',
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--sage)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--ink-10)'
-                }}
-              />
-            </div>
-
-            <div>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 500,
-                  color: 'var(--ink-50)',
-                  marginBottom: 6,
-                  letterSpacing: '0.04em',
-                }}
-              >
-                Confirm password
-              </div>
-              <input
-                type="password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                placeholder="Re-enter your password"
-                autoComplete="new-password"
-                onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                style={{
-                  width: '100%',
-                  padding: '11px 14px',
-                  borderRadius: 'var(--r-sm)',
-                  border: '1px solid var(--ink-10)',
-                  background: 'var(--paper)',
-                  fontSize: 14,
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-sans)',
-                  outline: 'none',
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--sage)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--ink-10)'
-                }}
-              />
-            </div>
+            <AuthInput
+              label="New password"
+              type="password"
+              value={password}
+              onChange={setPassword}
+              placeholder="At least 8 characters"
+              autoComplete="new-password"
+              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+            />
+            <AuthInput
+              label="Confirm password"
+              type="password"
+              value={confirm}
+              onChange={setConfirm}
+              placeholder="Re-enter your password"
+              autoComplete="new-password"
+              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+            />
 
             {passwordsMismatch && (
               <div style={{ fontSize: 12, color: 'var(--red)' }}>Passwords do not match.</div>
