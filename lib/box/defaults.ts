@@ -7,6 +7,7 @@ import {
   IHUT_RESPONDENT_WINDOW_DAYS,
   ihutHiddenBackstopAt,
 } from './completionContract'
+import { createEmptyRiskDeclaration } from './risk'
 
 function newId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -64,6 +65,7 @@ export function createEmptyBoxDraft(brandId: number): BoxStudyDraft {
     ihutAttributes: [...IHUT_DEFAULT_ATTRIBUTES],
     ihutBrandQuestions: [],
     ihutSuccessBars: { ...IHUT_DEFAULT_SUCCESS_BARS },
+    riskDeclaration: createEmptyRiskDeclaration(),
     updatedAt: now.toISOString(),
   }
 }

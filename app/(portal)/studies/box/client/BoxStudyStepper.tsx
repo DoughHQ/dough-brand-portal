@@ -15,6 +15,11 @@ export default function BoxStudyStepper({ validity }: { validity: BoxValidity })
           done: validity.setupOk && validity.fieldOk,
         },
         {
+          id: BOX_ANCHORS.risk,
+          label: "What's inside",
+          done: validity.riskOk,
+        },
+        {
           id: BOX_ANCHORS.method,
           label: 'Questions',
           done: validity.setupOk && validity.fieldOk,

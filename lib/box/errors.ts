@@ -13,6 +13,7 @@ export type BoxErrorSection =
   | 'field'
   | 'audience'
   | 'logistics'
+  | 'risk'
   | 'publish'
 
 export const BOX_PUBLISH_HINT_MESSAGES: Record<string, string> = {
@@ -102,6 +103,17 @@ export const BOX_PUBLISH_HINT_MESSAGES: Record<string, string> = {
     'Confirm allergens from each package label before publishing.',
   DECLARATION_REQUIRED:
     'Declare both what each product contains and may contain (empty means none).',
+
+  // What's in this box (publish_ihut_study_v2 risk declaration)
+  RISK_DECLARATION_REQUIRED:
+    "Answer the questions under What's in this box before publishing.",
+  PROHIBITED_SUBSTANCE:
+    "Runoff can't ship boxes with THC, CBD or other hemp products, nicotine, or kratom.",
+  RESTRICTED_CATEGORY:
+    "Runoff can't ship cannabis, hemp, CBD, nicotine, or kratom products. Remove them from the box.",
+  ALCOHOL_SHIPPING_ATTESTATION_REQUIRED:
+    'This box contains alcohol. Confirm you can legally ship it with an adult signature on delivery.',
+  ALCOHOL_MIN_AGE: 'Boxes with alcohol are only open to people 21 and older.',
 }
 
 /** Ordered longest-first so e.g. CATEGORY_BAR_REQUIRES_NODE is never
@@ -171,6 +183,12 @@ export function sectionForBoxCode(code: string): BoxErrorSection {
     case 'INVALID_ABANDON_WINDOW':
     case 'BOX_OPEN_OUTSIDE_WINDOW':
       return 'logistics'
+    case 'RISK_DECLARATION_REQUIRED':
+    case 'PROHIBITED_SUBSTANCE':
+    case 'RESTRICTED_CATEGORY':
+    case 'ALCOHOL_SHIPPING_ATTESTATION_REQUIRED':
+    case 'ALCOHOL_MIN_AGE':
+      return 'risk'
     default:
       return 'publish'
   }

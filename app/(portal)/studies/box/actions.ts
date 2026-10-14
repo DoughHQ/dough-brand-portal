@@ -4,7 +4,12 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalUser } from '@/lib/queries'
 import { parseCreateCampaignDraftResult } from '@/lib/studies/parseCampaignDraft'
 import { draftToBoxPublishArgs } from '@/lib/box/publish'
-import { rpcPublishBoxStudy } from '@/lib/box/rpc'
+import { rpcPublishBoxStudy, rpcTaxonomyBoxRisk } from '@/lib/box/rpc'
+import {
+  summarizeTaxonomyRisk,
+  type BoxTaxonomyRisk,
+  type BoxTaxonomyRiskValue,
+} from '@/lib/box/risk'
 import {
   extractBoxHint,
   resolveBoxPublishError,
@@ -328,6 +333,10 @@ export async function publishBoxStudyAction(
         taste_only: root?.taste_only === true,
         price_check_enabled: root?.price_check_enabled === true,
         prototype_labels,
+        risk_flags: Array.isArray(root?.risk_flags)
+          ? root.risk_flags.filter((f): f is string => typeof f === 'string')
+          : [],
+        min_age: numOrNull(root?.min_age),
       },
     }
   } catch (err) {
@@ -337,6 +346,37 @@ export async function publishBoxStudyAction(
     })
     return asFail(resolved)
   }
+}
+
+/**
+ * taxonomy_box_risk for the box category and every seat. Lets the builder
+ * lock "contains alcohol" and flag restricted products before publish; the
+ * publish RPC runs the same check and stays authoritative.
+ */
+export async function checkBoxTaxonomyRiskAction(
+  nodeIds: number[]
+): Promise<{ ok: true; risk: BoxTaxonomyRisk } | { ok: false }> {
+  const portalUser = await getPortalUser()
+  if (!portalUser) return { ok: false }
+  const ids = nodeIds.filter((id) => Number.isSafeInteger(id)).slice(0, 12)
+  if (ids.length === 0) {
+    return { ok: true, risk: summarizeTaxonomyRisk([]) }
+  }
+  const supabase = await createServerSupabaseClient()
+  const results = await Promise.all(
+    ids.map(async (nodeId) => {
+      const { data, error } = await rpcTaxonomyBoxRisk(supabase, nodeId)
+      if (error) return null
+      const risk: BoxTaxonomyRiskValue =
+        data === 'alcohol' || data === 'restricted' ? data : null
+      return { nodeId, risk }
+    })
+  )
+  const verdicts = results.filter(
+    (r): r is { nodeId: number; risk: BoxTaxonomyRiskValue } => r != null
+  )
+  if (verdicts.length !== ids.length) return { ok: false }
+  return { ok: true, risk: summarizeTaxonomyRisk(verdicts) }
 }
 
 /**
