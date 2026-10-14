@@ -737,6 +737,7 @@
 }
 
 .checkout-desk-form input,
+.checkout-desk-form select,
 .checkout-desk-price input {
   height: 36px;
   border: 1px solid var(--mist, var(--ink-10));

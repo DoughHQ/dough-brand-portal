@@ -2,7 +2,12 @@
 
 import { revalidatePath } from 'next/cache'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
-import { checkoutErrorMessage, recordPaymentArgs } from '@/lib/checkout/payment'
+import {
+  checkoutErrorMessage,
+  recordPaymentArgs,
+  recordRefundArgs,
+  type StudyRefundMethod,
+} from '@/lib/checkout/payment'
 import { dollarsToCents } from '@/lib/checkout/money'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { PRODUCT_NAME } from '@/lib/brand'
@@ -65,4 +70,45 @@ export async function setStudyPriceAction(input: {
       : cents
   revalidatePath('/studies')
   return { ok: true, unitPriceCents: Number.isFinite(next) ? next : cents }
+}
+
+function revalidateRefundPaths(missionId: string) {
+  revalidatePath('/studies')
+  revalidatePath(`/studies/${missionId}/checkout`)
+  revalidatePath(`/studies/concept/${missionId}/report`)
+  revalidatePath(`/reports/${missionId}`)
+}
+
+export async function recordStudyRefundAction(input: {
+  missionId: string
+  reference: string
+  method: StudyRefundMethod
+}): Promise<{ ok: true; alreadyRecorded: boolean } | { ok: false; error: string }> {
+  const staff = await requireStaff()
+  if (!staff.ok) return staff
+  const reference = input.reference.trim()
+  if (!reference) {
+    return {
+      ok: false,
+      error:
+        'Add a reference: a Stripe refund id, an invoice number, or a credit-note number.',
+    }
+  }
+  if (input.method !== 'refund' && input.method !== 'credit') {
+    return {
+      ok: false,
+      error: 'Choose refund (money back) or credit (toward the next study).',
+    }
+  }
+  const supabase = await createServerSupabaseClient()
+  const args = recordRefundArgs({ ...input, reference })
+  const { data, error } = await supabase.rpc('record_study_refund', args)
+  if (error) return { ok: false, error: checkoutErrorMessage(error) }
+  const root = data && typeof data === 'object' && !Array.isArray(data) ? data : null
+  const already =
+    root != null &&
+    'already_recorded' in root &&
+    (root as { already_recorded?: unknown }).already_recorded === true
+  revalidateRefundPaths(input.missionId)
+  return { ok: true, alreadyRecorded: already }
 }

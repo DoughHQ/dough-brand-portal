@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/database.types'
 import { resolveStimuliPreviewUrl } from '@/lib/concept/stimuliStorage'
 import { isStudyOrderStatus, type StudyOrderStatus } from './status'
-import type { CheckoutThumb, StudyOrderRow } from './payment'
+import type { CheckoutThumb, StudyOrderRow, StudyRefundMethod } from './payment'
 
 type Client = SupabaseClient<Database>
 
@@ -17,24 +17,78 @@ function intField(value: unknown): number | null {
   return null
 }
 
-export function parseStudyOrder(row: {
+function optionalString(value: unknown): string | null | undefined {
+  if (value === null) return null
+  if (typeof value === 'string') return value
+  return undefined
+}
+
+function refundMethod(value: unknown): StudyRefundMethod | null | undefined {
+  if (value === null) return null
+  if (value === 'refund' || value === 'credit') return value
+  if (value === undefined) return null
+  return undefined
+}
+
+export type StudyOrderSource = {
   mission_id: string
   brand_id: number
   title: string
-  completions: number
-  unit_price_cents: number
+  completions: number | string
+  unit_price_cents: number | string
   amount_cents: number | string | null
   currency: string
   status: string
   payment_reference: string | null
   paid_at: string | null
   created_at: string
-}): StudyOrderRow | null {
+  settled_at?: string | null
+  delivered_completions?: number | string | null
+  refund_due_cents?: number | string | null
+  refund_method?: string | null
+  refund_reference?: string | null
+  refunded_cents?: number | string | null
+  refunded_at?: string | null
+}
+
+export function parseStudyOrder(row: StudyOrderSource): StudyOrderRow | null {
   if (!isStudyOrderStatus(row.status)) return null
   const unit = intField(row.unit_price_cents)
   const completions = intField(row.completions)
   if (unit == null || completions == null) return null
   const amount = intField(row.amount_cents) ?? unit * completions
+
+  const settledAt = optionalString(row.settled_at ?? null)
+  const refundReference = optionalString(row.refund_reference ?? null)
+  const refundedAt = optionalString(row.refunded_at ?? null)
+  const method = refundMethod(row.refund_method ?? null)
+  if (
+    settledAt === undefined ||
+    refundReference === undefined ||
+    refundedAt === undefined ||
+    method === undefined
+  ) {
+    return null
+  }
+
+  let delivered: number | null = null
+  if (row.delivered_completions != null && row.delivered_completions !== undefined) {
+    delivered = intField(row.delivered_completions)
+    if (delivered == null) return null
+  }
+
+  let refundDue: number | null = null
+  if (row.refund_due_cents != null && row.refund_due_cents !== undefined) {
+    refundDue = intField(row.refund_due_cents)
+    if (refundDue == null) return null
+  }
+
+  let refundedCents: number | null = null
+  if (row.refunded_cents != null && row.refunded_cents !== undefined) {
+    refundedCents = intField(row.refunded_cents)
+    if (refundedCents == null) return null
+  }
+
   return {
     mission_id: row.mission_id,
     brand_id: row.brand_id,
@@ -47,11 +101,18 @@ export function parseStudyOrder(row: {
     payment_reference: row.payment_reference,
     paid_at: row.paid_at,
     created_at: row.created_at,
+    settled_at: settledAt,
+    delivered_completions: delivered,
+    refund_due_cents: refundDue,
+    refund_method: method,
+    refund_reference: refundReference,
+    refunded_cents: refundedCents,
+    refunded_at: refundedAt,
   }
 }
 
-const ORDER_COLUMNS =
-  'mission_id, brand_id, title, completions, unit_price_cents, amount_cents, currency, status, payment_reference, paid_at, created_at'
+export const ORDER_COLUMNS =
+  'mission_id, brand_id, title, completions, unit_price_cents, amount_cents, currency, status, payment_reference, paid_at, created_at, settled_at, delivered_completions, refund_due_cents, refund_method, refund_reference, refunded_cents, refunded_at'
 
 export async function fetchOrdersForMissions(
   supabase: Client,
@@ -101,16 +162,21 @@ export async function fetchStudyOrder(
 export async function fetchMissionCheckoutWindow(
   supabase: Client,
   missionId: string
-): Promise<{ fieldingDays: number | null; expiresAt: string | null }> {
+): Promise<{
+  fieldingDays: number | null
+  expiresAt: string | null
+  status: string | null
+}> {
   const { data, error } = await supabase
     .from('missions')
-    .select('fielding_days, expires_at')
+    .select('fielding_days, expires_at, status')
     .eq('id', missionId)
     .maybeSingle()
-  if (error || !data) return { fieldingDays: null, expiresAt: null }
+  if (error || !data) return { fieldingDays: null, expiresAt: null, status: null }
   return {
     fieldingDays: data.fielding_days,
     expiresAt: data.expires_at,
+    status: data.status,
   }
 }
 
@@ -151,6 +217,26 @@ export async function fetchAwaitingOrders(supabase: Client): Promise<StudyOrderR
     .eq('status', 'awaiting_payment')
     .order('created_at', { ascending: true })
     .limit(50)
+  if (error || !data) return []
+  return data.flatMap((row) => {
+    const parsed = parseStudyOrder(row)
+    return parsed ? [parsed] : []
+  })
+}
+
+/** Settled orders that still owe a refund, oldest first. Staff desk only. */
+export async function fetchRefundsOwed(
+  supabase: Client,
+  limit = 50
+): Promise<StudyOrderRow[]> {
+  const { data, error } = await supabase
+    .from('study_orders')
+    .select(ORDER_COLUMNS)
+    .not('settled_at', 'is', null)
+    .is('refunded_at', null)
+    .gt('refund_due_cents', 0)
+    .order('settled_at', { ascending: true })
+    .limit(limit)
   if (error || !data) return []
   return data.flatMap((row) => {
     const parsed = parseStudyOrder(row)

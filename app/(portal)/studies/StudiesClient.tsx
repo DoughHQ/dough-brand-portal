@@ -41,6 +41,7 @@ import { ICON_ARCHIVE, StudiesGlyph } from './components/studiesIcons'
 import type { StudyDraftListItem } from './drafts/actions'
 import type { StudyOrderRow } from '@/lib/checkout/payment'
 import StudyCheckoutDesk from './components/StudyCheckoutDesk'
+import StudyRefundsOwed from './components/StudyRefundsOwed'
 import './studiesPage.css'
 
 const COMPLETE_ORDER: Record<string, number> = {
@@ -162,6 +163,7 @@ interface Props {
   brandName?: string | null
   loadError?: string | null
   awaitingOrders?: StudyOrderRow[]
+  refundsOwed?: StudyOrderRow[]
   orderBrandNames?: Record<number, string>
   /** Staff desk only. Brand sessions never receive these addresses. */
   invoiceContactLabels?: Record<string, string>
@@ -183,6 +185,7 @@ export default function StudiesClient({
   canEndStudies,
   loadError = null,
   awaitingOrders = [],
+  refundsOwed = [],
   orderBrandNames = {},
   invoiceContactLabels = {},
   conceptUnitPriceCents = null,
@@ -518,13 +521,16 @@ export default function StudiesClient({
         ) : null}
 
         {canOperate ? (
-          <StudyCheckoutDesk
-            orders={awaitingOrders}
-            brandNames={orderBrandNames}
-            invoiceContactLabels={invoiceContactLabels}
-            unitPriceCents={conceptUnitPriceCents}
-            currency={conceptCurrency}
-          />
+          <>
+            <StudyCheckoutDesk
+              orders={awaitingOrders}
+              brandNames={orderBrandNames}
+              invoiceContactLabels={invoiceContactLabels}
+              unitPriceCents={conceptUnitPriceCents}
+              currency={conceptCurrency}
+            />
+            <StudyRefundsOwed orders={refundsOwed} brandNames={orderBrandNames} />
+          </>
         ) : null}
 
         <section className="studies-lifecycle">

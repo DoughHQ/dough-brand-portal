@@ -3,6 +3,12 @@
 import { useState } from 'react'
 import { formatOrderMoney } from '@/lib/checkout/money'
 import type { CheckoutThumb, StudyOrderRow } from '@/lib/checkout/payment'
+import {
+  checkoutLede,
+  checkoutSettlementLines,
+  isMissionEnded,
+  type CheckoutMissionStatus,
+} from '@/lib/checkout/settlementCopy'
 import { checkoutWindowFacts } from '@/lib/checkout/windowFacts'
 
 export type CheckoutClientProps = {
@@ -12,6 +18,7 @@ export type CheckoutClientProps = {
   email: string | null
   fieldingDays: number | null
   expiresAt: string | null
+  missionStatus: CheckoutMissionStatus | null
 }
 
 function paidDate(iso: string | null): string | null {
@@ -30,6 +37,7 @@ export function useCheckoutDesk({
   email,
   fieldingDays,
   expiresAt,
+  missionStatus,
 }: CheckoutClientProps) {
   const [requested, setRequested] = useState(false)
   const total = formatOrderMoney(order.amount_cents, order.currency)
@@ -43,6 +51,13 @@ export function useCheckoutDesk({
     expiresAt,
     orderPaidOrWaived,
   })
+  const ended = isMissionEnded(missionStatus)
+  const lede = checkoutLede({ orderPaidOrWaived, missionStatus })
+  const settlementLines = checkoutSettlementLines(order)
+  const studyHref = ended
+    ? `/studies/concept/${order.mission_id}/report`
+    : `/studies/concept/${order.mission_id}`
+  const studyLinkLabel = ended ? 'View report' : 'Open study'
 
   return {
     requested,
@@ -50,10 +65,13 @@ export function useCheckoutDesk({
     total,
     unit,
     orderPaidOrWaived,
-    /** @deprecated Use orderPaidOrWaived. Kept for existing checkout props. */
-    settled: orderPaidOrWaived,
     invoiceEmail,
     when,
     facts,
+    lede,
+    settlementLines,
+    studyHref,
+    studyLinkLabel,
+    ended,
   }
 }
