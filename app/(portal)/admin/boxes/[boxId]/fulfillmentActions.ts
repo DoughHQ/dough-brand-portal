@@ -4,6 +4,8 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import {
   fetchBoxFulfillments,
+  fulfillmentActionMessage,
+  humanizeFulfillmentError,
   isOperatorFulfillmentAction,
   type FulfillmentRow,
   type OperatorFulfillmentAction,
@@ -56,36 +58,18 @@ export async function advanceFulfillmentAction(args: {
     ...(carrier ? { p_carrier: carrier } : {}),
   })
   if (error) {
-    return { ok: false, error: humanizeFulfillmentError(error.message) }
+    return {
+      ok: false,
+      error: humanizeFulfillmentError(error.message, error.hint),
+    }
   }
 
   const refreshed = await fetchBoxFulfillments(supabase, args.boxId)
   if (!refreshed.ok) return { ok: false, error: refreshed.error }
 
-  return { ok: true, rows: refreshed.rows, message: messageFor(args.target) }
-}
-
-function messageFor(target: OperatorFulfillmentAction): string {
-  switch (target) {
-    case 'confirmed':
-      return 'Claim confirmed.'
-    case 'shipped':
-      return 'Marked shipped.'
-    case 'delivered':
-      return 'Marked delivered.'
-    case 'delivery_failed':
-      return 'Marked delivery failed.'
-    case 'fulfillment_pending':
-      return 'Back in the shipping queue.'
+  return {
+    ok: true,
+    rows: refreshed.rows,
+    message: fulfillmentActionMessage(args.target),
   }
-}
-
-function humanizeFulfillmentError(raw: string): string {
-  if (raw.includes('not authorized')) return 'Not authorized.'
-  if (raw.includes('is terminal')) return 'This seat is already in a final state.'
-  if (raw.includes('illegal transition')) {
-    return 'That action isn’t available from this seat’s current state.'
-  }
-  if (raw.includes('not found')) return 'That seat was not found.'
-  return raw
 }
