@@ -88,6 +88,7 @@ jobs:
       - run: npm run check:study-drafts-ban
       - run: npm run check:publishing-dock-ban
       - run: npm run check:study-checkout-desk-ban
+      - run: npm run check:row-overflow-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run

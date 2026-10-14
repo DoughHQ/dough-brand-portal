@@ -1,76 +1,18 @@
 'use client'
 
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-} from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import RowOverflowPanel, { type OverflowAction } from './rowOverflow/RowOverflowPanel'
+import { EST_ITEM_H, EST_PAD, MIN_WIDTH, placeMenu, type MenuPos } from './rowOverflow/placeMenu'
 
-export type OverflowAction = {
-  label: string
-  onClick: () => void
-  tone?: 'default' | 'danger'
-  disabled?: boolean
-}
+export type { OverflowAction }
 
 type Props = {
   actions: OverflowAction[]
   label?: string
 }
 
-const GAP = 4
-const VIEWPORT_PAD = 8
-const MIN_WIDTH = 160
-const EST_ITEM_H = 38
-const EST_PAD = 8
-
-const itemStyle: CSSProperties = {
-  display: 'block',
-  width: '100%',
-  textAlign: 'left',
-  border: 'none',
-  background: 'transparent',
-  cursor: 'pointer',
-  fontFamily: 'var(--font-sans)',
-  fontSize: 13,
-  fontWeight: 500,
-  padding: '9px 14px',
-}
-
-type MenuPos = { top: number; left: number }
-
-function placeMenu(
-  button: DOMRect,
-  menuW: number,
-  menuH: number,
-): MenuPos {
-  const spaceBelow = window.innerHeight - button.bottom - GAP - VIEWPORT_PAD
-  const spaceAbove = button.top - GAP - VIEWPORT_PAD
-  const openUp = spaceBelow < menuH && spaceAbove > spaceBelow
-
-  let top = openUp ? button.top - GAP - menuH : button.bottom + GAP
-  top = Math.max(
-    VIEWPORT_PAD,
-    Math.min(top, window.innerHeight - menuH - VIEWPORT_PAD),
-  )
-
-  let left = button.right - menuW
-  left = Math.max(
-    VIEWPORT_PAD,
-    Math.min(left, window.innerWidth - menuW - VIEWPORT_PAD),
-  )
-
-  return { top, left }
-}
-
-export default function RowOverflowMenu({
-  actions,
-  label = 'More actions',
-}: Props) {
+export default function RowOverflowMenu({ actions, label = 'More actions' }: Props) {
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState<MenuPos | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -126,47 +68,12 @@ export default function RowOverflowMenu({
 
   const menu = open
     ? createPortal(
-        <div
-          ref={menuRef}
-          role="menu"
-          style={{
-            position: 'fixed',
-            top: pos?.top ?? 0,
-            left: pos?.left ?? 0,
-            visibility: pos ? 'visible' : 'hidden',
-            minWidth: MIN_WIDTH,
-            background: 'var(--paper)',
-            border: '1px solid var(--ink-10)',
-            borderRadius: 'var(--r-md)',
-            boxShadow: '0 8px 24px rgba(36, 61, 44, 0.08)',
-            zIndex: 400,
-            overflow: 'hidden',
-            padding: '4px 0',
-          }}
-        >
-          {actions.map((a) => (
-            <button
-              key={a.label}
-              type="button"
-              role="menuitem"
-              disabled={a.disabled}
-              style={{
-                ...itemStyle,
-                color:
-                  a.tone === 'danger' ? 'var(--red, #B83A24)' : 'var(--ink)',
-                opacity: a.disabled ? 0.45 : 1,
-                cursor: a.disabled ? 'default' : 'pointer',
-              }}
-              onClick={() => {
-                if (a.disabled) return
-                setOpen(false)
-                a.onClick()
-              }}
-            >
-              {a.label}
-            </button>
-          ))}
-        </div>,
+        <RowOverflowPanel
+          actions={actions}
+          pos={pos}
+          menuRef={menuRef}
+          onClose={() => setOpen(false)}
+        />,
         document.body,
       )
     : null
