@@ -12,7 +12,9 @@ import { boxStatusLabel, BOX_STATUS_TONE, type BoxStatus } from '@/lib/box/opera
 import {
   operatorActionsFor,
   fulfillmentActionLabel,
-  fulfillmentStateLabel,
+  fulfillmentHasAddress,
+  fulfillmentSeatStatus,
+  fulfillmentWaitingCopy,
   type FulfillmentRow,
   type OperatorFulfillmentAction,
 } from '@/lib/box/fulfillment'
@@ -600,7 +602,12 @@ function FulfillmentPanel({
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {rows.map((r) => {
-            const actions = operatorActionsFor(r.state)
+            const readiness = {
+              consentedAt: r.consented_at,
+              hasAddress: fulfillmentHasAddress(r),
+            }
+            const actions = operatorActionsFor(r.state, readiness)
+            const waiting = fulfillmentWaitingCopy(r.state, readiness)
             const shipping = shipFor === r.fulfillment_id
             return (
               <div
@@ -633,15 +640,22 @@ function FulfillmentPanel({
                       ) : null}
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--ink-50)', marginTop: 3 }}>
-                      {fulfillmentStateLabel(r.state)}
-                      {r.tracking_ref
-                        ? ` · ${r.carrier || 'tracking'} ${r.tracking_ref}`
-                        : ''}
-                      {r.dings_reliability ? ' · reliability ding' : ''}
+                      {fulfillmentSeatStatus(r)}
                     </div>
                   </div>
-                  {actions.length > 0 ? (
-                    <div style={{ display: 'flex', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
+                  {actions.length > 0 || waiting ? (
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 8,
+                        flexShrink: 0,
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                      }}
+                    >
+                      {waiting ? (
+                        <span style={{ fontSize: 11, color: 'var(--ink-30)' }}>{waiting}</span>
+                      ) : null}
                       {actions.map((a) => {
                         const danger = a === 'delivery_failed'
                         if (a === 'shipped') {
@@ -685,6 +699,10 @@ function FulfillmentPanel({
                         )
                       })}
                     </div>
+                  ) : r.left_at ? (
+                    <span style={{ fontSize: 11, color: 'var(--ink-30)', flexShrink: 0 }}>
+                      Left by respondent
+                    </span>
                   ) : (
                     <span style={{ fontSize: 11, color: 'var(--ink-30)', flexShrink: 0 }}>
                       {r.state === 'claim_expired' ? 'Sweep-driven' : 'Respondent-driven'}
