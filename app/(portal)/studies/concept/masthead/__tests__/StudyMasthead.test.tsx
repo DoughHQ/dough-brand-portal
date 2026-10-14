@@ -46,7 +46,7 @@ describe('StudyMasthead', () => {
       'Your concept',
       'Add a competitor',
       'On the shelf',
-      '100 completions · Runs until full',
+      '100 completions · Runs until full · up to 90 days',
       'Your field shows up here as you build it.',
     ])
   })

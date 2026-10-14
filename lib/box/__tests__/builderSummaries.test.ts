@@ -113,7 +113,7 @@ describe('box builderSummaries', () => {
       fieldProducts: [row(1, 'A', { role: 'yours' }), row(2, 'B')],
     }
     expect(summarizeBoxLogistics(draft)).toBe(
-      '50 completions · 55 boxes prepared · Runs until full'
+      '50 completions · 55 boxes prepared · Runs until full · up to 90 days'
     )
     expect(summarizeBoxDockReady(draft)).toBe(
       '2 in box · 1 matchup · prices incomplete · 50 completions · Prepare 55 boxes'

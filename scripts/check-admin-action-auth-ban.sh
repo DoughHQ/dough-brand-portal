@@ -11,7 +11,7 @@ ACTION_FILES="$(
     rg -l --glob '*.ts' --glob '*.tsx' "^['\"]use server['\"]" "$ADMIN_ROOT"
     printf '%s\n' \
       "$ROOT/app/(portal)/studies/checkoutActions.ts" \
-      "$ROOT/app/(portal)/studies/closeStudyAction.ts" \
+      "$ROOT/app/(portal)/studies/endStudyActions.ts" \
       "$ROOT/app/(portal)/studies/missionTrashActions.ts"
   } | sort -u
 )"

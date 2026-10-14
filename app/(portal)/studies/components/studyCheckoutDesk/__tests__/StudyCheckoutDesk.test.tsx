@@ -11,7 +11,7 @@ vi.mock('../../../checkoutActions', () => ({
 }))
 
 function order(overrides: Partial<StudyOrderRow> = {}): StudyOrderRow {
-  return {
+  const base: StudyOrderRow = {
     mission_id: 'mission-1',
     brand_id: 7,
     title: 'Oat carton order',
@@ -23,8 +23,15 @@ function order(overrides: Partial<StudyOrderRow> = {}): StudyOrderRow {
     payment_reference: null,
     paid_at: null,
     created_at: '2026-02-01T15:00:00.000Z',
-    ...overrides,
+    settled_at: null,
+    delivered_completions: null,
+    refund_due_cents: null,
+    refund_method: null,
+    refund_reference: null,
+    refunded_cents: null,
+    refunded_at: null,
   }
+  return { ...base, ...overrides }
 }
 
 describe('StudyCheckoutDesk', () => {

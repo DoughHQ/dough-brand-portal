@@ -3,14 +3,16 @@ import type { PortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import { fetchOperatorStudiesPage } from '@/lib/studies/fetchOperatorStudies'
 import { getWithdrawnStudies } from '@/lib/studies/fetchWithdrawnStudies'
 import { listStudyDraftsAction } from '../drafts/actions'
-import { fetchAwaitingOrders, fetchConceptPrice, attachOrderStatus } from '@/lib/checkout/load'
-import { fetchInvoiceContactLabels } from '@/lib/checkout/invoiceContact.server'
+import { attachOrderStatus } from '@/lib/checkout/load'
+import { loadStaffCheckoutDesk } from '@/lib/checkout/loadStaffDesk'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { operatorStudiesBrandId } from '@/lib/studies/operatorScope'
+import { canPublishStudies } from '@/lib/studies/canPublishStudies'
 
 export async function loadStudiesPage(scope: PortalBrandScope) {
   const { portalUser, effectiveBrandId, isImpersonating } = scope
   const canOperate = portalUser.role === 'dough_admin' && !isImpersonating
+  const canEndStudies = canPublishStudies(portalUser)
   const brandId = operatorStudiesBrandId(scope)
 
   const [activeResult, completeResult, withdrawn, draftsResult] = await Promise.all([
@@ -43,31 +45,16 @@ export async function loadStudiesPage(scope: PortalBrandScope) {
     attachOrderStatus(supabase, completeResult.ok ? completeResult.page.rows : []),
   ])
 
-  let awaitingOrders: Awaited<ReturnType<typeof fetchAwaitingOrders>> = []
-  const orderBrandNames: Record<number, string> = {}
-  let invoiceContactLabels: Record<string, string> = {}
-  let conceptUnitPriceCents: number | null = null
-  let conceptCurrency = 'usd'
-  if (canOperate) {
-    const [orders, price] = await Promise.all([
-      fetchAwaitingOrders(supabase),
-      fetchConceptPrice(supabase),
-    ])
-    awaitingOrders = orders
-    conceptUnitPriceCents = price?.unit_price_cents ?? null
-    conceptCurrency = price?.currency ?? 'usd'
-    const brandIds = [...new Set(orders.map((order) => order.brand_id))]
-    const [brandsResult, contacts] = await Promise.all([
-      brandIds.length > 0
-        ? supabase.from('brands').select('brand_id, brand_name').in('brand_id', brandIds)
-        : Promise.resolve({ data: [] as { brand_id: number; brand_name: string }[] }),
-      fetchInvoiceContactLabels(orders.map((order) => order.mission_id)),
-    ])
-    invoiceContactLabels = contacts
-    for (const brand of brandsResult.data ?? []) {
-      orderBrandNames[brand.brand_id] = brand.brand_name
-    }
-  }
+  const desk = canOperate
+    ? await loadStaffCheckoutDesk(supabase)
+    : {
+        awaitingOrders: [],
+        refundsOwed: [],
+        orderBrandNames: {},
+        invoiceContactLabels: {},
+        conceptUnitPriceCents: null,
+        conceptCurrency: 'usd',
+      }
 
   let brandName: string | null = 'Platform'
   if (!canOperate) {
@@ -91,12 +78,14 @@ export async function loadStudiesPage(scope: PortalBrandScope) {
     drafts,
     effectiveBrandId,
     canOperate,
+    canEndStudies,
     brandName,
     loadError,
-    awaitingOrders,
-    orderBrandNames,
-    invoiceContactLabels,
-    conceptUnitPriceCents,
-    conceptCurrency,
+    awaitingOrders: desk.awaitingOrders,
+    refundsOwed: desk.refundsOwed,
+    orderBrandNames: desk.orderBrandNames,
+    invoiceContactLabels: desk.invoiceContactLabels,
+    conceptUnitPriceCents: desk.conceptUnitPriceCents,
+    conceptCurrency: desk.conceptCurrency,
   }
 }

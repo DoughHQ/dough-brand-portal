@@ -7,6 +7,7 @@ import { parseConceptTestReport } from '@/lib/conceptReport/conceptTestTypes'
 import conceptTestFixture from '../../../../../../concept-core-fixtures/report_concept_test.json'
 import ConceptReportPreviewBanner from './states/ConceptReportPreviewBanner'
 import ConceptReportStateCard from './states/ConceptReportStateCard'
+import StudyReportNotReady from './states/StudyReportNotReady'
 import { messageForCode } from './states/conceptReportMessages'
 import { tryParseConceptTest } from './states/tryParseConceptTest'
 
@@ -43,7 +44,6 @@ export default async function ConceptStudyReportPage({
 
   const supabase = await createServerSupabaseClient()
 
-  // Prefer concept_test / CORE shape.
   const core = await tryParseConceptTest(supabase, missionId)
   if (core) {
     return <ConceptTestReportDeck report={core} backHref={backHref} />
@@ -51,19 +51,16 @@ export default async function ConceptStudyReportPage({
 
   const result = await fetchConceptMissionReport(supabase, missionId)
   if (!result.ok) {
+    if (result.code === 'NO_REPORT_YET') {
+      return <StudyReportNotReady missionId={missionId} backHref={backHref} />
+    }
     const copy = messageForCode(result.code)
     return (
       <ConceptReportStateCard title={copy.title} body={copy.body} backHref={backHref} />
     )
   }
 
-  // Legacy win_rate reports should not appear for new CORE studies; if one
-  // somehow loads, show the not-ready state rather than the old deck.
   return (
-    <ConceptReportStateCard
-      title="Report isn't ready yet"
-      body="This study uses the single concept test. The verdict report appears once enough respondents have finished."
-      backHref={backHref}
-    />
+    <StudyReportNotReady missionId={missionId} backHref={backHref} />
   )
 }

@@ -55,7 +55,7 @@ export function summarizeMasthead(draft: ConceptStudyDraft): string {
   const competitors = resolvedCompetitors(draft).length
   const size = getConceptFieldSize(draft)
   const n = Math.max(0, draft.targetCompletions)
-  const run = `${plural(n, 'completion', 'completions')} · Runs until full`
+  const run = `${plural(n, 'completion', 'completions')} · Runs until full · up to 90 days`
 
   if (size === 0) return run
 

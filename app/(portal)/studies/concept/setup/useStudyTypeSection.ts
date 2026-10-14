@@ -251,5 +251,5 @@ export function useStudyTypeSection({
 
 function buildRunMeta(completions: number): string {
   const n = Math.max(0, completions)
-  return `${n} completion${n === 1 ? '' : 's'} · Runs until full`
+  return `${n} completion${n === 1 ? '' : 's'} · Runs until full · up to 90 days`
 }

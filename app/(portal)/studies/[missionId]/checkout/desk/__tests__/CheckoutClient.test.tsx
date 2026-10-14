@@ -21,6 +21,13 @@ function order(overrides: Partial<StudyOrderRow> = {}): StudyOrderRow {
     payment_reference: null,
     paid_at: null,
     created_at: '2026-03-01T00:00:00.000Z',
+    settled_at: null,
+    delivered_completions: null,
+    refund_due_cents: null,
+    refund_method: null,
+    refund_reference: null,
+    refunded_cents: null,
+    refunded_at: null,
     ...overrides,
   }
 }
@@ -36,6 +43,7 @@ function renderCheckout(
       email="  "
       fieldingDays={null}
       expiresAt={null}
+      missionStatus={null}
       {...overrides}
     />,
   )
@@ -62,7 +70,8 @@ describe('CheckoutClient', () => {
     expect(markup).toContain('alt=""')
     expect(markup).toContain('class="checkout-subhead"')
     expect(markup).toContain('>·<')
-    expect(markup).toContain('No end date')
+    expect(markup).toContain('Until full')
+    expect(markup).toContain('Or 90 days after it goes live')
     expect(markup).toContain('1,500 completed responses × $4.00')
     expect(markup).toContain('>$6,000.00<')
     expect(markup).toContain('Invoice to your account email.')
@@ -123,6 +132,28 @@ describe('CheckoutClient', () => {
     expect(markup).not.toContain('Request invoice')
   })
 
+  it('shows ended settlement copy and the report link', () => {
+    const markup = renderCheckout({
+      order: order({
+        status: 'paid',
+        payment_reference: 'INV-9',
+        settled_at: '2026-10-13T21:00:00.000Z',
+        delivered_completions: 12,
+        refund_due_cents: 54000,
+      }),
+      missionStatus: 'expired',
+      designs: [],
+      products: [],
+    })
+
+    expect(markup).toContain('This study has ended.')
+    expect(markup).toContain('Your study has ended.')
+    expect(markup).toContain('href="/studies/concept/mission-9/report"')
+    expect(markup).toContain('>View report<')
+    expect(markup).toContain('12 responses delivered.')
+    expect(markup).toContain('$540.00 is owed back to you')
+  })
+
   it('confirms the invoice email after the request', () => {
     const markup = renderToStaticMarkup(
       <CheckoutOrderCard
@@ -133,7 +164,10 @@ describe('CheckoutClient', () => {
         total="$6,000.00"
         when={null}
         invoiceEmail="ada@example.com"
-        settled={false}
+        orderPaidOrWaived={false}
+        settlementLines={[]}
+        studyHref="/studies/concept/mission-9"
+        studyLinkLabel="Open study"
       />,
     )
 

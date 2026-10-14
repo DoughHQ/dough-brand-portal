@@ -5,7 +5,7 @@ import ConfirmDialogCard from './confirmDialog/ConfirmDialogCard'
 import type { Tone } from './confirmDialog/confirmTone'
 
 /**
- * Lightweight portal confirm — replaces window.confirm for study trash / close.
+ * Lightweight portal confirm — replaces window.confirm for study trash / end.
  */
 export default function ConfirmDialog({
   open,
@@ -15,6 +15,7 @@ export default function ConfirmDialog({
   cancelLabel = 'Cancel',
   tone = 'default',
   busy = false,
+  hideConfirm = false,
   onConfirm,
   onCancel,
 }: {
@@ -25,6 +26,8 @@ export default function ConfirmDialog({
   cancelLabel?: string
   tone?: Tone
   busy?: boolean
+  /** When true, only the cancel/close control is shown. */
+  hideConfirm?: boolean
   onConfirm: () => void
   onCancel: () => void
 }) {
@@ -38,6 +41,7 @@ export default function ConfirmDialog({
       cancelLabel={cancelLabel}
       tone={tone}
       busy={busy}
+      hideConfirm={hideConfirm}
       onConfirm={onConfirm}
       onCancel={onCancel}
     />

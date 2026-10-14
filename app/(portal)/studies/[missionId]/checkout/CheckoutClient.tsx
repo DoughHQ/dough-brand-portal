@@ -17,11 +17,7 @@ export default function CheckoutClient(props: CheckoutClientProps) {
       </Link>
       <p className="checkout-kicker">Checkout</p>
       <h1 className="checkout-title">{props.order.title}</h1>
-      <p className="checkout-lede">
-        {desk.settled
-          ? 'This study is live.'
-          : 'A blind read of these packs, from real shoppers.'}
-      </p>
+      <p className="checkout-lede">{desk.lede}</p>
 
       <div className="checkout-grid">
         <div>
@@ -41,7 +37,10 @@ export default function CheckoutClient(props: CheckoutClientProps) {
           total={desk.total}
           when={desk.when}
           invoiceEmail={desk.invoiceEmail}
-          settled={desk.settled}
+          orderPaidOrWaived={desk.orderPaidOrWaived}
+          settlementLines={desk.settlementLines}
+          studyHref={desk.studyHref}
+          studyLinkLabel={desk.studyLinkLabel}
         />
       </div>
     </div>

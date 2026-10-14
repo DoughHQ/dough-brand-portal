@@ -73,7 +73,7 @@ export function statusPill(state: OperatorStudyLifecycleState): {
   switch (state) {
     case 'expired':
       return {
-        label: 'Expired',
+        label: 'Ended',
         color: 'var(--ink-50)',
         background: 'var(--mist, var(--surface-1))',
       }
@@ -107,36 +107,12 @@ export function statusPill(state: OperatorStudyLifecycleState): {
 export type StudyListProps = {
   rows: OperatorStudyRow[]
   canOperate: boolean
+  canEndStudies: boolean
   busyId: string | null
   pending: boolean
   showBrand: boolean
-  onClose: (row: OperatorStudyRow) => void
+  onEnd: (row: OperatorStudyRow) => void
   onWithdraw: (row: OperatorStudyRow) => void
 }
 
-export function rowOverflow(
-  row: OperatorStudyRow,
-  args: Omit<StudyListProps, 'rows' | 'showBrand'>
-) {
-  const canClose =
-    args.canOperate &&
-    (row.lifecycle_state === 'active' ||
-      row.lifecycle_state === 'paused' ||
-      row.lifecycle_state === 'scheduled')
-  return [
-    ...(canClose
-      ? [
-          {
-            label: 'Close study',
-            disabled: args.busyId === row.mission_id || args.pending,
-            onClick: () => args.onClose(row),
-          },
-        ]
-      : []),
-    {
-      label: 'Withdraw',
-      disabled: args.busyId === row.mission_id || args.pending,
-      onClick: () => args.onWithdraw(row),
-    },
-  ]
-}
+export { rowOverflow, showRowOverflow } from '@/lib/studies/studyListOverflow'

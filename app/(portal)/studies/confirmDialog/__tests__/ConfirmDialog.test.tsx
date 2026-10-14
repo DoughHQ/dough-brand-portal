@@ -52,4 +52,12 @@ describe('ConfirmDialog', () => {
     expect(markup).not.toContain('>Close study<')
     expect(markup).toContain('>Cancel<')
   })
+
+  it('hides the confirm control when hideConfirm is set', () => {
+    const markup = renderToStaticMarkup(
+      <ConfirmDialog open hideConfirm {...idle} cancelLabel="Close" />,
+    )
+    expect(markup).toContain('>Close<')
+    expect(markup).not.toContain('>Close study<')
+  })
 })

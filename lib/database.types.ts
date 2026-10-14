@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
@@ -1786,6 +1786,7 @@ export type Database = {
           id: string
           mission_id: string
           product_id: number | null
+          prototype_id: string | null
           scan_sequence: number | null
           scanned_at: string
           scanned_gtin: string
@@ -1797,6 +1798,7 @@ export type Database = {
           id?: string
           mission_id: string
           product_id?: number | null
+          prototype_id?: string | null
           scan_sequence?: number | null
           scanned_at?: string
           scanned_gtin: string
@@ -1808,6 +1810,7 @@ export type Database = {
           id?: string
           mission_id?: string
           product_id?: number | null
+          prototype_id?: string | null
           scan_sequence?: number | null
           scanned_at?: string
           scanned_gtin?: string
@@ -2424,81 +2427,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_scan_view"
             referencedColumns: ["brand_id"]
-          },
-        ]
-      }
-      brand_prototypes: {
-        Row: {
-          allergens_contains: string[] | null
-          allergens_declared_at: string | null
-          allergens_declared_by: string | null
-          allergens_may_contain: string[] | null
-          archived_at: string | null
-          archived_by: string | null
-          brand_id: number
-          created_at: string
-          created_by: string | null
-          id: string
-          image_paths: string[]
-          internal_label: string | null
-          name: string
-          packaging: string
-          planned_price: number | null
-          taxonomy_node_id: number
-          updated_at: string
-        }
-        Insert: {
-          allergens_contains?: string[] | null
-          allergens_declared_at?: string | null
-          allergens_declared_by?: string | null
-          allergens_may_contain?: string[] | null
-          archived_at?: string | null
-          archived_by?: string | null
-          brand_id: number
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          image_paths?: string[]
-          internal_label?: string | null
-          name: string
-          packaging?: string
-          planned_price?: number | null
-          taxonomy_node_id: number
-          updated_at?: string
-        }
-        Update: {
-          allergens_contains?: string[] | null
-          allergens_declared_at?: string | null
-          allergens_declared_by?: string | null
-          allergens_may_contain?: string[] | null
-          archived_at?: string | null
-          archived_by?: string | null
-          brand_id?: number
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          image_paths?: string[]
-          internal_label?: string | null
-          name?: string
-          packaging?: string
-          planned_price?: number | null
-          taxonomy_node_id?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "brand_prototypes_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brands"
-            referencedColumns: ["brand_id"]
-          },
-          {
-            foreignKeyName: "brand_prototypes_taxonomy_node_id_fkey"
-            columns: ["taxonomy_node_id"]
-            isOneToOne: false
-            referencedRelation: "taxonomy_nodes"
-            referencedColumns: ["taxonomy_node_id"]
           },
         ]
       }
@@ -4003,9 +3931,14 @@ export type Database = {
           invited_by: string
           invited_email: string
           invited_role: string
+          last_send_error: string | null
+          revoked_at: string | null
+          send_attempts: number
+          sent_at: string | null
           status: string
-          token: string
+          token_hash: string
           updated_at: string
+          waitlist_id: string | null
         }
         Insert: {
           accepted_at?: string | null
@@ -4018,9 +3951,14 @@ export type Database = {
           invited_by: string
           invited_email: string
           invited_role?: string
+          last_send_error?: string | null
+          revoked_at?: string | null
+          send_attempts?: number
+          sent_at?: string | null
           status?: string
-          token?: string
+          token_hash: string
           updated_at?: string
+          waitlist_id?: string | null
         }
         Update: {
           accepted_at?: string | null
@@ -4033,9 +3971,14 @@ export type Database = {
           invited_by?: string
           invited_email?: string
           invited_role?: string
+          last_send_error?: string | null
+          revoked_at?: string | null
+          send_attempts?: number
+          sent_at?: string | null
           status?: string
-          token?: string
+          token_hash?: string
           updated_at?: string
+          waitlist_id?: string | null
         }
         Relationships: [
           {
@@ -4066,7 +4009,32 @@ export type Database = {
             referencedRelation: "brand_portal_users"
             referencedColumns: ["portal_user_id"]
           },
+          {
+            foreignKeyName: "brand_portal_invitations_waitlist_id_fkey"
+            columns: ["waitlist_id"]
+            isOneToOne: false
+            referencedRelation: "brand_waitlist"
+            referencedColumns: ["waitlist_id"]
+          },
         ]
+      }
+      brand_portal_password_pending: {
+        Row: {
+          auth_uid: string
+          created_at: string
+          pw_fingerprint: string
+        }
+        Insert: {
+          auth_uid: string
+          created_at?: string
+          pw_fingerprint: string
+        }
+        Update: {
+          auth_uid?: string
+          created_at?: string
+          pw_fingerprint?: string
+        }
+        Relationships: []
       }
       brand_portal_sessions: {
         Row: {
@@ -5187,6 +5155,123 @@ export type Database = {
           },
         ]
       }
+      brand_prototypes: {
+        Row: {
+          allergens_contains: string[] | null
+          allergens_declared_at: string | null
+          allergens_declared_by: string | null
+          allergens_may_contain: string[] | null
+          archived_at: string | null
+          archived_by: string | null
+          brand_id: number
+          created_at: string
+          created_by: string | null
+          id: string
+          image_paths: string[]
+          internal_label: string | null
+          name: string
+          packaging: string
+          planned_price: number | null
+          taxonomy_node_id: number
+          updated_at: string
+        }
+        Insert: {
+          allergens_contains?: string[] | null
+          allergens_declared_at?: string | null
+          allergens_declared_by?: string | null
+          allergens_may_contain?: string[] | null
+          archived_at?: string | null
+          archived_by?: string | null
+          brand_id: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_paths?: string[]
+          internal_label?: string | null
+          name: string
+          packaging?: string
+          planned_price?: number | null
+          taxonomy_node_id: number
+          updated_at?: string
+        }
+        Update: {
+          allergens_contains?: string[] | null
+          allergens_declared_at?: string | null
+          allergens_declared_by?: string | null
+          allergens_may_contain?: string[] | null
+          archived_at?: string | null
+          archived_by?: string | null
+          brand_id?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_paths?: string[]
+          internal_label?: string | null
+          name?: string
+          packaging?: string
+          planned_price?: number | null
+          taxonomy_node_id?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_prototypes_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_prototypes_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_prototypes_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_prototypes_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_a_id"]
+          },
+          {
+            foreignKeyName: "brand_prototypes_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "category_cooccurrence"
+            referencedColumns: ["category_b_id"]
+          },
+          {
+            foreignKeyName: "brand_prototypes_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "product_consideration_set"
+            referencedColumns: ["competitor_taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "brand_prototypes_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+          {
+            foreignKeyName: "brand_prototypes_taxonomy_node_id_fkey"
+            columns: ["taxonomy_node_id"]
+            isOneToOne: false
+            referencedRelation: "v_browse_nodes"
+            referencedColumns: ["taxonomy_node_id"]
+          },
+        ]
+      }
       brand_rival_relationships: {
         Row: {
           brand_id_a: number
@@ -5348,6 +5433,10 @@ export type Database = {
       }
       brand_waitlist: {
         Row: {
+          alert_attempts: number
+          alert_claimed_at: string | null
+          alert_last_error: string | null
+          alert_sent_at: string | null
           annual_revenue_range: string | null
           booking_ref: string | null
           booking_scheduled_at: string | null
@@ -5357,6 +5446,9 @@ export type Database = {
           contact_email: string
           contact_name: string
           created_at: string
+          decision_email_attempts: number
+          decision_email_error: string | null
+          decision_email_sent_at: string | null
           flagged_not_mine_product_ids: Json
           invited_at: string | null
           linkedin_url: string | null
@@ -5371,6 +5463,10 @@ export type Database = {
           waitlist_id: string
         }
         Insert: {
+          alert_attempts?: number
+          alert_claimed_at?: string | null
+          alert_last_error?: string | null
+          alert_sent_at?: string | null
           annual_revenue_range?: string | null
           booking_ref?: string | null
           booking_scheduled_at?: string | null
@@ -5380,6 +5476,9 @@ export type Database = {
           contact_email: string
           contact_name: string
           created_at?: string
+          decision_email_attempts?: number
+          decision_email_error?: string | null
+          decision_email_sent_at?: string | null
           flagged_not_mine_product_ids?: Json
           invited_at?: string | null
           linkedin_url?: string | null
@@ -5394,6 +5493,10 @@ export type Database = {
           waitlist_id?: string
         }
         Update: {
+          alert_attempts?: number
+          alert_claimed_at?: string | null
+          alert_last_error?: string | null
+          alert_sent_at?: string | null
           annual_revenue_range?: string | null
           booking_ref?: string | null
           booking_scheduled_at?: string | null
@@ -5403,6 +5506,9 @@ export type Database = {
           contact_email?: string
           contact_name?: string
           created_at?: string
+          decision_email_attempts?: number
+          decision_email_error?: string | null
+          decision_email_sent_at?: string | null
           flagged_not_mine_product_ids?: Json
           invited_at?: string | null
           linkedin_url?: string | null
@@ -6108,6 +6214,76 @@ export type Database = {
           verb?: string
         }
         Relationships: []
+      }
+      capture_pipeline_events: {
+        Row: {
+          cost_usd: number | null
+          created_at: string
+          error_code: string | null
+          id: number
+          input_tokens: number | null
+          latency_ms: number | null
+          model: string | null
+          outcome: string
+          output_tokens: number | null
+          provider: string | null
+          staging_scan_id: number | null
+          step: string
+          submission_id: string | null
+        }
+        Insert: {
+          cost_usd?: number | null
+          created_at?: string
+          error_code?: string | null
+          id?: number
+          input_tokens?: number | null
+          latency_ms?: number | null
+          model?: string | null
+          outcome: string
+          output_tokens?: number | null
+          provider?: string | null
+          staging_scan_id?: number | null
+          step: string
+          submission_id?: string | null
+        }
+        Update: {
+          cost_usd?: number | null
+          created_at?: string
+          error_code?: string | null
+          id?: number
+          input_tokens?: number | null
+          latency_ms?: number | null
+          model?: string | null
+          outcome?: string
+          output_tokens?: number | null
+          provider?: string | null
+          staging_scan_id?: number | null
+          step?: string
+          submission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capture_pipeline_events_scan_fk"
+            columns: ["staging_scan_id"]
+            isOneToOne: false
+            referencedRelation: "staging_scans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "capture_pipeline_events_submission_fk"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "correction_review_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "capture_pipeline_events_submission_fk"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "product_correction_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cart_contexts: {
         Row: {
@@ -9471,6 +9647,7 @@ export type Database = {
           body: string
           consent_type: string
           created_at: string
+          document_url: string | null
           effective_from: string | null
           id: string
           is_active: boolean
@@ -9484,6 +9661,7 @@ export type Database = {
           body: string
           consent_type: string
           created_at?: string
+          document_url?: string | null
           effective_from?: string | null
           id?: string
           is_active?: boolean
@@ -9497,6 +9675,7 @@ export type Database = {
           body?: string
           consent_type?: string
           created_at?: string
+          document_url?: string | null
           effective_from?: string | null
           id?: string
           is_active?: boolean
@@ -14028,6 +14207,112 @@ export type Database = {
         }
         Relationships: []
       }
+      ihut_verdict_bars: {
+        Row: {
+          buy_at_price_share: number
+          created_at: string
+          dough_defaults: Json
+          liking_share: number
+          mission_id: string
+          set_by: string | null
+          taste_win_share: number
+          updated_at: string
+        }
+        Insert: {
+          buy_at_price_share: number
+          created_at?: string
+          dough_defaults?: Json
+          liking_share: number
+          mission_id: string
+          set_by?: string | null
+          taste_win_share: number
+          updated_at?: string
+        }
+        Update: {
+          buy_at_price_share?: number
+          created_at?: string
+          dough_defaults?: Json
+          liking_share?: number
+          mission_id?: string
+          set_by?: string | null
+          taste_win_share?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ihut_verdict_bars_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ihut_verdict_bars_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "v_mission_export_summary"
+            referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "ihut_verdict_bars_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "v_mission_funnel"
+            referencedColumns: ["mission_id"]
+          },
+        ]
+      }
+      image_moderation_checks: {
+        Row: {
+          blocked_categories: string[]
+          bucket: string
+          category_scores: Json
+          check_id: number
+          created_at: string
+          creator_auth_id: string | null
+          model_snapshot: string
+          object_path: string
+          scope_id: string | null
+          scope_kind: string | null
+          sha256: string
+          staff_allow_expires_at: string | null
+          staff_allowed_by: string | null
+          verdict: string
+        }
+        Insert: {
+          blocked_categories?: string[]
+          bucket: string
+          category_scores?: Json
+          check_id?: never
+          created_at?: string
+          creator_auth_id?: string | null
+          model_snapshot: string
+          object_path: string
+          scope_id?: string | null
+          scope_kind?: string | null
+          sha256: string
+          staff_allow_expires_at?: string | null
+          staff_allowed_by?: string | null
+          verdict: string
+        }
+        Update: {
+          blocked_categories?: string[]
+          bucket?: string
+          category_scores?: Json
+          check_id?: never
+          created_at?: string
+          creator_auth_id?: string | null
+          model_snapshot?: string
+          object_path?: string
+          scope_id?: string | null
+          scope_kind?: string | null
+          sha256?: string
+          staff_allow_expires_at?: string | null
+          staff_allowed_by?: string | null
+          verdict?: string
+        }
+        Relationships: []
+      }
       ingredient_classifications: {
         Row: {
           classification_source: string
@@ -15258,6 +15543,10 @@ export type Database = {
       }
       mission_combatants: {
         Row: {
+          allergens_confirmed_at: string | null
+          allergens_confirmed_by: string | null
+          allergens_contains: string[] | null
+          allergens_may_contain: string[] | null
           battle_intent: Database["public"]["Enums"]["battle_intent"]
           benchmark_role: string | null
           combatant_ref: number
@@ -15276,9 +15565,14 @@ export type Database = {
           market_reference_price: number | null
           mission_id: string
           product_id: number | null
+          prototype_id: string | null
           updated_at: string
         }
         Insert: {
+          allergens_confirmed_at?: string | null
+          allergens_confirmed_by?: string | null
+          allergens_contains?: string[] | null
+          allergens_may_contain?: string[] | null
           battle_intent: Database["public"]["Enums"]["battle_intent"]
           benchmark_role?: string | null
           combatant_ref: number
@@ -15297,9 +15591,14 @@ export type Database = {
           market_reference_price?: number | null
           mission_id: string
           product_id?: number | null
+          prototype_id?: string | null
           updated_at?: string
         }
         Update: {
+          allergens_confirmed_at?: string | null
+          allergens_confirmed_by?: string | null
+          allergens_contains?: string[] | null
+          allergens_may_contain?: string[] | null
           battle_intent?: Database["public"]["Enums"]["battle_intent"]
           benchmark_role?: string | null
           combatant_ref?: number
@@ -15318,6 +15617,7 @@ export type Database = {
           market_reference_price?: number | null
           mission_id?: string
           product_id?: number | null
+          prototype_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -15348,6 +15648,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_mission_funnel"
             referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "mission_combatants_prototype_id_fkey"
+            columns: ["prototype_id"]
+            isOneToOne: false
+            referencedRelation: "brand_prototypes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -17109,8 +17416,8 @@ export type Database = {
           effects_config: Json
           eligibility_tier: Database["public"]["Enums"]["mission_eligibility_tier"]
           evidence_timing: string
-          fielding_days: number | null
           expires_at: string | null
+          fielding_days: number | null
           id: string
           internal_notes: string | null
           max_claims: number | null
@@ -17161,8 +17468,8 @@ export type Database = {
           effects_config?: Json
           eligibility_tier?: Database["public"]["Enums"]["mission_eligibility_tier"]
           evidence_timing?: string
+          expires_at?: string | null
           fielding_days?: number | null
-          expires_at: string | null
           id?: string
           internal_notes?: string | null
           max_claims?: number | null
@@ -17213,8 +17520,8 @@ export type Database = {
           effects_config?: Json
           eligibility_tier?: Database["public"]["Enums"]["mission_eligibility_tier"]
           evidence_timing?: string
-          fielding_days?: number | null
           expires_at?: string | null
+          fielding_days?: number | null
           id?: string
           internal_notes?: string | null
           max_claims?: number | null
@@ -17403,6 +17710,44 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
+          },
+        ]
+      }
+      moderation_actions: {
+        Row: {
+          action: string
+          action_id: number
+          actor_auth_id: string | null
+          actor_role: string
+          created_at: string
+          detail: Json
+          report_id: number
+        }
+        Insert: {
+          action: string
+          action_id?: never
+          actor_auth_id?: string | null
+          actor_role: string
+          created_at?: string
+          detail?: Json
+          report_id: number
+        }
+        Update: {
+          action?: string
+          action_id?: never
+          actor_auth_id?: string | null
+          actor_role?: string
+          created_at?: string
+          detail?: Json
+          report_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderation_actions_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "user_reports"
+            referencedColumns: ["report_id"]
           },
         ]
       }
@@ -21075,7 +21420,9 @@ export type Database = {
           correction_type: string
           created_at: string
           current_value: Json | null
+          evidence_capture_path: string | null
           evidence_image_url: string | null
+          evidence_sha256: string | null
           extracted_at: string | null
           extracted_value: Json | null
           extraction_error: string | null
@@ -21090,6 +21437,7 @@ export type Database = {
           proposed_price_unit: string | null
           proposed_taxonomy_node_id: number | null
           proposed_value: Json
+          published_image_url: string | null
           reviewed_at: string | null
           reviewed_by_portal_user_id: string | null
           reviewed_by_user_id: number | null
@@ -21109,7 +21457,9 @@ export type Database = {
           correction_type: string
           created_at?: string
           current_value?: Json | null
+          evidence_capture_path?: string | null
           evidence_image_url?: string | null
+          evidence_sha256?: string | null
           extracted_at?: string | null
           extracted_value?: Json | null
           extraction_error?: string | null
@@ -21124,6 +21474,7 @@ export type Database = {
           proposed_price_unit?: string | null
           proposed_taxonomy_node_id?: number | null
           proposed_value: Json
+          published_image_url?: string | null
           reviewed_at?: string | null
           reviewed_by_portal_user_id?: string | null
           reviewed_by_user_id?: number | null
@@ -21143,7 +21494,9 @@ export type Database = {
           correction_type?: string
           created_at?: string
           current_value?: Json | null
+          evidence_capture_path?: string | null
           evidence_image_url?: string | null
+          evidence_sha256?: string | null
           extracted_at?: string | null
           extracted_value?: Json | null
           extraction_error?: string | null
@@ -21158,6 +21511,7 @@ export type Database = {
           proposed_price_unit?: string | null
           proposed_taxonomy_node_id?: number | null
           proposed_value?: Json
+          published_image_url?: string | null
           reviewed_at?: string | null
           reviewed_by_portal_user_id?: string | null
           reviewed_by_user_id?: number | null
@@ -23281,7 +23635,7 @@ export type Database = {
           mime_type: string | null
           product_id: number
           product_image_id: number
-          public_url: string
+          public_url: string | null
           row_version: number
           sku_variant_id: number | null
           source_type: string
@@ -23305,7 +23659,7 @@ export type Database = {
           mime_type?: string | null
           product_id: number
           product_image_id?: never
-          public_url: string
+          public_url?: string | null
           row_version?: number
           sku_variant_id?: number | null
           source_type: string
@@ -23329,7 +23683,7 @@ export type Database = {
           mime_type?: string | null
           product_id?: number
           product_image_id?: never
-          public_url?: string
+          public_url?: string | null
           row_version?: number
           sku_variant_id?: number | null
           source_type?: string
@@ -26724,6 +27078,65 @@ export type Database = {
           },
         ]
       }
+      prototype_codes: {
+        Row: {
+          code: string
+          code_gtin14: string
+          id: string
+          issued_at: string
+          issued_by: string | null
+          mission_id: string
+          prototype_id: string
+        }
+        Insert: {
+          code: string
+          code_gtin14: string
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          mission_id: string
+          prototype_id: string
+        }
+        Update: {
+          code?: string
+          code_gtin14?: string
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          mission_id?: string
+          prototype_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prototype_codes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prototype_codes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_export_summary"
+            referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "prototype_codes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "v_mission_funnel"
+            referencedColumns: ["mission_id"]
+          },
+          {
+            foreignKeyName: "prototype_codes_prototype_id_fkey"
+            columns: ["prototype_id"]
+            isOneToOne: false
+            referencedRelation: "brand_prototypes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       psa_dedupe_backup_20260818: {
         Row: {
           backed_up_at: string | null
@@ -28835,6 +29248,8 @@ export type Database = {
         Row: {
           abandon_window_days: number
           blind_sponsor: boolean
+          completion_overage_percent: number | null
+          completion_overage_units: number | null
           created_at: string
           created_by: string
           deleted_at: string | null
@@ -28848,6 +29263,7 @@ export type Database = {
           session2_interval_hours: number | null
           sourcing_notes: string | null
           status: Database["public"]["Enums"]["box_status"]
+          taste_only: boolean
           unit_cost_cents: number | null
           units_delivered: number
           units_shipped: number
@@ -28856,6 +29272,8 @@ export type Database = {
         Insert: {
           abandon_window_days?: number
           blind_sponsor?: boolean
+          completion_overage_percent?: number | null
+          completion_overage_units?: number | null
           created_at?: string
           created_by: string
           deleted_at?: string | null
@@ -28869,6 +29287,7 @@ export type Database = {
           session2_interval_hours?: number | null
           sourcing_notes?: string | null
           status?: Database["public"]["Enums"]["box_status"]
+          taste_only?: boolean
           unit_cost_cents?: number | null
           units_delivered?: number
           units_shipped?: number
@@ -28877,6 +29296,8 @@ export type Database = {
         Update: {
           abandon_window_days?: number
           blind_sponsor?: boolean
+          completion_overage_percent?: number | null
+          completion_overage_units?: number | null
           created_at?: string
           created_by?: string
           deleted_at?: string | null
@@ -28890,6 +29311,7 @@ export type Database = {
           session2_interval_hours?: number | null
           sourcing_notes?: string | null
           status?: Database["public"]["Enums"]["box_status"]
+          taste_only?: boolean
           unit_cost_cents?: number | null
           units_delivered?: number
           units_shipped?: number
@@ -30011,6 +30433,33 @@ export type Database = {
           created_at?: string
           synonyms?: string[]
           term?: string
+        }
+        Relationships: []
+      }
+      security_audit_exceptions: {
+        Row: {
+          finding_kind: string
+          id: number
+          object_name: string
+          reason: string
+          reviewed_at: string
+          reviewed_by: string
+        }
+        Insert: {
+          finding_kind: string
+          id?: number
+          object_name: string
+          reason: string
+          reviewed_at?: string
+          reviewed_by: string
+        }
+        Update: {
+          finding_kind?: string
+          id?: number
+          object_name?: string
+          reason?: string
+          reviewed_at?: string
+          reviewed_by?: string
         }
         Relationships: []
       }
@@ -31650,6 +32099,8 @@ export type Database = {
           ai_l3_node_name: string | null
           ai_package_size: string | null
           ai_product_name: string | null
+          back_capture_path: string | null
+          back_capture_sha256: string | null
           back_captured_at: string | null
           back_image_url: string | null
           barcode_normalized: string
@@ -31664,6 +32115,8 @@ export type Database = {
           first_battle_at: string | null
           first_battle_l2_node_id: number | null
           first_battle_outcome: string | null
+          front_capture_path: string | null
+          front_capture_sha256: string | null
           front_captured_at: string | null
           front_image_url: string | null
           has_back_image: boolean
@@ -31697,6 +32150,8 @@ export type Database = {
           ai_l3_node_name?: string | null
           ai_package_size?: string | null
           ai_product_name?: string | null
+          back_capture_path?: string | null
+          back_capture_sha256?: string | null
           back_captured_at?: string | null
           back_image_url?: string | null
           barcode_normalized: string
@@ -31711,6 +32166,8 @@ export type Database = {
           first_battle_at?: string | null
           first_battle_l2_node_id?: number | null
           first_battle_outcome?: string | null
+          front_capture_path?: string | null
+          front_capture_sha256?: string | null
           front_captured_at?: string | null
           front_image_url?: string | null
           has_back_image?: boolean
@@ -31744,6 +32201,8 @@ export type Database = {
           ai_l3_node_name?: string | null
           ai_package_size?: string | null
           ai_product_name?: string | null
+          back_capture_path?: string | null
+          back_capture_sha256?: string | null
           back_captured_at?: string | null
           back_image_url?: string | null
           barcode_normalized?: string
@@ -31758,6 +32217,8 @@ export type Database = {
           first_battle_at?: string | null
           first_battle_l2_node_id?: number | null
           first_battle_outcome?: string | null
+          front_capture_path?: string | null
+          front_capture_sha256?: string | null
           front_captured_at?: string | null
           front_image_url?: string | null
           has_back_image?: boolean
@@ -32139,41 +32600,67 @@ export type Database = {
       }
       study_orders: {
         Row: {
-          amount_cents: number
+          amount_cents: number | null
           brand_id: number
           completions: number
           created_at: string
           currency: string
+          delivered_completions: number | null
           mission_id: string
           paid_at: string | null
           paid_by: string | null
           payment_reference: string | null
+          refund_due_cents: number | null
+          refund_method: string | null
+          refund_reference: string | null
+          refunded_at: string | null
+          refunded_by: string | null
+          refunded_cents: number | null
+          settled_at: string | null
           status: string
           title: string
           unit_price_cents: number
         }
         Insert: {
+          amount_cents?: number | null
           brand_id: number
           completions: number
           created_at?: string
           currency: string
+          delivered_completions?: number | null
           mission_id: string
           paid_at?: string | null
           paid_by?: string | null
           payment_reference?: string | null
+          refund_due_cents?: number | null
+          refund_method?: string | null
+          refund_reference?: string | null
+          refunded_at?: string | null
+          refunded_by?: string | null
+          refunded_cents?: number | null
+          settled_at?: string | null
           status?: string
           title: string
           unit_price_cents: number
         }
         Update: {
+          amount_cents?: number | null
           brand_id?: number
           completions?: number
           created_at?: string
           currency?: string
+          delivered_completions?: number | null
           mission_id?: string
           paid_at?: string | null
           paid_by?: string | null
           payment_reference?: string | null
+          refund_due_cents?: number | null
+          refund_method?: string | null
+          refund_reference?: string | null
+          refunded_at?: string | null
+          refunded_by?: string | null
+          refunded_cents?: number | null
+          settled_at?: string | null
           status?: string
           title?: string
           unit_price_cents?: number
@@ -32925,6 +33412,21 @@ export type Database = {
             referencedColumns: ["taxonomy_node_id"]
           },
         ]
+      }
+      ugc_blocked_terms: {
+        Row: {
+          kind: string
+          term: string
+        }
+        Insert: {
+          kind: string
+          term: string
+        }
+        Update: {
+          kind?: string
+          term?: string
+        }
+        Relationships: []
       }
       us_states: {
         Row: {
@@ -38716,6 +39218,107 @@ export type Database = {
           },
         ]
       }
+      user_reports: {
+        Row: {
+          alert_dispatched_at: string | null
+          closed_at: string | null
+          created_at: string
+          note: string | null
+          reason: string
+          rec_id: number | null
+          report_id: number
+          reporter_id: number
+          snapshot: Json
+          status: string
+          subject_key: string | null
+          surface: string
+          target_user_id: number
+          updated_at: string
+        }
+        Insert: {
+          alert_dispatched_at?: string | null
+          closed_at?: string | null
+          created_at?: string
+          note?: string | null
+          reason: string
+          rec_id?: number | null
+          report_id?: never
+          reporter_id: number
+          snapshot: Json
+          status?: string
+          subject_key?: string | null
+          surface: string
+          target_user_id: number
+          updated_at?: string
+        }
+        Update: {
+          alert_dispatched_at?: string | null
+          closed_at?: string | null
+          created_at?: string
+          note?: string | null
+          reason?: string
+          rec_id?: number | null
+          report_id?: never
+          reporter_id?: number
+          snapshot?: Json
+          status?: string
+          subject_key?: string | null
+          surface?: string
+          target_user_id?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_reports_rec_id_fkey"
+            columns: ["rec_id"]
+            isOneToOne: false
+            referencedRelation: "friend_product_recommendations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_reports_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_discovery_leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_reports_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_level_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_reports_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       user_saved_products: {
         Row: {
           battle_count: number | null
@@ -40389,6 +40992,7 @@ export type Database = {
           created_at: string | null
           current_category: string | null
           current_value: Json | null
+          evidence_capture_path: string | null
           evidence_image_url: string | null
           extracted_at: string | null
           extracted_value: Json | null
@@ -44397,6 +45001,8 @@ export type Database = {
           strength: number
         }[]
       }
+      _assert_brand_application_reviewer: { Args: never; Returns: string }
+      _assert_safety_moderator: { Args: never; Returns: undefined }
       _bce_actor: { Args: never; Returns: string }
       _bce_log_event: {
         Args: {
@@ -44420,7 +45026,30 @@ export type Database = {
         }
         Returns: Json
       }
+      _brand_alert_secret_ok: { Args: { p_secret: string }; Returns: boolean }
+      _brand_application_catalog_candidates: {
+        Args: { p_name: string }
+        Returns: Json
+      }
+      _brand_invite_finish: {
+        Args: {
+          p_auth_uid: string
+          p_invitation_id: string
+          p_mark_password_pending: boolean
+        }
+        Returns: Json
+      }
+      _brand_invite_lookup: { Args: { p_token_hash: string }; Returns: Json }
+      _brand_site_host: { Args: { p_url: string }; Returns: string }
       _cg_resolve_actor: { Args: never; Returns: Record<string, unknown> }
+      _close_lifecycle_alert: {
+        Args: { p_dedupe_key: string }
+        Returns: undefined
+      }
+      _close_open_concept_sessions: {
+        Args: { p_dry_run?: boolean; p_mission_id: string }
+        Returns: number
+      }
       _concept_core_session_plan: {
         Args: {
           p_mission_claim_id: string
@@ -44439,6 +45068,24 @@ export type Database = {
         Returns: boolean
       }
       _dc_require_admin: { Args: never; Returns: string }
+      _email_domain: { Args: { p_email: string }; Returns: string }
+      _email_domain_matches_site: {
+        Args: { p_email: string; p_url: string }
+        Returns: boolean
+      }
+      _end_study: {
+        Args: {
+          p_actor: string
+          p_mission_id: string
+          p_reason: string
+          p_via: string
+        }
+        Returns: Json
+      }
+      _enqueue_avatar_prefix_purge: {
+        Args: { p_user_id: number }
+        Returns: undefined
+      }
       _ensure_primary_grocery_list: {
         Args: { p_user_id: number }
         Returns: number
@@ -44447,6 +45094,16 @@ export type Database = {
         Args: { p_mission_id: string }
         Returns: Json
       }
+      _ihut_core_session_plan: {
+        Args: {
+          p_mission_claim_id: string
+          p_mission_id: string
+          p_protocol_id: string
+          p_session_number: number
+        }
+        Returns: Json
+      }
+      _is_free_email_domain: { Args: { p_domain: string }; Returns: boolean }
       _job_rounds: {
         Args: { p_job: number; p_subject: number }
         Returns: {
@@ -44476,6 +45133,9 @@ export type Database = {
         Args: { p_mission_id: string }
         Returns: number
       }
+      _normalize_username: { Args: { p_name: string }; Returns: string }
+      _ping_safety_alert_dispatcher: { Args: never; Returns: undefined }
+      _portal_needs_password: { Args: { p_auth_uid: string }; Returns: boolean }
       _profile_access_scope: {
         Args: { p_claimed_viewer_id?: number; p_subject_id: number }
         Returns: string
@@ -44506,9 +45166,24 @@ export type Database = {
         }
         Returns: undefined
       }
+      _reconcile_ihut_completion: { Args: { p_box_id: string }; Returns: Json }
+      _record_legal_consent: {
+        Args: {
+          p_privacy_version: string
+          p_source: string
+          p_terms_version: string
+          p_user_id: number
+        }
+        Returns: boolean
+      }
+      _resolve_brand_scope: { Args: { p_brand_id: number }; Returns: number }
       _resolve_primary_grocery_list: {
         Args: { p_user_id: number }
         Returns: number
+      }
+      _settle_study_order: {
+        Args: { p_has_report: boolean; p_mission_id: string }
+        Returns: Json
       }
       _shelf_designated_job: {
         Args: { p_subject: number; p_zone: number }
@@ -44525,6 +45200,18 @@ export type Database = {
           rank: number
           wins: number
         }[]
+      }
+      _study_delivered_count: {
+        Args: { p_mission_id: string }
+        Returns: number
+      }
+      _study_refund_cents: {
+        Args: {
+          p_delivered: number
+          p_has_report: boolean
+          p_order: Database["public"]["Tables"]["study_orders"]["Row"]
+        }
+        Returns: number
       }
       _t3_sim: {
         Args: {
@@ -44543,9 +45230,13 @@ export type Database = {
           true_centered: number
         }[]
       }
+      _username_problem: {
+        Args: { p_name: string; p_user_id: number }
+        Returns: string
+      }
       abandon_stale_sessions: { Args: never; Returns: undefined }
-      accept_brand_portal_invitation: {
-        Args: { p_display_name?: string; p_token: string }
+      accept_legal_terms: {
+        Args: { p_privacy_version: string; p_terms_version: string }
         Returns: Json
       }
       account_invariant_violations: {
@@ -44768,6 +45459,17 @@ export type Database = {
         Returns: undefined
       }
       apply_user_archetype: { Args: { p_user_id: number }; Returns: string }
+      approve_brand_application: {
+        Args: {
+          p_brand_name?: string
+          p_confirm_new?: boolean
+          p_existing_brand_id?: number
+          p_review_notes?: string
+          p_token_hash: string
+          p_waitlist_id: string
+        }
+        Returns: Json
+      }
       approve_change_batch: {
         Args: { p_batch_id: string; p_note?: string }
         Returns: Json
@@ -44780,6 +45482,14 @@ export type Database = {
       archive_brand_prototype: {
         Args: { p_prototype_id: string }
         Returns: Json
+      }
+      assert_caller_confirms_mission_allergens: {
+        Args: { p_mission_id: string }
+        Returns: undefined
+      }
+      assert_caller_edits_brand_prototypes: {
+        Args: { p_brand_id: number }
+        Returns: undefined
       }
       assert_caller_owns_campaign: {
         Args: { p_brand_campaign_id: string }
@@ -44798,6 +45508,10 @@ export type Database = {
         Returns: number
       }
       assert_caller_owns_user: { Args: { p_user_id: number }; Returns: number }
+      assert_can_review_correction: {
+        Args: { p_submission_id: string }
+        Returns: Json
+      }
       assert_product_tried: {
         Args: {
           p_asserted_at?: string
@@ -44938,6 +45652,7 @@ export type Database = {
         Args: { p_config?: Json; p_template_code: string }
         Returns: Json
       }
+      build_due_study_reports: { Args: { p_dry_run?: boolean }; Returns: Json }
       bulk_update_high_confidence: {
         Args: { values_json: Json }
         Returns: undefined
@@ -44971,6 +45686,10 @@ export type Database = {
         }[]
       }
       can_read_concept_stimulus: {
+        Args: { p_object_name: string }
+        Returns: boolean
+      }
+      can_read_prototype_image: {
         Args: { p_object_name: string }
         Returns: boolean
       }
@@ -45032,8 +45751,16 @@ export type Database = {
         Args: { p_box_id: string; p_user_id?: number }
         Returns: Json
       }
+      claim_brand_application_alerts: {
+        Args: { p_limit?: number }
+        Returns: Json
+      }
       claim_concept_mission: {
-        Args: { p_mission_id: string; p_user_id?: number }
+        Args: {
+          p_client_caps?: string[]
+          p_mission_id: string
+          p_user_id?: number
+        }
         Returns: Json
       }
       claim_deletion_jobs: {
@@ -45041,6 +45768,7 @@ export type Database = {
         Returns: {
           bucket: string
           deletion_job_id: number
+          kind: string
           object_path: string
         }[]
       }
@@ -45048,6 +45776,7 @@ export type Database = {
         Args: { p_mission_id: string; p_user_id?: number }
         Returns: Json
       }
+      claim_safety_alert_reports: { Args: { p_limit?: number }; Returns: Json }
       claim_sku: { Args: { p_product_id: number }; Returns: Json }
       classify_and_normalize_scan: {
         Args: { p_raw: string }
@@ -45072,7 +45801,7 @@ export type Database = {
         Args: { p_display_name?: string; p_token: string }
         Returns: Json
       }
-      complete_brand_onboarding: { Args: never; Returns: Json }
+      complete_brand_onboarding: { Args: never; Returns: boolean }
       complete_concept_session: {
         Args: { p_mission_claim_id: string; p_session_number?: number }
         Returns: Json
@@ -45161,6 +45890,10 @@ export type Database = {
           sd_elo_delta: number
           withheld_reason: string
         }[]
+      }
+      compute_ihut_core_sections: {
+        Args: { p_mission_id: string }
+        Returns: Json
       }
       compute_macro_scores_for_node: {
         Args: { p_node_id: number }
@@ -45574,9 +46307,37 @@ export type Database = {
         }
         Returns: Json
       }
+      confirm_mission_combatant_allergens: {
+        Args: {
+          p_combatant_ref: number
+          p_contains: string[]
+          p_may_contain: string[]
+          p_mission_id: string
+        }
+        Returns: Json
+      }
       correction_jsonb_is_empty: { Args: { p_value: Json }; Returns: boolean }
       count_box_qualifiers: {
         Args: {
+          p_allowed_genders?: string[]
+          p_eligibility_tier?: Database["public"]["Enums"]["mission_eligibility_tier"]
+          p_focal_product_id: number
+          p_max_age?: number
+          p_min_account_age_days?: number
+          p_min_age?: number
+          p_min_category_battles?: number
+          p_min_category_level?: number
+          p_min_category_tries?: number
+          p_qualifying_taxonomy_node_id?: number
+          p_required_dietary_flags?: string[]
+          p_target_countries?: string[]
+          p_target_states?: string[]
+        }
+        Returns: Json
+      }
+      count_box_qualifiers_with_allergens: {
+        Args: {
+          p_allergen_seats?: Json
           p_allowed_genders?: string[]
           p_eligibility_tier?: Database["public"]["Enums"]["mission_eligibility_tier"]
           p_focal_product_id: number
@@ -45616,6 +46377,7 @@ export type Database = {
         Args: { raw_text: string }
         Returns: number
       }
+      count_open_user_reports: { Args: never; Returns: number }
       create_campaign_draft: {
         Args: {
           p_brand_id: number
@@ -45696,14 +46458,6 @@ export type Database = {
         }
         Returns: number
       }
-      declare_prototype_allergens: {
-        Args: {
-          p_contains: string[]
-          p_may_contain: string[]
-          p_prototype_id: string
-        }
-        Returns: Json
-      }
       declare_product_facet: {
         Args: {
           p_brand_note?: string
@@ -45714,6 +46468,14 @@ export type Database = {
           p_product_id: number
         }
         Returns: number
+      }
+      declare_prototype_allergens: {
+        Args: {
+          p_contains: string[]
+          p_may_contain: string[]
+          p_prototype_id: string
+        }
+        Returns: Json
       }
       delete_my_account: { Args: never; Returns: Json }
       delete_simulated_studies: { Args: never; Returns: Json }
@@ -45751,6 +46513,7 @@ export type Database = {
         Args: { p_group: number; p_node: number }
         Returns: number
       }
+      end_study: { Args: { p_mission_id: string }; Returns: Json }
       ensure_account_rows: {
         Args: { p_auth_id: string; p_email: string; p_meta: Json }
         Returns: number
@@ -45761,6 +46524,14 @@ export type Database = {
       }
       ensure_effective_brand_home_catalog_row: { Args: never; Returns: boolean }
       enter_brand_impersonation: { Args: { p_brand_id: number }; Returns: Json }
+      eval_box_allergen_conflict: {
+        Args: { p_mission_id: string; p_user_id: number }
+        Returns: string
+      }
+      eval_user_allergen_seat_conflict: {
+        Args: { p_seats: Json; p_user_id: number }
+        Returns: string
+      }
       eval_user_focal: {
         Args: {
           p_focal_product_id: number
@@ -45983,7 +46754,12 @@ export type Database = {
         Args: { p_battle_round_id: number }
         Returns: Json
       }
+      get_blocked_users: {
+        Args: { p_limit?: number; p_offset?: number; p_viewer_auth_id: string }
+        Returns: Json
+      }
       get_box_contents: { Args: { p_mission_id: string }; Returns: Json }
+      get_box_prototype_labels: { Args: { p_box_id: string }; Returns: Json }
       get_box_qualification_reasons: {
         Args: { p_mission_claim_id: string }
         Returns: Json
@@ -46413,6 +47189,7 @@ export type Database = {
           win_rate_vs_elo_gap: number
         }[]
       }
+      get_legal_documents: { Args: never; Returns: Json }
       get_maxdiff_sets: {
         Args: {
           p_mission_claim_id: string
@@ -46575,6 +47352,10 @@ export type Database = {
       get_portal_user_role: { Args: { user_auth_uid: string }; Returns: string }
       get_probe_screen: {
         Args: { p_mission_claim_id: string; p_protocol_question_id: string }
+        Returns: Json
+      }
+      get_product_allergen_prefill: {
+        Args: { p_product_id: number; p_upc: string }
         Returns: Json
       }
       get_product_availability: {
@@ -46878,6 +47659,7 @@ export type Database = {
           slot_position: number
         }[]
       }
+      get_study_end_preview: { Args: { p_mission_id: string }; Returns: Json }
       get_taste_brands: {
         Args: { p_l1_id?: number; p_min_products?: number; p_user_id: number }
         Returns: {
@@ -47018,6 +47800,7 @@ export type Database = {
           taxonomy_node_id: number
         }[]
       }
+      get_user_report: { Args: { p_report_id: number }; Returns: Json }
       get_user_saved_list_counts: {
         Args: { p_user_id: number }
         Returns: {
@@ -47138,6 +47921,11 @@ export type Database = {
       is_active_dough_admin: { Args: { p_auth_uid: string }; Returns: boolean }
       is_age_eligible: { Args: { p_user_id: number }; Returns: boolean }
       is_brand_admin: { Args: never; Returns: boolean }
+      is_brand_portal_member: { Args: { p_auth_uid: string }; Returns: boolean }
+      is_brand_portal_member_user: {
+        Args: { p_user_id: number }
+        Returns: boolean
+      }
       is_dough_admin: { Args: never; Returns: boolean }
       is_dough_operator: { Args: never; Returns: boolean }
       is_restricted_product: {
@@ -47148,7 +47936,12 @@ export type Database = {
         Args: { p_product_id: number; p_user_id: number; p_window?: string }
         Returns: boolean
       }
+      issue_prototype_code: {
+        Args: { p_mission_id: string; p_prototype_id: string }
+        Returns: string
+      }
       jsonb_keys_array: { Args: { j: Json }; Returns: string[] }
+      known_illegal_image_hash: { Args: { p_sha256: string }; Returns: boolean }
       l3_color_for_l2: {
         Args: { p_exclude_node_id?: number; p_l2_node_id: number }
         Returns: Record<string, unknown>
@@ -47185,6 +47978,14 @@ export type Database = {
         Returns: Json
       }
       list_compare_groups: { Args: { p_scope?: string }; Returns: Json }
+      list_open_user_reports: {
+        Args: {
+          p_before_created_at?: string
+          p_before_report_id?: number
+          p_limit?: number
+        }
+        Returns: Json
+      }
       list_operator_box_fulfillments: {
         Args: { p_box_id: string }
         Returns: {
@@ -47451,10 +48252,26 @@ export type Database = {
           variety_name: string
         }[]
       }
+      map_restriction_to_allergens: {
+        Args: { p_restriction_code: string }
+        Returns: string[]
+      }
       mark_box_received: { Args: { p_fulfillment_id: string }; Returns: Json }
+      mark_brand_application_alerts: {
+        Args: { p_error?: string; p_ok: boolean; p_waitlist_ids: string[] }
+        Returns: number
+      }
+      mark_brand_decision_email: {
+        Args: { p_error?: string; p_ok: boolean; p_waitlist_id: string }
+        Returns: number
+      }
       mark_brand_home_catalog_dirty: {
         Args: { p_brand_id: number }
         Returns: undefined
+      }
+      mark_brand_invitation_sent: {
+        Args: { p_error?: string; p_invitation_id: string; p_ok: boolean }
+        Returns: number
       }
       mark_product_tried: {
         Args: { p_product_id: number; p_tried?: boolean }
@@ -47483,6 +48300,10 @@ export type Database = {
           similarity: number
         }[]
       }
+      mission_allergens_fully_confirmed: {
+        Args: { p_mission_id: string }
+        Returns: boolean
+      }
       mission_attribute_sample_plan: {
         Args: {
           p_mission_claim_id: string
@@ -47506,9 +48327,17 @@ export type Database = {
         Args: { p_product_id: number; p_user_id: number }
         Returns: boolean
       }
+      moderate_report: {
+        Args: { p_note?: string; p_outcome: string; p_report_id: number }
+        Returns: Json
+      }
       node_is_within: {
         Args: { p_node_id: number; p_roots: number[] }
         Returns: boolean
+      }
+      normalize_allergen_declaration: {
+        Args: { p_contains: string[]; p_may_contain: string[] }
+        Returns: Json
       }
       normalize_brand_website: { Args: { p_raw: string }; Returns: string }
       normalize_gtin: { Args: { p_code: string }; Returns: string }
@@ -47517,6 +48346,7 @@ export type Database = {
         Returns: string
       }
       normalize_social_handle: { Args: { p_raw: string }; Returns: string }
+      normalize_ugc_text: { Args: { p_text: string }; Returns: string }
       normalize_us_state: { Args: { p_raw: string }; Returns: string }
       nutrition_basis_plausible: { Args: { p_value: Json }; Returns: boolean }
       nutrition_row_is_plausible: {
@@ -47554,6 +48384,14 @@ export type Database = {
         }
         Returns: Json
       }
+      preview_ihut_journey: {
+        Args: {
+          p_include_day2?: boolean
+          p_module_config?: Json
+          p_seat_count: number
+        }
+        Returns: Json
+      }
       price_per_oz: {
         Args: {
           p_count?: number
@@ -47588,6 +48426,10 @@ export type Database = {
           category_count: number
           product_count: number
         }[]
+      }
+      prototype_image_is_fielded: {
+        Args: { p_object_name: string }
+        Returns: boolean
       }
       publish_concept_mission: {
         Args: {
@@ -47627,6 +48469,32 @@ export type Database = {
           p_open?: boolean
           p_physical_units: number
           p_questions: Json
+          p_session2_interval_hours?: number
+          p_sourcing_notes?: string
+          p_starts_at?: string
+          p_target_completions?: number
+          p_taxonomy_node_id: number
+          p_title: string
+          p_unit_cost_cents?: number
+        }
+        Returns: Json
+      }
+      publish_ihut_study_v2: {
+        Args: {
+          p_abandon_window_days?: number
+          p_battle_prompt?: string
+          p_blind_sponsor?: boolean
+          p_brand_campaign_id: string
+          p_brand_id: number
+          p_created_by?: string
+          p_eligibility?: Json
+          p_eligibility_tier?: string
+          p_expires_at?: string
+          p_module_config?: Json
+          p_modules?: string[]
+          p_open?: boolean
+          p_physical_units: number
+          p_seats: Json
           p_session2_interval_hours?: number
           p_sourcing_notes?: string
           p_starts_at?: string
@@ -47692,6 +48560,10 @@ export type Database = {
           relevance_rank: number
           taxonomy_node_id: number
         }[]
+      }
+      queue_stale_holding_images: {
+        Args: { p_limit?: number }
+        Returns: number
       }
       rank_opponents_for_job: {
         Args: {
@@ -47766,7 +48638,11 @@ export type Database = {
         Returns: Json
       }
       record_attribute_driver_response: {
-        Args: { p_battle_round_id: number; p_selected_drivers: string[] }
+        Args: {
+          p_battle_round_id: number
+          p_decision_ms?: number
+          p_selected_drivers: string[]
+        }
         Returns: Json
       }
       record_brand_portal_login: {
@@ -47921,12 +48797,16 @@ export type Database = {
       }
       record_study_payment: {
         Args: {
+          p_amount_cents?: number
+          p_currency?: string
           p_mission_id: string
           p_payment_reference: string
           p_waived?: boolean
-          p_amount_cents?: number
-          p_currency?: string
         }
+        Returns: Json
+      }
+      record_study_refund: {
+        Args: { p_method?: string; p_mission_id: string; p_reference: string }
         Returns: Json
       }
       record_substitution_response: {
@@ -47942,6 +48822,10 @@ export type Database = {
         Returns: Json
       }
       refresh_admin_home_catalog_stats: { Args: never; Returns: undefined }
+      refresh_brand_home_catalog_for: {
+        Args: { p_brand_id: number }
+        Returns: boolean
+      }
       refresh_brand_home_catalog_stats: {
         Args: { p_limit?: number }
         Returns: Json
@@ -47992,9 +48876,35 @@ export type Database = {
         }
         Returns: Json
       }
+      register_legal_document: {
+        Args: {
+          p_body: string
+          p_title: string
+          p_type: string
+          p_url: string
+          p_version: string
+        }
+        Returns: string
+      }
+      reinstate_user: {
+        Args: { p_note?: string; p_user_id: number }
+        Returns: Json
+      }
       reject_availability_report: {
         Args: { p_reason: string; p_report_id: number }
         Returns: boolean
+      }
+      reject_brand_application: {
+        Args: {
+          p_review_notes?: string
+          p_send_email?: boolean
+          p_waitlist_id: string
+        }
+        Returns: Json
+      }
+      release_safety_alert_claims: {
+        Args: { p_report_ids: number[] }
+        Returns: number
       }
       remove_from_list: {
         Args: { p_product_id: number; p_tag: string }
@@ -48014,6 +48924,21 @@ export type Database = {
           p_sku_variant_id?: number
         }
         Returns: number
+      }
+      report_user: {
+        Args: {
+          p_note?: string
+          p_reason: string
+          p_rec_id?: number
+          p_surface?: string
+          p_target_user_id: number
+          p_viewer_auth_id: string
+        }
+        Returns: Json
+      }
+      resend_brand_invitation: {
+        Args: { p_token_hash: string; p_waitlist_id: string }
+        Returns: Json
       }
       resolve_availability_scope: {
         Args: {
@@ -48043,6 +48968,10 @@ export type Database = {
       }
       resolve_concept_core_questions: {
         Args: { p_battle_prompt?: string; p_module_config?: Json }
+        Returns: Json
+      }
+      resolve_ihut_core_questions: {
+        Args: { p_module_config?: Json }
         Returns: Json
       }
       resolve_job_for_scan: {
@@ -48135,6 +49064,7 @@ export type Database = {
         }
         Returns: Json
       }
+      resolve_study_sample_code: { Args: { p_barcode: string }; Returns: Json }
       resolve_taxonomy_l2_labels: {
         Args: { p_node_ids: number[] }
         Returns: {
@@ -48193,6 +49123,10 @@ export type Database = {
         }
         Returns: Json
       }
+      revoke_brand_invitation: {
+        Args: { p_waitlist_id: string }
+        Returns: Json
+      }
       revoke_category_entitlement: {
         Args: {
           p_brand_id: number
@@ -48228,43 +49162,48 @@ export type Database = {
         Args: { p_batch_size?: number }
         Returns: string
       }
+      run_study_lifecycle: { Args: { p_dry_run?: boolean }; Returns: Json }
+      save_about_you: {
+        Args: { p_date_of_birth: string; p_gender: string }
+        Returns: Json
+      }
       save_brand_prototype: {
         Args: {
           p_brand_id: number
           p_image_paths?: string[]
-          p_internal_label?: string | null
+          p_internal_label?: string
           p_name: string
           p_packaging?: string
-          p_planned_price?: number | null
-          p_prototype_id?: string | null
+          p_planned_price?: number
+          p_prototype_id: string
           p_taxonomy_node_id: number
         }
         Returns: Json
       }
       save_product_disclosure: {
         Args: {
+          p_asof_date?: string
+          p_boundary_code?: string
+          p_credential_id?: string
+          p_data_quality?: string
+          p_expected_current_id?: number
+          p_expires_at?: string
+          p_issuer_name?: string
+          p_method_code?: string
+          p_other_text?: string
           p_product_id: number
-          p_sub_metric_code: string
-          p_status: string
-          p_source_tier: string
-          p_subject_kind?: string
-          p_subject_label?: string | null
-          p_value_text?: string | null
-          p_value_num?: number | null
-          p_value_bool?: boolean | null
-          p_value_date?: string | null
-          p_value_unit?: string | null
-          p_method_code?: string | null
-          p_boundary_code?: string | null
-          p_data_quality?: string | null
-          p_other_text?: string | null
-          p_source_url?: string | null
-          p_issuer_name?: string | null
-          p_credential_id?: string | null
-          p_asof_date?: string | null
-          p_expires_at?: string | null
           p_published?: boolean
-          p_expected_current_id?: number | null
+          p_source_tier: string
+          p_source_url?: string
+          p_status: string
+          p_sub_metric_code: string
+          p_subject_kind?: string
+          p_subject_label?: string
+          p_value_bool?: boolean
+          p_value_date?: string
+          p_value_num?: number
+          p_value_text?: string
+          p_value_unit?: string
         }
         Returns: Json
       }
@@ -48483,6 +49422,18 @@ export type Database = {
         Args: { p_limit?: number; p_query: string; p_viewer_auth_id: string }
         Returns: Json
       }
+      security_audit: {
+        Args: { p_include_reviewed?: boolean }
+        Returns: {
+          detail: string
+          finding_kind: string
+          object_name: string
+          review_reason: string
+          reviewed: boolean
+          severity: string
+        }[]
+      }
+      security_audit_alert: { Args: never; Returns: number }
       seed_category_anchors: {
         Args: never
         Returns: {
@@ -48580,14 +49531,6 @@ export type Database = {
         Args: { p_product_image_id: number }
         Returns: Json
       }
-      set_product_disclosure_published: {
-        Args: { p_disclosure_id: number; p_published: boolean }
-        Returns: Json
-      }
-      set_study_price: {
-        Args: { p_test_type: string; p_unit_price_cents: number }
-        Returns: Json
-      }
       set_product_comment: {
         Args: { p_comment: string; p_product_id: number }
         Returns: {
@@ -48595,6 +49538,14 @@ export type Database = {
           out_product_id: number
           out_updated_at: string
         }[]
+      }
+      set_product_disclosure_published: {
+        Args: { p_disclosure_id: number; p_published: boolean }
+        Returns: Json
+      }
+      set_study_price: {
+        Args: { p_test_type: string; p_unit_price_cents: number }
+        Returns: Json
       }
       set_user_date_of_birth: {
         Args: { p_date_of_birth: string }
@@ -48615,6 +49566,7 @@ export type Database = {
           weight_taste: number
         }[]
       }
+      set_username: { Args: { p_username: string }; Returns: Json }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       soft_delete_saved_product: {
@@ -48736,6 +49688,7 @@ export type Database = {
         }[]
       }
       text_soundex: { Args: { "": string }; Returns: string }
+      touch_last_seen: { Args: never; Returns: undefined }
       transition_discovery_status: {
         Args: {
           p_discovery_id: number
@@ -48746,6 +49699,7 @@ export type Database = {
         Returns: boolean
       }
       tries_to_category_level: { Args: { p_tries: number }; Returns: number }
+      ugc_text_violation: { Args: { p_text: string }; Returns: string }
       unaccent: { Args: { "": string }; Returns: string }
       unblock_user: {
         Args: { p_target_user_id: number; p_viewer_auth_id: string }
@@ -48950,6 +49904,7 @@ export type Database = {
           tz_known: boolean
         }[]
       }
+      username_available: { Args: { p_username: string }; Returns: Json }
       validate_change_batch: { Args: { p_batch_id: string }; Returns: Json }
       withdraw_mission: { Args: { p_mission_id: string }; Returns: Json }
       withdraw_product_availability_declaration: {

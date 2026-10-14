@@ -5,7 +5,7 @@ import type {
   WithdrawnStudyRow,
 } from '@/lib/studies/types'
 import type { StudiesPageCursor } from '@/lib/studies/fetchOperatorStudies'
-import CloseStudyConfirm from './confirms/CloseStudyConfirm'
+import EndStudyConfirm from './confirms/EndStudyConfirm'
 import DeleteStudyConfirm from './confirms/DeleteStudyConfirm'
 import StudiesMetricStrip from './components/StudiesMetricStrip'
 import StudyDraftsPanel from './components/StudyDraftsPanel'
@@ -25,6 +25,7 @@ import StudiesToast from './notices/StudiesToast'
 import StudiesLoadMore from './loadMore/StudiesLoadMore'
 import type { StudyOrderRow } from '@/lib/checkout/payment'
 import StudyCheckoutDesk from './components/StudyCheckoutDesk'
+import StudyRefundsOwed from './components/StudyRefundsOwed'
 import { useStudiesClient } from './client/useStudiesClient'
 import './studiesPage.css'
 
@@ -39,9 +40,11 @@ interface Props {
   drafts: StudyDraftListItem[]
   effectiveBrandId: number
   canOperate: boolean
+  canEndStudies: boolean
   brandName?: string | null
   loadError?: string | null
   awaitingOrders?: StudyOrderRow[]
+  refundsOwed?: StudyOrderRow[]
   orderBrandNames?: Record<number, string>
   /** Staff desk only. Brand sessions never receive these addresses. */
   invoiceContactLabels?: Record<string, string>
@@ -60,8 +63,10 @@ export default function StudiesClient({
   drafts: initialDrafts,
   effectiveBrandId,
   canOperate,
+  canEndStudies,
   loadError = null,
   awaitingOrders = [],
+  refundsOwed = [],
   orderBrandNames = {},
   invoiceContactLabels = {},
   conceptUnitPriceCents = null,
@@ -92,7 +97,7 @@ export default function StudiesClient({
     runRestore,
     executeWithdraw,
     executeHardDelete,
-    executeCloseStudy,
+    executeEndStudy,
     setConfirm,
     setErrorBanner,
     setToast,
@@ -122,24 +127,24 @@ export default function StudiesClient({
           />
         </div>
 
+        <EndStudyConfirm
+          row={confirm?.kind === 'end' ? confirm.row : null}
+          onCancel={() => setConfirm(null)}
+          onError={(message) => {
+            setErrorBanner(message)
+            setConfirm(null)
+          }}
+          onFinished={executeEndStudy}
+        />
         {canOperate ? (
-          <>
-            <CloseStudyConfirm
-              row={confirm?.kind === 'close' ? confirm.row : null}
-              busy={confirmBusy}
-              onCancel={() => setConfirm(null)}
-              onConfirm={(row) => void executeCloseStudy(row)}
-            />
-            <DeleteStudyConfirm
-              row={confirm?.kind === 'hard_delete' ? confirm.row : null}
-              busy={confirmBusy}
-              onCancel={() => setConfirm(null)}
-              onConfirm={(row) => void executeHardDelete(row)}
-            />
-          </>
+          <DeleteStudyConfirm
+            row={confirm?.kind === 'hard_delete' ? confirm.row : null}
+            busy={confirmBusy}
+            onCancel={() => setConfirm(null)}
+            onConfirm={(row) => void executeHardDelete(row)}
+          />
         ) : null}
-
-        {toast && canOperate ? (
+        {toast ? (
           <StudiesToast
             toast={toast}
             busyId={busyId}
@@ -147,17 +152,19 @@ export default function StudiesClient({
             onUndo={() => void undoWithdraw()}
           />
         ) : null}
-
         {errorBanner ? <StudiesErrorBanner message={errorBanner} /> : null}
 
         {canOperate ? (
-          <StudyCheckoutDesk
-            orders={awaitingOrders}
-            brandNames={orderBrandNames}
-            invoiceContactLabels={invoiceContactLabels}
-            unitPriceCents={conceptUnitPriceCents}
-            currency={conceptCurrency}
-          />
+          <>
+            <StudyCheckoutDesk
+              orders={awaitingOrders}
+              brandNames={orderBrandNames}
+              invoiceContactLabels={invoiceContactLabels}
+              unitPriceCents={conceptUnitPriceCents}
+              currency={conceptCurrency}
+            />
+            <StudyRefundsOwed orders={refundsOwed} brandNames={orderBrandNames} />
+          </>
         ) : null}
 
         <section className="studies-lifecycle">
@@ -168,10 +175,11 @@ export default function StudiesClient({
             <ActiveStudyList
               rows={activeRows}
               canOperate={canOperate}
+              canEndStudies={canEndStudies}
               busyId={busyId}
               pending={pending}
               showBrand={showBrand}
-              onClose={(row) => setConfirm({ kind: 'close', row })}
+              onEnd={(row) => setConfirm({ kind: 'end', row })}
               onWithdraw={(row) => void executeWithdraw(row)}
             />
           )}
@@ -202,10 +210,11 @@ export default function StudiesClient({
             <CompletedStudyList
               rows={completeRows}
               canOperate={canOperate}
+              canEndStudies={canEndStudies}
               busyId={busyId}
               pending={pending}
               showBrand={showBrand}
-              onClose={(row) => setConfirm({ kind: 'close', row })}
+              onEnd={(row) => setConfirm({ kind: 'end', row })}
               onWithdraw={(row) => void executeWithdraw(row)}
             />
           )}

@@ -22,9 +22,11 @@ export default async function StudiesPage() {
       drafts={loaded.drafts}
       effectiveBrandId={loaded.effectiveBrandId}
       canOperate={loaded.canOperate}
+      canEndStudies={loaded.canEndStudies}
       brandName={loaded.brandName}
       loadError={loaded.loadError}
       awaitingOrders={loaded.awaitingOrders}
+      refundsOwed={loaded.refundsOwed}
       orderBrandNames={loaded.orderBrandNames}
       invoiceContactLabels={loaded.invoiceContactLabels}
       conceptUnitPriceCents={loaded.conceptUnitPriceCents}

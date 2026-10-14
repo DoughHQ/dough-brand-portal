@@ -1,10 +1,29 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { OperatorStudyRow, WithdrawnStudyRow } from '@/lib/studies/types'
-import CloseStudyConfirm from '../CloseStudyConfirm'
 import DeleteStudyConfirm from '../DeleteStudyConfirm'
 
-function study(totalClaims: number, completedClaims: number): OperatorStudyRow {
+vi.mock('../../components/EndStudyDialog', () => ({
+  default: function MockEndStudyDialog({
+    open,
+    title,
+  }: {
+    open: boolean
+    title: string
+  }) {
+    if (!open) return null
+    return (
+      <div role="dialog">
+        <h2>{`End “${title}”?`}</h2>
+        <button type="button">End study</button>
+      </div>
+    )
+  },
+}))
+
+import EndStudyConfirm from '../EndStudyConfirm'
+
+function study(): OperatorStudyRow {
   return {
     mission_id: 'study-1',
     title: 'Oat carton',
@@ -16,8 +35,12 @@ function study(totalClaims: number, completedClaims: number): OperatorStudyRow {
     focal_product_id: null,
     focal_product_name: null,
     template_code: null,
-    total_claims: totalClaims,
-    completed_claims: completedClaims,
+    mission_type: 'concept_test',
+    test_type: 'concept',
+    session_count: 1,
+    total_claims: 0,
+    completed_claims: 0,
+    target_completions: 30,
     created_at: '2026-01-01T00:00:00.000Z',
     expires_at: null,
   }
@@ -41,78 +64,31 @@ function withdrawn(): WithdrawnStudyRow {
   }
 }
 
-describe('CloseStudyConfirm', () => {
+describe('EndStudyConfirm', () => {
   it('stays closed until a study is chosen', () => {
     const markup = renderToStaticMarkup(
-      <CloseStudyConfirm row={null} busy={false} onCancel={() => undefined} onConfirm={() => undefined} />,
+      <EndStudyConfirm
+        row={null}
+        onCancel={() => undefined}
+        onError={() => undefined}
+        onFinished={() => undefined}
+      />,
     )
-
     expect(markup).toBe('')
   })
 
-  it('marks a study with no one in progress as completed', () => {
+  it('opens the end-study dialog for a live study', () => {
     const markup = renderToStaticMarkup(
-      <CloseStudyConfirm
-        row={study(0, 0)}
-        busy={false}
+      <EndStudyConfirm
+        row={study()}
         onCancel={() => undefined}
-        onConfirm={() => undefined}
+        onError={() => undefined}
+        onFinished={() => undefined}
       />,
     )
-
-    const title = markup.indexOf('Close study?')
-    const body = markup.indexOf('“Oat carton” will mark as completed.')
-    const action = markup.indexOf('>Close study<')
     expect(markup).toContain('role="dialog"')
-    expect(body).toBeGreaterThan(title)
-    expect(action).toBeGreaterThan(body)
-    expect(markup).not.toContain('respondent')
-  })
-
-  it('names one in-progress respondent', () => {
-    const markup = renderToStaticMarkup(
-      <CloseStudyConfirm
-        row={study(1, 0)}
-        busy={false}
-        onCancel={() => undefined}
-        onConfirm={() => undefined}
-      />,
-    )
-
-    expect(markup).toContain('This will stop up to')
-    expect(markup).toContain('>1<')
-    expect(markup).toContain('respondent for “')
-    expect(markup).toContain('Oat carton')
-    expect(markup).not.toContain('respondents')
-  })
-
-  it('pluralizes several in-progress respondents', () => {
-    const markup = renderToStaticMarkup(
-      <CloseStudyConfirm
-        row={study(3, 1)}
-        busy={false}
-        onCancel={() => undefined}
-        onConfirm={() => undefined}
-      />,
-    )
-
-    expect(markup).toContain('>2<')
-    expect(markup).toContain('respondents for “')
-  })
-
-  it('shows working while the close is busy', () => {
-    const markup = renderToStaticMarkup(
-      <CloseStudyConfirm
-        row={study(0, 0)}
-        busy
-        onCancel={() => undefined}
-        onConfirm={() => undefined}
-      />,
-    )
-
-    expect(markup).toContain('Working…')
-    expect(markup).toContain('disabled=""')
-    expect(markup).not.toContain('>Close study<')
+    expect(markup).toContain('End “Oat carton”?')
+    expect(markup).toContain('>End study<')
   })
 })
 
@@ -121,7 +97,6 @@ describe('DeleteStudyConfirm', () => {
     const markup = renderToStaticMarkup(
       <DeleteStudyConfirm row={null} busy={false} onCancel={() => undefined} onConfirm={() => undefined} />,
     )
-
     expect(markup).toBe('')
   })
 
@@ -134,7 +109,6 @@ describe('DeleteStudyConfirm', () => {
         onConfirm={() => undefined}
       />,
     )
-
     const title = markup.indexOf('Delete forever?')
     const body = markup.indexOf('Permanently delete “Trashed oat”? This can&#x27;t be undone.')
     const action = markup.indexOf('>Delete forever<')

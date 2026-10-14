@@ -24,5 +24,6 @@ export async function loadCheckoutPage(missionId: string) {
     email: userData.user?.email ?? null,
     fieldingDays: window.fieldingDays,
     expiresAt: window.expiresAt,
+    missionStatus: window.status,
   }
 }

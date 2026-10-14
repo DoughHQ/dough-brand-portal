@@ -46,6 +46,7 @@ function client(partial: Partial<Parameters<typeof StudiesClient>[0]> = {}) {
     drafts: [] as StudyDraftListItem[],
     effectiveBrandId: 4,
     canOperate: false,
+    canEndStudies: false,
     ...partial,
   })
 }

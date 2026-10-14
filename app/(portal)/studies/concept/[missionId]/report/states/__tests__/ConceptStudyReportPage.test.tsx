@@ -39,6 +39,16 @@ vi.mock('@/components/conceptReport/ConceptTestReportDeck', () => ({
     backHref: string
   }) => `deck:${report.id}:${backHref}`,
 }))
+vi.mock('../StudyReportNotReady', () => ({
+  default: ({
+    missionId,
+    backHref,
+  }: {
+    missionId: string
+    backHref: string
+  }) =>
+    `not-ready:${missionId}:${backHref}:Report isn't ready yet:The report appears here once the study has finished.`,
+}))
 
 import ConceptStudyReportPage from '../../page'
 import { messageForCode } from '../conceptReportMessages'
@@ -119,21 +129,17 @@ describe('ConceptStudyReportPage', () => {
     expect(fetchConceptMissionReport).not.toHaveBeenCalled()
   })
 
-  it('explains a missing snapshot and a legacy win-rate report', async () => {
+  it('explains a missing report and a legacy win-rate report', async () => {
     const missing = await renderPage()
-    expect(missing).toContain('href="/studies"')
-    expect(missing).toContain('← Back to studies')
+    expect(missing).toContain('not-ready:mission-9:/studies:')
     expect(missing).toContain('Report isn&#x27;t ready yet')
-    expect(missing).toContain(
-      'This study&#x27;s report isn&#x27;t ready yet. A frozen snapshot appears after compute runs for this mission. This page only reads that snapshot — it never recomputes.',
-    )
+    expect(missing).toContain('The report appears here once the study has finished.')
+    expect(missing).not.toContain('frozen snapshot')
 
     fetchConceptMissionReport.mockResolvedValue({ ok: true, report: { win_rate_field: [] } })
     const legacy = await renderPage()
+    expect(legacy).toContain('not-ready:mission-9:/studies:')
     expect(legacy).toContain('Report isn&#x27;t ready yet')
-    expect(legacy).toContain(
-      'This study uses the single concept test. The verdict report appears once enough respondents have finished.',
-    )
     expect(legacy).not.toContain('frozen snapshot')
   })
 })

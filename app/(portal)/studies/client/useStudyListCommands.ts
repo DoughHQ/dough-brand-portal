@@ -7,7 +7,7 @@ import {
   restoreMissionAction,
   withdrawMissionAction,
 } from '../missionTrashActions'
-import { closeStudyAction } from '../closeStudyAction'
+import { endStudySuccessToast, type EndStudyResult } from '@/lib/studies/endStudy'
 import type { ToastState } from '../notices/StudiesToast'
 
 export function lifecycleOf(row: OperatorStudyRow): OperatorStudyLifecycleState {
@@ -50,7 +50,7 @@ function withdrawnFromStudy(row: OperatorStudyRow): WithdrawnStudyRow {
 
 export type ConfirmState =
   | null
-  | { kind: 'close'; row: OperatorStudyRow }
+  | { kind: 'end'; row: OperatorStudyRow }
   | { kind: 'hard_delete'; row: WithdrawnStudyRow }
 
 export function useStudyListCommands({
@@ -177,40 +177,24 @@ export function useStudyListCommands({
     [refresh, setBusyId, setErrorBanner, setConfirm, setWithdrawnRows, setToast]
   )
 
-  const executeCloseStudy = useCallback(
-    async (row: OperatorStudyRow) => {
-      setBusyId(row.mission_id)
-      setErrorBanner(null)
-      const result = await closeStudyAction(row.mission_id)
-      setBusyId(null)
-      setConfirm(null)
-      if (!result.ok) {
-        setErrorBanner(result.error)
-        return
-      }
-      const closed: OperatorStudyRow = {
+  const executeEndStudy = useCallback(
+    (row: OperatorStudyRow, result: EndStudyResult) => {
+      const ended: OperatorStudyRow = {
         ...row,
         is_finished: true,
-        status: 'completed',
-        lifecycle_state: 'completed',
+        status: 'expired',
+        lifecycle_state: 'expired',
       }
       setActiveRowsState((rows) => rows.filter((r) => r.mission_id !== row.mission_id))
       setCompleteRowsState((rows) => [
-        closed,
+        ended,
         ...rows.filter((r) => r.mission_id !== row.mission_id),
       ])
-      setToast({ kind: 'plain', message: 'Moved to Complete' })
+      setConfirm(null)
+      setToast({ kind: 'plain', message: endStudySuccessToast(result) })
       refresh()
     },
-    [
-      refresh,
-      setBusyId,
-      setErrorBanner,
-      setConfirm,
-      setActiveRowsState,
-      setCompleteRowsState,
-      setToast,
-    ]
+    [refresh, setActiveRowsState, setCompleteRowsState, setConfirm, setToast]
   )
 
   return {
@@ -218,6 +202,6 @@ export function useStudyListCommands({
     undoWithdraw,
     runRestore,
     executeHardDelete,
-    executeCloseStudy,
+    executeEndStudy,
   }
 }

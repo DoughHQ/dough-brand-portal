@@ -178,7 +178,7 @@ export function useStudiesClient({
     undoWithdraw,
     runRestore,
     executeHardDelete,
-    executeCloseStudy,
+    executeEndStudy,
   } = useStudyListCommands({
     toast,
     refresh,
@@ -218,7 +218,7 @@ export function useStudiesClient({
     runRestore,
     executeWithdraw,
     executeHardDelete,
-    executeCloseStudy,
+    executeEndStudy,
     setConfirm,
     setErrorBanner,
     setToast,

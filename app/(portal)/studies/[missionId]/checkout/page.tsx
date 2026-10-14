@@ -25,6 +25,7 @@ export default async function CheckoutPage({ params }: Props) {
       email={loaded.email}
       fieldingDays={loaded.fieldingDays}
       expiresAt={loaded.expiresAt}
+      missionStatus={loaded.missionStatus}
     />
   )
 }

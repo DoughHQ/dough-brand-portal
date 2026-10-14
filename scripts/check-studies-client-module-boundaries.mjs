@@ -101,7 +101,7 @@ const dependencies = {
     `${studiesHeaderRoot}StudiesListHeader.tsx`,
     `${studiesNoticesRoot}StudiesToast.tsx`,
     `${studiesNoticesRoot}StudiesErrorBanner.tsx`,
-    `${studiesConfirmsRoot}CloseStudyConfirm.tsx`,
+    `${studiesConfirmsRoot}EndStudyConfirm.tsx`,
     `${studiesConfirmsRoot}DeleteStudyConfirm.tsx`,
     `${studiesLoadMoreRoot}StudiesLoadMore.tsx`,
     `${studiesClientHookRoot}useStudiesClient.ts`,
@@ -118,7 +118,7 @@ const dependencies = {
   [`${studiesHeaderRoot}StudiesListHeader.tsx`]: [],
   [`${studiesNoticesRoot}StudiesToast.tsx`]: [],
   [`${studiesNoticesRoot}StudiesErrorBanner.tsx`]: [],
-  [`${studiesConfirmsRoot}CloseStudyConfirm.tsx`]: [],
+  [`${studiesConfirmsRoot}EndStudyConfirm.tsx`]: [],
   [`${studiesConfirmsRoot}DeleteStudyConfirm.tsx`]: [],
   [`${studiesLoadMoreRoot}StudiesLoadMore.tsx`]: [],
 }

@@ -2,15 +2,21 @@ import Link from 'next/link'
 import RowOverflowMenu from '../RowOverflowMenu'
 import { ICON_CHECK, StudiesGlyph } from '../studiesIcons'
 import { NameBlock, StatusPillView } from './StudyNameBlock'
-import { reportHref, rowOverflow, type StudyListProps } from './studyRowModel'
+import {
+  reportHref,
+  rowOverflow,
+  showRowOverflow,
+  type StudyListProps,
+} from './studyRowModel'
 
 export function CompletedStudyList({
   rows,
   canOperate,
+  canEndStudies,
   busyId,
   pending,
   showBrand,
-  onClose,
+  onEnd,
   onWithdraw,
 }: StudyListProps) {
   return (
@@ -24,9 +30,10 @@ export function CompletedStudyList({
         const showState = state === 'expired' || state === 'archived'
         const overflow = rowOverflow(row, {
           canOperate,
+          canEndStudies,
           busyId,
           pending,
-          onClose,
+          onEnd,
           onWithdraw,
         })
 
@@ -50,7 +57,9 @@ export function CompletedStudyList({
               <Link href={reportHref(row)} className="studies-row-cta">
                 View results →
               </Link>
-              {canOperate ? <RowOverflowMenu actions={overflow} /> : null}
+              {showRowOverflow({ canOperate, canEndStudies }, row) ? (
+                <RowOverflowMenu actions={overflow} />
+              ) : null}
             </div>
           </div>
         )

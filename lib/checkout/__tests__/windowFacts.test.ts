@@ -10,7 +10,7 @@ describe('checkoutWindowFacts', () => {
         completions: 30,
         fieldingDays: 26,
         expiresAt: null,
-        settled: false,
+        orderPaidOrWaived: false,
         now,
       })
     ).toEqual({
@@ -22,19 +22,21 @@ describe('checkoutWindowFacts', () => {
     })
   })
 
-  it('treats no length as no end date', () => {
+  it('treats no length as until full, up to 90 days', () => {
     expect(
       checkoutWindowFacts({
         completions: 1000,
         fieldingDays: null,
         expiresAt: null,
-        settled: false,
+        orderPaidOrWaived: false,
         now,
       })
-    ).toMatchObject({
+    ).toEqual({
       responses: '1,000',
-      length: 'No end date',
+      length: 'Until full',
+      lengthNote: 'Up to 90 days',
       end: 'When full',
+      endNote: 'Or 90 days after it goes live',
     })
   })
 
@@ -43,11 +45,29 @@ describe('checkoutWindowFacts', () => {
       completions: 30,
       fieldingDays: 26,
       expiresAt: '2026-10-28T03:59:00.000Z',
-      settled: true,
+      orderPaidOrWaived: true,
       now,
     })
     expect(facts.end).toBe('Oct 27')
     expect(facts.endNote).toBe('Live end')
     expect(facts.lengthNote).toBe('From the day it was paid')
+  })
+
+  it('shows the live 90-day limit when paid with no chosen length', () => {
+    expect(
+      checkoutWindowFacts({
+        completions: 30,
+        fieldingDays: null,
+        expiresAt: '2026-12-30T16:00:00.000Z',
+        orderPaidOrWaived: true,
+        now,
+      })
+    ).toEqual({
+      responses: '30',
+      length: 'Until full',
+      lengthNote: 'Up to 90 days',
+      end: 'Dec 30',
+      endNote: 'At the latest',
+    })
   })
 })

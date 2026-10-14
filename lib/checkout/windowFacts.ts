@@ -13,28 +13,31 @@ export function checkoutWindowFacts(input: {
   completions: number
   fieldingDays: number | null
   expiresAt: string | null
-  settled: boolean
+  /** True once the order is paid or waived (study can go live). */
+  orderPaidOrWaived: boolean
   now?: Date
 }): CheckoutWindowFacts {
   const now = input.now ?? new Date()
   const days = fieldingDaysMessage(input.fieldingDays) ? null : input.fieldingDays
-  const liveEnd = input.settled ? formatLiveEnd(input.expiresAt) : null
+  const liveEnd = input.orderPaidOrWaived ? formatLiveEnd(input.expiresAt) : null
 
-  if (days == null && !liveEnd) {
+  if (days == null) {
     return {
       responses: input.completions.toLocaleString('en-US'),
-      length: 'No end date',
-      lengthNote: 'Until responses are in',
-      end: 'When full',
-      endNote: 'Closes with the last response',
+      length: 'Until full',
+      lengthNote: 'Up to 90 days',
+      end: liveEnd ?? 'When full',
+      endNote: liveEnd
+        ? 'At the latest'
+        : 'Or 90 days after it goes live',
     }
   }
 
   return {
     responses: input.completions.toLocaleString('en-US'),
-    length: days == null ? 'No end date' : `${days} days`,
-    lengthNote: input.settled ? 'From the day it was paid' : "Once it's paid",
-    end: liveEnd ?? (days == null ? 'When full' : fieldingEndDateLabel(days, now)),
+    length: `${days} days`,
+    lengthNote: input.orderPaidOrWaived ? 'From the day it was paid' : "Once it's paid",
+    end: liveEnd ?? fieldingEndDateLabel(days, now),
     endNote: liveEnd ? 'Live end' : 'If paid today',
   }
 }

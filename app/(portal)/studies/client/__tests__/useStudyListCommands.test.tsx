@@ -11,12 +11,10 @@ const {
   withdrawMissionAction,
   restoreMissionAction,
   hardDeleteMissionAction,
-  closeStudyAction,
 } = vi.hoisted(() => ({
   withdrawMissionAction: vi.fn(),
   restoreMissionAction: vi.fn(),
   hardDeleteMissionAction: vi.fn(),
-  closeStudyAction: vi.fn(),
 }))
 
 vi.mock('server-only', () => ({}))
@@ -24,9 +22,6 @@ vi.mock('../../missionTrashActions', () => ({
   withdrawMissionAction,
   restoreMissionAction,
   hardDeleteMissionAction,
-}))
-vi.mock('../../closeStudyAction', () => ({
-  closeStudyAction,
 }))
 
 function study(partial: Partial<OperatorStudyRow> = {}): OperatorStudyRow {
@@ -129,7 +124,6 @@ describe('useStudyListCommands', () => {
     withdrawMissionAction.mockReset()
     restoreMissionAction.mockReset()
     hardDeleteMissionAction.mockReset()
-    closeStudyAction.mockReset()
   })
 
   afterEach(() => {
@@ -145,7 +139,7 @@ describe('useStudyListCommands', () => {
         active: [row, study({ mission_id: 'keep', title: 'Keep' })],
         complete: [study({ mission_id: 'm1', title: 'Stale complete' })],
         withdrawnRows: [withdrawn({ mission_id: 'm1', title: 'Old copy' }), withdrawn()],
-        confirm: { kind: 'close', row },
+        confirm: { kind: 'end', row },
       }),
     )
 
@@ -154,7 +148,7 @@ describe('useStudyListCommands', () => {
       done = result.current.executeWithdraw(row)
     })
     expect(result.current.busyId).toBe('m1')
-    expect(result.current.confirm).toEqual({ kind: 'close', row })
+    expect(result.current.confirm).toEqual({ kind: 'end', row })
 
     await act(async () => {
       pending.resolve({ ok: true })
@@ -192,7 +186,7 @@ describe('useStudyListCommands', () => {
     const { result } = renderHook(() =>
       useHarness({
         active: [row],
-        confirm: { kind: 'close', row },
+        confirm: { kind: 'end', row },
       }),
     )
 
@@ -338,24 +332,30 @@ describe('useStudyListCommands', () => {
     expect(fallback.result.current.archiveRows).toEqual([])
   })
 
-  it('closes a study into the completed list', async () => {
+  it('moves an ended study into the completed list as expired', () => {
     const row = study({ mission_id: 'live', title: 'Live' })
-    closeStudyAction.mockResolvedValue({
-      ok: true,
-      message: 'Closed',
-      inFlightStopped: 0,
-      wasAlready: false,
-    })
     const { result } = renderHook(() =>
       useHarness({
         active: [row, study({ mission_id: 'keep', title: 'Keep' })],
         complete: [study({ mission_id: 'live', title: 'Stale' })],
-        confirm: { kind: 'close', row },
+        confirm: { kind: 'end', row },
       }),
     )
 
-    await act(async () => {
-      await result.current.executeCloseStudy(row)
+    act(() => {
+      result.current.executeEndStudy(row, {
+        outcome: 'ended',
+        mission_id: 'live',
+        kind: 'concept',
+        status: 'expired',
+        reason: 'ended_by_brand',
+        ended_at: '2026-10-13T20:00:00.000Z',
+        completed: 12,
+        target: 30,
+        released: 2,
+        finishing: 0,
+        finish_by: null,
+      })
     })
 
     expect(result.current.activeRows.map((item) => item.mission_id)).toEqual(['keep'])
@@ -363,34 +363,12 @@ describe('useStudyListCommands', () => {
       {
         ...row,
         is_finished: true,
-        status: 'completed',
-        lifecycle_state: 'completed',
+        status: 'expired',
+        lifecycle_state: 'expired',
       },
     ])
     expect(result.current.confirm).toBeNull()
-    expect(result.current.toast).toEqual({ kind: 'plain', message: 'Moved to Complete' })
+    expect(result.current.toast?.kind).toBe('plain')
     expect(result.current.refresh).toHaveBeenCalledTimes(1)
-  })
-
-  it('keeps the study when close fails', async () => {
-    const row = study()
-    closeStudyAction.mockResolvedValue({ ok: false, error: 'Not runnable' })
-    const { result } = renderHook(() =>
-      useHarness({
-        active: [row],
-        confirm: { kind: 'close', row },
-      }),
-    )
-
-    await act(async () => {
-      await result.current.executeCloseStudy(row)
-    })
-
-    expect(result.current.errorBanner).toBe('Not runnable')
-    expect(result.current.confirm).toBeNull()
-    expect(result.current.activeRows).toEqual([row])
-    expect(result.current.completeRows).toEqual([])
-    expect(result.current.toast).toBeNull()
-    expect(result.current.refresh).not.toHaveBeenCalled()
   })
 })
