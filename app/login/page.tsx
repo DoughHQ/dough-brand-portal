@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import AuthShell, {
+  AuthInput,
   authInputStyle,
   authLabelStyle,
   authPrimaryBtnStyle,
@@ -166,26 +167,15 @@ export default function LoginPage() {
                 }}
               />
             </div>
-            <div>
-              <div style={authLabelStyle}>Password</div>
-              <input
-                type="password"
-                className="auth-input"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder="••••••••"
-                autoComplete="current-password"
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                style={authInputStyle}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--sage)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
-                  e.target.style.boxShadow = 'none'
-                }}
-              />
-            </div>
+            <AuthInput
+              label="Password"
+              type="password"
+              value={loginPassword}
+              onChange={setLoginPassword}
+              placeholder="••••••••"
+              autoComplete="current-password"
+              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+            />
 
             {error && (
               <div style={{ fontSize: 12, color: 'var(--red)', lineHeight: 1.5 }}>{error}</div>

@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { MARKETING_ORIGIN, PRODUCT_NAME, SUPPORT_EMAIL } from '@/lib/brand'
 import './authShell.css'
 
@@ -46,6 +46,34 @@ export function authPrimaryBtnStyle(disabled: boolean): CSSProperties {
   }
 }
 
+function PasswordEyeIcon({ open }: { open: boolean }) {
+  if (open) {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <path
+          d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.1A9.8 9.8 0 0 1 12 5c5 0 9.3 3.1 11 7-.5 1.2-1.2 2.3-2.1 3.2M6.1 6.1C4.2 7.4 2.7 9.2 2 12c1.7 3.9 6 7 10 7 1.4 0 2.8-.3 4-.8"
+          stroke="currentColor"
+          strokeWidth="1.7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    )
+  }
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.7" />
+    </svg>
+  )
+}
+
 export function AuthInput({
   label,
   type = 'text',
@@ -63,26 +91,63 @@ export function AuthInput({
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
   autoComplete?: string
 }) {
+  const [visible, setVisible] = useState(false)
+  const isPassword = type === 'password'
+  const inputType = isPassword ? (visible ? 'text' : 'password') : type
+
   return (
     <div>
       <div style={authLabelStyle}>{label}</div>
-      <input
-        type={type}
-        className="auth-input"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        onKeyDown={onKeyDown}
-        autoComplete={autoComplete}
-        style={authInputStyle}
-        onFocus={(e) => {
-          e.target.style.borderColor = 'var(--sage)'
-        }}
-        onBlur={(e) => {
-          e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
-          e.target.style.boxShadow = 'none'
-        }}
-      />
+      <div style={{ position: 'relative' }}>
+        <input
+          type={inputType}
+          className="auth-input"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          onKeyDown={onKeyDown}
+          autoComplete={autoComplete}
+          style={{
+            ...authInputStyle,
+            ...(isPassword ? { paddingRight: 48 } : null),
+          }}
+          onFocus={(e) => {
+            e.target.style.borderColor = 'var(--sage)'
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
+            e.target.style.boxShadow = 'none'
+          }}
+        />
+        {isPassword ? (
+          <button
+            type="button"
+            className="auth-password-toggle"
+            aria-label={visible ? 'Hide password' : 'Show password'}
+            aria-pressed={visible}
+            onClick={() => setVisible((v) => !v)}
+            style={{
+              position: 'absolute',
+              right: 10,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 36,
+              height: 36,
+              padding: 0,
+              border: 'none',
+              borderRadius: 8,
+              background: 'transparent',
+              color: 'var(--ink-50)',
+              cursor: 'pointer',
+            }}
+          >
+            <PasswordEyeIcon open={visible} />
+          </button>
+        ) : null}
+      </div>
     </div>
   )
 }
