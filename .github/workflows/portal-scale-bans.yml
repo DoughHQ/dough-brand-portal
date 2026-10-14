@@ -85,6 +85,7 @@ jobs:
       - run: npm run check:checkout-page-ban
       - run: npm run check:studies-page-ban
       - run: npm run check:studies-client-ban
+      - run: npm run check:study-drafts-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
