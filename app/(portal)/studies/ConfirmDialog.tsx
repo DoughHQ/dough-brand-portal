@@ -36,6 +36,7 @@ export default function ConfirmDialog({
   cancelLabel = 'Cancel',
   tone = 'default',
   busy = false,
+  hideConfirm = false,
   onConfirm,
   onCancel,
 }: {
@@ -46,6 +47,8 @@ export default function ConfirmDialog({
   cancelLabel?: string
   tone?: Tone
   busy?: boolean
+  /** When true, only the cancel/close control is shown. */
+  hideConfirm?: boolean
   onConfirm: () => void
   onCancel: () => void
 }) {
@@ -116,25 +119,27 @@ export default function ConfirmDialog({
           >
             {cancelLabel}
           </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={onConfirm}
-            style={{
-              border: 'none',
-              background: t.confirmBg,
-              color: t.confirmColor,
-              borderRadius: 'var(--r-sm)',
-              padding: '9px 14px',
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: busy ? 'default' : 'pointer',
-              opacity: busy ? 0.7 : 1,
-              fontFamily: 'var(--font-sans)',
-            }}
-          >
-            {busy ? 'Working…' : confirmLabel}
-          </button>
+          {hideConfirm ? null : (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={onConfirm}
+              style={{
+                border: 'none',
+                background: t.confirmBg,
+                color: t.confirmColor,
+                borderRadius: 'var(--r-sm)',
+                padding: '9px 14px',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: busy ? 'default' : 'pointer',
+                opacity: busy ? 0.7 : 1,
+                fontFamily: 'var(--font-sans)',
+              }}
+            >
+              {busy ? 'Working…' : confirmLabel}
+            </button>
+          )}
         </div>
       </div>
     </div>

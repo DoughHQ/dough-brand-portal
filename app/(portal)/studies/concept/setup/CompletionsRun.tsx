@@ -115,7 +115,9 @@ export default function CompletionsRun({
             />
           )}
           <p className="cb-setup-run-note">
-            No calendar end date — the study closes with the last response.
+            Runs until it&apos;s full, for up to 90 days. You can end it sooner. You get a
+            report if at least 10 people finished, and a refund for the responses you
+            didn&apos;t get.
           </p>
         </div>
       </div>

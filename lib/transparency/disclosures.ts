@@ -313,7 +313,8 @@ export async function saveDisclosure(args: {
   }
 
   const values = valuesCleared(draft)
-  const { data, error } = await supabase.rpc('save_product_disclosure', {
+  // Generated Args dropped `| null` on optionals; the RPC still accepts null clears.
+  const saveArgs = {
     p_product_id: productId,
     p_sub_metric_code: draft.subMetricCode,
     p_status: draft.status,
@@ -338,7 +339,8 @@ export async function saveDisclosure(args: {
     p_asof_date: draft.asofDate,
     p_published: draft.published,
     p_expected_current_id: prior?.disclosureId ?? null,
-  })
+  } as Database['public']['Functions']['save_product_disclosure']['Args']
+  const { data, error } = await supabase.rpc('save_product_disclosure', saveArgs)
 
   const payload = data as RpcPayload
   if (error || payload?.error) return mapRpcFailure(payload, error)

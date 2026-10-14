@@ -10,7 +10,7 @@ function plural(n: number, one: string, many: string): string {
 export function summarizeSetup(draft: ConceptStudyDraft): string {
   const title = draft.title.trim() || null
   const n = Math.max(0, draft.targetCompletions)
-  const run = `${plural(n, 'completion', 'completions')} · Runs until full`
+  const run = `${plural(n, 'completion', 'completions')} · Runs until full · up to 90 days`
 
   if (!title) {
     return draft.taxonomyNodeId != null
@@ -44,6 +44,6 @@ export function summarizeDockReady(draft: ConceptStudyDraft): string {
     `${size} in field`,
     plural(battles, 'matchup', 'matchups'),
     plural(n, 'completion', 'completions'),
-    'Runs until full',
+    'Runs until full · up to 90 days',
   ].join(' · ')
 }

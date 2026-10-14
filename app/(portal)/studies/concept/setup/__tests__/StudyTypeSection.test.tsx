@@ -46,7 +46,7 @@ describe('StudyTypeSection', () => {
     expect(markup).toContain('id="concept-mode"')
     expect(markup).toContain('class="cb-builder-section cb-setup"')
     expect(markup).toContain('data-done="false"')
-    expect(markup).toContain('Choose a category · 100 completions · Runs until full')
+    expect(markup).toContain('Choose a category · 100 completions · Runs until full · up to 90 days')
     expect(markup).toContain('Packaging concept · Blind · Design letters only')
     expect(markup).not.toContain('Study type')
     expect(markup).not.toContain('More study types coming soon')
@@ -64,13 +64,15 @@ describe('StudyTypeSection', () => {
       'Category',
       'Choose a category to unlock the field.',
       'How it runs',
-      '100 completions · Runs until full',
+      '100 completions · Runs until full · up to 90 days',
       'Completions',
       '>30<',
       '>50<',
       '>100<',
       'Custom',
-      'No calendar end date — the study closes with the last response.',
+      'Runs until it',
+      'for up to 90 days. You can end it sooner.',
+      'refund for the responses you',
     ])
   })
 
@@ -95,7 +97,7 @@ describe('StudyTypeSection', () => {
       draft: createEmptyConceptDraft({ title: 'Midnight Cocoa packaging', targetCompletions: 50 }),
     })
 
-    expect(markup).toContain('Midnight Cocoa packaging · 50 completions · Runs until full')
+    expect(markup).toContain('Midnight Cocoa packaging · 50 completions · Runs until full · up to 90 days')
     expect(markup).toContain('class="cb-setup-readout"')
     expect(markup).toContain('Midnight Cocoa packaging')
     expect(markup).toContain('aria-pressed="true">50<')
@@ -124,7 +126,7 @@ describe('StudyTypeSection', () => {
       draft: createEmptyConceptDraft({ targetCompletions: 40 }),
     })
 
-    expect(markup).toContain('40 completions · Runs until full')
+    expect(markup).toContain('40 completions · Runs until full · up to 90 days')
     expect(markup).toContain('aria-pressed="true">Custom<')
     expect(markup).toContain('id="field_target_completions"')
     expect(markup).toContain('value="40"')
@@ -137,7 +139,7 @@ describe('StudyTypeSection', () => {
       draft: createEmptyConceptDraft({ targetCompletions: 1 }),
     })
 
-    expect(markup).toContain('1 completion · Runs until full')
+    expect(markup).toContain('1 completion · Runs until full · up to 90 days')
     expect(markup).not.toContain('1 completions')
   })
 })

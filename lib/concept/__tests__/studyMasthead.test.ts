@@ -9,7 +9,7 @@ describe('studyMasthead', () => {
       stimulusMode: 'package' as const,
       targetCompletions: 500,
     }
-    expect(summarizeMasthead(draft)).toBe('500 completions · Runs until full')
+    expect(summarizeMasthead(draft)).toBe('500 completions · Runs until full · up to 90 days')
   })
 
   it('starts empty with design + competitor starters (not a fixed 4+1 cast)', () => {

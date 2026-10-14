@@ -26,7 +26,7 @@ export function useCheckoutHandoff(
     completions,
     fieldingDays: draft.fieldingDays,
     expiresAt: null,
-    settled: false,
+    orderPaidOrWaived: false,
   })
 
   useEffect(() => {

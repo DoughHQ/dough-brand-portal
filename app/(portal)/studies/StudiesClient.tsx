@@ -21,9 +21,11 @@ import {
   restoreMissionAction,
   withdrawMissionAction,
 } from './missionTrashActions'
-import { closeStudyAction } from './closeStudyAction'
 import { listOperatorStudiesPageAction } from './listStudiesPageAction'
 import ConfirmDialog from './ConfirmDialog'
+import EndStudyDialog, {
+  endStudySuccessToast,
+} from './components/EndStudyDialog'
 import StudiesMetricStrip from './components/StudiesMetricStrip'
 import StudyDraftsPanel from './components/StudyDraftsPanel'
 import RowOverflowMenu from './components/RowOverflowMenu'
@@ -91,10 +93,6 @@ function isMultiBrand(args: {
   return ids.size > 1
 }
 
-function inFlightEstimate(row: OperatorStudyRow): number {
-  return Math.max(0, row.total_claims - row.completed_claims)
-}
-
 function withdrawnFromStudy(row: OperatorStudyRow): WithdrawnStudyRow {
   return {
     mission_id: row.mission_id,
@@ -137,7 +135,7 @@ const ghostBtn: CSSProperties = {
 
 type ConfirmState =
   | null
-  | { kind: 'close'; row: OperatorStudyRow }
+  | { kind: 'end'; row: OperatorStudyRow }
   | { kind: 'hard_delete'; row: WithdrawnStudyRow }
 
 type ToastState =
@@ -160,6 +158,7 @@ interface Props {
   drafts: StudyDraftListItem[]
   effectiveBrandId: number
   canOperate: boolean
+  canEndStudies: boolean
   brandName?: string | null
   loadError?: string | null
   awaitingOrders?: StudyOrderRow[]
@@ -181,6 +180,7 @@ export default function StudiesClient({
   drafts: initialDrafts,
   effectiveBrandId,
   canOperate,
+  canEndStudies,
   loadError = null,
   awaitingOrders = [],
   orderBrandNames = {},
@@ -381,29 +381,21 @@ export default function StudiesClient({
     [refresh]
   )
 
-  const executeCloseStudy = useCallback(
-    async (row: OperatorStudyRow) => {
-      setBusyId(row.mission_id)
-      setErrorBanner(null)
-      const result = await closeStudyAction(row.mission_id)
-      setBusyId(null)
-      setConfirm(null)
-      if (!result.ok) {
-        setErrorBanner(result.error)
-        return
-      }
-      const closed: OperatorStudyRow = {
+  const executeEndStudy = useCallback(
+    (row: OperatorStudyRow, result: Parameters<typeof endStudySuccessToast>[0]) => {
+      const ended: OperatorStudyRow = {
         ...row,
         is_finished: true,
-        status: 'completed',
-        lifecycle_state: 'completed',
+        status: 'expired',
+        lifecycle_state: 'expired',
       }
       setActiveRowsState((rows) => rows.filter((r) => r.mission_id !== row.mission_id))
       setCompleteRowsState((rows) => [
-        closed,
+        ended,
         ...rows.filter((r) => r.mission_id !== row.mission_id),
       ])
-      setToast({ kind: 'plain', message: 'Moved to Complete' })
+      setConfirm(null)
+      setToast({ kind: 'plain', message: endStudySuccessToast(result) })
       refresh()
     },
     [refresh]
@@ -437,57 +429,42 @@ export default function StudiesClient({
           />
         </div>
 
-        {canOperate ? (
-          <>
-            <ConfirmDialog
-              open={confirm?.kind === 'close'}
-              title="Close study?"
-              body={
-                confirm?.kind === 'close' ? (
-                  inFlightEstimate(confirm.row) > 0 ? (
-                    <>
-                      This will stop up to{' '}
-                      <strong>{inFlightEstimate(confirm.row)}</strong> in-progress
-                      respondent
-                      {inFlightEstimate(confirm.row) === 1 ? '' : 's'} for “
-                      {confirm.row.title}”.
-                    </>
-                  ) : (
-                    <>“{confirm.row.title}” will mark as completed.</>
-                  )
-                ) : null
-              }
-              confirmLabel="Close study"
-              tone="caution"
-              busy={confirmBusy}
-              onCancel={() => setConfirm(null)}
-              onConfirm={() => {
-                if (confirm?.kind === 'close') void executeCloseStudy(confirm.row)
-              }}
-            />
+        <EndStudyDialog
+          open={confirm?.kind === 'end'}
+          missionId={confirm?.kind === 'end' ? confirm.row.mission_id : null}
+          title={confirm?.kind === 'end' ? confirm.row.title || 'Untitled study' : ''}
+          onCancel={() => setConfirm(null)}
+          onError={(message) => {
+            setErrorBanner(message)
+            setConfirm(null)
+          }}
+          onFinished={(result) => {
+            if (confirm?.kind === 'end') executeEndStudy(confirm.row, result)
+          }}
+        />
 
-            <ConfirmDialog
-              open={confirm?.kind === 'hard_delete'}
-              title="Delete forever?"
-              body={
-                confirm?.kind === 'hard_delete' ? (
-                  <>
-                    Permanently delete “{confirm.row.title}”? This can&apos;t be undone.
-                  </>
-                ) : null
-              }
-              confirmLabel="Delete forever"
-              tone="destructive"
-              busy={confirmBusy}
-              onCancel={() => setConfirm(null)}
-              onConfirm={() => {
-                if (confirm?.kind === 'hard_delete') void executeHardDelete(confirm.row)
-              }}
-            />
-          </>
+        {canOperate ? (
+          <ConfirmDialog
+            open={confirm?.kind === 'hard_delete'}
+            title="Delete forever?"
+            body={
+              confirm?.kind === 'hard_delete' ? (
+                <>
+                  Permanently delete “{confirm.row.title}”? This can&apos;t be undone.
+                </>
+              ) : null
+            }
+            confirmLabel="Delete forever"
+            tone="destructive"
+            busy={confirmBusy}
+            onCancel={() => setConfirm(null)}
+            onConfirm={() => {
+              if (confirm?.kind === 'hard_delete') void executeHardDelete(confirm.row)
+            }}
+          />
         ) : null}
 
-        {toast && canOperate ? (
+        {toast ? (
           <div
             role="status"
             style={{
@@ -558,10 +535,11 @@ export default function StudiesClient({
             <ActiveStudyList
               rows={activeRows}
               canOperate={canOperate}
+              canEndStudies={canEndStudies}
               busyId={busyId}
               pending={pending}
               showBrand={showBrand}
-              onClose={(row) => setConfirm({ kind: 'close', row })}
+              onEnd={(row) => setConfirm({ kind: 'end', row })}
               onWithdraw={(row) => void executeWithdraw(row)}
             />
           )}
@@ -598,10 +576,11 @@ export default function StudiesClient({
             <CompletedStudyList
               rows={completeRows}
               canOperate={canOperate}
+              canEndStudies={canEndStudies}
               busyId={busyId}
               pending={pending}
               showBrand={showBrand}
-              onClose={(row) => setConfirm({ kind: 'close', row })}
+              onEnd={(row) => setConfirm({ kind: 'end', row })}
               onWithdraw={(row) => void executeWithdraw(row)}
             />
           )}

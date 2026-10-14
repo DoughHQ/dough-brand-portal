@@ -11,6 +11,7 @@ import {
   InProgressEmpty,
   InProgressSectionHead,
 } from '../../StudyLifecycleLists'
+import { rowOverflow, statusPill } from '../studyRowModel'
 
 function row(partial: Partial<OperatorStudyRow> = {}): OperatorStudyRow {
   return {
@@ -38,10 +39,11 @@ function row(partial: Partial<OperatorStudyRow> = {}): OperatorStudyRow {
 
 const listActions = {
   canOperate: false,
+  canEndStudies: false,
   busyId: null,
   pending: false,
   showBrand: false,
-  onClose: () => {},
+  onEnd: () => {},
   onWithdraw: () => {},
 }
 
@@ -180,10 +182,10 @@ describe('StudyLifecycleLists', () => {
     expect(paused).toContain('Paused')
     expect(paused).toContain('iHUT · Odwalla')
     expect(paused).toContain('class="studies-kebab"')
-    expect(paused).not.toContain('Close study')
+    expect(paused).not.toContain('End study')
   })
 
-  it('counts completed responses and marks expired or archived studies', () => {
+  it('counts completed responses and marks ended or archived studies', () => {
     const done = renderToStaticMarkup(
       createElement(CompletedStudyList, {
         ...listActions,
@@ -239,15 +241,44 @@ describe('StudyLifecycleLists', () => {
     expect(done).toContain('class="studies-study-row studies-study-row--completed"')
     expect(done).toContain('class="studies-kebab"')
     expect(done).toContain('href="/reports/done-1"')
-    expect(done).not.toContain('Expired')
+    expect(done).not.toContain('Ended')
     expect(done).not.toContain('Archived')
     expectOrder(done, ['Midnight Cocoa', 'Responses', '18', 'View results →'])
-    expect(expired).toContain('Expired')
+    expect(expired).toContain('Ended')
     expect(expired).toContain('href="/studies/concept/concept-3/report"')
     expect(expired).toContain('>0<')
     expect(archived).toContain('Archived')
     expect(archived).toContain('Challenge · Odwalla')
     expect(archived).toContain('Product pending')
     expect(archived).toContain('>3<')
+  })
+
+  it('offers End study by permission, and labels expired as Ended', () => {
+    expect(statusPill('expired').label).toBe('Ended')
+
+    const staff = rowOverflow(row({ lifecycle_state: 'active' }), {
+      ...listActions,
+      canOperate: true,
+      canEndStudies: true,
+    }).map((action) => action.label)
+    expect(staff).toEqual(['End study', 'Withdraw'])
+
+    const writer = rowOverflow(row({ lifecycle_state: 'paused' }), {
+      ...listActions,
+      canEndStudies: true,
+    }).map((action) => action.label)
+    expect(writer).toEqual(['End study'])
+
+    const viewer = rowOverflow(row({ lifecycle_state: 'active' }), {
+      ...listActions,
+    })
+    expect(viewer).toEqual([])
+
+    const complete = rowOverflow(row({ lifecycle_state: 'expired' }), {
+      ...listActions,
+      canOperate: true,
+      canEndStudies: true,
+    }).map((action) => action.label)
+    expect(complete).toEqual(['Withdraw'])
   })
 })

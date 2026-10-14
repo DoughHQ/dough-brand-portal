@@ -74,6 +74,10 @@ export default function BoxRunSection({
             Each respondent gets {IHUT_RESPONDENT_WINDOW_DAYS} days after delivery.
             Recruitment stops at the target; anyone already shipped can still finish.
           </p>
+          <p>
+            Runs until it&apos;s full, for up to 90 days. You can end it sooner. Households
+            with a box still finish, and you get a report if at least 10 did.
+          </p>
         </div>
       ) : (
         <div className="box-completion-contract is-empty">

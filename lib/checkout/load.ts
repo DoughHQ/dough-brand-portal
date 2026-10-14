@@ -23,7 +23,7 @@ export function parseStudyOrder(row: {
   title: string
   completions: number
   unit_price_cents: number
-  amount_cents: number | string
+  amount_cents: number | string | null
   currency: string
   status: string
   payment_reference: string | null
@@ -31,10 +31,10 @@ export function parseStudyOrder(row: {
   created_at: string
 }): StudyOrderRow | null {
   if (!isStudyOrderStatus(row.status)) return null
-  const amount = intField(row.amount_cents)
   const unit = intField(row.unit_price_cents)
   const completions = intField(row.completions)
-  if (amount == null || unit == null || completions == null) return null
+  if (unit == null || completions == null) return null
+  const amount = intField(row.amount_cents) ?? unit * completions
   return {
     mission_id: row.mission_id,
     brand_id: row.brand_id,

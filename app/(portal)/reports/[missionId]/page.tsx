@@ -9,6 +9,12 @@ import {
 } from '@/lib/experiencedReport'
 import type { ExperiencedReportErrorCode } from '@/lib/experiencedReport/types'
 import { ExperiencedReportDeck } from '@/components/experiencedReport/ExperiencedReportDeck'
+import StudyReportStatusCard from '@/components/studies/StudyReportStatusCard'
+import { loadStudyEndPreview } from '@/lib/studies/loadStudyEndPreview'
+import {
+  studyReportFallbackStatus,
+  studyReportStatus,
+} from '@/lib/studies/studyReportStatus'
 
 type Props = {
   params: Promise<{ missionId: string }>
@@ -60,10 +66,7 @@ function StateCard({
 function messageForCode(code: ExperiencedReportErrorCode): { title: string; body: string } {
   switch (code) {
     case 'NO_REPORT_YET':
-      return {
-        title: "Report isn't ready yet",
-        body: "This study's report isn't ready yet. A frozen snapshot appears after compute runs for this mission. This page only reads that snapshot — it never recomputes.",
-      }
+      return studyReportFallbackStatus()
     case 'FORBIDDEN':
     case 'NOT_A_PORTAL_USER':
       return {
@@ -139,6 +142,21 @@ export default async function MissionReportPage({ params, searchParams }: Props)
   const result = await fetchExperiencedMissionReport(supabase, effectiveMissionId)
 
   if (!result.ok) {
+    if (result.code === 'NO_REPORT_YET' && !previewLabel) {
+      const loaded = await loadStudyEndPreview(supabase, missionId)
+      if (loaded.ok) {
+        return (
+          <StudyReportStatusCard
+            missionId={missionId}
+            title="This study"
+            status={studyReportStatus(loaded.preview)}
+            backHref={backHref}
+          />
+        )
+      }
+      const fallback = studyReportFallbackStatus()
+      return <StateCard title={fallback.title} body={fallback.body} backHref={backHref} />
+    }
     const copy = messageForCode(result.code)
     return <StateCard title={copy.title} body={copy.body} backHref={backHref} />
   }

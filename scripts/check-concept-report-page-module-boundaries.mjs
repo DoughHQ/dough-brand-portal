@@ -94,11 +94,15 @@ const dependencies = {
   [reportPageShell]: [
     `${reportStateRoot}ConceptReportPreviewBanner.tsx`,
     `${reportStateRoot}ConceptReportStateCard.tsx`,
+    `${reportStateRoot}StudyReportNotReady.tsx`,
     `${reportStateRoot}conceptReportMessages.ts`,
     `${reportStateRoot}tryParseConceptTest.ts`,
   ],
   [`${reportStateRoot}ConceptReportPreviewBanner.tsx`]: [],
   [`${reportStateRoot}ConceptReportStateCard.tsx`]: [],
+  [`${reportStateRoot}StudyReportNotReady.tsx`]: [
+    `${reportStateRoot}ConceptReportStateCard.tsx`,
+  ],
   [`${reportStateRoot}conceptReportMessages.ts`]: [],
   [`${reportStateRoot}tryParseConceptTest.ts`]: [],
 }

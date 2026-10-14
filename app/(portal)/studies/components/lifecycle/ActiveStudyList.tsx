@@ -1,62 +1,38 @@
 import Link from 'next/link'
-import { conceptListStatus, isConceptStudy } from '@/lib/checkout/status'
-import { PRODUCT_NAME } from '@/lib/brand'
+import { isConceptStudy } from '@/lib/checkout/status'
+import { ActiveExtraBadges } from '../ActiveExtraBadges'
 import RowOverflowMenu from '../RowOverflowMenu'
-import { NameBlock, StatusPillView } from './StudyNameBlock'
-import { claimProgress, reportHref, rowOverflow, type StudyListProps } from './studyRowModel'
+import { NameBlock } from './StudyNameBlock'
+import {
+  claimProgress,
+  reportHref,
+  rowOverflow,
+  showRowOverflow,
+  type StudyListProps,
+} from './studyRowModel'
 
-export function ActiveStudyList({
-  rows,
-  canOperate,
-  busyId,
-  pending,
-  showBrand,
-  onClose,
-  onWithdraw,
-}: StudyListProps) {
+export function ActiveStudyList(props: StudyListProps) {
+  const { rows, canOperate, canEndStudies, busyId, pending, showBrand, onEnd, onWithdraw } =
+    props
   return (
     <div className="studies-list">
       {rows.map((row) => {
         const progress = claimProgress(row)
-        const state = row.lifecycle_state
-        const showState =
-          state === 'paused' || state === 'scheduled' || state === 'in_review'
-        const conceptStatus = conceptListStatus(row)
         const overflow = rowOverflow(row, {
           canOperate,
+          canEndStudies,
           busyId,
           pending,
-          onClose,
+          onEnd,
           onWithdraw,
         })
-
         return (
           <div key={row.mission_id} className="studies-study-row studies-study-row--active">
             <div className="studies-study-main">
               <NameBlock
                 row={row}
                 showBrand={showBrand}
-                extraBadges={
-                  conceptStatus ? (
-                    conceptStatus.href ? (
-                      <Link href={conceptStatus.href} className="studies-status-pill" style={{ color: 'var(--heading)', background: 'var(--sage-soft)', textDecoration: 'none' }}>
-                        {conceptStatus.label}
-                      </Link>
-                    ) : (
-                      <span className="studies-status-pill" style={{ color: 'var(--ink-50)', background: 'var(--paper)' }}>
-                        {conceptStatus.label}
-                      </span>
-                    )
-                  ) : showState ? (
-                    state === 'in_review' ? (
-                      <span className="studies-status-pill" title={`Awaiting ${PRODUCT_NAME} review`}>
-                        {`In review: ${PRODUCT_NAME} is checking your wording`}
-                      </span>
-                    ) : (
-                      <StatusPillView state={state} />
-                    )
-                  ) : null
-                }
+                extraBadges={<ActiveExtraBadges row={row} />}
               />
             </div>
             <div className="studies-study-mid">
@@ -81,7 +57,9 @@ export function ActiveStudyList({
                   ? 'Checkout →'
                   : 'View report →'}
               </Link>
-              {canOperate ? <RowOverflowMenu actions={overflow} /> : null}
+              {showRowOverflow({ canOperate, canEndStudies }, row) ? (
+                <RowOverflowMenu actions={overflow} />
+              ) : null}
             </div>
           </div>
         )

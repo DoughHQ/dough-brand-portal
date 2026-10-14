@@ -7,10 +7,12 @@ import { fetchAwaitingOrders, fetchConceptPrice, attachOrderStatus } from '@/lib
 import { fetchInvoiceContactLabels } from '@/lib/checkout/invoiceContact.server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { operatorStudiesBrandId } from '@/lib/studies/operatorScope'
+import { canPublishStudies } from '@/lib/studies/canPublishStudies'
 
 export async function loadStudiesPage(scope: PortalBrandScope) {
   const { portalUser, effectiveBrandId, isImpersonating } = scope
   const canOperate = portalUser.role === 'dough_admin' && !isImpersonating
+  const canEndStudies = canPublishStudies(portalUser)
   const brandId = operatorStudiesBrandId(scope)
 
   const [activeResult, completeResult, withdrawn, draftsResult] = await Promise.all([
@@ -91,6 +93,7 @@ export async function loadStudiesPage(scope: PortalBrandScope) {
     drafts,
     effectiveBrandId,
     canOperate,
+    canEndStudies,
     brandName,
     loadError,
     awaitingOrders,

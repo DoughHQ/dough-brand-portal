@@ -8,7 +8,7 @@ export function messageForCode(code: ConceptReportErrorCode): {
     case 'NO_REPORT_YET':
       return {
         title: "Report isn't ready yet",
-        body: "This study's report isn't ready yet. A frozen snapshot appears after compute runs for this mission. This page only reads that snapshot — it never recomputes.",
+        body: 'The report appears here once the study has finished.',
       }
     case 'FORBIDDEN':
     case 'NOT_A_PORTAL_USER':

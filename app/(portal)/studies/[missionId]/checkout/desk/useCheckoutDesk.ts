@@ -34,15 +34,26 @@ export function useCheckoutDesk({
   const [requested, setRequested] = useState(false)
   const total = formatOrderMoney(order.amount_cents, order.currency)
   const unit = formatOrderMoney(order.unit_price_cents, order.currency)
-  const settled = order.status === 'paid' || order.status === 'waived'
+  const orderPaidOrWaived = order.status === 'paid' || order.status === 'waived'
   const invoiceEmail = email?.trim() || 'your account email'
   const when = paidDate(order.paid_at)
   const facts = checkoutWindowFacts({
     completions: order.completions,
     fieldingDays,
     expiresAt,
-    settled,
+    orderPaidOrWaived,
   })
 
-  return { requested, setRequested, total, unit, settled, invoiceEmail, when, facts }
+  return {
+    requested,
+    setRequested,
+    total,
+    unit,
+    orderPaidOrWaived,
+    /** @deprecated Use orderPaidOrWaived. Kept for existing checkout props. */
+    settled: orderPaidOrWaived,
+    invoiceEmail,
+    when,
+    facts,
+  }
 }

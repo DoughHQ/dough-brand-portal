@@ -118,7 +118,7 @@ export function summarizeBoxAudience(draft: BoxStudyDraft): string {
 export function summarizeBoxLogistics(draft: BoxStudyDraft): string {
   const inventory = ihutInventoryPlan(draft.targetCompletions)
   if (!inventory) return 'Set completed respondents'
-  return `${plural(inventory.targetCompletions, 'completion', 'completions')} · ${plural(inventory.physicalUnits, 'box', 'boxes')} prepared · Runs until full`
+  return `${plural(inventory.targetCompletions, 'completion', 'completions')} · ${plural(inventory.physicalUnits, 'box', 'boxes')} prepared · Runs until full · up to 90 days`
 }
 
 /** Sticky dock when the box can publish. */

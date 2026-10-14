@@ -118,13 +118,14 @@ export async function saveBrandPrototypeAction(
       : null
 
   const { data, error } = await supabase.rpc('save_brand_prototype', {
-    p_prototype_id: input.prototypeId,
+    // Runtime accepts null for create; generated Args currently require string.
+    p_prototype_id: (input.prototypeId ?? null) as string,
     p_brand_id: brandId,
     p_name: name,
     p_taxonomy_node_id: input.taxonomyNodeId,
     p_packaging: packaging,
-    p_internal_label: input.internalLabel?.trim() || null,
-    p_planned_price: price,
+    p_internal_label: input.internalLabel?.trim() || undefined,
+    p_planned_price: price ?? undefined,
     p_image_paths: input.imagePaths.slice(0, 6),
   })
 

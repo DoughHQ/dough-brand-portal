@@ -20,7 +20,7 @@ describe('builderSummaries', () => {
       fieldingDays: null,
     }
     expect(summarizeSetup(draft)).toBe(
-      'Midnight Cocoa · 100 completions · Runs until full'
+      'Midnight Cocoa · 100 completions · Runs until full · up to 90 days'
     )
   })
 
@@ -32,7 +32,7 @@ describe('builderSummaries', () => {
       targetCompletions: 100,
     }
     expect(summarizeSetup(draft)).toBe(
-      'Name your study · 100 completions · Runs until full'
+      'Name your study · 100 completions · Runs until full · up to 90 days'
     )
   })
 
@@ -62,7 +62,7 @@ describe('builderSummaries', () => {
       targetCompletions: 50,
     }
     expect(summarizeDockReady(draft)).toBe(
-      '3 in field · 3 matchups · 50 completions · Runs until full'
+      '3 in field · 3 matchups · 50 completions · Runs until full · up to 90 days'
     )
   })
 })
