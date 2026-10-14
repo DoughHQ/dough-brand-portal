@@ -11,12 +11,9 @@ import {
   type BoxPublishFailure,
 } from '@/lib/box/validity'
 import { summarizeBoxDockReady } from '@/lib/box/builderSummaries'
-import {
-  checkBoxTaxonomyRiskAction,
-  publishBoxStudyAction,
-  createBoxCampaignAction,
-} from '../actions'
-import { alcoholDetected, boxRiskNodeIds, type BoxTaxonomyRisk } from '@/lib/box/risk'
+import { publishBoxStudyAction, createBoxCampaignAction } from '../actions'
+import { alcoholDetected } from '@/lib/box/risk'
+import { useBoxTaxonomyRisk } from './useBoxTaxonomyRisk'
 import { useServerStudyDraft } from '@/lib/studies/useServerStudyDraft'
 import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 import type { BoxErrorSection } from '@/lib/box/errors'
@@ -52,29 +49,7 @@ export function useBoxStudyClient({
   const [sectionErrors, setSectionErrors] = useState<SectionErrors>({})
   const [publishFailure, setPublishFailure] = useState<BoxPublishFailure | null>(null)
 
-  const [taxonomyRisk, setTaxonomyRisk] = useState<BoxTaxonomyRisk>({ status: 'idle' })
-  const riskNodeKey = boxRiskNodeIds(draft).join(',')
-
-  useEffect(() => {
-    const ids = riskNodeKey ? riskNodeKey.split(',').map(Number) : []
-    if (ids.length === 0) {
-      setTaxonomyRisk({ status: 'idle' })
-      return
-    }
-    let cancelled = false
-    setTaxonomyRisk({ status: 'checking' })
-    checkBoxTaxonomyRiskAction(ids)
-      .then((res) => {
-        if (!cancelled) setTaxonomyRisk(res.ok ? res.risk : { status: 'unavailable' })
-      })
-      .catch(() => {
-        if (!cancelled) setTaxonomyRisk({ status: 'unavailable' })
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [riskNodeKey])
-
+  const taxonomyRisk = useBoxTaxonomyRisk(draft)
   const validity = useMemo(
     () => evaluateBoxValidity(draft, taxonomyRisk),
     [draft, taxonomyRisk]

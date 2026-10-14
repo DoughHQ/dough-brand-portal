@@ -9,6 +9,8 @@ const conceptRoot = 'app/(portal)/studies/concept/'
 const contentsRoot = `${boxRoot}contents/`
 const competitorsRoot = `${conceptRoot}competitors/`
 const contentsShell = `${boxRoot}ContentsSection.tsx`
+const riskRoot = `${boxRoot}risk/`
+const riskShell = `${boxRoot}RiskSection.tsx`
 const competitorsShell = `${conceptRoot}CompetitorsColumn.tsx`
 let failed = false
 
@@ -134,6 +136,23 @@ const dependencies = {
     `${contentsRoot}catalogSeat.ts`,
     `${contentsRoot}types.ts`,
   ],
+
+  [riskShell]: [
+    `${riskRoot}RiskAlcoholCard.tsx`,
+    `${riskRoot}RiskAttestation.tsx`,
+    `${riskRoot}RiskYesNo.tsx`,
+    `${riskRoot}riskStyles.ts`,
+    `${riskRoot}summarizeRiskSection.ts`,
+  ],
+  [`${riskRoot}RiskAlcoholCard.tsx`]: [
+    `${riskRoot}RiskAttestation.tsx`,
+    `${riskRoot}RiskYesNo.tsx`,
+    `${riskRoot}riskStyles.ts`,
+  ],
+  [`${riskRoot}RiskAttestation.tsx`]: [],
+  [`${riskRoot}RiskYesNo.tsx`]: [],
+  [`${riskRoot}riskStyles.ts`]: [],
+  [`${riskRoot}summarizeRiskSection.ts`]: [],
 
   [competitorsShell]: [
     `${competitorsRoot}CompetitorColumnHead.tsx`,
@@ -307,7 +326,7 @@ for (const relativePath of trackedModules) {
   }
 }
 
-for (const entryPoint of [contentsShell, competitorsShell]) {
+for (const entryPoint of [contentsShell, riskShell, competitorsShell]) {
   const actual = new Set(resolvedDependencies(entryPoint))
   for (const required of dependencies[entryPoint]) {
     if (!actual.has(required)) {
