@@ -47989,23 +47989,28 @@ export type Database = {
       list_operator_box_fulfillments: {
         Args: { p_box_id: string }
         Returns: {
-          abandon_deadline: string
-          carrier: string
-          claimed_at: string
-          completed_at: string
-          confirmed_at: string
-          delivered_at: string
+          abandon_deadline: string | null
+          carrier: string | null
+          claimed_at: string | null
+          completed_at: string | null
+          confirmed_at: string | null
+          consent_version: string | null
+          consented_at: string | null
+          delivered_at: string | null
           dings_reliability: boolean
           fulfillment_id: string
-          recipient_name: string
-          session_1_completed_at: string
-          session_2_completed_at: string
-          ship_city: string
-          ship_postal: string
-          ship_state: string
-          shipped_at: string
+          left_at: string | null
+          left_reason: string | null
+          recipient_name: string | null
+          session_1_completed_at: string | null
+          session_2_completed_at: string | null
+          ship_city: string | null
+          ship_postal: string | null
+          ship_state: string | null
+          shipped_at: string | null
           state: Database["public"]["Enums"]["box_fulfillment_state"]
-          tracking_ref: string
+          terminal_reason: string | null
+          tracking_ref: string | null
           user_id: number
         }[]
       }

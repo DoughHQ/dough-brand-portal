@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ApproveInviteDialog } from '../ApplicationDecisionDialogs'
+import { ApproveInviteDialog, ConfirmDialog, RejectDialog } from '../ApplicationDecisionDialogs'
 import type { BrandApplication, CatalogCandidate } from '@/lib/brandApplications'
 
 afterEach(cleanup)
@@ -97,5 +97,49 @@ describe('ApproveInviteDialog', () => {
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({ confirmNew: true, brandName: 'New Co' })
     )
+  })
+})
+
+describe('RejectDialog', () => {
+  it('previews the Runoff reply signed by Kyle', () => {
+    render(
+      <RejectDialog
+        row={row()}
+        busy={false}
+        error={null}
+        onClose={() => undefined}
+        onSubmit={() => undefined}
+      />
+    )
+
+    const preview = screen.getByText(/Thanks for your interest in Runoff/)
+    expect(preview.textContent?.startsWith('Hi Jane,')).toBe(true)
+    expect(preview.textContent).toContain(
+      "We're not able to open a workspace for New Co right now."
+    )
+    expect(preview.textContent).toContain('— Kyle')
+  })
+})
+
+describe('ConfirmDialog', () => {
+  it('shows Working… and keeps the dialog while busy', async () => {
+    const user = userEvent.setup()
+    const onClose = vi.fn()
+    render(
+      <ConfirmDialog
+        title="Revoke invite"
+        body="The invite link stops working."
+        primaryLabel="Revoke"
+        busy
+        error={null}
+        onClose={onClose}
+        onConfirm={() => undefined}
+      />
+    )
+
+    const working = screen.getByRole('button', { name: 'Working…' }) as HTMLButtonElement
+    expect(working.disabled).toBe(true)
+    await user.click(screen.getByRole('presentation'))
+    expect(onClose).not.toHaveBeenCalled()
   })
 })
