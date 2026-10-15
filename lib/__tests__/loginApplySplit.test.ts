@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 describe('/login apply split', () => {
@@ -24,10 +24,15 @@ describe('/login apply split', () => {
   })
 
   it('ApplyBrandFlow detects a session and maps 42501', () => {
-    const src = readFileSync(
+    const applyDir = resolve(__dirname, '../../components/auth/apply')
+    const src = [
       resolve(__dirname, '../../components/auth/ApplyBrandFlow.tsx'),
-      'utf8'
-    )
+      ...readdirSync(applyDir)
+        .filter((name) => /\.(ts|tsx)$/.test(name))
+        .map((name) => join(applyDir, name)),
+    ]
+      .map((file) => readFileSync(file, 'utf8'))
+      .join('\n')
     expect(src).toMatch(/APPLY_WHILE_AUTH_COPY/)
     expect(src).toMatch(/applyWaitlistInsertErrorCopy/)
     expect(src).toMatch(/getSession/)
