@@ -11,6 +11,7 @@ import AuthShell, {
   authPrimaryBtnStyle,
 } from '@/components/auth/AuthShell'
 import { getPortalAppUrl, PRODUCT_NAME } from '@/lib/brand'
+import { resetRequestErrorCopy, signInErrorCopy } from '@/lib/auth/authErrorCopy'
 
 type Step = 'login' | 'forgot'
 
@@ -92,7 +93,7 @@ export default function LoginPage() {
     })
     setLoading(false)
     if (signInError) {
-      setError('Invalid credentials.')
+      setError(signInErrorCopy(signInError, 'login'))
       return
     }
     router.push('/dashboard')
@@ -117,7 +118,11 @@ export default function LoginPage() {
 
     setLoading(false)
     if (resetError) {
-      console.error('resetPasswordForEmail error:', resetError)
+      const copy = resetRequestErrorCopy(resetError)
+      if (copy) {
+        setError(copy)
+        return
+      }
     }
     setInfo(
       'If an account exists for that email, a reset link is on its way. Open it in this same browser.'

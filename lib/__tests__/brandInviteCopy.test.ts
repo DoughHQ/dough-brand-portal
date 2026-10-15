@@ -14,11 +14,12 @@ describe('describeInviteState', () => {
     expect(c.smallPrint).toBe("Opening this page doesn't use your invite.")
   })
 
-  it('resume: finish setup with the same email', () => {
+  it('resume: finish setup with the same email, no peek-only small print', () => {
     const c = describeInviteState('resume', ctx)
     expect(c.title).toBe('Finish setting up Acme')
-    expect(c.body).toContain('owner@acme.com')
+    expect(c.body).toBe("You've joined as owner@acme.com. One step left: set your password.")
     expect(c.action).toBe('continue')
+    expect(c.smallPrint).toBeUndefined()
   })
 
   it('has_account: password form with sign-in-and-join action', () => {
