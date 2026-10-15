@@ -2,6 +2,10 @@
  * CONCEPT_CORE_V1 report — pure renderer of report_concept_test.json shape.
  * CONCEPT_CORE_V1 verdict payload.
  */
+import {
+  parseSampleComposition,
+  type SampleComposition,
+} from '../reportSampleComposition'
 
 export type ConceptTestVerdictResult =
   | 'cleared'
@@ -58,6 +62,7 @@ export type ConceptWhatMattersItem = {
 
 export type ConceptTestReport = {
   flow: string
+  sample_composition?: SampleComposition | null
   sample: {
     n_started: number
     n_completed: number
@@ -153,6 +158,7 @@ export function parseConceptTestReport(
 
   return {
     flow: str(r.flow, 'concept_core_v1'),
+    sample_composition: parseSampleComposition(r.sample_composition),
     sample: {
       n_started: num(sample.n_started),
       n_completed: num(sample.n_completed),
@@ -380,14 +386,21 @@ export function parseConceptTestEnvelope(
   payload: unknown,
 ): ConceptTestReport | null {
   const outer = asRecord(payload)
+  const outerComposition = parseSampleComposition(outer?.sample_composition)
   const candidates = [payload, outer?.concept_test, outer?.report, outer?.data]
   for (const candidate of candidates) {
     if (isConceptTestReportPayload(candidate)) {
-      return parseConceptTestReport(candidate)
+      const report = parseConceptTestReport(candidate)
+      return report
+        ? { ...report, sample_composition: report.sample_composition ?? outerComposition }
+        : null
     }
     const nested = asRecord(candidate)
     if (isConceptTestReportPayload(nested?.concept_test)) {
-      return parseConceptTestReport(nested?.concept_test)
+      const report = parseConceptTestReport(nested?.concept_test)
+      return report
+        ? { ...report, sample_composition: report.sample_composition ?? outerComposition }
+        : null
     }
   }
   return null

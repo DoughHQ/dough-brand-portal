@@ -21,7 +21,7 @@ export function MethodChapter({
   return (
     <StoryChapter
       id="method"
-      number="06"
+      number="07"
       kicker="Method"
       title="What this report can—and cannot—say."
       lead="Methods sit last. Every claim above keeps its denominator, uncertainty, and scope."

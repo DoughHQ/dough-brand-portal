@@ -16,6 +16,7 @@ import { WhyChapter } from "./story/WhyChapter";
 import { IntentChapter } from "./story/IntentChapter";
 import { EvidenceChapter } from "./story/EvidenceChapter";
 import { MethodChapter } from "./story/MethodChapter";
+import { SampleCompositionSection } from "@/components/reportStory/SampleCompositionSection";
 
 type Props = {
   envelope: ExperiencedReportEnvelope;
@@ -85,6 +86,7 @@ export function ExperiencedStoryReport({
               { href: "#intent", label: "Buy again" },
               { href: "#price", label: "Price" },
               { href: "#evidence", label: "Evidence" },
+              { href: "#sample-composition", label: "Who took part" },
             ]}
           />
         ) : null}
@@ -120,6 +122,11 @@ export function ExperiencedStoryReport({
             <PriceValueChapter story={overview.story} />
 
             <EvidenceChapter report={report} />
+
+            <SampleCompositionSection
+              composition={report.sample_composition ?? null}
+              number="06"
+            />
 
             <MethodChapter
               report={report}

@@ -11,6 +11,7 @@ export const EVIDENCE_PACK_LINKS = [
   { href: '#expectation', label: 'Expectation' },
   { href: '#price', label: 'Price' },
   { href: '#durability', label: 'Day 2' },
+  { href: '#sample-composition', label: 'Who took part' },
   { href: '#trust', label: 'Method' },
 ] as const
 

@@ -22,6 +22,7 @@ import {
   PriceValueChapter,
 } from './DecisionChapters'
 import { OverviewBottomLine } from './DecisionBrief'
+import { SampleCompositionSection } from '@/components/reportStory/SampleCompositionSection'
 import {
   AttributeEvidenceChapter,
   BuyOrderEvidenceChapter,
@@ -240,7 +241,7 @@ export function IhutStoryReport({
 
         {variant === 'full' ? (
           <>
-            <EvidencePackHeader pageCount={9} />
+            <EvidencePackHeader pageCount={10} />
             <EvidenceToc />
 
             <FieldEvidenceChapter
@@ -283,9 +284,14 @@ export function IhutStoryReport({
 
             <Day2EvidenceChapter report={report} number="09" />
 
+            <SampleCompositionSection
+              composition={envelope.report.sample_composition ?? null}
+              number="10"
+            />
+
             <StoryChapter
               id="trust"
-              number="10"
+              number="11"
               kicker="Method · Trust"
               title="What this report can—and cannot—say."
               lead="These rules protect the decision from flattering reinterpretation. Price claims remain tested-offer intent, never demand."

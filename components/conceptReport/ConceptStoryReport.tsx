@@ -19,6 +19,7 @@ import { ChoiceChapter } from './story/ChoiceChapter'
 import { PriceChapter } from './story/PriceChapter'
 import { VoicesChapter } from './story/VoicesChapter'
 import { MethodChapter } from './story/MethodChapter'
+import { SampleCompositionSection } from '@/components/reportStory/SampleCompositionSection'
 
 type Props = {
   report: ConceptTestReport
@@ -122,6 +123,7 @@ export function ConceptTestReportDeck({ report, backHref }: Props) {
             { href: '#first-look', label: '02 · First impression' },
             { href: '#why', label: '03 · What shaped choice' },
             { href: '#price', label: '04 · Price evidence' },
+            { href: '#sample-composition', label: '06 · Who took part' },
           ]}
         />
 
@@ -147,6 +149,11 @@ export function ConceptTestReportDeck({ report, backHref }: Props) {
         <PriceChapter report={report} narrative={narrative} verdict={verdict} />
 
         <VoicesChapter report={report} />
+
+        <SampleCompositionSection
+          composition={report.sample_composition ?? null}
+          number="06"
+        />
 
         <MethodChapter report={report} />
 
