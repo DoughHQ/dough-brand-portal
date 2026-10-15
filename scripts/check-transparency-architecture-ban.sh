@@ -123,29 +123,46 @@ for MODULE in \
   progress.ts \
   useTransparencyStudio.ts \
   DisclosureRowEditor.tsx \
-  InventoryGroups.tsx; do
+  InventoryGroups.tsx \
+  useStudioChapters.ts \
+  StudioHeader.tsx \
+  ChapterRail.tsx \
+  ChapterPane.tsx \
+  OriginChapter.tsx \
+  PlanetChapter.tsx \
+  RightsChapter.tsx \
+  chapterProps.ts \
+  disclosure/fields.tsx \
+  disclosure/disclosureOptions.ts \
+  disclosure/disclosureProps.ts \
+  disclosure/SubjectField.tsx \
+  disclosure/ValueField.tsx \
+  disclosure/MethodFields.tsx \
+  disclosure/ProvenanceSection.tsx \
+  disclosure/StatusNote.tsx \
+  disclosure/PublishFooter.tsx; do
   if [[ ! -f "$TRANSPARENCY/studio/$MODULE" ]]; then
     echo "BAN FAIL: missing transparency studio module: $MODULE"
     FAIL=1
   fi
 done
 
-for MODULE in progress useTransparencyStudio InventoryGroups; do
+for MODULE in useTransparencyStudio useStudioChapters StudioHeader ChapterRail ChapterPane; do
   if ! rg -q "studio/$MODULE'" "$STUDIO"; then
     echo "BAN FAIL: ProductTransparencyStudio must import extracted module: $MODULE"
     FAIL=1
   fi
 done
 
-if rg -n '\b(function|const|class) (DisclosureRowEditor|InventoryGroups|useTransparencyStudio)\b' \
+if rg -n '\b(function|const|class) (DisclosureRowEditor|InventoryGroups|useTransparencyStudio|useStudioChapters|StudioHeader|ChapterRail|ChapterPane|OriginChapter|PlanetChapter|RightsChapter|indexFields)\b' \
   "$STUDIO" >/dev/null 2>&1; then
   echo "BAN FAIL: ProductTransparencyStudio must remain an orchestration shell"
   FAIL=1
 fi
 
 STUDIO_LINES="$(wc -l < "$STUDIO" | tr -d ' ')"
-if (( STUDIO_LINES > 500 )); then
-  echo "BAN FAIL: ProductTransparencyStudio grew past its 500-line orchestration budget ($STUDIO_LINES)"
+if (( STUDIO_LINES > 130 )); then
+  echo "BAN FAIL: ProductTransparencyStudio grew past its 130-line orchestration budget ($STUDIO_LINES)"
   FAIL=1
 fi
 
@@ -161,9 +178,26 @@ while IFS='|' read -r MODULE LIMIT; do
   fi
 done <<'EOF'
 useTransparencyStudio.ts|525
-DisclosureRowEditor.tsx|500
+DisclosureRowEditor.tsx|120
 progress.ts|450
 InventoryGroups.tsx|175
+useStudioChapters.ts|170
+StudioHeader.tsx|35
+ChapterRail.tsx|80
+ChapterPane.tsx|120
+OriginChapter.tsx|70
+PlanetChapter.tsx|75
+RightsChapter.tsx|60
+chapterProps.ts|25
+disclosure/fields.tsx|45
+disclosure/disclosureOptions.ts|45
+disclosure/disclosureProps.ts|20
+disclosure/SubjectField.tsx|45
+disclosure/ValueField.tsx|105
+disclosure/MethodFields.tsx|60
+disclosure/ProvenanceSection.tsx|120
+disclosure/StatusNote.tsx|30
+disclosure/PublishFooter.tsx|45
 EOF
 
 if [[ "$FAIL" -ne 0 ]]; then

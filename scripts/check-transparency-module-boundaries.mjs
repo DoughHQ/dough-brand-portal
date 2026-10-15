@@ -76,18 +76,67 @@ function forbidDeclarations(relativePath, forbiddenNames) {
 }
 
 requireImports('components/transparency/ProductTransparencyStudio.tsx', [
-  '@/components/transparency/studio/InventoryGroups',
-  '@/components/transparency/studio/progress',
+  '@/components/transparency/studio/ChapterPane',
+  '@/components/transparency/studio/ChapterRail',
+  '@/components/transparency/studio/StudioHeader',
   '@/components/transparency/studio/types',
+  '@/components/transparency/studio/useStudioChapters',
   '@/components/transparency/studio/useTransparencyStudio',
 ])
 requireImports('components/transparency/studio/InventoryGroups.tsx', [
   './DisclosureRowEditor',
 ])
+requireImports('components/transparency/studio/useStudioChapters.ts', ['./progress'])
+requireImports('components/transparency/studio/ChapterRail.tsx', ['./progress'])
+requireImports('components/transparency/studio/ChapterPane.tsx', [
+  './InventoryGroups',
+  './OriginChapter',
+  './PlanetChapter',
+  './RightsChapter',
+])
+for (const chapter of ['OriginChapter', 'PlanetChapter', 'RightsChapter']) {
+  requireImports(`components/transparency/studio/${chapter}.tsx`, [
+    './InventoryGroups',
+    './chapterProps',
+  ])
+}
 forbidDeclarations('components/transparency/ProductTransparencyStudio.tsx', [
+  'ChapterPane',
+  'ChapterRail',
   'DisclosureRowEditor',
   'InventoryGroups',
+  'OriginChapter',
+  'PlanetChapter',
+  'RightsChapter',
+  'StudioHeader',
+  'indexFields',
+  'useStudioChapters',
   'useTransparencyStudio',
+])
+
+requireImports('components/transparency/studio/DisclosureRowEditor.tsx', [
+  './disclosure/MethodFields',
+  './disclosure/ProvenanceSection',
+  './disclosure/PublishFooter',
+  './disclosure/StatusNote',
+  './disclosure/SubjectField',
+  './disclosure/ValueField',
+  './disclosure/disclosureOptions',
+  './disclosure/disclosureProps',
+  './disclosure/fields',
+])
+forbidDeclarations('components/transparency/studio/DisclosureRowEditor.tsx', [
+  'Label',
+  'MethodFields',
+  'OptionSelect',
+  'ProvenanceSection',
+  'PublishFooter',
+  'SOURCE_TIERS',
+  'STATUS_OPTIONS',
+  'StatusNote',
+  'SubjectField',
+  'ValueField',
+  'isIsoCountryField',
 ])
 
 requireImports('components/transparency/OperationsSheet.tsx', [
