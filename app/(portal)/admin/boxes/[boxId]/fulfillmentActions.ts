@@ -4,11 +4,13 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import {
   fetchBoxFulfillments,
+  fetchBoxShipHolds,
   fulfillmentActionMessage,
   humanizeFulfillmentError,
   isOperatorFulfillmentAction,
   type FulfillmentRow,
   type OperatorFulfillmentAction,
+  type ShipHolds,
 } from '@/lib/box/fulfillment'
 
 async function assertOperator(): Promise<{ ok: true } | { ok: false; error: string }> {
@@ -19,13 +21,27 @@ async function assertOperator(): Promise<{ ok: true } | { ok: false; error: stri
   return { ok: true }
 }
 
+type SeatList = { rows: FulfillmentRow[]; holds: ShipHolds }
+
+async function fetchSeats(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  boxId: string
+): Promise<({ ok: true } & SeatList) | { ok: false; error: string }> {
+  const [list, holds] = await Promise.all([
+    fetchBoxFulfillments(supabase, boxId),
+    fetchBoxShipHolds(supabase, boxId),
+  ])
+  if (!list.ok) return list
+  return { ok: true, rows: list.rows, holds }
+}
+
 export async function listBoxFulfillmentsAction(
   boxId: string
-): Promise<{ ok: true; rows: FulfillmentRow[] } | { ok: false; error: string }> {
+): Promise<({ ok: true } & SeatList) | { ok: false; error: string }> {
   const gate = await assertOperator()
   if (!gate.ok) return gate
   const supabase = await createServerSupabaseClient()
-  return fetchBoxFulfillments(supabase, boxId)
+  return fetchSeats(supabase, boxId)
 }
 
 export async function advanceFulfillmentAction(args: {
@@ -36,8 +52,8 @@ export async function advanceFulfillmentAction(args: {
   trackingRef?: string
   carrier?: string
 }): Promise<
-  | { ok: true; rows: FulfillmentRow[]; message: string }
-  | { ok: false; error: string }
+  | ({ ok: true; message: string } & SeatList)
+  | ({ ok: false; error: string } & Partial<SeatList>)
 > {
   const gate = await assertOperator()
   if (!gate.ok) return gate
@@ -58,18 +74,21 @@ export async function advanceFulfillmentAction(args: {
     ...(carrier ? { p_carrier: carrier } : {}),
   })
   if (error) {
-    return {
-      ok: false,
-      error: humanizeFulfillmentError(error.message, error.hint),
-    }
+    const message = humanizeFulfillmentError(error.message, error.hint)
+    // A refused ship may be a hold the list did not show yet: re-read it.
+    const seats = await fetchSeats(supabase, args.boxId)
+    return seats.ok
+      ? { ok: false, error: message, rows: seats.rows, holds: seats.holds }
+      : { ok: false, error: message }
   }
 
-  const refreshed = await fetchBoxFulfillments(supabase, args.boxId)
+  const refreshed = await fetchSeats(supabase, args.boxId)
   if (!refreshed.ok) return { ok: false, error: refreshed.error }
 
   return {
     ok: true,
     rows: refreshed.rows,
+    holds: refreshed.holds,
     message: fulfillmentActionMessage(args.target),
   }
 }
