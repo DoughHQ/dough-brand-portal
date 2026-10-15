@@ -44,6 +44,12 @@ function boxDraft(overrides: Partial<BoxStudyDraft> = {}): BoxStudyDraft {
     ],
     targetCompletions: 50,
     physicalUnits: 55,
+    riskDeclaration: {
+      containsAlcohol: false,
+      containsCaffeine: false,
+      noProhibitedSubstances: true,
+      alcoholShippingCompliant: false,
+    },
     ...overrides,
   }
 }
@@ -217,5 +223,20 @@ describe('draftToBoxPublishArgs V1 audience', () => {
     const args = draftToBoxPublishArgs(draft, ctx)
     expect(args.p_eligibility_tier).toBe('any')
     expect(args.p_eligibility).toEqual({})
+  })
+})
+
+describe('draftToBoxPublishArgs risk declaration', () => {
+  it('sends the answered declaration', () => {
+    expect(draftToBoxPublishArgs(boxDraft(), ctx).p_risk_declaration).toEqual({
+      contains_alcohol: false,
+      contains_caffeine: false,
+      no_prohibited_substances: true,
+    })
+  })
+
+  it('refuses to build args for an unanswered declaration', () => {
+    const draft = boxDraft({ riskDeclaration: createEmptyBoxDraft(42).riskDeclaration })
+    expect(() => draftToBoxPublishArgs(draft, ctx)).toThrow('RISK_DECLARATION_REQUIRED')
   })
 })

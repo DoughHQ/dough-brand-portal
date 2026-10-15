@@ -13,6 +13,7 @@
 import type { ProductBarcodeOption } from '@/lib/concept/types'
 import type { PrototypeListItem, PrototypePackaging } from '@/lib/prototypes/types'
 import type { StudyModuleCode } from '@/lib/study/modules'
+import type { BoxRiskDeclarationDraft, BoxRiskDeclarationWire } from './risk'
 
 /** Mirrors the mission_eligibility_tier values the RPC accepts.
  *  The v1 builder only offers any / tried / not_tried; the others remain
@@ -179,6 +180,8 @@ export type BoxStudyDraft = {
   ihutBrandQuestions: import('./method').IhutBrandQuestionDraft[]
   /** Brand-set go / no-go thresholds for the report. */
   ihutSuccessBars: import('./method').IhutSuccessBarsDraft
+  /** What is in the box (alcohol, caffeine, prohibited substances). */
+  riskDeclaration: BoxRiskDeclarationDraft
   updatedAt: string
 }
 
@@ -205,6 +208,7 @@ export type PublishBoxStudyArgs = {
   p_target_completions: number | null
   p_created_by: string
   p_open: true
+  p_risk_declaration: BoxRiskDeclarationWire
 }
 
 export type BoxPrototypeLabel = {
@@ -241,4 +245,8 @@ export type BoxPublishSuccessMeta = {
   taste_only: boolean
   price_check_enabled: boolean
   prototype_labels: BoxPrototypeLabel[]
+  /** sampling_boxes.risk_flags as published ('alcohol', 'caffeine'). */
+  risk_flags: string[]
+  /** Minimum age the server applied (21 for alcohol boxes). */
+  min_age: number | null
 }

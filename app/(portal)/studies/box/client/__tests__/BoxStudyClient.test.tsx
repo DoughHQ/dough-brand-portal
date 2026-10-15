@@ -48,6 +48,8 @@ function publishedMeta(
     taste_only: false,
     price_check_enabled: true,
     prototype_labels: [],
+    risk_flags: [],
+    min_age: null,
     ...overrides,
   }
 }
@@ -75,8 +77,14 @@ describe('BoxStudyClient', () => {
       'Setup',
       'href="#box-field"',
       'Field',
+      'href="#box-risk"',
+      'What&#x27;s inside',
       'href="#box-method"',
       'Questions',
+      'id="box-risk"',
+      'Does anything in the box contain alcohol?',
+      'Does anything in the box contain caffeine?',
+      'Nothing in this box contains THC, CBD',
       'id="box-method"',
       'Give the box study a name.',
       'Preview',
@@ -164,5 +172,26 @@ describe('BoxStudyClient', () => {
       'Back to studies',
     ])
     expect(markup).not.toContain('Which would you pick up?')
+    expect(markup).not.toContain('Labels respondents see')
+  })
+
+  it('reports the 21+ audience and labels on an alcohol box', () => {
+    const markup = renderToStaticMarkup(
+      createElement(BoxPublishedDialog, {
+        publishMeta: publishedMeta({
+          risk_flags: ['alcohol', 'caffeine'],
+          min_age: 21,
+          eligibility_applied: true,
+        }),
+        onConfirm: () => {},
+      }),
+    )
+
+    expectOrder(markup, [
+      'Audience',
+      '21+ with a birth date on file',
+      'Labels respondents see',
+      '21+ · Contains alcohol · Contains caffeine',
+    ])
   })
 })

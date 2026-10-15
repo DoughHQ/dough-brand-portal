@@ -6,6 +6,7 @@ import { BOX_ANCHORS } from '@/lib/box/validity'
 import SetupSection from './SetupSection'
 import ContentsSection from './ContentsSection'
 import MethodSection from './MethodSection'
+import RiskSection from './RiskSection'
 import AudienceSection from './AudienceSection'
 import ResumeDraftBanner from '../components/ResumeDraftBanner'
 import PublishingDock from '../components/PublishingDock'
@@ -97,6 +98,14 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
         sectionDone={study.validity.fieldOk}
       />
 
+      <RiskSection
+        draft={study.draft}
+        onChange={study.persist}
+        taxonomyRisk={study.taxonomyRisk}
+        error={study.publishAttempted ? study.sectionErrors.risk : undefined}
+        sectionDone={study.validity.riskOk}
+      />
+
       <MethodSection
         draft={study.draft}
         onChange={study.persist}
@@ -116,6 +125,7 @@ export default function BoxStudyClient({ initialDraft, mode, isImpersonating }: 
       !study.sectionErrors.setup &&
       !study.sectionErrors.field &&
       !study.sectionErrors.audience &&
+      !study.sectionErrors.risk &&
       !study.sectionErrors.logistics ? (
         <p role="alert" style={{ fontSize: 13, color: 'var(--red)', marginBottom: 16 }}>
           {study.sectionErrors.publish}

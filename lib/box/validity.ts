@@ -15,6 +15,12 @@ import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 import { MAX_BOX_FIELD_SIZE } from './fieldSize'
 import { isAllergenConfirmed } from './allergens'
 import { ihutInventoryPlan } from './completionContract'
+import {
+  ALCOHOL_MIN_AGE,
+  alcoholDetected,
+  boxRiskOutstanding,
+  type BoxTaxonomyRisk,
+} from './risk'
 
 export type BoxOutstandingItem = {
   message: string
@@ -32,6 +38,7 @@ export const BOX_ANCHORS = {
   audienceStates: 'box-aud-states',
   battle: 'box-battle',
   method: 'box-method',
+  risk: 'box-risk',
   logistics: 'box-logistics',
   units: 'box-log-units',
   sessions: 'box-log-sessions',
@@ -43,6 +50,8 @@ export type BoxValidity = {
   fieldOk: boolean
   audienceOk: boolean
   logisticsOk: boolean
+  /** What's in this box: declaration answered, nothing restricted. */
+  riskOk: boolean
   readyToPublish: boolean
   fieldSize: number
   uniquePairs: number
@@ -79,7 +88,10 @@ export function isOpenAudience(draft: BoxStudyDraft): boolean {
   return !hasAnyEligibility && draft.eligibilityTier === 'any'
 }
 
-export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
+export function evaluateBoxValidity(
+  draft: BoxStudyDraft,
+  taxonomyRisk: BoxTaxonomyRisk = { status: 'idle' }
+): BoxValidity {
   const outstanding: BoxOutstandingItem[] = []
   const softOutstanding: BoxOutstandingItem[] = []
 
@@ -382,6 +394,29 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
 
   const logisticsOk = setupScaleOk && sessionsOk
 
+  const risk = boxRiskOutstanding(draft.riskDeclaration, taxonomyRisk)
+  for (const message of risk.blocking) {
+    outstanding.push({ message, anchor: BOX_ANCHORS.risk })
+  }
+  for (const message of risk.soft) {
+    softOutstanding.push({ message, anchor: BOX_ANCHORS.risk })
+  }
+  let riskOk = risk.blocking.length === 0
+  const alcohol =
+    draft.riskDeclaration.containsAlcohol === true || alcoholDetected(taxonomyRisk)
+  if (
+    STUDY_AUDIENCE_BUILDER_ENABLED &&
+    alcohol &&
+    draft.eligibility.minAge != null &&
+    draft.eligibility.minAge < ALCOHOL_MIN_AGE
+  ) {
+    riskOk = false
+    outstanding.push({
+      message: `Boxes with alcohol need a minimum age of ${ALCOHOL_MIN_AGE} or higher.`,
+      anchor: BOX_ANCHORS.audience,
+    })
+  }
+
   const e = draft.eligibility
   const hasAnyEligibility =
     e.targetStates.length > 0 ||
@@ -398,7 +433,8 @@ export function evaluateBoxValidity(draft: BoxStudyDraft): BoxValidity {
     fieldOk,
     audienceOk,
     logisticsOk,
-    readyToPublish: setupOk && fieldOk && audienceOk && logisticsOk,
+    riskOk,
+    readyToPublish: setupOk && fieldOk && audienceOk && logisticsOk && riskOk,
     fieldSize,
     uniquePairs: uniquePairs(fieldSize),
     openAudience,

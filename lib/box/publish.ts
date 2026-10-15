@@ -29,6 +29,7 @@ import {
   successBarsWire,
 } from './method'
 import { isResolvedBoxSeat } from './fieldSize'
+import { riskDeclarationToWire } from './risk'
 import {
   IHUT_RESPONDENT_WINDOW_DAYS,
   ihutHiddenBackstopAt,
@@ -188,6 +189,7 @@ export function draftToBoxPublishArgs(
     p_target_completions: inventory.targetCompletions,
     p_created_by: ctx.createdBy,
     p_open: true,
+    p_risk_declaration: riskDeclarationToWire(draft.riskDeclaration),
   }
 
   const eligibility = boxEligibilityToWire(draft)

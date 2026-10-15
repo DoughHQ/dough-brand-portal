@@ -100,7 +100,8 @@ const dependencies = {
   [`${clientRoot}BoxOpenAudienceDialog.tsx`]: [],
   [`${clientRoot}BoxPublishedDialog.tsx`]: [],
   [`${clientRoot}BoxStudyStepper.tsx`]: [],
-  [`${clientRoot}useBoxStudyClient.ts`]: [],
+  [`${clientRoot}useBoxStudyClient.ts`]: [`${clientRoot}useBoxTaxonomyRisk.ts`],
+  [`${clientRoot}useBoxTaxonomyRisk.ts`]: [],
 }
 
 const trackedModules = new Set(Object.keys(dependencies))

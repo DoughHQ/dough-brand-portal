@@ -1,5 +1,6 @@
 import type { BoxPublishSuccessMeta } from '@/lib/box/types'
 import { PRODUCT_NAME } from '@/lib/brand'
+import { ALCOHOL_MIN_AGE, riskFlagsLabel } from '@/lib/box/risk'
 
 export default function BoxPublishedDialog({
   publishMeta,
@@ -165,9 +166,21 @@ export default function BoxPublishedDialog({
               Audience
             </dt>
             <dd style={{ margin: 0 }}>
-              {publishMeta.eligibility_applied ? 'Requirements applied' : 'Open'}
+              {publishMeta.risk_flags.includes('alcohol')
+                ? `${publishMeta.min_age ?? ALCOHOL_MIN_AGE}+ with a birth date on file`
+                : publishMeta.eligibility_applied
+                  ? 'Requirements applied'
+                  : 'Open'}
             </dd>
           </div>
+          {riskFlagsLabel(publishMeta.risk_flags) ? (
+            <div style={{ gridColumn: '1 / -1' }}>
+              <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
+                Labels respondents see
+              </dt>
+              <dd style={{ margin: 0 }}>{riskFlagsLabel(publishMeta.risk_flags)}</dd>
+            </div>
+          ) : null}
           <div style={{ gridColumn: '1 / -1' }}>
             <dt style={{ color: 'var(--ink-50)', fontSize: 11, marginBottom: 4 }}>
               Battle prompts

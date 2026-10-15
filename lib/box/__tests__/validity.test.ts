@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { createEmptyBoxDraft, createEmptyBoxFieldRow } from '../defaults'
 import {
+  BOX_ANCHORS,
   boxFieldRowErrors,
   evaluateBoxValidity,
   isOpenAudience,
 } from '../validity'
 import { MODULE_LOYALTY } from '@/lib/study/modules'
 import type { BoxFieldRow, BoxStudyDraft } from '../types'
+import type { BoxTaxonomyRisk } from '../risk'
 
 function fieldRow(
   productId: number,
@@ -43,6 +45,12 @@ function boxDraft(overrides: Partial<BoxStudyDraft> = {}): BoxStudyDraft {
     ],
     targetCompletions: 50,
     physicalUnits: 55,
+    riskDeclaration: {
+      containsAlcohol: false,
+      containsCaffeine: false,
+      noProhibitedSubstances: true,
+      alcoholShippingCompliant: false,
+    },
     ...overrides,
   }
 }
@@ -198,5 +206,46 @@ describe('boxFieldRowErrors', () => {
       productId: hero.product_id,
     })
     expect(errors[hero.localId]).toMatch(/doesn't belong/i)
+  })
+})
+
+describe('evaluateBoxValidity risk gate', () => {
+  it('blocks publish until What’s in this box is answered', () => {
+    const v = evaluateBoxValidity(
+      boxDraft({ riskDeclaration: createEmptyBoxDraft(42).riskDeclaration })
+    )
+    expect(v.riskOk).toBe(false)
+    expect(v.readyToPublish).toBe(false)
+    expect(v.outstanding.some((o) => o.anchor === BOX_ANCHORS.risk)).toBe(true)
+  })
+
+  it('blocks a box whose seat sits in a restricted category', () => {
+    const v = evaluateBoxValidity(boxDraft(), {
+      status: 'ready',
+      alcohol: false,
+      restrictedNodeIds: [9220209],
+    })
+    expect(v.riskOk).toBe(false)
+    expect(v.readyToPublish).toBe(false)
+  })
+
+  it('needs the shipping attestation once taxonomy detects alcohol', () => {
+    const detected: BoxTaxonomyRisk = { status: 'ready', alcohol: true, restrictedNodeIds: [] }
+    expect(evaluateBoxValidity(boxDraft(), detected).riskOk).toBe(false)
+    const attested = boxDraft({
+      riskDeclaration: {
+        containsAlcohol: true,
+        containsCaffeine: false,
+        noProhibitedSubstances: true,
+        alcoholShippingCompliant: true,
+      },
+    })
+    expect(evaluateBoxValidity(attested, detected).readyToPublish).toBe(true)
+  })
+
+  it('does not block when the category check is unavailable', () => {
+    const v = evaluateBoxValidity(boxDraft(), { status: 'unavailable' })
+    expect(v.readyToPublish).toBe(true)
+    expect(v.softOutstanding.some((o) => o.anchor === BOX_ANCHORS.risk)).toBe(true)
   })
 })

@@ -16,6 +16,7 @@ import {
   IHUT_RESPONDENT_WINDOW_DAYS,
   ihutInventoryPlan,
 } from './completionContract'
+import { sanitizeRiskDeclaration } from './risk'
 
 const KEY = 'dough.boxDrafts.v1'
 
@@ -167,6 +168,7 @@ export function normalizeStoredBoxDraft(
     ihutAttributes: sanitizeIhutAttributes(stored.ihutAttributes),
     ihutBrandQuestions: brandQuestions,
     ihutSuccessBars: sanitizeIhutSuccessBars(stored.ihutSuccessBars),
+    riskDeclaration: sanitizeRiskDeclaration(stored.riskDeclaration),
   }
 }
 

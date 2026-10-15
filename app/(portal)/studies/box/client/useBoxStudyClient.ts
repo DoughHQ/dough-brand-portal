@@ -12,6 +12,8 @@ import {
 } from '@/lib/box/validity'
 import { summarizeBoxDockReady } from '@/lib/box/builderSummaries'
 import { publishBoxStudyAction, createBoxCampaignAction } from '../actions'
+import { alcoholDetected } from '@/lib/box/risk'
+import { useBoxTaxonomyRisk } from './useBoxTaxonomyRisk'
 import { useServerStudyDraft } from '@/lib/studies/useServerStudyDraft'
 import { STUDY_AUDIENCE_BUILDER_ENABLED } from '@/lib/studies/features'
 import type { BoxErrorSection } from '@/lib/box/errors'
@@ -24,6 +26,7 @@ const SECTION_ANCHOR: Record<BoxErrorSection, string> = {
   audience: BOX_ANCHORS.audience,
   /** Scale fields live in Setup; Day 2 interval scrolls to Questions. */
   logistics: BOX_ANCHORS.setup,
+  risk: BOX_ANCHORS.risk,
   publish: BOX_ANCHORS.setup,
 }
 
@@ -46,7 +49,11 @@ export function useBoxStudyClient({
   const [sectionErrors, setSectionErrors] = useState<SectionErrors>({})
   const [publishFailure, setPublishFailure] = useState<BoxPublishFailure | null>(null)
 
-  const validity = useMemo(() => evaluateBoxValidity(draft), [draft])
+  const taxonomyRisk = useBoxTaxonomyRisk(draft)
+  const validity = useMemo(
+    () => evaluateBoxValidity(draft, taxonomyRisk),
+    [draft, taxonomyRisk]
+  )
   const stickyNeeds = useMemo(
     () => [...validity.outstanding, ...validity.softOutstanding],
     [validity.outstanding, validity.softOutstanding]
@@ -98,6 +105,18 @@ export function useBoxStudyClient({
     },
     [scheduleSave]
   )
+
+  const markContainsAlcohol = useCallback(() => {
+    if (draft.riskDeclaration.containsAlcohol === true) return
+    persist({
+      ...draft,
+      riskDeclaration: { ...draft.riskDeclaration, containsAlcohol: true },
+    })
+  }, [draft, persist])
+
+  useEffect(() => {
+    if (alcoholDetected(taxonomyRisk)) markContainsAlcohol()
+  }, [taxonomyRisk, markContainsAlcohol])
 
   useEffect(() => {
     if (mode === 'new') saveBoxDraft(initialDraft)
@@ -179,7 +198,9 @@ export function useBoxStudyClient({
           ? 'field'
           : !validity.audienceOk
             ? 'audience'
-            : first?.anchor === BOX_ANCHORS.sessions
+            : first?.anchor === BOX_ANCHORS.risk
+              ? 'risk'
+              : first?.anchor === BOX_ANCHORS.sessions
               ? 'publish'
               : 'logistics'
       setSectionErrors({ [section]: msg, publish: msg })
@@ -204,6 +225,7 @@ export function useBoxStudyClient({
       }
       const result = await publishBoxStudyAction({ ...draft, brandCampaignId: campaignId })
       if (!result.ok) {
+        if (result.hint === 'ALCOHOL_SHIPPING_ATTESTATION_REQUIRED') markContainsAlcohol()
         setSectionErrors({ [result.section]: result.error, publish: result.error })
         setPublishFailure({
           hint: result.hint,
@@ -245,6 +267,7 @@ export function useBoxStudyClient({
     sectionErrors,
     publishFailure,
     validity,
+    taxonomyRisk,
     stickyNeeds,
     ready,
     readyFacts,
