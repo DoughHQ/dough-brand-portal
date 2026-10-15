@@ -1,61 +1,16 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { createClient } from '@/lib/supabase'
-import {
-  declareProductFacet,
-  fetchDeclarableFacets,
-  withdrawProductFacetDeclaration,
-} from '@/lib/facets/api'
-import {
-  facetSupportsBrandNote,
-  facetValueLabel,
-  filterDerivedValues,
-  isLiveDeclaredState,
-  isPendingReviewState,
-  listShopperFacets,
-  provenanceLabelFromSource,
-  reviewStateLabel,
-  rowIsPickerEditable,
-  type DeclarableFacetRow,
-  type FacetDeclaredValue,
-  type FacetDerivedValue,
-} from '@/lib/facets/productFacets'
-import { FacetChipAdd, FacetSearchSelect } from '@/components/products/FacetValuePicker'
+import { facetSupportsBrandNote, type DeclarableFacetRow } from '@/lib/facets/productFacets'
 import { FlavorNotesPanel } from '@/components/products/FlavorNotesPanel'
-import {
-  FacetChevronGlyph,
-  FacetGlyph,
-  FacetInfoGlyph,
-  FacetSearchGlyph,
-} from '@/components/products/facetGlyphs'
 import './productFacets.css'
-import { PRODUCT_NAME } from '@/lib/brand'
+import type { EditorProps } from './attributes/attributesModel'
+import { AttributesAddList } from './attributes/AttributesAddList'
+import { AttributesHero } from './attributes/AttributesHero'
+import { ClaimCard } from './attributes/ClaimCard'
+import { KnownTile } from './attributes/KnownTile'
+import { useProductAttributes } from './attributes/useProductAttributes'
 
-export const FACETS_LEDE =
-  `We derive what we can from labels and ingredients. Add what only you know — it helps shoppers find your product. Allergens and ingredients are derived by ${PRODUCT_NAME} and can't be edited here.`
-
-function sectionHasContent(row: DeclarableFacetRow): boolean {
-  const derived = filterDerivedValues(row.facet_type, row.derived_values)
-  const declared = row.declared_values ?? []
-  return derived.length > 0 || declared.length > 0
-}
-
-/** Flavour Notes first; evidence-heavy types later. */
-function sortOpenAttributes(a: DeclarableFacetRow, b: DeclarableFacetRow): number {
-  if (a.facet_type === 'flavor_note') return -1
-  if (b.facet_type === 'flavor_note') return 1
-  if (a.requires_evidence !== b.requires_evidence) {
-    return a.requires_evidence ? 1 : -1
-  }
-  return a.display_name.localeCompare(b.display_name)
-}
-
-type EditorProps = {
-  productId: number
-  canEdit?: boolean
-  onChanged?: () => void
-}
+export { FACETS_LEDE } from './attributes/attributesModel'
 
 /** Facets dossier — product detail tab only. */
 export default function ProductAttributesEditor({
@@ -63,56 +18,22 @@ export default function ProductAttributesEditor({
   canEdit = true,
   onChanged,
 }: EditorProps) {
-  const [rows, setRows] = useState<DeclarableFacetRow[] | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [busyKey, setBusyKey] = useState<string | null>(null)
-  const [openAdd, setOpenAdd] = useState<string | null>(null)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    const supabase = createClient()
-    const facets = await fetchDeclarableFacets(supabase, productId)
-    if (facets.error) setError(facets.error)
-    setRows(facets.rows)
-    setLoading(false)
-  }, [productId])
-
-  useEffect(() => {
-    void load()
-  }, [load])
-
-  const { known, claims, empty } = useMemo(() => {
-    const list = rows ?? []
-    const knownRows: DeclarableFacetRow[] = []
-    const claimRows: DeclarableFacetRow[] = []
-    const emptyRows: DeclarableFacetRow[] = []
-    for (const r of list) {
-      const has = sectionHasContent(r)
-      const picker = rowIsPickerEditable(r)
-      if (has && !picker) knownRows.push(r)
-      else if (has && picker) claimRows.push(r)
-      else if (picker) emptyRows.push(r)
-    }
-    emptyRows.sort(sortOpenAttributes)
-    // Keep Flavour Notes near the top of active claims too.
-    claimRows.sort((a, b) => {
-      if (a.facet_type === 'flavor_note') return -1
-      if (b.facet_type === 'flavor_note') return 1
-      return 0
-    })
-    return { known: knownRows, claims: claimRows, empty: emptyRows }
-  }, [rows])
-
-  const shopperItems = useMemo(() => (rows ? listShopperFacets(rows) : []), [rows])
-
-  const refreshAfterWrite = async () => {
-    await load()
-    onChanged?.()
-  }
-
-  const hasAny = known.length + claims.length + empty.length > 0
+  const {
+    rows,
+    loading,
+    error,
+    setError,
+    busyKey,
+    setBusyKey,
+    openAdd,
+    setOpenAdd,
+    known,
+    claims,
+    empty,
+    shopperItems,
+    refreshAfterWrite,
+    hasAny,
+  } = useProductAttributes({ productId, onChanged })
 
   const renderClaim = (row: DeclarableFacetRow, bare = false) => {
     const shared = {
@@ -133,47 +54,7 @@ export default function ProductAttributesEditor({
 
   return (
     <div className="pf-dossier">
-      <header className="pf-hero">
-        <p className="pf-hero__kicker">Shopper discovery</p>
-        <h2 className="pf-hero__title">Facets</h2>
-
-        <div
-          className={`pf-discovery${shopperItems.length === 0 ? ' pf-discovery--empty' : ''}`}
-          role="region"
-          aria-label="Shoppers can find this as"
-          aria-live="polite"
-        >
-          <span className="pf-discovery__search" aria-hidden>
-            <FacetSearchGlyph size={18} />
-          </span>
-          <div className="pf-discovery__body">
-            <p className="pf-discovery__kicker">Shoppers can find this as</p>
-            {shopperItems.length > 0 ? (
-              <ul className="pf-discovery__chips">
-                {shopperItems.map((item) => (
-                  <li key={`${item.facetType}:${item.value}`}>
-                    <span className="pf-discovery__chip">{item.label}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="pf-discovery__empty">
-                Nothing shoppers can filter on yet — {PRODUCT_NAME} will fill what it can; you add the rest.
-              </p>
-            )}
-          </div>
-        </div>
-
-        <details className="pf-hero__details">
-          <summary>
-            <span className="pf-hero__info" aria-hidden>
-              <FacetInfoGlyph size={14} />
-            </span>
-            How this works
-          </summary>
-          <p>{FACETS_LEDE}</p>
-        </details>
-      </header>
+      <AttributesHero shopperItems={shopperItems} />
 
       {error ? <p className="pf-status__error">{error}</p> : null}
       {loading && !rows ? (
@@ -200,378 +81,13 @@ export default function ProductAttributesEditor({
       ) : null}
 
       {empty.length > 0 ? (
-        <section className="pf-room">
-          <header className="pf-room__head">
-            <h3 className="pf-room__title">You can add</h3>
-            <p className="pf-room__lede">
-              Only what applies — start with Flavour Notes, then the rest.
-            </p>
-          </header>
-          <div className="pf-add-list">
-            {empty.map((row) => {
-              const open = openAdd === row.facet_type
-              const isFlavor = row.facet_type === 'flavor_note'
-              return (
-                <div
-                  key={row.facet_type}
-                  className={`pf-add-row${open ? ' pf-add-row--open' : ''}${isFlavor ? ' pf-add-row--featured' : ''}`}
-                >
-                  <button
-                    type="button"
-                    className="pf-add-row__hit"
-                    aria-expanded={open}
-                    onClick={() => setOpenAdd(open ? null : row.facet_type)}
-                  >
-                    <span className="pf-add-row__lead">
-                      <span className="pf-add-row__icon" aria-hidden>
-                        <FacetGlyph type={row.facet_type} size={18} />
-                      </span>
-                      <span className="pf-add-row__name">{row.display_name}</span>
-                      {isFlavor ? (
-                        <span className="pf-add-row__feature">Tasting</span>
-                      ) : null}
-                    </span>
-                    <span className="pf-add-row__meta">
-                      {row.requires_evidence ? (
-                        <span className="pf-add-row__evidence">Needs evidence</span>
-                      ) : isFlavor ? (
-                        <span className="pf-add-row__optional">
-                          {(row.available_values ?? []).length} options
-                        </span>
-                      ) : (
-                        <span className="pf-add-row__optional">Optional</span>
-                      )}
-                      <span
-                        className={`pf-add-row__chev${open ? ' pf-add-row__chev--open' : ''}`}
-                        aria-hidden
-                      >
-                        <FacetChevronGlyph size={16} />
-                      </span>
-                    </span>
-                  </button>
-                  {open ? (
-                    <div className="pf-add-row__body">{renderClaim(row, true)}</div>
-                  ) : null}
-                </div>
-              )
-            })}
-          </div>
-        </section>
+        <AttributesAddList
+          empty={empty}
+          openAdd={openAdd}
+          setOpenAdd={setOpenAdd}
+          renderClaim={renderClaim}
+        />
       ) : null}
     </div>
-  )
-}
-
-function KnownTile({ row }: { row: DeclarableFacetRow }) {
-  const derived = filterDerivedValues(row.facet_type, row.derived_values)
-  return (
-    <article className="pf-known">
-      <div className="pf-known__head">
-        <span className="pf-known__icon" aria-hidden>
-          <FacetGlyph type={row.facet_type} size={16} />
-        </span>
-        <p className="pf-known__attr">{row.display_name}</p>
-      </div>
-      <ul className="pf-known__values">
-        {derived.map((d: FacetDerivedValue) => (
-          <li key={d.value}>
-            <span className="pf-known__value">{facetValueLabel(row, d.value, d.label)}</span>
-            <span className="pf-known__whisper">{provenanceLabelFromSource(d.source)}</span>
-          </li>
-        ))}
-      </ul>
-    </article>
-  )
-}
-
-function ClaimCard({
-  row,
-  productId,
-  canEdit,
-  busyKey,
-  setBusyKey,
-  setError,
-  onWrote,
-  bare = false,
-}: {
-  row: DeclarableFacetRow
-  productId: number
-  canEdit: boolean
-  busyKey: string | null
-  setBusyKey: (k: string | null) => void
-  setError: (e: string | null) => void
-  onWrote: () => Promise<void>
-  bare?: boolean
-}) {
-  const derived = filterDerivedValues(row.facet_type, row.derived_values)
-  const declared = row.declared_values ?? []
-  const live = declared.filter((d) => isLiveDeclaredState(d.review_state))
-  const pending = declared.filter((d) => isPendingReviewState(d.review_state))
-  const available = row.available_values ?? []
-  const multi = row.cardinality === 'multi'
-  const requiresEvidence = Boolean(row.requires_evidence)
-  const showPicker = canEdit && rowIsPickerEditable(row)
-
-  const liveValues = new Set(live.map((d) => d.value))
-  const derivedSet = new Set(derived.map((d) => d.value))
-  const taken = new Set([...liveValues, ...derivedSet])
-
-  const [draftSingle, setDraftSingle] = useState<string | null>(live[0]?.value ?? null)
-  const [pendingAdd, setPendingAdd] = useState<string | null>(null)
-  const [evidenceUrl, setEvidenceUrl] = useState('')
-  const [evidenceNote, setEvidenceNote] = useState('')
-
-  useEffect(() => {
-    setDraftSingle(live[0]?.value ?? null)
-    setPendingAdd(null)
-    setEvidenceUrl('')
-    setEvidenceNote('')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [row.facet_type, live.map((d) => d.declaration_id).join(',')])
-
-  const onWithdraw = async (declarationId: number) => {
-    if (!showPicker) return
-    const supabase = createClient()
-    setBusyKey(`${row.facet_type}:w-${declarationId}`)
-    setError(null)
-    const res = await withdrawProductFacetDeclaration(supabase, declarationId, false)
-    setBusyKey(null)
-    if (res.error) {
-      setError(res.error)
-      return
-    }
-    await onWrote()
-  }
-
-  const declareValues = async (values: string[]) => {
-    if (!showPicker || values.length === 0) return
-    if (requiresEvidence && !evidenceUrl.trim()) {
-      setError('Add a link to your certification.')
-      return
-    }
-    const supabase = createClient()
-    setBusyKey(`${row.facet_type}:declare`)
-    setError(null)
-    let mutated = false
-    let failed = false
-    for (const value of values) {
-      const res = await declareProductFacet(supabase, {
-        productId,
-        facetType: row.facet_type,
-        facetValue: value,
-        evidenceUrl: requiresEvidence ? evidenceUrl.trim() : null,
-        evidenceNote: requiresEvidence ? evidenceNote.trim() || null : null,
-      })
-      if (res.error) {
-        setError(res.error)
-        failed = true
-        break
-      }
-      mutated = true
-    }
-    setBusyKey(null)
-    if (!failed) {
-      setPendingAdd(null)
-      setEvidenceUrl('')
-      setEvidenceNote('')
-    }
-    if (mutated) await onWrote()
-  }
-
-  const saveSingle = async () => {
-    if (!showPicker) return
-    const next = draftSingle
-    const current = live[0]?.value ?? null
-    if (next === current) return
-
-    const supabase = createClient()
-    setBusyKey(`${row.facet_type}:declare`)
-    setError(null)
-    let mutated = false
-
-    for (const d of live) {
-      if (next && d.value === next) continue
-      const res = await withdrawProductFacetDeclaration(supabase, d.declaration_id, false)
-      if (res.error) {
-        setError(res.error)
-        setBusyKey(null)
-        if (mutated) await onWrote()
-        return
-      }
-      mutated = true
-    }
-
-    if (next && !derivedSet.has(next)) {
-      if (requiresEvidence && !evidenceUrl.trim()) {
-        setError('Add a link to your certification.')
-        setBusyKey(null)
-        if (mutated) await onWrote()
-        return
-      }
-      const res = await declareProductFacet(supabase, {
-        productId,
-        facetType: row.facet_type,
-        facetValue: next,
-        evidenceUrl: requiresEvidence ? evidenceUrl.trim() : null,
-        evidenceNote: requiresEvidence ? evidenceNote.trim() || null : null,
-      })
-      if (res.error) {
-        setError(res.error)
-        setBusyKey(null)
-        if (mutated) await onWrote()
-        return
-      }
-      mutated = true
-    }
-
-    setBusyKey(null)
-    if (mutated) await onWrote()
-  }
-
-  const singleDirty =
-    (draftSingle ?? null) !== (live[0]?.value ?? null) &&
-    !(draftSingle && derivedSet.has(draftSingle) && !live[0])
-
-  const renderDeclaredChip = (d: FacetDeclaredValue, pendingChip: boolean) => {
-    const label = facetValueLabel(row, d.value, d.label)
-    const state = reviewStateLabel(d.review_state)
-    return (
-      <span
-        key={`${pendingChip ? 'p' : 'c'}-${d.declaration_id}`}
-        className={`pf-chip${pendingChip ? ' pf-chip--pending' : ' pf-chip--declared'}`}
-      >
-        {label}
-        {state ? <span className="pf-chip__meta">{state}</span> : null}
-        {showPicker ? (
-          <button
-            type="button"
-            className="pf-chip__x"
-            aria-label={`${pendingChip ? 'Withdraw pending' : 'Remove'} ${label}`}
-            disabled={busyKey != null}
-            onClick={() => void onWithdraw(d.declaration_id)}
-          >
-            ×
-          </button>
-        ) : null}
-      </span>
-    )
-  }
-
-  const body = (
-    <>
-      {(derived.length > 0 || live.length > 0 || pending.length > 0) && (
-        <div className="pf-chip-row" aria-label="Current values">
-          {derived.map((d) => (
-            <span
-              key={`d-${d.value}`}
-              className="pf-chip pf-chip--derived"
-              title={provenanceLabelFromSource(d.source)}
-            >
-              {facetValueLabel(row, d.value, d.label)}
-              <span className="pf-chip__meta">{provenanceLabelFromSource(d.source)}</span>
-            </span>
-          ))}
-          {live.map((d) => renderDeclaredChip(d, false))}
-          {pending.map((d) => renderDeclaredChip(d, true))}
-        </div>
-      )}
-
-      {showPicker && available.length > 0 ? (
-        <div className="pf-claim__editor">
-          {multi ? (
-            <FacetChipAdd
-              options={available}
-              takenValues={taken}
-              lockedValues={derivedSet}
-              disabled={busyKey != null}
-              placeholder={`Add ${row.display_name.toLowerCase()}…`}
-              onAdd={(value) => {
-                if (requiresEvidence) {
-                  setPendingAdd(value)
-                } else {
-                  void declareValues([value])
-                }
-              }}
-            />
-          ) : (
-            <FacetSearchSelect
-              options={available}
-              value={draftSingle}
-              lockedValues={derivedSet}
-              disabled={busyKey != null}
-              placeholder={`Search ${row.display_name.toLowerCase()}…`}
-              onChange={setDraftSingle}
-            />
-          )}
-
-          {(requiresEvidence && (pendingAdd || (singleDirty && draftSingle))) ||
-          (!multi && singleDirty) ? (
-            <>
-              {requiresEvidence && (pendingAdd || (singleDirty && draftSingle)) ? (
-                <div className="pf-evidence">
-                  <label>
-                    Evidence URL
-                    <input
-                      type="url"
-                      placeholder="https://"
-                      value={evidenceUrl}
-                      onChange={(e) => setEvidenceUrl(e.target.value)}
-                      disabled={busyKey != null}
-                    />
-                  </label>
-                  <label>
-                    Note (optional)
-                    <textarea
-                      rows={2}
-                      value={evidenceNote}
-                      onChange={(e) => setEvidenceNote(e.target.value)}
-                      disabled={busyKey != null}
-                    />
-                  </label>
-                </div>
-              ) : null}
-              <div className="pf-actions">
-                <button
-                  type="button"
-                  className="pf-btn"
-                  disabled={
-                    busyKey != null ||
-                    (requiresEvidence && !evidenceUrl.trim()) ||
-                    (multi ? !pendingAdd : !singleDirty)
-                  }
-                  onClick={() => {
-                    if (multi && pendingAdd) void declareValues([pendingAdd])
-                    else void saveSingle()
-                  }}
-                >
-                  {busyKey?.startsWith(`${row.facet_type}:`)
-                    ? 'Saving…'
-                    : requiresEvidence
-                      ? 'Submit for review'
-                      : 'Save'}
-                </button>
-              </div>
-            </>
-          ) : null}
-        </div>
-      ) : null}
-    </>
-  )
-
-  if (bare) return <div className="pf-claim pf-claim--bare">{body}</div>
-
-  return (
-    <article className="pf-claim">
-      <div className="pf-claim__head">
-        <div className="pf-claim__title-row">
-          <span className="pf-claim__icon" aria-hidden>
-            <FacetGlyph type={row.facet_type} size={16} />
-          </span>
-          <h4 className="pf-claim__title">{row.display_name}</h4>
-        </div>
-        {requiresEvidence ? <span className="pf-claim__badge">Evidence</span> : null}
-      </div>
-      {body}
-    </article>
   )
 }
