@@ -6,6 +6,7 @@ FAIL=0
 
 PRODUCTS_PAGE="$ROOT/app/(portal)/products/page.tsx"
 PRODUCTS_CLIENT="$ROOT/app/(portal)/products/ProductsClient.tsx"
+PRODUCTS_CATALOG="$ROOT/app/(portal)/products/catalog"
 REPORTS_PAGE="$ROOT/app/(portal)/reports/page.tsx"
 REPORTS_CLIENT="$ROOT/app/(portal)/reports/ReportsClient.tsx"
 QUERIES="$ROOT/lib/queries.ts"
@@ -18,13 +19,13 @@ for f in "$PRODUCTS_PAGE" "$PRODUCTS_CLIENT" "$REPORTS_PAGE"; do
 done
 
 # Products must not load the claim array
-if rg -n "claimed_product_ids|claimedIds|getSubscription" "$PRODUCTS_PAGE" "$PRODUCTS_CLIENT" >/dev/null 2>&1; then
+if rg -n "claimed_product_ids|claimedIds|getSubscription" "$PRODUCTS_PAGE" "$PRODUCTS_CLIENT" "$PRODUCTS_CATALOG" >/dev/null 2>&1; then
   echo "BAN FAIL: Products must not hydrate claimed_product_ids / getSubscription"
-  rg -n "claimed_product_ids|claimedIds|getSubscription" "$PRODUCTS_PAGE" "$PRODUCTS_CLIENT" || true
+  rg -n "claimed_product_ids|claimedIds|getSubscription" "$PRODUCTS_PAGE" "$PRODUCTS_CLIENT" "$PRODUCTS_CATALOG" || true
   FAIL=1
 fi
 
-if ! rg -n "isClaimed|is_claimed" "$PRODUCTS_CLIENT" >/dev/null 2>&1; then
+if ! rg -n "isClaimed|is_claimed" "$PRODUCTS_CLIENT" "$PRODUCTS_CATALOG" >/dev/null 2>&1; then
   echo "BAN FAIL: ProductsClient must use per-row isClaimed from page RPC"
   FAIL=1
 fi
