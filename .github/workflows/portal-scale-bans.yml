@@ -115,6 +115,7 @@ jobs:
       - run: npm run check:planet-sheet-ban
       - run: npm run check:origin-sheet-ban
       - run: npm run check:formula-sheet-ban
+      - run: npm run check:brand-profile-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
