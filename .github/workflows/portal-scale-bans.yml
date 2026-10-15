@@ -98,6 +98,7 @@ jobs:
       - run: npm run check:readiness-table-ban
       - run: npm run check:ownership-corrections-ban
       - run: npm run check:compare-groups-ban
+      - run: npm run check:portal-layout-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
