@@ -13,6 +13,7 @@ type Props = {
   title: string
   status: StudyReportStatus
   backHref: string
+  packingHref?: string | null
 }
 
 export default function StudyReportStatusCard({
@@ -20,6 +21,7 @@ export default function StudyReportStatusCard({
   title,
   status,
   backHref,
+  packingHref = null,
 }: Props) {
   const router = useRouter()
   const [endOpen, setEndOpen] = useState(false)
@@ -87,18 +89,26 @@ export default function StudyReportStatusCard({
         </p>
       ) : null}
 
-      {status.showEndStudy ? (
-        <button
-          type="button"
-          className="portal-btn portal-btn-cta"
-          style={{ marginTop: 24 }}
-          onClick={() => {
-            setError(null)
-            setEndOpen(true)
-          }}
-        >
-          End study
-        </button>
+      {packingHref || status.showEndStudy ? (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 24 }}>
+          {packingHref ? (
+            <Link href={packingHref} className="portal-btn portal-btn-secondary">
+              Pack &amp; ship
+            </Link>
+          ) : null}
+          {status.showEndStudy ? (
+            <button
+              type="button"
+              className="portal-btn portal-btn-cta"
+              onClick={() => {
+                setError(null)
+                setEndOpen(true)
+              }}
+            >
+              End study
+            </button>
+          ) : null}
+        </div>
       ) : null}
 
       {toast ? (

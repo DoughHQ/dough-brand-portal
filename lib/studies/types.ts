@@ -43,6 +43,8 @@ export type OperatorStudyRow = {
   is_campaign_owner?: boolean
   /** From study_orders. Absent until the studies list joins it. */
   order_status?: 'awaiting_payment' | 'paid' | 'waived' | null
+  /** sampling_boxes.id for published IHUT missions — attached on the studies list. */
+  box_id?: string | null
 }
 
 /** Row from list_withdrawn_studies — tenancy enforced server-side by the RPC. */

@@ -7,6 +7,7 @@ import {
   type StudiesPageTab,
 } from '@/lib/studies/fetchOperatorStudies'
 import { attachOrderStatus } from '@/lib/checkout/load'
+import { attachBoxIds } from '@/lib/box/brandFulfillment'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { operatorStudiesBrandId } from '@/lib/studies/operatorScope'
 import type { OperatorStudyRow } from '@/lib/studies/types'
@@ -37,7 +38,8 @@ export async function listOperatorStudiesPageAction(opts: {
   })
   if (!result.ok) return result
   const supabase = await createServerSupabaseClient()
-  const rows = await attachOrderStatus(supabase, result.page.rows)
+  const withOrders = await attachOrderStatus(supabase, result.page.rows)
+  const rows = await attachBoxIds(supabase, withOrders)
   return {
     ok: true,
     rows,

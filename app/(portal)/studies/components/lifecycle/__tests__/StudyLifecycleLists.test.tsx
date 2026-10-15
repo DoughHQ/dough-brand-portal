@@ -105,6 +105,19 @@ describe('StudyLifecycleLists', () => {
       'href="/reports/m1"',
       'View report →',
     ])
+    expect(markup).not.toContain('Pack &amp; ship')
+  })
+
+  it('links Pack & ship when an IHUT row has a box_id', () => {
+    const markup = renderToStaticMarkup(
+      createElement(ActiveStudyList, {
+        ...listActions,
+        rows: [row({ box_id: 'box-99', session_count: 1 })],
+      }),
+    )
+    expect(markup).toContain('href="/studies/box/box-99/fulfillment"')
+    expect(markup).toContain('Pack &amp; ship →')
+    expect(markup).toContain('href="/reports/m1"')
   })
 
   it('sends an unpaid concept study to checkout instead of the in-review wording', () => {

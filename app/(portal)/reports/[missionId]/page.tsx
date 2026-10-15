@@ -15,6 +15,7 @@ import {
   studyReportFallbackStatus,
   studyReportStatus,
 } from '@/lib/studies/studyReportStatus'
+import { packingHref, resolveBoxIdForMission } from '@/lib/box/brandFulfillment'
 
 type Props = {
   params: Promise<{ missionId: string }>
@@ -139,7 +140,11 @@ export default async function MissionReportPage({ params, searchParams }: Props)
   }
 
   const supabase = await createServerSupabaseClient()
-  const result = await fetchExperiencedMissionReport(supabase, effectiveMissionId)
+  const [result, boxId] = await Promise.all([
+    fetchExperiencedMissionReport(supabase, effectiveMissionId),
+    resolveBoxIdForMission(supabase, missionId),
+  ])
+  const packHref = boxId ? packingHref(boxId) : null
 
   if (!result.ok) {
     if (result.code === 'NO_REPORT_YET' && !previewLabel) {
@@ -151,6 +156,7 @@ export default async function MissionReportPage({ params, searchParams }: Props)
             title="This study"
             status={studyReportStatus(loaded.preview)}
             backHref={backHref}
+            packingHref={packHref}
           />
         )
       }
@@ -176,6 +182,23 @@ export default async function MissionReportPage({ params, searchParams }: Props)
           }}
         >
           Admin preview ({previewLabel}) — seeded simulated mission {effectiveMissionId}
+        </div>
+      ) : null}
+      {packHref ? (
+        <div
+          className="no-print"
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 13,
+            textAlign: 'center',
+            padding: '10px 12px',
+            borderBottom: '1px solid var(--ink-10)',
+            background: 'var(--paper)',
+          }}
+        >
+          <Link href={packHref} style={{ color: 'var(--heading)', fontWeight: 600 }}>
+            Pack &amp; ship labels →
+          </Link>
         </div>
       ) : null}
       <ExperiencedReportDeck envelope={result.envelope} backHref={backHref} />
