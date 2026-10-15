@@ -112,6 +112,7 @@ jobs:
       - run: npm run check:impersonate-search-ban
       - run: npm run check:product-master-ban
       - run: npm run check:prototypes-library-ban
+      - run: npm run check:planet-sheet-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
