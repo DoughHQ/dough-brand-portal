@@ -123,6 +123,7 @@ jobs:
       - run: npm run check:brand-home-ban
       - run: npm run check:ownership-correction-ban
       - run: npm run check:login-page-ban
+      - run: npm run check:prototype-editor-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
