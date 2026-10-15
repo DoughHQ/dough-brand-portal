@@ -21,6 +21,7 @@ import type {
   RepurchaseSessionMetric,
 } from './types'
 import { isIhutCoreReport } from './ihutCoreTypes'
+import { parseSampleComposition } from '../reportSampleComposition'
 
 function asObject(raw: unknown): Record<string, unknown> | null {
   if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) return null
@@ -335,6 +336,7 @@ export function parseExperiencedReportPayload(raw: unknown): ExperiencedReportPa
   return {
     focal_product,
     participation: parseParticipation(o.participation),
+    sample_composition: parseSampleComposition(o.sample_composition),
     report_stage: parseStage(o.report_stage),
     reliability: parseReliability(o.reliability),
     evidence_composition: parseEvidence(o.evidence_composition),

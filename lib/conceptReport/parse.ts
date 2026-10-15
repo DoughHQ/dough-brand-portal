@@ -18,6 +18,7 @@ import type {
   WtpArm,
 } from './types'
 import { decisionFrameFromFinding } from './copy'
+import { parseSampleComposition } from '../reportSampleComposition'
 
 function asObject(raw: unknown): Record<string, unknown> | null {
   if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) return null
@@ -456,6 +457,7 @@ export function parseConceptMissionReport(
     n_neither: asNumber(o.n_neither),
     neither_rate: asNumber(o.neither_rate),
     n_combatants: asNumber(o.n_combatants) ?? win_rate_field.length,
+    sample_composition: parseSampleComposition(o.sample_composition),
     win_rate_field,
     finding: { ...finding, is_thin: finding.is_thin || thinHint },
     decision_frame: frame,

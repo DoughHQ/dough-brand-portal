@@ -8,7 +8,7 @@ export function MethodChapter({ report }: { report: ConceptTestReport }) {
   return (
     <StoryChapter
       id="method"
-      number="06"
+      number="07"
       kicker="Trust the read"
       title="The rules were fixed before the result."
       lead="Confidence, bars, reporting floors, and the meaning of each measure stay visible so a compelling story never becomes an inflated one."

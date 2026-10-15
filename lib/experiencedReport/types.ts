@@ -178,6 +178,7 @@ export type Methodology = {
 export type ExperiencedReportPayload = {
   focal_product: FocalProduct
   participation: Participation
+  sample_composition?: import('../reportSampleComposition').SampleComposition | null
   report_stage: ReportStage
   reliability: Reliability | null
   evidence_composition: EvidenceComposition | null

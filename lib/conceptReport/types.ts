@@ -205,6 +205,7 @@ export type ConceptMissionReport = {
   n_neither: number | null
   neither_rate: number | null
   n_combatants: number
+  sample_composition?: import('../reportSampleComposition').SampleComposition | null
   win_rate_field: WinRateFieldRow[]
   finding: Finding
   /** Resolved from finding.decision_frame or root; never invent judgment. */
