@@ -107,6 +107,14 @@ jobs:
       - run: npm run check:admin-products-ban
       - run: npm run check:scope-search-ban
       - run: npm run check:category-intelligence-ban
+      - run: npm run check:admin-boxes-ban
+      - run: npm run check:reports-library-ban
+      - run: npm run check:impersonate-search-ban
+      - run: npm run check:product-master-ban
+      - run: npm run check:prototypes-library-ban
+      - run: npm run check:planet-sheet-ban
+      - run: npm run check:origin-sheet-ban
+      - run: npm run check:formula-sheet-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run

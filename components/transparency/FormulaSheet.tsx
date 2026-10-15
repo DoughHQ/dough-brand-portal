@@ -1,58 +1,20 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import {
-  blankDraft,
-  type DisclosureDraft,
-  type ProofSubMetricRow,
-} from '@/lib/transparency/disclosures'
 import { rowPresence } from '@/lib/transparency/proofChapters'
 import {
   presenceLabel,
   presencePillClass,
 } from '@/lib/transparency/presencePresentation'
-import { composeFormulaLine } from '@/lib/transparency/storyLines'
-import ShopperPreview from '@/components/transparency/ShopperPreview'
 import {
   displayAllCapsPhrase,
   splitIngredientStatement,
 } from '@/app/(portal)/products/[productId]/tabs/compositionPresentation'
+import { findRow, type IngredientLine, norm, type Props } from './formula/formulaModel'
+import { AmountBlock } from './formula/AmountBlock'
+import { BreakoutBlock } from './formula/BreakoutBlock'
 
-export type FormulaLocalRow = {
-  key: string
-  draft: DisclosureDraft
-  saved: DisclosureDraft | null
-}
-
-type Props = {
-  ingredientStatement: string | null
-  pctField: ProofSubMetricRow | null
-  breakoutField: ProofSubMetricRow | null
-  pctRows: FormulaLocalRow[]
-  breakoutRows: FormulaLocalRow[]
-  canEdit: boolean
-  savingKey: string | null
-  errors: Record<string, string>
-  onChange: (subMetricCode: string, key: string, draft: DisclosureDraft) => void
-  onSave: (field: ProofSubMetricRow, row: FormulaLocalRow) => void
-  onEnsureRow: (field: ProofSubMetricRow, subjectLabel: string) => string
-  onAddCustomIngredient: (name: string) => void
-}
-
-function norm(s: string): string {
-  return s.trim().toLowerCase().replace(/\s+/g, ' ')
-}
-
-function findRow(rows: FormulaLocalRow[], subject: string): FormulaLocalRow | undefined {
-  const n = norm(subject)
-  return rows.find((r) => norm(r.draft.subjectLabel ?? '') === n)
-}
-
-type IngredientLine = {
-  name: string
-  display: string
-  fromLabel: boolean
-}
+export type { FormulaLocalRow } from './formula/formulaModel'
 
 export default function FormulaSheet({
   ingredientStatement,
@@ -273,215 +235,6 @@ export default function FormulaSheet({
             </button>
           )}
         </div>
-      ) : null}
-    </div>
-  )
-}
-
-function AmountBlock({
-  field,
-  subject,
-  row,
-  canEdit,
-  saving,
-  error,
-  onEnsureRow,
-  onChange,
-  onSave,
-}: {
-  field: ProofSubMetricRow
-  subject: string
-  row: FormulaLocalRow | undefined
-  canEdit: boolean
-  saving: boolean
-  error: string | null
-  onEnsureRow: (field: ProofSubMetricRow, subjectLabel: string) => string
-  onChange: (subMetricCode: string, key: string, draft: DisclosureDraft) => void
-  onSave: (field: ProofSubMetricRow, row: FormulaLocalRow) => void
-}) {
-  const patch = (partial: Partial<DisclosureDraft>) => {
-    let key = row?.key
-    let base = row?.draft
-    if (!key || !base) {
-      key = onEnsureRow(field, subject)
-      base = blankDraft(field, {
-        subjectKind: 'ingredient',
-        subjectLabel: subject,
-        status: 'disclosed',
-      })
-    }
-    onChange(field.sub_metric_code, key, {
-      ...base,
-      subjectKind: 'ingredient',
-      subjectLabel: subject,
-      ...partial,
-    })
-  }
-
-  return (
-    <div className="tx-formula__block">
-      <p className="tx-formula__block-title">How much?</p>
-      <p className="tx-formula__block-hint">
-        Percentage of <strong>{subject}</strong> in the formula. Optional — only disclose what
-        you want shoppers to see.
-      </p>
-      <ShopperPreview
-        line={
-          row?.draft.valueNum != null
-            ? composeFormulaLine({ subject, percent: row.draft.valueNum })
-            : ''
-        }
-      />
-      <div className="tx-inline" style={{ marginBottom: 12, maxWidth: 220 }}>
-        <input
-          type="number"
-          step="any"
-          min={0}
-          max={100}
-          className="tx-control"
-          disabled={!canEdit}
-          placeholder="0"
-          value={row?.draft.valueNum ?? ''}
-          onChange={(e) => {
-            const v = e.target.value === '' ? null : Number(e.target.value)
-            patch({ status: 'disclosed', valueNum: v, valueUnit: null })
-          }}
-        />
-        <span className="tx-unit">%</span>
-      </div>
-      {row ? (
-        <>
-          <label className="tx-publish" style={{ marginBottom: 12 }}>
-            <input
-              type="checkbox"
-              checked={row.draft.published}
-              disabled={!canEdit}
-              onChange={(e) => patch({ published: e.target.checked })}
-            />
-            <span>
-              <span className="tx-publish__label">Show amount to shoppers</span>
-            </span>
-          </label>
-          <div className="tx-field">
-            <div className="tx-label">As of</div>
-            <input
-              type="date"
-              className="tx-control tx-control--date"
-              disabled={!canEdit}
-              value={row.draft.asofDate}
-              onChange={(e) => patch({ asofDate: e.target.value })}
-            />
-          </div>
-          {canEdit ? (
-            <button
-              type="button"
-              className="tx-btn tx-btn--primary"
-              disabled={saving || row.draft.valueNum == null}
-              onClick={() => onSave(field, row)}
-            >
-              {saving ? 'Saving…' : 'Save amount'}
-            </button>
-          ) : null}
-          {error ? <p className="tx-error">{error}</p> : null}
-        </>
-      ) : (
-        <p className="tx-formula__block-hint">Type a percentage to create a disclosure.</p>
-      )}
-    </div>
-  )
-}
-
-function BreakoutBlock({
-  field,
-  subject,
-  row,
-  canEdit,
-  saving,
-  error,
-  onEnsureRow,
-  onChange,
-  onSave,
-}: {
-  field: ProofSubMetricRow
-  subject: string
-  row: FormulaLocalRow | undefined
-  canEdit: boolean
-  saving: boolean
-  error: string | null
-  onEnsureRow: (field: ProofSubMetricRow, subjectLabel: string) => string
-  onChange: (subMetricCode: string, key: string, draft: DisclosureDraft) => void
-  onSave: (field: ProofSubMetricRow, row: FormulaLocalRow) => void
-}) {
-  const patch = (partial: Partial<DisclosureDraft>) => {
-    let key = row?.key
-    let base = row?.draft
-    if (!key || !base) {
-      key = onEnsureRow(field, subject)
-      base = blankDraft(field, {
-        subjectKind: 'ingredient',
-        subjectLabel: subject,
-        status: 'disclosed',
-      })
-    }
-    onChange(field.sub_metric_code, key, {
-      ...base,
-      subjectKind: 'ingredient',
-      subjectLabel: subject,
-      ...partial,
-    })
-  }
-
-  return (
-    <div className="tx-formula__block">
-      <p className="tx-formula__block-title">What’s inside?</p>
-      <p className="tx-formula__block-hint">
-        Break out <strong>{subject}</strong> when it’s a blend the label doesn’t fully explain.
-      </p>
-      <textarea
-        className="tx-control tx-formula__textarea"
-        rows={3}
-        disabled={!canEdit}
-        placeholder="e.g. orange oil, vanilla extract"
-        value={row?.draft.valueText ?? ''}
-        onChange={(e) =>
-          patch({ status: 'disclosed', valueText: e.target.value || null })
-        }
-      />
-      {row ? (
-        <>
-          <label className="tx-publish" style={{ margin: '12px 0' }}>
-            <input
-              type="checkbox"
-              checked={row.draft.published}
-              disabled={!canEdit}
-              onChange={(e) => patch({ published: e.target.checked })}
-            />
-            <span>
-              <span className="tx-publish__label">Show breakout to shoppers</span>
-            </span>
-          </label>
-          <div className="tx-field">
-            <div className="tx-label">As of</div>
-            <input
-              type="date"
-              className="tx-control tx-control--date"
-              disabled={!canEdit}
-              value={row.draft.asofDate}
-              onChange={(e) => patch({ asofDate: e.target.value })}
-            />
-          </div>
-          {canEdit ? (
-            <button
-              type="button"
-              className="tx-btn tx-btn--primary"
-              disabled={saving || !row.draft.valueText?.trim()}
-              onClick={() => onSave(field, row)}
-            >
-              {saving ? 'Saving…' : 'Save breakout'}
-            </button>
-          ) : null}
-          {error ? <p className="tx-error">{error}</p> : null}
-        </>
       ) : null}
     </div>
   )
