@@ -22,6 +22,7 @@ fi
 
 BRAND_PAGE="$ROOT/app/(portal)/corrections/page.tsx"
 BRAND_CLIENT="$ROOT/app/(portal)/corrections/BrandCorrectionsClient.tsx"
+BRAND_INBOX="$ROOT/app/(portal)/corrections/inbox"
 BRAND_ACTIONS="$ROOT/app/(portal)/corrections/actions.ts"
 
 if [[ ! -f "$BRAND_PAGE" ]]; then
@@ -46,11 +47,15 @@ if [[ ! -f "$BRAND_CLIENT" ]]; then
   echo "BAN FAIL: missing BrandCorrectionsClient"
   FAIL=1
 else
-  if ! rg -n "Load more|hasMore" "$BRAND_CLIENT" >/dev/null 2>&1; then
+  brand_files=("$BRAND_CLIENT")
+  if [[ -d "$BRAND_INBOX" ]]; then
+    brand_files+=("$BRAND_INBOX")
+  fi
+  if ! rg -n "Load more|hasMore" "${brand_files[@]}" >/dev/null 2>&1; then
     echo "BAN FAIL: BrandCorrectionsClient must support Load more / hasMore"
     FAIL=1
   fi
-  if rg -n "reviewCorrectionAction|CaseEditor|extractCorrection|review_correction" "$BRAND_CLIENT" >/dev/null 2>&1; then
+  if rg -n "reviewCorrectionAction|CaseEditor|extractCorrection|review_correction" "${brand_files[@]}" >/dev/null 2>&1; then
     echo "BAN FAIL: BrandCorrectionsClient must not apply, extract, or file"
     FAIL=1
   fi
