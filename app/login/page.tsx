@@ -1,315 +1,59 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { createClient } from '@/lib/supabase'
-import AuthShell, {
-  AuthInput,
-  authInputStyle,
-  authLabelStyle,
-  authPrimaryBtnStyle,
-} from '@/components/auth/AuthShell'
-import { getPortalAppUrl, PRODUCT_NAME } from '@/lib/brand'
-import { resetRequestErrorCopy, signInErrorCopy } from '@/lib/auth/authErrorCopy'
-
-type Step = 'login' | 'forgot'
-
-function parseUrlErrors(): { error: string | null; errorCode: string | null } {
-  if (typeof window === 'undefined') return { error: null, errorCode: null }
-
-  const searchParams = new URLSearchParams(window.location.search)
-  const hashRaw = window.location.hash.startsWith('#')
-    ? window.location.hash.slice(1)
-    : window.location.hash
-  const hashParams = new URLSearchParams(hashRaw)
-
-  const error = searchParams.get('error') ?? hashParams.get('error')
-  const errorCode = searchParams.get('error_code') ?? hashParams.get('error_code')
-
-  return { error, errorCode }
-}
+import AuthShell from '@/components/auth/AuthShell'
+import { ForgotStep } from '@/components/auth/login/ForgotStep'
+import { SignInStep } from '@/components/auth/login/SignInStep'
+import { useLogin } from '@/components/auth/login/useLogin'
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [step, setStep] = useState<Step>('login')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [info, setInfo] = useState<string | null>(null)
-
-  const [loginEmail, setLoginEmail] = useState('')
-  const [loginPassword, setLoginPassword] = useState('')
-  const [forgotEmail, setForgotEmail] = useState('')
-
-  const supabase = createClient()
-
-  useEffect(() => {
-    const { error: urlError, errorCode } = parseUrlErrors()
-
-    if (urlError || errorCode) {
-      setStep('login')
-      if (errorCode === 'otp_expired' || urlError === 'otp_expired') {
-        setError('This reset link has expired or was already used. Request a new one below.')
-      } else if (urlError === 'auth_callback_failed') {
-        setError(
-          'Reset link failed. Open it in the same browser (and Chrome profile) you used to request the reset, or request a new link below.'
-        )
-      } else {
-        setError('Sign-in link failed. Please try again.')
-      }
-      window.history.replaceState(null, '', window.location.pathname)
-    }
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        router.replace('/auth/update-password')
-      }
-    })
-
-    const hashRaw = window.location.hash.startsWith('#')
-      ? window.location.hash.slice(1)
-      : window.location.hash
-    const hashParams = new URLSearchParams(hashRaw)
-    if (hashParams.get('type') === 'recovery') {
-      router.replace('/auth/update-password')
-    }
-
-    return () => subscription.unsubscribe()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  async function handleLogin() {
-    if (!loginEmail.trim() || !loginPassword.trim()) {
-      setError('Email and password are required.')
-      return
-    }
-    setLoading(true)
-    setError(null)
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: loginEmail.trim().toLowerCase(),
-      password: loginPassword.trim(),
-    })
-    setLoading(false)
-    if (signInError) {
-      setError(signInErrorCopy(signInError, 'login'))
-      return
-    }
-    router.push('/dashboard')
-  }
-
-  async function handleForgotPassword() {
-    if (!forgotEmail.trim()) {
-      setError('Email is required.')
-      return
-    }
-    setLoading(true)
-    setError(null)
-    setInfo(null)
-
-    const appUrl = getPortalAppUrl()
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-      forgotEmail.trim().toLowerCase(),
-      {
-        redirectTo: `${appUrl}/auth/callback?next=/auth/update-password`,
-      }
-    )
-
-    setLoading(false)
-    if (resetError) {
-      const copy = resetRequestErrorCopy(resetError)
-      if (copy) {
-        setError(copy)
-        return
-      }
-    }
-    setInfo(
-      'If an account exists for that email, a reset link is on its way. Open it in this same browser.'
-    )
-  }
+  const {
+    step,
+    setStep,
+    loading,
+    error,
+    setError,
+    info,
+    setInfo,
+    loginEmail,
+    setLoginEmail,
+    loginPassword,
+    setLoginPassword,
+    forgotEmail,
+    setForgotEmail,
+    handleLogin,
+    handleForgotPassword,
+  } = useLogin()
 
   return (
     <AuthShell>
       {step === 'login' && (
-        <>
-          <div style={{ marginBottom: 28 }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: 24,
-                fontWeight: 400,
-                color: 'var(--ink)',
-                marginBottom: 8,
-                letterSpacing: '-0.02em',
-              }}
-            >
-              Sign in
-            </div>
-            <div style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55 }}>
-              For approved brand partners only.
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div>
-              <div style={authLabelStyle}>Email</div>
-              <input
-                type="email"
-                className="auth-input"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                placeholder="you@brand.com"
-                autoComplete="email"
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                style={authInputStyle}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--sage)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
-                  e.target.style.boxShadow = 'none'
-                }}
-              />
-            </div>
-            <AuthInput
-              label="Password"
-              type="password"
-              value={loginPassword}
-              onChange={setLoginPassword}
-              placeholder="••••••••"
-              autoComplete="current-password"
-              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-            />
-
-            {error && (
-              <div style={{ fontSize: 12, color: 'var(--red)', lineHeight: 1.5 }}>{error}</div>
-            )}
-
-            <button onClick={handleLogin} disabled={loading} style={authPrimaryBtnStyle(loading)}>
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-
-            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button
-                onClick={() => {
-                  setStep('forgot')
-                  setError(null)
-                  setInfo(null)
-                  setForgotEmail(loginEmail)
-                }}
-                style={{
-                  fontSize: 13,
-                  color: 'var(--sage)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-sans)',
-                  fontWeight: 500,
-                }}
-              >
-                Forgot password?
-              </button>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: 'var(--ink-50)',
-                  fontFamily: 'var(--font-sans)',
-                  margin: 0,
-                }}
-              >
-                New to {PRODUCT_NAME}?{' '}
-                <Link
-                  href="/apply"
-                  style={{ color: 'var(--sage)', fontWeight: 600, textDecoration: 'none' }}
-                >
-                  Request access
-                </Link>
-              </p>
-            </div>
-          </div>
-        </>
+        <SignInStep
+          loading={loading}
+          error={error}
+          setError={setError}
+          setInfo={setInfo}
+          setStep={setStep}
+          loginEmail={loginEmail}
+          setLoginEmail={setLoginEmail}
+          loginPassword={loginPassword}
+          setLoginPassword={setLoginPassword}
+          setForgotEmail={setForgotEmail}
+          handleLogin={handleLogin}
+        />
       )}
 
       {step === 'forgot' && (
-        <>
-          <div style={{ marginBottom: 28 }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: 24,
-                fontWeight: 400,
-                color: 'var(--ink)',
-                marginBottom: 8,
-                letterSpacing: '-0.02em',
-              }}
-            >
-              Reset password
-            </div>
-            <div style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.55 }}>
-              Enter your work email and we will send a link to set a new password.
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div>
-              <div style={authLabelStyle}>Email</div>
-              <input
-                type="email"
-                className="auth-input"
-                value={forgotEmail}
-                onChange={(e) => setForgotEmail(e.target.value)}
-                placeholder="you@brand.com"
-                autoComplete="email"
-                onKeyDown={(e) => e.key === 'Enter' && handleForgotPassword()}
-                style={authInputStyle}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--sage)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
-                  e.target.style.boxShadow = 'none'
-                }}
-              />
-            </div>
-
-            {error && (
-              <div style={{ fontSize: 12, color: 'var(--red)', lineHeight: 1.5 }}>{error}</div>
-            )}
-            {info && (
-              <div style={{ fontSize: 12, color: 'var(--ink-50)', lineHeight: 1.5 }}>{info}</div>
-            )}
-
-            <button
-              onClick={handleForgotPassword}
-              disabled={loading}
-              style={authPrimaryBtnStyle(loading)}
-            >
-              {loading ? 'Sending...' : 'Send reset link'}
-            </button>
-
-            <div style={{ textAlign: 'center' }}>
-              <button
-                onClick={() => {
-                  setStep('login')
-                  setError(null)
-                  setInfo(null)
-                }}
-                style={{
-                  fontSize: 13,
-                  color: 'var(--sage)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-sans)',
-                  fontWeight: 500,
-                }}
-              >
-                Back to sign in
-              </button>
-            </div>
-          </div>
-        </>
+        <ForgotStep
+          loading={loading}
+          error={error}
+          setError={setError}
+          info={info}
+          setInfo={setInfo}
+          setStep={setStep}
+          forgotEmail={forgotEmail}
+          setForgotEmail={setForgotEmail}
+          handleForgotPassword={handleForgotPassword}
+        />
       )}
     </AuthShell>
   )

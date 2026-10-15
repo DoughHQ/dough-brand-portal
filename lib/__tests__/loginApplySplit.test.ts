@@ -4,10 +4,15 @@ import { describe, expect, it } from 'vitest'
 
 describe('/login apply split', () => {
   it('does not import ApplyBrandFlow', () => {
-    const src = readFileSync(
+    const loginDir = resolve(__dirname, '../../components/auth/login')
+    const src = [
       resolve(__dirname, '../../app/login/page.tsx'),
-      'utf8'
-    )
+      ...readdirSync(loginDir)
+        .filter((name) => /\.(ts|tsx)$/.test(name))
+        .map((name) => join(loginDir, name)),
+    ]
+      .map((file) => readFileSync(file, 'utf8'))
+      .join('\n')
     expect(src).not.toMatch(/ApplyBrandFlow/)
     expect(src).toMatch(/href=["']\/apply["']/)
     expect(src).toMatch(/type Step = 'login' \| 'forgot'/)
