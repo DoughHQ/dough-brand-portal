@@ -98,6 +98,15 @@ jobs:
       - run: npm run check:readiness-table-ban
       - run: npm run check:ownership-corrections-ban
       - run: npm run check:compare-groups-ban
+      - run: npm run check:portal-layout-ban
+      - run: npm run check:products-catalog-ban
+      - run: npm run check:dashboard-more-ban
+      - run: npm run check:l3-intelligence-ban
+      - run: npm run check:brand-corrections-ban
+      - run: npm run check:safety-desk-ban
+      - run: npm run check:admin-products-ban
+      - run: npm run check:scope-search-ban
+      - run: npm run check:category-intelligence-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run

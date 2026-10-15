@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PAGE="$ROOT/app/(portal)/products/page.tsx"
 CLIENT="$ROOT/app/(portal)/products/ProductsClient.tsx"
+CATALOG="$ROOT/app/(portal)/products/catalog"
 FAIL=0
 
 if [[ ! -f "$PAGE" || ! -f "$CLIENT" ]]; then
@@ -17,9 +18,9 @@ if rg -n "getBrandProducts\b|get_brand_products_with_taxonomy|range\(0,\s*9999\)
   FAIL=1
 fi
 
-if rg -n "get_brand_products_portfolio" "$CLIENT" >/dev/null 2>&1; then
+if rg -n "get_brand_products_portfolio" "$CLIENT" "$CATALOG" >/dev/null 2>&1; then
   echo "BAN FAIL: ProductsClient must not call get_brand_products_portfolio"
-  rg -n "get_brand_products_portfolio" "$CLIENT" || true
+  rg -n "get_brand_products_portfolio" "$CLIENT" "$CATALOG" || true
   FAIL=1
 fi
 
