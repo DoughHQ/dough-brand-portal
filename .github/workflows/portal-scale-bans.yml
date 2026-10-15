@@ -104,6 +104,7 @@ jobs:
       - run: npm run check:l3-intelligence-ban
       - run: npm run check:brand-corrections-ban
       - run: npm run check:safety-desk-ban
+      - run: npm run check:admin-products-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
