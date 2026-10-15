@@ -10,6 +10,12 @@ const evidenceRoot = `${experiencedRoot}ihutEvidence/`
 const conceptShell = `${conceptRoot}ConceptReportDeck.tsx`
 const experiencedShell = `${experiencedRoot}ExperiencedReportDeck.tsx`
 const evidenceFacade = `${experiencedRoot}IhutEvidencePack.tsx`
+const storyRoot = `${experiencedRoot}story/`
+const conceptStoryRoot = `${conceptRoot}story/`
+const conceptStoryReport = `${conceptRoot}ConceptStoryReport.tsx`
+const storyReport = `${experiencedRoot}ExperiencedStoryReport.tsx`
+const briefRoot = `${experiencedRoot}brief/`
+const briefFacade = `${experiencedRoot}DecisionBrief.tsx`
 let failed = false
 
 function fail(message) {
@@ -126,7 +132,34 @@ const dependencies = {
   ],
   [`${conceptRoot}conceptDeckShared.tsx`]: [],
 
+  [conceptStoryReport]: [
+    `${conceptStoryRoot}ChoiceChapter.tsx`,
+    `${conceptStoryRoot}FirstLookChapter.tsx`,
+    `${conceptStoryRoot}MethodChapter.tsx`,
+    `${conceptStoryRoot}PriceChapter.tsx`,
+    `${conceptStoryRoot}VoicesChapter.tsx`,
+    `${conceptStoryRoot}storyFormat.ts`,
+  ],
+  [`${conceptStoryRoot}ChoiceChapter.tsx`]: [`${conceptStoryRoot}storyFormat.ts`],
+  [`${conceptStoryRoot}DemandCurve.tsx`]: [`${conceptStoryRoot}storyFormat.ts`],
+  [`${conceptStoryRoot}DistributionRows.tsx`]: [`${conceptStoryRoot}storyFormat.ts`],
+  [`${conceptStoryRoot}FirstLookChapter.tsx`]: [
+    `${conceptStoryRoot}DistributionRows.tsx`,
+    `${conceptStoryRoot}storyFormat.ts`,
+  ],
+  [`${conceptStoryRoot}MethodChapter.tsx`]: [],
+  [`${conceptStoryRoot}PriceChapter.tsx`]: [
+    `${conceptStoryRoot}DemandCurve.tsx`,
+    `${conceptStoryRoot}storyFormat.ts`,
+  ],
+  [`${conceptStoryRoot}VoicesChapter.tsx`]: [
+    `${conceptStoryRoot}DistributionRows.tsx`,
+    `${conceptStoryRoot}storyFormat.ts`,
+  ],
+  [`${conceptStoryRoot}storyFormat.ts`]: [],
+
   [experiencedShell]: [
+    storyReport,
     `${experiencedRoot}LegacyAttributeImportanceSection.tsx`,
     `${experiencedRoot}LegacyDeckColdOpen.tsx`,
     `${experiencedRoot}LegacyDriversSection.tsx`,
@@ -163,6 +196,55 @@ const dependencies = {
   ],
   [`${experiencedRoot}legacyDeckShared.tsx`]: [],
   [`${experiencedRoot}legacyMethodNotes.ts`]: [],
+
+  [storyReport]: [
+    briefFacade,
+    `${storyRoot}EvidenceChapter.tsx`,
+    `${storyRoot}IntentChapter.tsx`,
+    `${storyRoot}MethodChapter.tsx`,
+    `${storyRoot}RepurchaseChart.tsx`,
+    `${storyRoot}WhyChapter.tsx`,
+    `${storyRoot}storyFormat.ts`,
+  ],
+  [`${storyRoot}AttributeChart.tsx`]: [],
+  [`${storyRoot}DriverChart.tsx`]: [`${storyRoot}storyFormat.ts`],
+  [`${storyRoot}EvidenceChapter.tsx`]: [
+    briefFacade,
+    `${storyRoot}storyFormat.ts`,
+  ],
+  [`${storyRoot}IntentChapter.tsx`]: [
+    `${storyRoot}RepurchaseChart.tsx`,
+    `${storyRoot}storyFormat.ts`,
+  ],
+  [`${storyRoot}MethodChapter.tsx`]: [
+    `${storyRoot}RepurchaseChart.tsx`,
+    `${storyRoot}storyFormat.ts`,
+  ],
+  [`${storyRoot}RepurchaseChart.tsx`]: [`${storyRoot}storyFormat.ts`],
+  [`${storyRoot}WhyChapter.tsx`]: [
+    `${storyRoot}AttributeChart.tsx`,
+    `${storyRoot}DriverChart.tsx`,
+  ],
+  [`${storyRoot}storyFormat.ts`]: [],
+
+  [briefFacade]: [
+    `${briefRoot}DecisionBriefHeader.tsx`,
+    `${briefRoot}EvidenceStrip.tsx`,
+    `${briefRoot}HeadToHeadForest.tsx`,
+    `${briefRoot}OverviewBottomLine.tsx`,
+    `${briefRoot}PreferenceIntervalBar.tsx`,
+  ],
+  [`${briefRoot}DecisionBriefHeader.tsx`]: [`${briefRoot}OverviewBottomLine.tsx`],
+  [`${briefRoot}EvidenceStrip.tsx`]: [],
+  [`${briefRoot}FieldProofStrip.tsx`]: [`${briefRoot}briefCalls.ts`],
+  [`${briefRoot}HeadToHeadForest.tsx`]: [`${briefRoot}briefCalls.ts`],
+  [`${briefRoot}OverviewBottomLine.tsx`]: [
+    `${briefRoot}FieldProofStrip.tsx`,
+    `${briefRoot}PreferenceIntervalBar.tsx`,
+    `${briefRoot}briefCalls.ts`,
+  ],
+  [`${briefRoot}PreferenceIntervalBar.tsx`]: [],
+  [`${briefRoot}briefCalls.ts`]: [],
 
   [evidenceFacade]: [
     `${evidenceRoot}AttributeEvidenceChapter.tsx`,
@@ -213,17 +295,14 @@ const trackedModules = new Set(Object.keys(dependencies))
 /** Pre-existing modules that share a directory but are not part of an extracted deck. */
 const neighborModules = new Set([
   `${conceptRoot}CombatantPortrait.tsx`,
-  `${conceptRoot}ConceptStoryReport.tsx`,
   `${conceptRoot}ConceptTestReportDeck.tsx`,
   `${conceptRoot}ExportReportButton.tsx`,
   `${conceptRoot}SimulatedDataBanner.tsx`,
   `${conceptRoot}WinRateTrack.tsx`,
   `${conceptRoot}WtpDemandCurve.tsx`,
-  `${experiencedRoot}DecisionBrief.tsx`,
   `${experiencedRoot}DecisionChapters.tsx`,
   `${experiencedRoot}ExecutiveSummaryStrip.tsx`,
   `${experiencedRoot}ExperienceSplitLabel.tsx`,
-  `${experiencedRoot}ExperiencedStoryReport.tsx`,
   `${experiencedRoot}IhutStoryReport.tsx`,
   `${experiencedRoot}ReportSectionRail.tsx`,
   `${experiencedRoot}WithheldMetric.tsx`,
@@ -284,7 +363,14 @@ for (const relativePath of trackedModules) {
   }
 }
 
-for (const entryPoint of [conceptShell, experiencedShell, evidenceFacade]) {
+for (const entryPoint of [
+  conceptShell,
+  experiencedShell,
+  evidenceFacade,
+  storyReport,
+  conceptStoryReport,
+  briefFacade,
+]) {
   const actual = new Set(
     [...moduleDependencies(entryPoint)]
       .map((specifier) => resolveImport(entryPoint, specifier))
@@ -346,6 +432,9 @@ const budgets = {
   [experiencedShell]: 225,
   [`${experiencedRoot}LegacyTrustSection.tsx`]: 275,
   [evidenceFacade]: 30,
+  [storyReport]: 150,
+  [conceptStoryReport]: 165,
+  [briefFacade]: 15,
   [`${evidenceRoot}FieldEvidenceChapter.tsx`]: 175,
 }
 for (const relativePath of trackedModules) {
