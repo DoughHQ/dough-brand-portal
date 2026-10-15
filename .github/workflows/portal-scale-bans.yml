@@ -110,6 +110,7 @@ jobs:
       - run: npm run check:admin-boxes-ban
       - run: npm run check:reports-library-ban
       - run: npm run check:impersonate-search-ban
+      - run: npm run check:product-master-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
