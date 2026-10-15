@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  addressChangeCopy,
+  fetchBoxAddressChanges,
   fetchBoxShipHolds,
   fulfillmentHasAddress,
   fulfillmentSeatStatus,
@@ -7,6 +9,7 @@ import {
   humanizeFulfillmentError,
   isOperatorFulfillmentAction,
   operatorActionsFor,
+  parseAddressChanges,
   parseShipHolds,
   shipHoldCopy,
   type FulfillmentRow,
@@ -235,5 +238,78 @@ describe('ship holds', () => {
     expect(
       humanizeFulfillmentError('this seat is on hold', 'SHIP_HOLD_ALLERGENS_UNCONFIRMED')
     ).toContain('unconfirmed')
+    expect(
+      humanizeFulfillmentError('this seat is on hold', 'SHIP_HOLD_ADDRESS_UNUSABLE')
+    ).toContain('usable shipping address')
+  })
+
+  it('copies ADDRESS_UNUSABLE for the console', () => {
+    expect(shipHoldCopy('ADDRESS_UNUSABLE')).toContain('no usable address')
+    expect(
+      parseShipHolds([{ fulfillment_id: 'a', ship_hold: 'ADDRESS_UNUSABLE' }])
+    ).toEqual({ a: 'ADDRESS_UNUSABLE' })
+  })
+})
+
+describe('address changes', () => {
+  it('parses the latest change per seat and drops junk', () => {
+    expect(
+      parseAddressChanges([
+        {
+          fulfillment_id: 'a',
+          changed_at: '2026-10-15T01:00:00Z',
+          state_at_change: 'fulfillment_pending',
+          source: 'settings',
+        },
+        { fulfillment_id: 'b', changed_at: '2026-10-15T01:00:00Z', state_at_change: 'confirmed', source: 'nope' },
+        null,
+      ])
+    ).toEqual({
+      a: {
+        fulfillment_id: 'a',
+        changed_at: '2026-10-15T01:00:00Z',
+        state_at_change: 'fulfillment_pending',
+        source: 'settings',
+      },
+    })
+    expect(parseAddressChanges(null)).toEqual({})
+  })
+
+  it('names the reprint and whether it was already queued', () => {
+    const now = Date.parse('2026-10-15T03:00:00Z')
+    expect(
+      addressChangeCopy(
+        {
+          fulfillment_id: 'a',
+          changed_at: '2026-10-15T01:00:00Z',
+          state_at_change: 'fulfillment_pending',
+          source: 'box',
+        },
+        now
+      )
+    ).toBe('Address changed 2h ago, after it was queued · new label needed, tell the brand')
+    expect(
+      addressChangeCopy(
+        {
+          fulfillment_id: 'a',
+          changed_at: '2026-10-15T02:30:00Z',
+          state_at_change: 'confirmed',
+          source: 'settings',
+        },
+        now
+      )
+    ).toBe('Address changed 30m ago · new label needed, tell the brand')
+  })
+
+  it('reads a missing RPC as no changes', async () => {
+    const client = {
+      rpc: async () => ({ data: null, error: { message: 'Could not find the function' } }),
+    }
+    await expect(
+      fetchBoxAddressChanges(
+        client as unknown as Parameters<typeof fetchBoxAddressChanges>[0],
+        'box'
+      )
+    ).resolves.toEqual({})
   })
 })

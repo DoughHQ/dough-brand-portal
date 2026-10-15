@@ -10,12 +10,14 @@ import {
 } from '@/lib/box/operatorDetail'
 import { boxStatusLabel, BOX_STATUS_TONE, type BoxStatus } from '@/lib/box/operator'
 import {
+  addressChangeCopy,
   operatorActionsFor,
   fulfillmentActionLabel,
   fulfillmentHasAddress,
   fulfillmentSeatStatus,
   fulfillmentWaitingCopy,
   shipHoldCopy,
+  type AddressChanges,
   type FulfillmentRow,
   type OperatorFulfillmentAction,
   type ShipHolds,
@@ -497,6 +499,7 @@ function FulfillmentPanel({
 }) {
   const [rows, setRows] = useState<FulfillmentRow[] | null>(null)
   const [holds, setHolds] = useState<ShipHolds>({})
+  const [addressChanges, setAddressChanges] = useState<AddressChanges>({})
   const [loadError, setLoadError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -515,6 +518,7 @@ function FulfillmentPanel({
       if (res.ok) {
         setRows(res.rows)
         setHolds(res.holds)
+        setAddressChanges(res.addressChanges)
         setLoadError(null)
       } else {
         setLoadError(res.error)
@@ -541,6 +545,7 @@ function FulfillmentPanel({
       if (res.ok) {
         setRows(res.rows)
         setHolds(res.holds)
+        setAddressChanges(res.addressChanges)
         setActionError(null)
         setShipFor(null)
         setTracking('')
@@ -551,6 +556,7 @@ function FulfillmentPanel({
         if (res.rows && res.holds) {
           setRows(res.rows)
           setHolds(res.holds)
+          if (res.addressChanges) setAddressChanges(res.addressChanges)
           setShipFor(null)
         }
       }
@@ -613,6 +619,7 @@ function FulfillmentPanel({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {rows.map((r) => {
             const hold = holds[r.fulfillment_id] ?? null
+            const addrChange = addressChanges[r.fulfillment_id] ?? null
             const readiness = {
               consentedAt: r.consented_at,
               hasAddress: fulfillmentHasAddress(r),
@@ -660,6 +667,19 @@ function FulfillmentPanel({
                         style={{ fontSize: 12, fontWeight: 600, color: 'var(--red)', marginTop: 3 }}
                       >
                         {shipHoldCopy(hold)}
+                      </div>
+                    ) : null}
+                    {addrChange ? (
+                      <div
+                        role="status"
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: 'var(--amber, #A16514)',
+                          marginTop: 3,
+                        }}
+                      >
+                        {addressChangeCopy(addrChange)}
                       </div>
                     ) : null}
                   </div>
