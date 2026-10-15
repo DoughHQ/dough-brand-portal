@@ -9,6 +9,7 @@ PRODUCTS_CLIENT="$ROOT/app/(portal)/products/ProductsClient.tsx"
 PRODUCTS_CATALOG="$ROOT/app/(portal)/products/catalog"
 REPORTS_PAGE="$ROOT/app/(portal)/reports/page.tsx"
 REPORTS_CLIENT="$ROOT/app/(portal)/reports/ReportsClient.tsx"
+REPORTS_LIBRARY="$ROOT/app/(portal)/reports/library"
 QUERIES="$ROOT/lib/queries.ts"
 
 for f in "$PRODUCTS_PAGE" "$PRODUCTS_CLIENT" "$REPORTS_PAGE"; do
@@ -39,6 +40,10 @@ fi
 
 if [[ -f "$REPORTS_CLIENT" ]] && rg -n "claimed_product_ids" "$REPORTS_CLIENT" >/dev/null 2>&1; then
   echo "BAN FAIL: ReportsClient must not reference claimed_product_ids"
+  FAIL=1
+fi
+if [[ -d "$REPORTS_LIBRARY" ]] && rg -n "claimed_product_ids" "$REPORTS_LIBRARY" >/dev/null 2>&1; then
+  echo "BAN FAIL: reports/library must not reference claimed_product_ids"
   FAIL=1
 fi
 
