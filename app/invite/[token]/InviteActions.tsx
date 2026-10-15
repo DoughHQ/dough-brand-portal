@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { unstable_rethrow, useRouter } from 'next/navigation'
 import { AuthInput, AuthPrimaryButton } from '@/components/auth/AuthShell'
+import { GENERIC_INVITE_ERROR_COPY } from '@/lib/brandInviteCopy'
 import { connectInviteAction, continueInviteAction, type InviteActionResult } from './actions'
 
 const errorStyle = { fontSize: 12, color: 'var(--red)', lineHeight: 1.5 } as const
@@ -43,7 +44,12 @@ export function ContinueInvite({ token, label }: { token: string; label: string 
         onClick={() => {
           setError(null)
           startTransition(async () => {
-            handle(await continueInviteAction(token))
+            try {
+              handle(await continueInviteAction(token))
+            } catch (e) {
+              unstable_rethrow(e)
+              setError(GENERIC_INVITE_ERROR_COPY)
+            }
           })
         }}
       >
@@ -62,7 +68,12 @@ export function ConnectInvite({ token, label }: { token: string; label: string }
     if (pending) return
     setError(null)
     startTransition(async () => {
-      handle(await connectInviteAction(token, password))
+      try {
+        handle(await connectInviteAction(token, password))
+      } catch (e) {
+        unstable_rethrow(e)
+        setError(GENERIC_INVITE_ERROR_COPY)
+      }
     })
   }
 

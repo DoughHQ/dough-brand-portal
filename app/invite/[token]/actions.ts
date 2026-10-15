@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { isAuthApiError } from '@supabase/supabase-js'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import {
   callBrandInvite,
@@ -12,6 +13,7 @@ import {
   GENERIC_INVITE_ERROR_COPY,
   WRONG_PASSWORD_COPY,
 } from '@/lib/brandInviteCopy'
+import { signInErrorCopy } from '@/lib/auth/authErrorCopy'
 
 /**
  * Failure shape returned to the invite client. Success never returns: it redirects
@@ -93,7 +95,10 @@ export async function connectInviteAction(
     password: trimmed,
   })
   if (error) {
-    return { ok: false, state: 'wrong_password', message: WRONG_PASSWORD_COPY }
+    if (isAuthApiError(error) && error.code === 'invalid_credentials') {
+      return { ok: false, state: 'wrong_password', message: WRONG_PASSWORD_COPY }
+    }
+    return { ok: false, state: 'error', message: signInErrorCopy(error, 'invite') }
   }
 
   const accessToken = data.session?.access_token

@@ -39,8 +39,7 @@ export function describeInviteState(
     case 'resume':
       return {
         title: `Finish setting up ${brand}`,
-        body: `You'll join as ${email}.`,
-        smallPrint: "Opening this page doesn't use your invite.",
+        body: `You've joined as ${email}. One step left: set your password.`,
         action: 'continue',
         actionLabel: 'Continue',
       }

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalUser } from '@/lib/queries'
 import { validateNewPassword } from '@/lib/auth/passwordRules'
+import { passwordUpdateErrorCopy } from '@/lib/auth/authErrorCopy'
 import { fetchPortalAccountNeedsPassword } from '@/lib/portal/needsPassword.server'
 
 export type SetWelcomePasswordResult = { ok: false; error: string }
@@ -33,21 +34,7 @@ export async function setWelcomePasswordAction(
 
   const { error } = await supabase.auth.updateUser({ password })
   if (error) {
-    const msg = (error.message ?? '').toLowerCase()
-    if (msg.includes('weak_password') || msg.includes('weak')) {
-      return {
-        ok: false,
-        error: error.message || 'That password is too weak. Try a longer one.',
-      }
-    }
-    if (msg.includes('reauth') || msg.includes('reauthentication')) {
-      return {
-        ok: false,
-        error:
-          'For your security, request a fresh link: use Forgot password on the sign-in page.',
-      }
-    }
-    return { ok: false, error: "We couldn't save that password. Try a different one." }
+    return { ok: false, error: passwordUpdateErrorCopy(error, 'welcome').message }
   }
 
   redirect('/dashboard?welcome=1')

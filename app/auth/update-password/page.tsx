@@ -5,6 +5,10 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import AuthShell, { AuthInput } from '@/components/auth/AuthShell'
+import {
+  passwordUpdateErrorCopy,
+  type AuthErrorCopy,
+} from '@/lib/auth/authErrorCopy'
 import { MIN_PASSWORD_LENGTH, validateNewPassword } from '@/lib/auth/passwordRules'
 
 type Status = 'checking' | 'ready' | 'invalid' | 'success'
@@ -16,7 +20,7 @@ export default function UpdatePasswordPage() {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<AuthErrorCopy | null>(null)
 
   useEffect(() => {
     let resolved = false
@@ -57,7 +61,7 @@ export default function UpdatePasswordPage() {
     if (!canSave) return
     const validation = validateNewPassword(password, confirm)
     if (validation) {
-      setError(validation)
+      setError({ message: validation })
       return
     }
     setLoading(true)
@@ -67,7 +71,7 @@ export default function UpdatePasswordPage() {
 
     setLoading(false)
     if (updateError) {
-      setError(updateError.message)
+      setError(passwordUpdateErrorCopy(updateError, 'reset'))
       setStatus('ready')
       return
     }
@@ -193,7 +197,20 @@ export default function UpdatePasswordPage() {
             )}
 
             {error && (
-              <div style={{ fontSize: 12, color: 'var(--red)', lineHeight: 1.5 }}>{error}</div>
+              <div style={{ fontSize: 12, color: 'var(--red)', lineHeight: 1.5 }}>
+                {error.message}
+                {error.link ? (
+                  <>
+                    {' '}
+                    <Link
+                      href={error.link.href}
+                      style={{ color: 'var(--sage)', fontWeight: 600, textDecoration: 'none' }}
+                    >
+                      {error.link.label}
+                    </Link>
+                  </>
+                ) : null}
+              </div>
             )}
 
             <button

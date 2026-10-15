@@ -18,8 +18,10 @@ vi.mock('next/navigation', () => ({
   redirect: (to: string) => redirect(to),
 }))
 
+import { AuthApiError } from '@supabase/supabase-js'
 import { connectInviteAction, continueInviteAction } from '../../app/invite/[token]/actions'
 import { WRONG_PASSWORD_COPY } from '../brandInviteCopy'
+import { signInErrorCopy } from '../auth/authErrorCopy'
 
 const TOKEN = 'B'.repeat(43)
 
@@ -28,7 +30,7 @@ type Calls = string[]
 function makeSupabase(opts: {
   session?: boolean
   verifyError?: boolean
-  signInError?: boolean
+  signInError?: boolean | AuthApiError
   signInSession?: boolean
 }) {
   const calls: Calls = []
@@ -46,7 +48,13 @@ function makeSupabase(opts: {
     }),
     signInWithPassword: vi.fn(async () => {
       calls.push('signInWithPassword')
-      if (opts.signInError) return { data: { session: null }, error: { message: 'bad' } }
+      if (opts.signInError) {
+        const error =
+          opts.signInError === true
+            ? new AuthApiError('Invalid login credentials', 400, 'invalid_credentials')
+            : opts.signInError
+        return { data: { session: null }, error }
+      }
       return {
         data: { session: opts.signInSession === false ? null : { access_token: 'jwt-after-login' } },
         error: null,
@@ -171,6 +179,22 @@ describe('connectInviteAction', () => {
     expect(callBrandInvite).toHaveBeenCalledTimes(1)
     expect(callBrandInvite).toHaveBeenCalledWith('peek', TOKEN)
     expect(auth.verifyOtp).not.toHaveBeenCalled()
+    expect(redirect).not.toHaveBeenCalled()
+  })
+
+  it('does not return wrong-password copy on a rate-limited sign-in', async () => {
+    const rate = new AuthApiError('slow down', 429, 'over_request_rate_limit')
+    makeSupabase({ signInError: rate })
+    callBrandInvite.mockResolvedValue(peekHasAccount)
+
+    const res = await connectInviteAction(TOKEN, 'nope')
+
+    expect(res).toEqual({
+      ok: false,
+      state: 'error',
+      message: signInErrorCopy(rate, 'invite'),
+    })
+    expect(res.message).not.toBe(WRONG_PASSWORD_COPY)
     expect(redirect).not.toHaveBeenCalled()
   })
 
