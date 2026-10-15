@@ -13,6 +13,10 @@ import {
 } from '@/lib/brandApplicationFlow'
 import { safeLinkedInHref } from '@/lib/brandApplications'
 import { PRODUCT_NAME } from '@/lib/brand'
+import {
+  APPLY_WHILE_AUTH_COPY,
+  applyWaitlistInsertErrorCopy,
+} from '@/lib/auth/authErrorCopy'
 import { SUPPORT_EMAIL } from '@/lib/productMaster/support'
 import '@/components/auth/authShell.css'
 
@@ -66,6 +70,23 @@ export default function ApplyBrandFlow({
   const [linkedinUrl, setLinkedinUrl] = useState('')
   const [brandWebsite, setBrandWebsite] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [signedInEmail, setSignedInEmail] = useState<string | null>(null)
+  const [signingOut, setSigningOut] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const supabase = createClient()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (cancelled) return
+      setSignedInEmail(session?.user?.email ?? null)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     const q = query.trim()
@@ -122,7 +143,20 @@ export default function ApplyBrandFlow({
     setStep('details')
   }
 
+  async function handleSignOut() {
+    setSigningOut(true)
+    setError(null)
+    const supabase = createClient()
+    await supabase.auth.signOut({ scope: 'local' })
+    setSignedInEmail(null)
+    setSigningOut(false)
+  }
+
   async function handleSubmit() {
+    if (signedInEmail) {
+      setError(APPLY_WHILE_AUTH_COPY)
+      return
+    }
     const brandName = (selectedBrand?.brand_name ?? typedBrandName).trim()
     if (!brandName) {
       setError('Brand name is required.')
@@ -174,6 +208,11 @@ export default function ApplyBrandFlow({
         setStep('booking')
         return
       }
+      const authCopy = applyWaitlistInsertErrorCopy(insertError)
+      if (authCopy) {
+        setError(authCopy)
+        return
+      }
       console.error('brand_waitlist insert', insertError)
       setError('Something went wrong. Please try again.')
       return
@@ -181,8 +220,45 @@ export default function ApplyBrandFlow({
     setStep('booking')
   }
 
+  const sessionBanner =
+    signedInEmail && step !== 'booking' ? (
+      <div
+        role="status"
+        style={{
+          marginBottom: 16,
+          padding: '12px 14px',
+          borderRadius: 8,
+          background: 'rgba(28, 38, 32, 0.04)',
+          border: '1px solid rgba(28, 38, 32, 0.10)',
+        }}
+      >
+        <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 8 }}>
+          Signed in as <strong style={{ fontWeight: 600 }}>{signedInEmail}</strong>. Applications
+          are anonymous — sign out to request access.
+        </div>
+        <button
+          type="button"
+          onClick={() => void handleSignOut()}
+          disabled={signingOut}
+          style={{
+            fontSize: 13,
+            color: 'var(--sage)',
+            background: 'none',
+            border: 'none',
+            cursor: signingOut ? 'default' : 'pointer',
+            fontFamily: 'var(--font-sans)',
+            fontWeight: 600,
+            padding: 0,
+          }}
+        >
+          {signingOut ? 'Signing out…' : 'Sign out'}
+        </button>
+      </div>
+    ) : null
+
   return (
     <div style={styles.cardStyle}>
+      {sessionBanner}
       {step === 'search' && (
         <>
           <div style={{ marginBottom: 18 }}>
@@ -457,8 +533,8 @@ export default function ApplyBrandFlow({
             <button
               type="button"
               onClick={() => void handleSubmit()}
-              disabled={submitting}
-              style={styles.primaryBtnStyle(submitting)}
+              disabled={submitting || Boolean(signedInEmail)}
+              style={styles.primaryBtnStyle(submitting || Boolean(signedInEmail))}
             >
               {submitting ? 'Submitting…' : 'Submit application'}
             </button>

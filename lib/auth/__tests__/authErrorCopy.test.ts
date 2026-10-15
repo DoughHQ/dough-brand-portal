@@ -5,6 +5,8 @@ import {
   AuthWeakPasswordError,
 } from '@supabase/supabase-js'
 import {
+  APPLY_WHILE_AUTH_COPY,
+  applyWaitlistInsertErrorCopy,
   passwordUpdateErrorCopy,
   resetRequestErrorCopy,
   signInErrorCopy,
@@ -126,5 +128,18 @@ describe('resetRequestErrorCopy', () => {
   it('returns null for user_not_found-style errors (no enumeration)', () => {
     expect(resetRequestErrorCopy(new AuthApiError('x', 400, 'user_not_found'))).toBeNull()
     expect(resetRequestErrorCopy(new AuthApiError('x', 400, 'invalid_credentials'))).toBeNull()
+  })
+})
+
+describe('applyWaitlistInsertErrorCopy', () => {
+  it('maps 42501 to the while-auth copy', () => {
+    expect(applyWaitlistInsertErrorCopy({ code: '42501', message: 'permission denied' })).toBe(
+      APPLY_WHILE_AUTH_COPY
+    )
+  })
+
+  it('returns null for other insert failures', () => {
+    expect(applyWaitlistInsertErrorCopy({ code: '23505', message: 'dup' })).toBeNull()
+    expect(applyWaitlistInsertErrorCopy({ code: 'PGRST301', message: 'x' })).toBeNull()
   })
 })

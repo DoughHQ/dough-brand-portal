@@ -22,4 +22,15 @@ describe('/login apply split', () => {
     expect(src).toMatch(/Request access/)
     expect(src).toMatch(/router\.push\(['"]\/login['"]\)/)
   })
+
+  it('ApplyBrandFlow detects a session and maps 42501', () => {
+    const src = readFileSync(
+      resolve(__dirname, '../../components/auth/ApplyBrandFlow.tsx'),
+      'utf8'
+    )
+    expect(src).toMatch(/APPLY_WHILE_AUTH_COPY/)
+    expect(src).toMatch(/applyWaitlistInsertErrorCopy/)
+    expect(src).toMatch(/getSession/)
+    expect(src).toMatch(/signOut\(\{ scope: 'local' \}\)/)
+  })
 })
