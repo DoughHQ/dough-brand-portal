@@ -1,50 +1,14 @@
 'use client'
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { createClient } from '@/lib/supabase'
-import {
-  isValidBrandWebsite,
-  isValidWorkEmail,
-  normalizeBrandWebsite,
-  normalizeLinkedInInput,
-  normalizeRoleTitle,
-  parseBrandSearchHits,
-  type ApplicationBrandHit,
-} from '@/lib/brandApplicationFlow'
-import { safeLinkedInHref } from '@/lib/brandApplications'
-import { PRODUCT_NAME } from '@/lib/brand'
-import {
-  APPLY_WHILE_AUTH_COPY,
-  applyWaitlistInsertErrorCopy,
-} from '@/lib/auth/authErrorCopy'
-import { SUPPORT_EMAIL } from '@/lib/productMaster/support'
 import '@/components/auth/authShell.css'
+import type { Props } from './apply/applyModel'
+import { ApplyBookingStep } from './apply/ApplyBookingStep'
+import { ApplyDetailsStep } from './apply/ApplyDetailsStep'
+import { ApplySearchStep } from './apply/ApplySearchStep'
+import { ApplySessionBanner } from './apply/ApplySessionBanner'
+import { useApplyBrandFlow } from './apply/useApplyBrandFlow'
 
-export type ApplyStep = 'search' | 'details' | 'booking'
-
-type Props = {
-  step: ApplyStep
-  setStep: (step: ApplyStep) => void
-  error: string | null
-  setError: (error: string | null) => void
-  onGoToLogin: () => void
-  styles: {
-    cardStyle: CSSProperties
-    inputStyle: CSSProperties
-    labelStyle: CSSProperties
-    primaryBtnStyle: (disabled: boolean) => CSSProperties
-  }
-}
-
-function formatCount(n: number): string {
-  return Math.max(0, Math.trunc(n)).toLocaleString()
-}
-
-/** Singular when n === 1 so search hits never say "1 products". */
-function formatProducts(n: number): string {
-  const count = Math.max(0, Math.trunc(n))
-  return count === 1 ? '1 product' : `${formatCount(count)} products`
-}
+export type { ApplyStep } from './apply/applyModel'
 
 export default function ApplyBrandFlow({
   step,
@@ -54,562 +18,92 @@ export default function ApplyBrandFlow({
   onGoToLogin,
   styles,
 }: Props) {
-  const searchReqId = useRef(0)
-
-  const [query, setQuery] = useState('')
-  const [hits, setHits] = useState<ApplicationBrandHit[]>([])
-  const [searching, setSearching] = useState(false)
-  const [searchTried, setSearchTried] = useState(false)
-
-  const [selectedBrand, setSelectedBrand] = useState<ApplicationBrandHit | null>(null)
-  const [typedBrandName, setTypedBrandName] = useState('')
-
-  const [contactName, setContactName] = useState('')
-  const [contactEmail, setContactEmail] = useState('')
-  const [roleTitle, setRoleTitle] = useState('')
-  const [linkedinUrl, setLinkedinUrl] = useState('')
-  const [brandWebsite, setBrandWebsite] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [signedInEmail, setSignedInEmail] = useState<string | null>(null)
-  const [signingOut, setSigningOut] = useState(false)
-
-  useEffect(() => {
-    let cancelled = false
-    void (async () => {
-      const supabase = createClient()
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (cancelled) return
-      setSignedInEmail(session?.user?.email ?? null)
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  useEffect(() => {
-    const q = query.trim()
-    if (q.length < 2) {
-      setHits([])
-      setSearching(false)
-      setSearchTried(false)
-      return
-    }
-
-    const id = ++searchReqId.current
-    setSearching(true)
-    const t = window.setTimeout(() => {
-      void (async () => {
-        const supabase = createClient()
-        try {
-          const { data, error: rpcError } = await supabase.rpc('search_brands_for_application', {
-            p_query: q,
-          })
-          if (id !== searchReqId.current) return
-          if (rpcError) {
-            setHits([])
-            setError('Couldn’t search brands. Try again.')
-          } else {
-            setError(null)
-            setHits(parseBrandSearchHits(data))
-          }
-          setSearchTried(true)
-        } catch {
-          if (id !== searchReqId.current) return
-          setHits([])
-          setError('Couldn’t search brands. Try again.')
-          setSearchTried(true)
-        } finally {
-          if (id === searchReqId.current) setSearching(false)
-        }
-      })()
-    }, 300)
-
-    return () => window.clearTimeout(t)
-  }, [query, setError])
-
-  function selectBrand(hit: ApplicationBrandHit) {
-    setSelectedBrand(hit)
-    setTypedBrandName(hit.brand_name)
-    setError(null)
-    setStep('details')
-  }
-
-  function chooseNetNew() {
-    setSelectedBrand(null)
-    setTypedBrandName(query.trim())
-    setError(null)
-    setStep('details')
-  }
-
-  async function handleSignOut() {
-    setSigningOut(true)
-    setError(null)
-    const supabase = createClient()
-    await supabase.auth.signOut({ scope: 'local' })
-    setSignedInEmail(null)
-    setSigningOut(false)
-  }
-
-  async function handleSubmit() {
-    if (signedInEmail) {
-      setError(APPLY_WHILE_AUTH_COPY)
-      return
-    }
-    const brandName = (selectedBrand?.brand_name ?? typedBrandName).trim()
-    if (!brandName) {
-      setError('Brand name is required.')
-      return
-    }
-    if (!contactName.trim() || !contactEmail.trim()) {
-      setError('Your name and work email are required.')
-      return
-    }
-    if (!isValidWorkEmail(contactEmail)) {
-      setError('Enter a valid work email.')
-      return
-    }
-    if (linkedinUrl.trim() && !safeLinkedInHref(linkedinUrl)) {
-      setError('LinkedIn should be a normal web link (linkedin.com/…).')
-      return
-    }
-    const websiteRequired = selectedBrand == null
-    if (websiteRequired && !brandWebsite.trim()) {
-      setError('Brand website is required when your brand isn’t in the catalog yet.')
-      return
-    }
-    if (!isValidBrandWebsite(brandWebsite)) {
-      setError('Enter a normal website (yourbrand.com).')
-      return
-    }
-
-    setSubmitting(true)
-    setError(null)
-
-    const supabase = createClient()
-    // Anon RLS rejects booking_scheduled_at / booking_ref / invited_at / non-pending status.
-    // Do not send those fields or primary_category.
-    const { error: insertError } = await supabase.from('brand_waitlist').insert({
-      brand_name: brandName.slice(0, 200),
-      contact_name: contactName.trim().slice(0, 200),
-      contact_email: contactEmail.trim().toLowerCase(),
-      brand_id: selectedBrand?.brand_id ?? null,
-      role_title: normalizeRoleTitle(roleTitle),
-      linkedin_url: normalizeLinkedInInput(linkedinUrl),
-      brand_website: normalizeBrandWebsite(brandWebsite),
-      flagged_not_mine_product_ids: [],
-    })
-
-    setSubmitting(false)
-    if (insertError) {
-      // One pending request per email — show the same confirmation; reveals nothing.
-      if (insertError.code === '23505') {
-        setStep('booking')
-        return
-      }
-      const authCopy = applyWaitlistInsertErrorCopy(insertError)
-      if (authCopy) {
-        setError(authCopy)
-        return
-      }
-      console.error('brand_waitlist insert', insertError)
-      setError('Something went wrong. Please try again.')
-      return
-    }
-    setStep('booking')
-  }
+  const {
+    query,
+    setQuery,
+    hits,
+    searching,
+    searchTried,
+    selectedBrand,
+    typedBrandName,
+    setTypedBrandName,
+    contactName,
+    setContactName,
+    contactEmail,
+    setContactEmail,
+    roleTitle,
+    setRoleTitle,
+    linkedinUrl,
+    setLinkedinUrl,
+    brandWebsite,
+    setBrandWebsite,
+    submitting,
+    signedInEmail,
+    signingOut,
+    selectBrand,
+    chooseNetNew,
+    handleSignOut,
+    handleSubmit,
+  } = useApplyBrandFlow({ setStep, setError })
 
   const sessionBanner =
     signedInEmail && step !== 'booking' ? (
-      <div
-        role="status"
-        style={{
-          marginBottom: 16,
-          padding: '12px 14px',
-          borderRadius: 8,
-          background: 'rgba(28, 38, 32, 0.04)',
-          border: '1px solid rgba(28, 38, 32, 0.10)',
-        }}
-      >
-        <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 8 }}>
-          Signed in as <strong style={{ fontWeight: 600 }}>{signedInEmail}</strong>. Applications
-          are anonymous — sign out to request access.
-        </div>
-        <button
-          type="button"
-          onClick={() => void handleSignOut()}
-          disabled={signingOut}
-          style={{
-            fontSize: 13,
-            color: 'var(--sage)',
-            background: 'none',
-            border: 'none',
-            cursor: signingOut ? 'default' : 'pointer',
-            fontFamily: 'var(--font-sans)',
-            fontWeight: 600,
-            padding: 0,
-          }}
-        >
-          {signingOut ? 'Signing out…' : 'Sign out'}
-        </button>
-      </div>
+      <ApplySessionBanner
+        signedInEmail={signedInEmail}
+        signingOut={signingOut}
+        handleSignOut={handleSignOut}
+      />
     ) : null
 
   return (
     <div style={styles.cardStyle}>
       {sessionBanner}
       {step === 'search' && (
-        <>
-          <div style={{ marginBottom: 18 }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: 28,
-                fontWeight: 400,
-                color: 'var(--ink)',
-                lineHeight: 1.2,
-                letterSpacing: '-0.02em',
-                marginBottom: 8,
-              }}
-            >
-              What’s your brand?
-            </div>
-            <div style={{ fontSize: 14, color: 'var(--ink-50)', lineHeight: 1.5 }}>
-              {`${PRODUCT_NAME} is where shoppers compare real products — find your brand and apply.`}
-            </div>
-          </div>
-
-          <input
-            type="search"
-            className="auth-input"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type your brand name"
-            aria-label="Brand name"
-            autoFocus
-            style={styles.inputStyle}
-            onFocus={(e) => {
-              e.target.style.borderColor = 'var(--sage)'
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
-              e.target.style.boxShadow = 'none'
-            }}
-          />
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
-            {searching ? (
-              <div style={{ fontSize: 13, color: 'var(--ink-50)' }}>Searching…</div>
-            ) : null}
-
-            {error ? (
-              <div style={{ fontSize: 12, color: 'var(--red)', lineHeight: 1.5 }}>{error}</div>
-            ) : null}
-
-            {hits.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {hits.map((hit) => (
-                  <button
-                    key={hit.brand_id}
-                    type="button"
-                    className="auth-hit"
-                    onClick={() => selectBrand(hit)}
-                  >
-                    <span className="auth-hit__name">{hit.brand_name}</span>
-                    <span className="auth-hit__count">
-                      {formatProducts(hit.product_count)}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            ) : null}
-
-            {!searching && searchTried && query.trim().length >= 2 && hits.length === 0 ? (
-              <div style={{ fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.5 }}>
-                No brands matched — try another spelling, or say you don’t see your brand.
-              </div>
-            ) : null}
-
-            <button
-              type="button"
-              onClick={chooseNetNew}
-              style={{
-                fontSize: 13,
-                color: 'var(--sage)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-sans)',
-                fontWeight: 500,
-                textAlign: 'left',
-                padding: 0,
-                marginTop: hits.length > 0 ? 4 : 0,
-              }}
-            >
-              I don’t see my brand →
-            </button>
-          </div>
-
-          <div className="auth-panel-foot">
-            <button type="button" className="auth-panel-foot__btn" onClick={onGoToLogin}>
-              Already have access? <span>Sign in</span>
-            </button>
-          </div>
-        </>
+        <ApplySearchStep
+          query={query}
+          setQuery={setQuery}
+          searching={searching}
+          error={error}
+          hits={hits}
+          selectBrand={selectBrand}
+          searchTried={searchTried}
+          chooseNetNew={chooseNetNew}
+          onGoToLogin={onGoToLogin}
+          styles={styles}
+        />
       )}
 
       {step === 'details' && (
-        <>
-          <div style={{ marginBottom: 24 }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: 22,
-                fontWeight: 400,
-                color: 'var(--ink)',
-                marginBottom: 8,
-                lineHeight: 1.3,
-              }}
-            >
-              Your details
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.6 }}>
-              {selectedBrand ? (
-                <>
-                  Applying for{' '}
-                  <strong style={{ color: 'var(--ink)', fontWeight: 600 }}>
-                    {selectedBrand.brand_name}
-                  </strong>
-                  {selectedBrand.product_count > 0 ? (
-                    <>
-                      {' '}
-                      · {formatProducts(selectedBrand.product_count)} already in{' '}
-                      {PRODUCT_NAME}
-                    </>
-                  ) : null}
-                  .
-                </>
-              ) : (
-                <>Tell us who you are and what to call the brand.</>
-              )}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {selectedBrand == null ? (
-              <div>
-                <div style={styles.labelStyle}>
-                  Brand name<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>
-                </div>
-                <input
-                  type="text"
-                  className="auth-input"
-                  value={typedBrandName}
-                  onChange={(e) => setTypedBrandName(e.target.value)}
-                  placeholder="Your brand as you’d like it listed"
-                  style={styles.inputStyle}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = 'var(--sage)'
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
-                    e.target.style.boxShadow = 'none'
-                  }}
-                />
-              </div>
-            ) : null}
-
-            <div>
-              <div style={styles.labelStyle}>
-                Your name<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>
-              </div>
-              <input
-                type="text"
-                className="auth-input"
-                value={contactName}
-                onChange={(e) => setContactName(e.target.value)}
-                placeholder="Jane Smith"
-                style={styles.inputStyle}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--sage)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
-                  e.target.style.boxShadow = 'none'
-                }}
-              />
-            </div>
-
-            <div>
-              <div style={styles.labelStyle}>
-                Work email<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>
-              </div>
-              <input
-                type="email"
-                className="auth-input"
-                value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
-                placeholder="jane@brand.com"
-                autoComplete="email"
-                style={styles.inputStyle}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--sage)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
-                  e.target.style.boxShadow = 'none'
-                }}
-              />
-            </div>
-
-            <div>
-              <div style={styles.labelStyle}>Your role at the brand</div>
-              <input
-                type="text"
-                className="auth-input"
-                value={roleTitle}
-                onChange={(e) => setRoleTitle(e.target.value)}
-                placeholder="Brand manager, founder…"
-                style={styles.inputStyle}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--sage)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
-                  e.target.style.boxShadow = 'none'
-                }}
-              />
-            </div>
-
-            <div>
-              <div style={styles.labelStyle}>LinkedIn profile</div>
-              <input
-                type="text"
-                className="auth-input"
-                value={linkedinUrl}
-                onChange={(e) => setLinkedinUrl(e.target.value)}
-                placeholder="linkedin.com/in/you"
-                style={styles.inputStyle}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--sage)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
-                  e.target.style.boxShadow = 'none'
-                }}
-              />
-            </div>
-
-            <div>
-              <div style={styles.labelStyle}>
-                Brand website
-                {selectedBrand == null ? (
-                  <span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>
-                ) : null}
-              </div>
-              <input
-                type="text"
-                className="auth-input"
-                value={brandWebsite}
-                onChange={(e) => setBrandWebsite(e.target.value)}
-                placeholder="yourbrand.com"
-                autoComplete="url"
-                style={styles.inputStyle}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--sage)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'rgba(28, 38, 32, 0.14)'
-                  e.target.style.boxShadow = 'none'
-                }}
-              />
-            </div>
-
-            {error ? (
-              <div style={{ fontSize: 12, color: 'var(--red)', lineHeight: 1.5 }}>{error}</div>
-            ) : null}
-
-            <button
-              type="button"
-              onClick={() => void handleSubmit()}
-              disabled={submitting || Boolean(signedInEmail)}
-              style={styles.primaryBtnStyle(submitting || Boolean(signedInEmail))}
-            >
-              {submitting ? 'Submitting…' : 'Submit application'}
-            </button>
-
-            <div style={{ textAlign: 'center' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setError(null)
-                  setStep('search')
-                }}
-                style={{
-                  fontSize: 12,
-                  color: 'var(--ink-30)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-sans)',
-                }}
-              >
-                Back
-              </button>
-            </div>
-          </div>
-        </>
+        <ApplyDetailsStep
+          selectedBrand={selectedBrand}
+          typedBrandName={typedBrandName}
+          setTypedBrandName={setTypedBrandName}
+          contactName={contactName}
+          setContactName={setContactName}
+          contactEmail={contactEmail}
+          setContactEmail={setContactEmail}
+          roleTitle={roleTitle}
+          setRoleTitle={setRoleTitle}
+          linkedinUrl={linkedinUrl}
+          setLinkedinUrl={setLinkedinUrl}
+          brandWebsite={brandWebsite}
+          setBrandWebsite={setBrandWebsite}
+          error={error}
+          setError={setError}
+          submitting={submitting}
+          signedInEmail={signedInEmail}
+          handleSubmit={handleSubmit}
+          setStep={setStep}
+          styles={styles}
+        />
       )}
 
       {step === 'booking' && (
-        <div style={{ textAlign: 'center', padding: '8px 0' }}>
-          <div
-            style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: 22,
-              fontWeight: 400,
-              color: 'var(--ink)',
-              marginBottom: 12,
-              lineHeight: 1.35,
-            }}
-          >
-            Application received.
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--ink-50)', lineHeight: 1.7, marginBottom: 20 }}>
-            {contactEmail.trim() ? (
-              <>
-                Thanks
-                {contactName.trim() ? `, ${contactName.trim().split(/\s+/)[0]}` : ''}. We review
-                every request personally and will reply to{' '}
-                <strong style={{ color: 'var(--ink)' }}>{contactEmail.trim()}</strong> within 3
-                business days.
-              </>
-            ) : (
-              <>We review every request personally and will reply within 3 business days.</>
-            )}
-          </div>
-
-          <div style={{ fontSize: 12, color: 'var(--ink-30)' }}>Questions? {SUPPORT_EMAIL}</div>
-
-          <div style={{ marginTop: 20 }}>
-            <button
-              type="button"
-              onClick={onGoToLogin}
-              style={{
-                fontSize: 12,
-                color: 'var(--sage)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-sans)',
-                fontWeight: 500,
-              }}
-            >
-              Already have access? Sign in
-            </button>
-          </div>
-        </div>
+        <ApplyBookingStep
+          contactEmail={contactEmail}
+          contactName={contactName}
+          onGoToLogin={onGoToLogin}
+        />
       )}
     </div>
   )
