@@ -4,6 +4,7 @@ import { fetchOperatorStudiesPage } from '@/lib/studies/fetchOperatorStudies'
 import { getWithdrawnStudies } from '@/lib/studies/fetchWithdrawnStudies'
 import { listStudyDraftsAction } from '../drafts/actions'
 import { attachOrderStatus } from '@/lib/checkout/load'
+import { attachBoxIds } from '@/lib/box/brandFulfillment'
 import { loadStaffCheckoutDesk } from '@/lib/checkout/loadStaffDesk'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { operatorStudiesBrandId } from '@/lib/studies/operatorScope'
@@ -40,9 +41,13 @@ export async function loadStudiesPage(scope: PortalBrandScope) {
     )
 
   const supabase = await createServerSupabaseClient()
-  const [activeRows, completeRows] = await Promise.all([
+  const [activeWithOrders, completeWithOrders] = await Promise.all([
     attachOrderStatus(supabase, activeResult.ok ? activeResult.page.rows : []),
     attachOrderStatus(supabase, completeResult.ok ? completeResult.page.rows : []),
+  ])
+  const [activeRows, completeRows] = await Promise.all([
+    attachBoxIds(supabase, activeWithOrders),
+    attachBoxIds(supabase, completeWithOrders),
   ])
 
   const desk = canOperate

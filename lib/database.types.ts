@@ -47946,6 +47946,38 @@ export type Database = {
         Args: { p_exclude_node_id?: number; p_l2_node_id: number }
         Returns: Record<string, unknown>
       }
+      list_brand_box_fulfillments: {
+        Args: { p_box_id: string }
+        Returns: {
+          abandon_deadline: string | null
+          carrier: string | null
+          claimed_at: string | null
+          completed_at: string | null
+          confirmed_at: string | null
+          consent_version: string | null
+          consented_at: string | null
+          delivered_at: string | null
+          dings_reliability: boolean
+          fulfillment_id: string
+          left_at: string | null
+          left_reason: string | null
+          recipient_name: string | null
+          session_1_completed_at: string | null
+          session_2_completed_at: string | null
+          ship_city: string | null
+          ship_country: string | null
+          ship_hold: string | null
+          ship_line1: string | null
+          ship_line2: string | null
+          ship_phone: string | null
+          ship_postal: string | null
+          ship_state: string | null
+          shipped_at: string | null
+          state: Database["public"]["Enums"]["box_fulfillment_state"]
+          terminal_reason: string | null
+          tracking_ref: string | null
+        }[]
+      }
       list_brand_pending_corrections: {
         Args: {
           p_cursor_created_at?: string

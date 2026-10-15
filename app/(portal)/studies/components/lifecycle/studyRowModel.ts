@@ -65,6 +65,13 @@ export function reportHref(row: OperatorStudyRow): string {
   return `/reports/${row.mission_id}`
 }
 
+/** Packing console for a published IHUT box when box_id is known. */
+export function packingHref(row: OperatorStudyRow): string | null {
+  if (row.test_type !== 'ihut') return null
+  if (!row.box_id) return null
+  return `/studies/box/${row.box_id}/fulfillment`
+}
+
 export function statusPill(state: OperatorStudyLifecycleState): {
   label: string
   color: string

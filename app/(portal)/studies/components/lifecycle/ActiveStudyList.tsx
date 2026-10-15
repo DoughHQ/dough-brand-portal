@@ -5,6 +5,7 @@ import RowOverflowMenu from '../RowOverflowMenu'
 import { NameBlock } from './StudyNameBlock'
 import {
   claimProgress,
+  packingHref,
   reportHref,
   rowOverflow,
   showRowOverflow,
@@ -18,6 +19,7 @@ export function ActiveStudyList(props: StudyListProps) {
     <div className="studies-list">
       {rows.map((row) => {
         const progress = claimProgress(row)
+        const packHref = packingHref(row)
         const overflow = rowOverflow(row, {
           canOperate,
           canEndStudies,
@@ -52,6 +54,11 @@ export function ActiveStudyList(props: StudyListProps) {
               ) : null}
             </div>
             <div className="studies-study-actions">
+              {packHref ? (
+                <Link href={packHref} className="studies-row-cta" style={{ opacity: 0.85 }}>
+                  Pack &amp; ship →
+                </Link>
+              ) : null}
               <Link href={reportHref(row)} className="studies-row-cta">
                 {row.order_status === 'awaiting_payment' && isConceptStudy(row)
                   ? 'Checkout →'

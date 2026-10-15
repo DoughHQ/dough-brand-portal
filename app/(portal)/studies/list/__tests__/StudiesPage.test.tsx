@@ -12,6 +12,7 @@ const {
   getWithdrawnStudies,
   listStudyDraftsAction,
   attachOrderStatus,
+  attachBoxIds,
   loadStaffCheckoutDesk,
   createServerSupabaseClient,
 } = vi.hoisted(() => ({
@@ -24,6 +25,7 @@ const {
   getWithdrawnStudies: vi.fn(),
   listStudyDraftsAction: vi.fn(),
   attachOrderStatus: vi.fn(),
+  attachBoxIds: vi.fn(),
   loadStaffCheckoutDesk: vi.fn(),
   createServerSupabaseClient: vi.fn(),
 }))
@@ -40,6 +42,9 @@ vi.mock('@/lib/studies/fetchWithdrawnStudies', () => ({ getWithdrawnStudies }))
 vi.mock('../../drafts/actions', () => ({ listStudyDraftsAction }))
 vi.mock('@/lib/checkout/load', () => ({
   attachOrderStatus,
+}))
+vi.mock('@/lib/box/brandFulfillment', () => ({
+  attachBoxIds,
 }))
 vi.mock('@/lib/checkout/loadStaffDesk', () => ({ loadStaffCheckoutDesk }))
 vi.mock('@/lib/supabase-server', () => ({ createServerSupabaseClient }))
@@ -98,6 +103,7 @@ describe('StudiesPage', () => {
     getWithdrawnStudies.mockReset()
     listStudyDraftsAction.mockReset()
     attachOrderStatus.mockReset()
+    attachBoxIds.mockReset()
     loadStaffCheckoutDesk.mockReset()
     createServerSupabaseClient.mockReset()
     loadStaffCheckoutDesk.mockResolvedValue({
@@ -159,6 +165,9 @@ describe('StudiesPage', () => {
       ],
     })
     attachOrderStatus.mockImplementation(async (_supabase: unknown, rows: unknown[]) => rows)
+    attachBoxIds.mockImplementation(async (_supabase: unknown, rows: unknown[]) =>
+      (rows as { mission_id: string }[]).map((row) => ({ ...row, box_id: null }))
+    )
     loadStaffCheckoutDesk.mockResolvedValue({
       awaitingOrders: [
         {

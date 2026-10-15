@@ -3,6 +3,7 @@ import RowOverflowMenu from '../RowOverflowMenu'
 import { ICON_CHECK, StudiesGlyph } from '../studiesIcons'
 import { NameBlock, StatusPillView } from './StudyNameBlock'
 import {
+  packingHref,
   reportHref,
   rowOverflow,
   showRowOverflow,
@@ -28,6 +29,7 @@ export function CompletedStudyList({
             : 0
         const state = row.lifecycle_state
         const showState = state === 'expired' || state === 'archived'
+        const packHref = packingHref(row)
         const overflow = rowOverflow(row, {
           canOperate,
           canEndStudies,
@@ -54,6 +56,11 @@ export function CompletedStudyList({
               <div className="studies-stat-value">{responses}</div>
             </div>
             <div className="studies-study-actions">
+              {packHref ? (
+                <Link href={packHref} className="studies-row-cta" style={{ opacity: 0.85 }}>
+                  Pack &amp; ship →
+                </Link>
+              ) : null}
               <Link href={reportHref(row)} className="studies-row-cta">
                 View results →
               </Link>
