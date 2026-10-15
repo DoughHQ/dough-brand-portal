@@ -45,10 +45,47 @@ export async function fetchBoxFulfillments(
   return { ok: true, rows: data ?? [] }
 }
 
+/** Why a seat that has not shipped must not ship now (list_box_ship_holds). */
+export type ShipHold = 'ALLERGEN_CONFLICT' | 'ALLERGENS_UNCONFIRMED'
+
+export type ShipHolds = Record<string, ShipHold>
+
+export function parseShipHolds(data: unknown): ShipHolds {
+  const holds: ShipHolds = {}
+  if (!Array.isArray(data)) return holds
+  for (const raw of data) {
+    if (raw == null || typeof raw !== 'object') continue
+    const row = raw as { fulfillment_id?: unknown; ship_hold?: unknown }
+    if (typeof row.fulfillment_id !== 'string') continue
+    if (row.ship_hold === 'ALLERGEN_CONFLICT' || row.ship_hold === 'ALLERGENS_UNCONFIRMED') {
+      holds[row.fulfillment_id] = row.ship_hold
+    }
+  }
+  return holds
+}
+
+type ShipHoldsRpc = (
+  name: 'list_box_ship_holds',
+  args: { p_box_id: string }
+) => PromiseLike<{ data: unknown; error: { message: string } | null }>
+
+/**
+ * Held seats on a box. Advisory: advance_box_fulfillment refuses a held seat
+ * either way, so a failed read shows no holds rather than blocking the list.
+ */
+export async function fetchBoxShipHolds(supabase: Client, boxId: string): Promise<ShipHolds> {
+  const client = supabase as unknown as { rpc: ShipHoldsRpc }
+  const { data, error } = await client.rpc('list_box_ship_holds', { p_box_id: boxId })
+  if (error) return {}
+  return parseShipHolds(data)
+}
+
 export type FulfillmentReadiness = {
   consentedAt: string | null
   /** Address on file from the list join (city is enough). */
   hasAddress: boolean
+  /** Held: the respondent's allergies now conflict with the box. */
+  shipHold?: ShipHold | null
 }
 
 export function fulfillmentHasAddress(row: {
@@ -71,7 +108,7 @@ export function operatorActionsFor(
   state: FulfillmentState,
   readiness: FulfillmentReadiness
 ): OperatorFulfillmentAction[] {
-  const ready = fulfillmentReadyToShip(readiness)
+  const ready = fulfillmentReadyToShip(readiness) && !readiness.shipHold
   switch (state) {
     case 'claimed':
       return []
@@ -194,6 +231,7 @@ export function fulfillmentWaitingCopy(
   state: FulfillmentState,
   readiness: FulfillmentReadiness
 ): string | null {
+  if (readiness.shipHold) return null
   if (fulfillmentReadyToShip(readiness)) return null
   if (state === 'claimed') return 'Waiting for the respondent to confirm'
   if (state === 'confirmed' || state === 'fulfillment_pending') {
@@ -203,6 +241,13 @@ export function fulfillmentWaitingCopy(
     return 'Cannot retry until the respondent has confirmed'
   }
   return null
+}
+
+/** Why a held seat cannot ship; the operator must not pack it. */
+export function shipHoldCopy(hold: ShipHold): string {
+  return hold === 'ALLERGENS_UNCONFIRMED'
+    ? 'On hold · allergen declarations unconfirmed. Do not pack.'
+    : 'On hold · respondent’s allergies now conflict with this box. Do not pack.'
 }
 
 export function fulfillmentActionMessage(target: OperatorFulfillmentAction): string {
@@ -231,6 +276,12 @@ export function humanizeFulfillmentError(
   }
   if (code === 'NO_FINAL_CONSENT') {
     return 'This seat has no address or no recorded agreement to final box terms, so it cannot ship.'
+  }
+  if (code === 'SHIP_HOLD_ALLERGEN_CONFLICT') {
+    return 'This seat is on hold: the respondent’s allergies now conflict with this box, so it cannot ship. Do not pack it.'
+  }
+  if (code === 'SHIP_HOLD_ALLERGENS_UNCONFIRMED') {
+    return 'This seat is on hold: the box’s allergen declarations are unconfirmed, so it cannot ship.'
   }
   if (message.includes('not authorized')) return 'Not authorized.'
   if (message.includes('is terminal')) return 'This seat is already in a final state.'

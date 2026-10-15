@@ -15,8 +15,10 @@ import {
   fulfillmentHasAddress,
   fulfillmentSeatStatus,
   fulfillmentWaitingCopy,
+  shipHoldCopy,
   type FulfillmentRow,
   type OperatorFulfillmentAction,
+  type ShipHolds,
 } from '@/lib/box/fulfillment'
 import ConfirmDialog from '@/app/(portal)/studies/ConfirmDialog'
 import { advanceBoxStatusAction, reloadBoxDetailAction } from './statusActions'
@@ -494,6 +496,7 @@ function FulfillmentPanel({
   onAdvanced: (message: string) => void | Promise<void>
 }) {
   const [rows, setRows] = useState<FulfillmentRow[] | null>(null)
+  const [holds, setHolds] = useState<ShipHolds>({})
   const [loadError, setLoadError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -511,6 +514,7 @@ function FulfillmentPanel({
       const res = await listBoxFulfillmentsAction(boxId)
       if (res.ok) {
         setRows(res.rows)
+        setHolds(res.holds)
         setLoadError(null)
       } else {
         setLoadError(res.error)
@@ -536,6 +540,7 @@ function FulfillmentPanel({
       setFailReason('')
       if (res.ok) {
         setRows(res.rows)
+        setHolds(res.holds)
         setActionError(null)
         setShipFor(null)
         setTracking('')
@@ -543,6 +548,11 @@ function FulfillmentPanel({
         await onAdvanced(res.message)
       } else {
         setActionError(res.error)
+        if (res.rows && res.holds) {
+          setRows(res.rows)
+          setHolds(res.holds)
+          setShipFor(null)
+        }
       }
     })
   }
@@ -602,13 +612,15 @@ function FulfillmentPanel({
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {rows.map((r) => {
+            const hold = holds[r.fulfillment_id] ?? null
             const readiness = {
               consentedAt: r.consented_at,
               hasAddress: fulfillmentHasAddress(r),
+              shipHold: hold,
             }
             const actions = operatorActionsFor(r.state, readiness)
             const waiting = fulfillmentWaitingCopy(r.state, readiness)
-            const shipping = shipFor === r.fulfillment_id
+            const shipping = shipFor === r.fulfillment_id && !hold
             return (
               <div
                 key={r.fulfillment_id}
@@ -642,6 +654,14 @@ function FulfillmentPanel({
                     <div style={{ fontSize: 12, color: 'var(--ink-50)', marginTop: 3 }}>
                       {fulfillmentSeatStatus(r)}
                     </div>
+                    {hold ? (
+                      <div
+                        role="status"
+                        style={{ fontSize: 12, fontWeight: 600, color: 'var(--red)', marginTop: 3 }}
+                      >
+                        {shipHoldCopy(hold)}
+                      </div>
+                    ) : null}
                   </div>
                   {actions.length > 0 || waiting ? (
                     <div
@@ -699,7 +719,7 @@ function FulfillmentPanel({
                         )
                       })}
                     </div>
-                  ) : r.left_at ? (
+                  ) : hold ? null : r.left_at ? (
                     <span style={{ fontSize: 11, color: 'var(--ink-30)', flexShrink: 0 }}>
                       Left by respondent
                     </span>

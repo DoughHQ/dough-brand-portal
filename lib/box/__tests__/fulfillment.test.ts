@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
+  fetchBoxShipHolds,
   fulfillmentHasAddress,
   fulfillmentSeatStatus,
   fulfillmentWaitingCopy,
   humanizeFulfillmentError,
   isOperatorFulfillmentAction,
   operatorActionsFor,
+  parseShipHolds,
+  shipHoldCopy,
   type FulfillmentRow,
 } from '../fulfillment'
 
@@ -179,5 +182,58 @@ describe('humanizeFulfillmentError', () => {
     expect(humanizeFulfillmentError('row is terminal')).toBe(
       'This seat is already in a final state.'
     )
+  })
+})
+
+describe('ship holds', () => {
+  const ready = { consentedAt: '2026-10-14T00:00:00Z', hasAddress: true }
+  const held = { ...ready, shipHold: 'ALLERGEN_CONFLICT' as const }
+
+  it('withholds ship and re-ship on a held seat', () => {
+    expect(operatorActionsFor('confirmed', held)).toEqual(['delivery_failed'])
+    expect(operatorActionsFor('fulfillment_pending', held)).toEqual(['delivery_failed'])
+    expect(operatorActionsFor('delivery_failed', held)).toEqual([])
+    expect(operatorActionsFor('confirmed', ready)).toEqual(['shipped', 'delivery_failed'])
+  })
+
+  it('leaves shipped seats alone', () => {
+    expect(operatorActionsFor('shipped', held)).toEqual(['delivered', 'delivery_failed'])
+  })
+
+  it('shows the hold instead of the waiting copy', () => {
+    expect(fulfillmentWaitingCopy('confirmed', { ...held, consentedAt: null })).toBeNull()
+    expect(shipHoldCopy('ALLERGEN_CONFLICT')).toContain('Do not pack')
+    expect(shipHoldCopy('ALLERGENS_UNCONFIRMED')).toContain('unconfirmed')
+  })
+
+  it('parses the console list and drops anything unexpected', () => {
+    expect(
+      parseShipHolds([
+        { fulfillment_id: 'a', ship_hold: 'ALLERGEN_CONFLICT' },
+        { fulfillment_id: 'b', ship_hold: 'ALLERGENS_UNCONFIRMED' },
+        { fulfillment_id: 'c', ship_hold: 'SOMETHING_NEW' },
+        { ship_hold: 'ALLERGEN_CONFLICT' },
+        null,
+      ])
+    ).toEqual({ a: 'ALLERGEN_CONFLICT', b: 'ALLERGENS_UNCONFIRMED' })
+    expect(parseShipHolds(null)).toEqual({})
+  })
+
+  it('reads a missing RPC (before the backend apply) as no holds', async () => {
+    const client = {
+      rpc: async () => ({ data: null, error: { message: 'Could not find the function' } }),
+    }
+    await expect(
+      fetchBoxShipHolds(client as unknown as Parameters<typeof fetchBoxShipHolds>[0], 'box')
+    ).resolves.toEqual({})
+  })
+
+  it('explains a refused ship', () => {
+    expect(humanizeFulfillmentError('this seat is on hold', 'SHIP_HOLD_ALLERGEN_CONFLICT')).toContain(
+      'allergies now conflict'
+    )
+    expect(
+      humanizeFulfillmentError('this seat is on hold', 'SHIP_HOLD_ALLERGENS_UNCONFIRMED')
+    ).toContain('unconfirmed')
   })
 })
