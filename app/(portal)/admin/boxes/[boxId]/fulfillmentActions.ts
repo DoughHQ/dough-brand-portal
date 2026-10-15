@@ -3,11 +3,13 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import {
+  fetchBoxAddressChanges,
   fetchBoxFulfillments,
   fetchBoxShipHolds,
   fulfillmentActionMessage,
   humanizeFulfillmentError,
   isOperatorFulfillmentAction,
+  type AddressChanges,
   type FulfillmentRow,
   type OperatorFulfillmentAction,
   type ShipHolds,
@@ -21,18 +23,23 @@ async function assertOperator(): Promise<{ ok: true } | { ok: false; error: stri
   return { ok: true }
 }
 
-type SeatList = { rows: FulfillmentRow[]; holds: ShipHolds }
+type SeatList = {
+  rows: FulfillmentRow[]
+  holds: ShipHolds
+  addressChanges: AddressChanges
+}
 
 async function fetchSeats(
   supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
   boxId: string
 ): Promise<({ ok: true } & SeatList) | { ok: false; error: string }> {
-  const [list, holds] = await Promise.all([
+  const [list, holds, addressChanges] = await Promise.all([
     fetchBoxFulfillments(supabase, boxId),
     fetchBoxShipHolds(supabase, boxId),
+    fetchBoxAddressChanges(supabase, boxId),
   ])
   if (!list.ok) return list
-  return { ok: true, rows: list.rows, holds }
+  return { ok: true, rows: list.rows, holds, addressChanges }
 }
 
 export async function listBoxFulfillmentsAction(
@@ -78,7 +85,13 @@ export async function advanceFulfillmentAction(args: {
     // A refused ship may be a hold the list did not show yet: re-read it.
     const seats = await fetchSeats(supabase, args.boxId)
     return seats.ok
-      ? { ok: false, error: message, rows: seats.rows, holds: seats.holds }
+      ? {
+          ok: false,
+          error: message,
+          rows: seats.rows,
+          holds: seats.holds,
+          addressChanges: seats.addressChanges,
+        }
       : { ok: false, error: message }
   }
 
@@ -89,6 +102,7 @@ export async function advanceFulfillmentAction(args: {
     ok: true,
     rows: refreshed.rows,
     holds: refreshed.holds,
+    addressChanges: refreshed.addressChanges,
     message: fulfillmentActionMessage(args.target),
   }
 }

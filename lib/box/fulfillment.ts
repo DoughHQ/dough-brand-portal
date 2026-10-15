@@ -46,7 +46,16 @@ export async function fetchBoxFulfillments(
 }
 
 /** Why a seat that has not shipped must not ship now (list_box_ship_holds). */
-export type ShipHold = 'ALLERGEN_CONFLICT' | 'ALLERGENS_UNCONFIRMED'
+export type ShipHold =
+  | 'ALLERGEN_CONFLICT'
+  | 'ALLERGENS_UNCONFIRMED'
+  | 'ADDRESS_UNUSABLE'
+
+const SHIP_HOLDS = new Set<string>([
+  'ALLERGEN_CONFLICT',
+  'ALLERGENS_UNCONFIRMED',
+  'ADDRESS_UNUSABLE',
+])
 
 export type ShipHolds = Record<string, ShipHold>
 
@@ -57,11 +66,74 @@ export function parseShipHolds(data: unknown): ShipHolds {
     if (raw == null || typeof raw !== 'object') continue
     const row = raw as { fulfillment_id?: unknown; ship_hold?: unknown }
     if (typeof row.fulfillment_id !== 'string') continue
-    if (row.ship_hold === 'ALLERGEN_CONFLICT' || row.ship_hold === 'ALLERGENS_UNCONFIRMED') {
-      holds[row.fulfillment_id] = row.ship_hold
+    if (typeof row.ship_hold === 'string' && SHIP_HOLDS.has(row.ship_hold)) {
+      holds[row.fulfillment_id] = row.ship_hold as ShipHold
     }
   }
   return holds
+}
+
+/** Latest address change per seat (list_box_address_changes). */
+export type AddressChange = {
+  fulfillment_id: string
+  changed_at: string
+  state_at_change: FulfillmentState
+  source: 'box' | 'settings'
+}
+
+export type AddressChanges = Record<string, AddressChange>
+
+export function parseAddressChanges(data: unknown): AddressChanges {
+  const out: AddressChanges = {}
+  if (!Array.isArray(data)) return out
+  for (const raw of data) {
+    if (raw == null || typeof raw !== 'object') continue
+    const row = raw as Record<string, unknown>
+    if (typeof row.fulfillment_id !== 'string') continue
+    if (typeof row.changed_at !== 'string') continue
+    const source = row.source === 'box' || row.source === 'settings' ? row.source : null
+    if (!source) continue
+    const state = row.state_at_change
+    if (typeof state !== 'string') continue
+    out[row.fulfillment_id] = {
+      fulfillment_id: row.fulfillment_id,
+      changed_at: row.changed_at,
+      state_at_change: state as FulfillmentState,
+      source,
+    }
+  }
+  return out
+}
+
+type AddressChangesRpc = (
+  name: 'list_box_address_changes',
+  args: { p_box_id: string }
+) => PromiseLike<{ data: unknown; error: { message: string } | null }>
+
+/**
+ * Latest address change per seat. Advisory: a failed read (including before
+ * the backend apply) shows no banners rather than blocking the list.
+ */
+export async function fetchBoxAddressChanges(
+  supabase: Client,
+  boxId: string
+): Promise<AddressChanges> {
+  const client = supabase as unknown as { rpc: AddressChangesRpc }
+  const { data, error } = await client.rpc('list_box_address_changes', { p_box_id: boxId })
+  if (error) return {}
+  return parseAddressChanges(data)
+}
+
+/** Ops banner: address changed, reprint label and tell the brand. */
+export function addressChangeCopy(change: AddressChange, nowMs: number = Date.now()): string {
+  const mins = Math.max(0, Math.floor((nowMs - new Date(change.changed_at).getTime()) / 60000))
+  const when =
+    mins < 60 ? `${mins}m ago` : mins < 48 * 60 ? `${Math.floor(mins / 60)}h ago` : 'earlier'
+  const queued =
+    change.state_at_change === 'fulfillment_pending'
+      ? ', after it was queued'
+      : ''
+  return `Address changed ${when}${queued} · new label needed, tell the brand`
 }
 
 type ShipHoldsRpc = (
@@ -245,9 +317,14 @@ export function fulfillmentWaitingCopy(
 
 /** Why a held seat cannot ship; the operator must not pack it. */
 export function shipHoldCopy(hold: ShipHold): string {
-  return hold === 'ALLERGENS_UNCONFIRMED'
-    ? 'On hold · allergen declarations unconfirmed. Do not pack.'
-    : 'On hold · respondent’s allergies now conflict with this box. Do not pack.'
+  switch (hold) {
+    case 'ALLERGENS_UNCONFIRMED':
+      return 'On hold · allergen declarations unconfirmed. Do not pack.'
+    case 'ADDRESS_UNUSABLE':
+      return 'On hold · no usable address. Do not pack.'
+    case 'ALLERGEN_CONFLICT':
+      return 'On hold · respondent’s allergies now conflict with this box. Do not pack.'
+  }
 }
 
 export function fulfillmentActionMessage(target: OperatorFulfillmentAction): string {
@@ -282,6 +359,12 @@ export function humanizeFulfillmentError(
   }
   if (code === 'SHIP_HOLD_ALLERGENS_UNCONFIRMED') {
     return 'This seat is on hold: the box’s allergen declarations are unconfirmed, so it cannot ship.'
+  }
+  if (code === 'SHIP_HOLD_ADDRESS_UNUSABLE') {
+    return 'This seat is on hold: it has no usable shipping address, so it cannot ship. Do not pack it.'
+  }
+  if (code === 'ADDRESS_LOCKED_SHIPPED') {
+    return 'This box is already on its way; the address cannot be changed.'
   }
   if (message.includes('not authorized')) return 'Not authorized.'
   if (message.includes('is terminal')) return 'This seat is already in a final state.'
