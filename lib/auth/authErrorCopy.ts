@@ -149,3 +149,20 @@ export function resetRequestErrorCopy(err: unknown): string | null {
   if (isAuthRetryableFetchError(err)) return networkCopy()
   return null
 }
+
+/**
+ * Applications insert into `brand_waitlist` as anon only. A leftover portal
+ * session makes Postgres return 42501 — never pass that raw message to the UI.
+ */
+export const APPLY_WHILE_AUTH_COPY =
+  'You’re signed in. Sign out to request access — applications are anonymous.'
+
+/**
+ * Copy for `brand_waitlist` insert failures on `/apply`.
+ * Returns null when the caller should keep the generic fallback.
+ */
+export function applyWaitlistInsertErrorCopy(err: unknown): string | null {
+  const code = authCode(err)
+  if (code === '42501') return APPLY_WHILE_AUTH_COPY
+  return null
+}
