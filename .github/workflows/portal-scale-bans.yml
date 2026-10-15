@@ -126,6 +126,7 @@ jobs:
       - run: npm run check:prototype-editor-ban
       - run: npm run check:command-palette-ban
       - run: npm run check:compare-group-edit-ban
+      - run: npm run check:flavor-notes-ban
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npx vitest run
