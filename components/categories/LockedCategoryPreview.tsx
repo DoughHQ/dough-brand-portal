@@ -29,7 +29,7 @@ function ProductThumb({ product }: { product: LockedCategoryProduct }) {
   if (product.image_url) {
     return (
       <div className="cat-locked-thumb">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo */}
         <img src={product.image_url} alt="" />
       </div>
     )

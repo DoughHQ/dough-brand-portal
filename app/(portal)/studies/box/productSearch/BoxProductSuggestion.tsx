@@ -10,7 +10,7 @@ export default function BoxProductSuggestion({
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       {item.image_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
+        // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
         <img
           src={item.image_url}
           alt=""

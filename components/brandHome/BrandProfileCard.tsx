@@ -58,7 +58,7 @@ export default function BrandProfileCard({
       <div className="brand-profile-identity bp-identity">
         <div className="bp-logo">
           {brand.logo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
+            // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
             <img src={brand.logo_url} alt={brand.brand_name} />
           ) : (
             brand.brand_name[0]

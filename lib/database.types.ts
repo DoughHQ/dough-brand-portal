@@ -48526,6 +48526,7 @@ export type Database = {
           p_modules?: string[]
           p_open?: boolean
           p_physical_units: number
+          p_risk_declaration?: Json
           p_seats: Json
           p_session2_interval_hours?: number
           p_sourcing_notes?: string
@@ -49708,6 +49709,10 @@ export type Database = {
       sync_tried_caches: {
         Args: { p_product_id: number; p_user_id: number }
         Returns: undefined
+      }
+      taxonomy_box_risk: {
+        Args: { p_taxonomy_node_id: number }
+        Returns: string
       }
       telemetry_coverage: {
         Args: never

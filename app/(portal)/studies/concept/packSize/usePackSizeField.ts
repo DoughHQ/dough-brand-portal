@@ -7,7 +7,7 @@ import {
   shouldClearPackSizeOnCategoryChange,
   type PackSizeOption,
 } from '@/lib/concept/packSize'
-import { getPackSizeOptionsAction } from '../actions'
+import { getPackSizeOptionsAction } from '../conceptCatalogActions'
 
 export function usePackSizeField(
   draft: ConceptStudyDraft,
@@ -65,8 +65,7 @@ export function usePackSizeField(
         setOtherMode(kept.length > 0 && !nextPhrases.includes(kept))
       }
     })
-    // Only re-fetch when the category changes — not on every draft keystroke.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch when the category changes, not on every draft keystroke
   }, [nodeId])
 
   function setPackSize(next: string) {

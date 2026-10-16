@@ -74,7 +74,7 @@ export function DashboardCategoryProducts({
           }}>
             {prod.image_url ? (
               // Remote catalog URLs bypass the server-side image optimizer.
-              // eslint-disable-next-line @next/next/no-img-element
+              // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
               <img
                 src={prod.image_url}
                 alt=""

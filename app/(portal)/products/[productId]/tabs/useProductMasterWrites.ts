@@ -2,8 +2,6 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase'
-import { moderateBrandPhotoAction } from '@/app/(portal)/products/photoActions'
-import { uploadBrandProductPhoto } from '@/lib/productMaster/brandPhoto'
 import { callWriteRpc, fetchProductMaster } from '@/lib/productMaster/fetch'
 import { getHint, humanizeRpcError, type RpcErrorLike } from '@/lib/productMaster/errors'
 import type {
@@ -17,6 +15,15 @@ import {
   pendingFieldSet,
   proposalByFieldMap,
 } from '@/lib/productMaster/pendingCorrections'
+import {
+  loadPriceSurface as loadPriceSurfaceMutation,
+  promoteImage as promoteImageMutation,
+  saveIngredients as saveIngredientsMutation,
+  saveMsrp as saveMsrpMutation,
+  saveNutritionField as saveNutritionFieldMutation,
+  searchCompetitors as searchCompetitorsMutation,
+  uploadImage as uploadImageMutation,
+} from './productMasterMutations'
 
 export type StaleState = {
   fieldName: string
@@ -27,14 +34,6 @@ export type StaleState = {
 }
 
 export type CompetitorHit = { product_id: number; product_name_display: string }
-
-const STUB_COMPETITORS: CompetitorHit[] = [
-  { product_id: 1, product_name_display: 'Nature Valley Sweet & Salty' },
-  { product_id: 2, product_name_display: 'KIND Dark Chocolate Nuts' },
-  { product_id: 3, product_name_display: 'Clif Bar Chocolate Chip' },
-  { product_id: 4, product_name_display: 'RXBAR Peanut Butter' },
-  { product_id: 5, product_name_display: 'Larabar Apple Pie' },
-]
 
 export function useProductMasterWrites(args: {
   initial: ProductMaster
@@ -174,200 +173,38 @@ export function useProductMasterWrites(args: {
     await refetch()
   }
 
-  async function saveMsrp(sku: MasterSku, raw: string) {
-    if (!canEdit) return
-    const price = Number(raw)
-    if (!(price > 0)) {
-      setErrorMsg('Price must be greater than zero.')
-      return
-    }
-    setSaving(true)
-    setErrorMsg(null)
-    const result = await callWriteRpc(supabase, 'set_brand_msrp', {
-      p_sku_variant_id: sku.sku_variant_id,
-      p_price: price,
-      p_currency: 'USD',
-    })
-    setSaving(false)
-    if (!result.ok) {
-      handleWriteError(result.error)
-      return
-    }
-    setEditingMsrp(null)
-    setFlash('MSRP saved')
-    await refetch()
+  const mutations = {
+    supabase,
+    canEdit,
+    isAdmin,
+    product,
+    effectiveBrandId,
+    master,
+    refetch,
+    handleWriteError,
+    setSaving,
+    setErrorMsg,
+    setFlash,
+    setUploading,
+    setPriceLoading,
+    setPriceSurface,
+    setCompetitorQuery,
+    setCompetitorHits,
+    setEditingMsrp,
+    setEditingIngredients,
+    setEditingNutritionKey,
   }
 
-  async function saveIngredients(sku: MasterSku, text: string) {
-    if (!canEdit || !sku.ingredients || sku.ingredients.locked) return
-    setSaving(true)
-    setErrorMsg(null)
-    const patch = { ingredients_text_raw: text }
-    const result = await callWriteRpc(supabase, 'update_sku_ingredients', {
-      p_sku_variant_id: sku.sku_variant_id,
-      p_expected_row_version: sku.ingredients.row_version,
-      p_patch: patch,
-    })
-    setSaving(false)
-    if (!result.ok) {
-      handleWriteError(result.error, {
-        fieldName: 'ingredients_text_raw',
-        localValue: text,
-        pendingPatch: patch,
-        retry: async () => {
-          const fresh = await refetch()
-          const next = fresh?.skus.find((s) => s.sku_variant_id === sku.sku_variant_id)
-          if (!next?.ingredients) return
-          const r = await callWriteRpc(supabase, 'update_sku_ingredients', {
-            p_sku_variant_id: sku.sku_variant_id,
-            p_expected_row_version: next.ingredients.row_version,
-            p_patch: patch,
-          })
-          if (!r.ok) handleWriteError(r.error)
-          else {
-            setEditingIngredients(null)
-            await refetch()
-          }
-        },
-      })
-      return
-    }
-    setEditingIngredients(null)
-    setFlash('Ingredients saved')
-    await refetch()
-  }
-
-  async function saveNutritionField(sku: MasterSku, key: string, raw: string) {
-    if (!canEdit || !sku.nutrition || sku.nutrition.locked) return
-    setSaving(true)
-    setErrorMsg(null)
-    const num = raw.trim() === '' ? null : Number(raw)
-    const patch = { [key]: num }
-    const result = await callWriteRpc(supabase, 'update_sku_nutrition', {
-      p_sku_variant_id: sku.sku_variant_id,
-      p_expected_row_version: sku.nutrition.row_version,
-      p_patch: patch,
-    })
-    setSaving(false)
-    if (!result.ok) {
-      handleWriteError(result.error, {
-        fieldName: key,
-        localValue: raw,
-        pendingPatch: patch,
-        retry: async () => {
-          const fresh = await refetch()
-          const next = fresh?.skus.find((s) => s.sku_variant_id === sku.sku_variant_id)
-          if (!next?.nutrition) return
-          const r = await callWriteRpc(supabase, 'update_sku_nutrition', {
-            p_sku_variant_id: sku.sku_variant_id,
-            p_expected_row_version: next.nutrition.row_version,
-            p_patch: patch,
-          })
-          if (!r.ok) handleWriteError(r.error)
-          else {
-            setEditingNutritionKey(null)
-            await refetch()
-          }
-        },
-      })
-      return
-    }
-    setEditingNutritionKey(null)
-    setFlash('Nutrition saved')
-    await refetch()
-  }
-
-  async function uploadImage(file: File, opts?: { makePrimary?: boolean }) {
-    if (!canEdit) return
-    setUploading(true)
-    setErrorMsg(null)
-    try {
-      const uploaded = await uploadBrandProductPhoto({
-        supabase,
-        brandId: product.brand_id ?? effectiveBrandId,
-        file,
-        moderate: moderateBrandPhotoAction,
-      })
-      if (!uploaded.ok) {
-        setErrorMsg(uploaded.message)
-        return
-      }
-      const makePrimary =
-        opts?.makePrimary ?? (!product.primary_image_url || master.images.length === 0)
-      const result = await callWriteRpc(supabase, 'register_brand_product_image', {
-        p_product_id: product.product_id,
-        p_image_role: 'front',
-        p_storage_path: uploaded.storagePath,
-        p_sku_variant_id: null,
-        p_supersede_image_id: null,
-        p_make_primary: makePrimary,
-      })
-      if (!result.ok) {
-        handleWriteError(result.error)
-        return
-      }
-      setFlash(makePrimary ? 'Pack shot added' : 'Image registered')
-      await refetch()
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  async function promoteImage(imageId: number) {
-    if (!canEdit) return
-    const result = await callWriteRpc(supabase, 'set_primary_product_image', {
-      p_product_image_id: imageId,
-    })
-    if (!result.ok) {
-      handleWriteError(result.error)
-      return
-    }
-    await refetch()
-  }
-
-  async function loadPriceSurface() {
-    setPriceLoading(true)
-    const result = await callWriteRpc(supabase, 'get_product_price_surface', {
-      p_product_id: product.product_id,
-    })
-    setPriceLoading(false)
-    if (!result.ok) {
-      handleWriteError(result.error)
-      return
-    }
-    setPriceSurface(result.data)
-  }
-
-  async function searchCompetitors(q: string) {
-    setCompetitorQuery(q)
-    if (q.trim().length < 2) {
-      setCompetitorHits([])
-      return
-    }
-    // Brand users: local stub list (no brand-safe product search RPC yet).
-    // dough_admin: search_products_admin when available.
-    if (isAdmin) {
-      const { data, error } = await supabase.rpc('search_products_admin' as never, {
-        p_query: q.trim(),
-      } as never)
-      if (!error && Array.isArray(data)) {
-        setCompetitorHits(
-          (data as { product_id: number; product_name_clean?: string }[])
-            .slice(0, 8)
-            .map((r) => ({
-              product_id: r.product_id,
-              product_name_display: r.product_name_clean ?? `Product ${r.product_id}`,
-            }))
-        )
-        return
-      }
-    }
-    setCompetitorHits(
-      STUB_COMPETITORS.filter((c) =>
-        c.product_name_display.toLowerCase().includes(q.toLowerCase())
-      )
-    )
-  }
+  const saveMsrp = (sku: MasterSku, raw: string) => saveMsrpMutation(mutations, sku, raw)
+  const saveIngredients = (sku: MasterSku, text: string) =>
+    saveIngredientsMutation(mutations, sku, text)
+  const saveNutritionField = (sku: MasterSku, key: string, raw: string) =>
+    saveNutritionFieldMutation(mutations, sku, key, raw)
+  const uploadImage = (file: File, opts?: { makePrimary?: boolean }) =>
+    uploadImageMutation(mutations, file, opts)
+  const promoteImage = (imageId: number) => promoteImageMutation(mutations, imageId)
+  const loadPriceSurface = () => loadPriceSurfaceMutation(mutations)
+  const searchCompetitors = (q: string) => searchCompetitorsMutation(mutations, q)
 
   function startEditIdentity(field: string, current: string | null) {
     if (!canEdit || !editable.has(field)) return

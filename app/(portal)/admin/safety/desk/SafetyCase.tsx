@@ -99,7 +99,7 @@ export function SafetyCase({
             </div>
             {selected.snapshot.avatar_url ? (
               <div style={{ marginTop: 12 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {/* eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo */}
                 <img
                   src={selected.snapshot.avatar_url}
                   alt=""

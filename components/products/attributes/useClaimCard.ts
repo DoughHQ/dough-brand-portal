@@ -47,7 +47,7 @@ export function useClaimCard({
     setPendingAdd(null)
     setEvidenceUrl('')
     setEvidenceNote('')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset when the facet or declaration ids change; live is a new array every render
   }, [row.facet_type, live.map((d) => d.declaration_id).join(',')])
 
   const onWithdraw = async (declarationId: number) => {

@@ -12,7 +12,7 @@ export function BrandProductArt({
   if (url) {
     return (
       <div className={className}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo */}
         <img src={url} alt="" />
       </div>
     )

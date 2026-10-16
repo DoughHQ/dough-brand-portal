@@ -23,7 +23,7 @@ export function PortalMobileTopbar(chrome: PortalChrome) {
       <span className="portal-menu-stroke" aria-hidden />
     </button>
     <div className="portal-topbar-center">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- local brand mark */}
       <img
         className="portal-topbar-mark"
         src="/brand/runoff-mark-32px-reversed.svg"

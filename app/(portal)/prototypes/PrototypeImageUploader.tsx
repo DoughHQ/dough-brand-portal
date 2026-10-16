@@ -40,7 +40,7 @@ function Thumb({
   return (
     <div className="proto-thumb">
       {url ? (
-        // eslint-disable-next-line @next/next/no-img-element
+        // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
         <img src={url} alt="" className="proto-thumb-img" />
       ) : (
         <div className="proto-thumb-placeholder" />

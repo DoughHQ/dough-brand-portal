@@ -80,7 +80,7 @@ export function useProductsCatalog({
 
   useEffect(() => {
     void loadFacetSummaries(initialItems)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- facet summaries for the server-rendered first page only
   }, [])
 
   useEffect(() => {

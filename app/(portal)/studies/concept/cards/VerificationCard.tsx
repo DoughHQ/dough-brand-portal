@@ -11,7 +11,7 @@ import {
 import {
   searchVerificationBrandsAction,
   type VerificationBrandHit,
-} from '../actions'
+} from '../conceptCatalogActions'
 import SuggestionDropdown from '../SuggestionDropdown'
 import { inputBase, labelSm } from '../conceptStyles'
 import type { CardProps } from './cardTypes'

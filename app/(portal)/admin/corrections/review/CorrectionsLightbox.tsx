@@ -12,7 +12,7 @@ export function CorrectionsLightbox({
       className="corr-lightbox"
       onClick={() => setExpandedImg(null)}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo */}
       <img src={expandedImg} alt="Evidence full size" />
     </div>
   )

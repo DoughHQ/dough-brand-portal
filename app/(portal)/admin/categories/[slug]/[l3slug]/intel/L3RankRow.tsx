@@ -44,7 +44,7 @@ export function L3RankRow({
         {product.image_url
           ? <>
               {/* Remote catalog URLs bypass the server-side image optimizer. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo */}
               <img src={product.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </>
           : <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--ink-30)' }}>{product.product_name_clean[0]}</span>

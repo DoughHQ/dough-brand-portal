@@ -11,7 +11,7 @@ export function CasePhoto({
     <div className="corr-photo">
       {row.product_image_url ? (
         <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo */}
           <img src={row.product_image_url} alt={title} />
           <span className="corr-photo-badge">Product</span>
         </>

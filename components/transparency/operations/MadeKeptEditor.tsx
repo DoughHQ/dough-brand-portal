@@ -3,7 +3,6 @@ import type {
   ProofSubMetricRow,
   SourceTier,
 } from '@/lib/transparency/disclosures'
-import { formatProofCode } from '@/lib/transparency/displayMap'
 import { rowPresence } from '@/lib/transparency/proofChapters'
 import {
   presenceLabel,
@@ -19,6 +18,8 @@ import type {
   OperationsEditorHandlers,
   OpsLocalRow,
 } from '@/components/transparency/operations/types'
+import { KeptStoryFields } from './KeptStoryFields'
+import { MadeStoryFields } from './MadeStoryFields'
 
 const SOURCE_TIERS: { value: SourceTier; label: string; hint: string }[] = [
   {
@@ -159,109 +160,25 @@ export default function MadeKeptEditor(props: Props) {
       ) : null}
 
       {props.kind === 'made' ? (
-        <>
-          {props.methodField && props.methodRow ? (
-            <div className="tx-field">
-              <div className="tx-label">Process method</div>
-              <select
-                className="tx-control"
-                disabled={!props.canEdit}
-                value={props.methodRow.draft.valueText ?? ''}
-                onChange={(e) =>
-                  patchWhole(props.methodField!, props.methodRow, {
-                    valueText: e.target.value || null,
-                  })
-                }
-              >
-                <option value="">Select…</option>
-                {(props.methodField.allowed_values ?? []).map((code) => (
-                  <option key={code} value={code}>
-                    {formatProofCode(code)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
-          {props.paramField && props.paramRow ? (
-            <div className="tx-field">
-              <div className="tx-label">Parameter (optional)</div>
-              <input
-                className="tx-control"
-                disabled={!props.canEdit}
-                placeholder="e.g. 48-hour ferment, 180°C / 12 min"
-                value={props.paramRow.draft.valueText ?? ''}
-                onChange={(e) =>
-                  patchWhole(props.paramField!, props.paramRow, {
-                    valueText: e.target.value || null,
-                  })
-                }
-              />
-            </div>
-          ) : null}
-        </>
+        <MadeStoryFields
+          canEdit={props.canEdit}
+          methodField={props.methodField}
+          paramField={props.paramField}
+          methodRow={props.methodRow}
+          paramRow={props.paramRow}
+          patchWhole={patchWhole}
+        />
       ) : (
-        <>
-          {props.storageField && props.storageRow ? (
-            <div className="tx-field">
-              <div className="tx-label">Storage</div>
-              <select
-                className="tx-control"
-                disabled={!props.canEdit}
-                value={props.storageRow.draft.valueText ?? ''}
-                onChange={(e) =>
-                  patchWhole(props.storageField!, props.storageRow, {
-                    valueText: e.target.value || null,
-                  })
-                }
-              >
-                <option value="">Select…</option>
-                {(props.storageField.allowed_values ?? []).map((code) => (
-                  <option key={code} value={code}>
-                    {formatProofCode(code)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
-          {props.shelfField && props.shelfRow ? (
-            <div className="tx-field">
-              <div className="tx-label">On-pack date means</div>
-              <select
-                className="tx-control"
-                disabled={!props.canEdit}
-                value={props.shelfRow.draft.valueText ?? ''}
-                onChange={(e) =>
-                  patchWhole(props.shelfField!, props.shelfRow, {
-                    valueText: e.target.value || null,
-                  })
-                }
-              >
-                <option value="">Select…</option>
-                {(props.shelfField.allowed_values ?? []).map((code) => (
-                  <option key={code} value={code}>
-                    {formatProofCode(code)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
-          {props.handlingField && props.handlingRow ? (
-            <div className="tx-field">
-              <div className="tx-label">After opening</div>
-              <input
-                className="tx-control"
-                disabled={!props.canEdit}
-                placeholder="e.g. Refrigerate and use within 7 days"
-                value={props.handlingRow.draft.valueText ?? ''}
-                onChange={(e) =>
-                  patchWhole(props.handlingField!, props.handlingRow, {
-                    valueText: e.target.value || null,
-                  })
-                }
-              />
-            </div>
-          ) : null}
-        </>
+        <KeptStoryFields
+          canEdit={props.canEdit}
+          storageField={props.storageField}
+          shelfField={props.shelfField}
+          handlingField={props.handlingField}
+          storageRow={props.storageRow}
+          shelfRow={props.shelfRow}
+          handlingRow={props.handlingRow}
+          patchWhole={patchWhole}
+        />
       )}
 
       <div key={anchor?.sourceTier ?? 'brand_stated'} className={provClass}>

@@ -92,7 +92,7 @@ export default function SelectedCompetitor({
       }}
     >
       {row.frozen_image_url && !imgFailed ? (
-        // eslint-disable-next-line @next/next/no-img-element
+        // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
         <img
           src={row.frozen_image_url}
           alt=""

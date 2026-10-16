@@ -18,7 +18,7 @@ import {
   titleAfterCategory,
 } from '@/lib/concept/modeTransition'
 import type { TaxonomyNodeInfo } from '@/lib/studies/taxonomy'
-import { listTaxonomySiblingsAction } from '../actions'
+import { listTaxonomySiblingsAction } from '../conceptCatalogActions'
 import type { ConfirmRequest } from '../ConfirmDialog'
 import { summarizeSetup } from '@/lib/concept/builderSummaries'
 
@@ -57,14 +57,14 @@ export function useStudyTypeSection({
         ? { ...draft, stimulusMode: 'package' as const, pricePosture: 'blind' as const }
         : { ...plan.next, pricePosture: 'blind' as const }
     onChange(next)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- draft and onChange would re-lock on every edit
   }, [draft.stimulusMode, draft.pricePosture])
 
   // End dates are deferred — every concept study runs until the target is full.
   useEffect(() => {
     if (draft.fieldingDays == null) return
     onChange({ ...draft, fieldingDays: null })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- draft and onChange would clear fielding days on every edit
   }, [draft.fieldingDays])
 
   // Resume can replace the parent draft after this section has mounted.
@@ -95,7 +95,7 @@ export function useStudyTypeSection({
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- resolve the category node only when its id changes
   }, [draft.taxonomyNodeId])
 
   function selectMode(mode: StimulusMode, publishable: boolean) {
