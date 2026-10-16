@@ -27,7 +27,10 @@ vi.mock('@/lib/transparency/disclosures', async (importOriginal) => {
   }
 })
 
-function field(code: string): ProofSubMetricRow {
+function field(
+  code: string,
+  subjectKind: ProofSubMetricRow['subject_kind_default'] = 'whole_product',
+): ProofSubMetricRow {
   return {
     sub_metric_code: code,
     label: code,
@@ -43,7 +46,7 @@ function field(code: string): ProofSubMetricRow {
     allowed_boundaries: null,
     requires_data_quality: false,
     allowed_data_qualities: null,
-    subject_kind_default: 'whole_product',
+    subject_kind_default: subjectKind,
     metric_code: 'process',
     sort_order: 1,
   }
@@ -179,5 +182,143 @@ describe('useTransparencyStudio save orchestration', () => {
       result.current.rowsByMetric['process_parameter']![0]!.draft.disclosureId
     ).toBeNull()
     expect(result.current.storyError).toBe('Second save failed')
+  })
+
+  it('saves an origin story in depth order with shared provenance', async () => {
+    const country = field('origin_country', 'ingredient')
+    const region = field('origin_region', 'ingredient')
+    const { client } = fakeClient([country, region])
+    mocks.createClient.mockReturnValue(client)
+    mocks.saveDisclosure
+      .mockResolvedValueOnce({ ok: true, disclosureId: 201, changed: true })
+      .mockResolvedValueOnce({ ok: true, disclosureId: 202, changed: true })
+
+    const { result } = renderHook(() =>
+      useTransparencyStudio({ productId: 12, canEdit: true })
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    act(() => {
+      const countryKey = result.current.ensureSubjectRow(country, 'Sugar')
+      const regionKey = result.current.ensureSubjectRow(region, 'Sugar')
+      result.current.updateRow(
+        country.sub_metric_code,
+        countryKey,
+        blankDraft(country, {
+          subjectKind: 'ingredient',
+          subjectLabel: 'Sugar',
+          status: 'disclosed',
+          valueText: 'US',
+          sourceTier: 'brand_document',
+          sourceUrl: 'https://example.com/origin',
+          published: true,
+        })
+      )
+      result.current.updateRow(
+        region.sub_metric_code,
+        regionKey,
+        blankDraft(region, {
+          subjectKind: 'ingredient',
+          subjectLabel: 'Sugar',
+          status: 'disclosed',
+          valueText: 'California',
+          sourceTier: 'brand_stated',
+          published: false,
+        })
+      )
+    })
+
+    await act(async () => {
+      await result.current.handleSaveOriginStory('  Sugar  ')
+    })
+
+    expect(mocks.saveDisclosure).toHaveBeenCalledTimes(2)
+    expect(mocks.saveDisclosure).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        productId: 12,
+        field: country,
+        draft: expect.objectContaining({
+          subjectLabel: 'Sugar',
+          valueText: 'US',
+          sourceTier: 'brand_document',
+          sourceUrl: 'https://example.com/origin',
+          published: true,
+        }),
+      })
+    )
+    expect(mocks.saveDisclosure).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        field: region,
+        draft: expect.objectContaining({
+          subjectLabel: 'Sugar',
+          valueText: 'California',
+          sourceTier: 'brand_document',
+          sourceUrl: 'https://example.com/origin',
+          published: true,
+        }),
+      })
+    )
+    expect(result.current.rowsByMetric.origin_country![0]!.key).toBe(
+      'saved-201'
+    )
+    expect(result.current.rowsByMetric.origin_region![0]!.key).toBe(
+      'saved-202'
+    )
+    expect(result.current.storyError).toBeNull()
+  })
+
+  it('keeps completed origin writes when a later depth fails', async () => {
+    const country = field('origin_country', 'ingredient')
+    const region = field('origin_region', 'ingredient')
+    const { client } = fakeClient([country, region])
+    mocks.createClient.mockReturnValue(client)
+    mocks.saveDisclosure
+      .mockResolvedValueOnce({ ok: true, disclosureId: 301, changed: true })
+      .mockResolvedValueOnce({ ok: false, error: 'Region save failed' })
+
+    const { result } = renderHook(() =>
+      useTransparencyStudio({ productId: 12, canEdit: true })
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    let regionKey = ''
+    act(() => {
+      const countryKey = result.current.ensureSubjectRow(country, 'Cocoa')
+      regionKey = result.current.ensureSubjectRow(region, 'Cocoa')
+      result.current.updateRow(
+        country.sub_metric_code,
+        countryKey,
+        blankDraft(country, {
+          subjectKind: 'ingredient',
+          subjectLabel: 'Cocoa',
+          status: 'disclosed',
+          valueText: 'GH',
+        })
+      )
+      result.current.updateRow(
+        region.sub_metric_code,
+        regionKey,
+        blankDraft(region, {
+          subjectKind: 'ingredient',
+          subjectLabel: 'Cocoa',
+          status: 'disclosed',
+          valueText: 'Ashanti',
+        })
+      )
+    })
+
+    await act(async () => {
+      await result.current.handleSaveOriginStory('Cocoa')
+    })
+
+    expect(result.current.rowsByMetric.origin_country![0]!.key).toBe(
+      'saved-301'
+    )
+    expect(result.current.rowsByMetric.origin_region![0]!.key).toBe(regionKey)
+    expect(result.current.rowsByMetric.origin_region![0]!.saved).toBeNull()
+    expect(result.current.storyError).toBe('Region save failed')
+    expect(result.current.savingKey).toBeNull()
   })
 })
