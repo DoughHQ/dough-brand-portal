@@ -20,6 +20,8 @@ export type RpcHint =
   | 'EMPTY_PATCH'
   | 'PATH_NOT_OWNED'
   | 'OBJECT_NOT_FOUND'
+  | 'IMAGE_NOT_MODERATED'
+  | 'PHOTO_IN_USE'
   | string
 
 export type RpcErrorLike = {
@@ -97,6 +99,10 @@ export function humanizeRpcError(error: RpcErrorLike): string {
       return 'Image upload path must be under your brand folder.'
     case 'OBJECT_NOT_FOUND':
       return 'Upload didn’t finish before registration. Try again.'
+    case 'IMAGE_NOT_MODERATED':
+      return 'That photo hasn’t passed our check yet. Upload it again.'
+    case 'PHOTO_IN_USE':
+      return 'That photo is already on a product. Use a different photo.'
     default:
       return error.message?.trim() || 'Something went wrong. Try again.'
   }

@@ -14,6 +14,9 @@ const mocks = vi.hoisted(() => ({
   rpc: vi.fn(),
 }))
 
+vi.mock('@/app/(portal)/products/photoActions', () => ({
+  moderateBrandPhotoAction: vi.fn(),
+}))
 vi.mock('@/lib/supabase', () => ({
   createClient: () => ({
     storage: { from: () => ({ upload: mocks.upload }) },
