@@ -10,7 +10,7 @@ export function ProductArt({ product }: { product: ProductArtModel }) {
   if (product.image_url) {
     return (
       <div className="prod-tile-art">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo */}
         <img src={product.image_url} alt="" />
       </div>
     )

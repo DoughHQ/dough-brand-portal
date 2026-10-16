@@ -65,7 +65,7 @@ useEffect(() => {
   if (focusId != null && focusId !== selectedId) {
     setSelectedId(focusId)
   }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- selectedId would undo an in-page case change
 }, [focusId])
 
 const selectCase = (id: number) => {

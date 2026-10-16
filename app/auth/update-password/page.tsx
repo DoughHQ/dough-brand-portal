@@ -50,7 +50,7 @@ export default function UpdatePasswordPage() {
 
     void checkSession()
     return () => subscription.unsubscribe()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the client is recreated each render; read the recovery session once
   }, [])
 
   const ruleError = validateNewPassword(password, confirm)

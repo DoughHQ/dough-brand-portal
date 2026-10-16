@@ -12,7 +12,7 @@ export default function CheckoutThumbFigure({
     <figure className={size === 'stage' ? 'checkout-pack' : 'checkout-face'}>
       {item.imageUrl ? (
         // Study media can use remote catalog URLs that must not be server-fetched.
-        // eslint-disable-next-line @next/next/no-img-element
+        // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
         <img src={item.imageUrl} alt="" />
       ) : (
         <div className="checkout-pack-fallback" aria-hidden>

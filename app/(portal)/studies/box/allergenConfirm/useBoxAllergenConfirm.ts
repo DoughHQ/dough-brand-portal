@@ -65,8 +65,7 @@ export function useBoxAllergenConfirm(
     return () => {
       cancelled = true
     }
-    // Prefill once per product+upc when lists are still null
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- prefill once per product and upc while lists are still null
   }, [row.product_id, row.upc])
 
   function toggle(code: AllergenCode, list: 'contains' | 'may') {

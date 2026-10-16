@@ -49,7 +49,7 @@ export function ImagesTab({
                 }}
               >
                 {img.public_url?.trim() ? (
-                  // eslint-disable-next-line @next/next/no-img-element
+                  // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
                   <img src={img.public_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 ) : (
                   <span style={{ display: 'grid', placeItems: 'center', height: '100%', fontSize: 12, color: 'var(--ink-30)' }}>

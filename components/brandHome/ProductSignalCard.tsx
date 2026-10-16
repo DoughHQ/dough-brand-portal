@@ -115,7 +115,7 @@ export default function ProductSignalCard({
     return (
       <Link href={card.href} className="bh-product-row">
         {card.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
+          // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
           <img src={card.imageUrl} alt="" className="bh-product-thumb" />
         ) : (
           <span className="bh-product-thumb-empty" aria-hidden />
@@ -142,7 +142,7 @@ export default function ProductSignalCard({
       <Link href={card.href} className="bh-product-lead">
         <div className="bh-product-photo">
           {card.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
+            // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
             <img src={card.imageUrl} alt="" />
           ) : (
             <span className="bh-product-photo-empty">Add image</span>

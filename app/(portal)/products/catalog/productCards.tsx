@@ -48,7 +48,7 @@ export function ProductThumb({
   return (
     <div className={className} aria-hidden>
       {imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
+        // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
         <img src={imageUrl} alt="" />
       ) : (
         <span style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--ink-30)' }}>

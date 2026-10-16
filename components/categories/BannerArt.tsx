@@ -24,7 +24,7 @@ export default function BannerArt({
           background: 'var(--surface-1)',
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo */}
         <img
           src={row.banner_image_url}
           alt=""

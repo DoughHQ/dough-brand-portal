@@ -54,7 +54,7 @@ export function useLogin() {
     }
 
     return () => subscription.unsubscribe()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the client is recreated each render; read the URL and subscribe once
   }, [])
 
   async function handleLogin() {

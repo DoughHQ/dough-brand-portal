@@ -36,7 +36,7 @@ export default function PrototypeThumb({ path }: { path: string | null }) {
     )
   }
   return (
-    // eslint-disable-next-line @next/next/no-img-element
+    // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
     <img
       src={url}
       alt=""
