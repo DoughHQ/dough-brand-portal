@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
 
+import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import {
   blankDraft,
+  type DisclosureDraft,
   type ProofSubMetricRow,
 } from '@/lib/transparency/disclosures'
 import DisclosureRowEditor from '../DisclosureRowEditor'
@@ -26,6 +29,37 @@ const field: ProofSubMetricRow = {
   subject_kind_default: 'ingredient',
   metric_code: 'test',
   sort_order: 1,
+}
+
+const controlledDraft = blankDraft(field, {
+  disclosureId: 42,
+  subjectLabel: 'Cocoa',
+  valueText: 'option_a',
+  sourceTier: 'third_party_verified',
+  sourceUrl: 'https://example.com/certificate',
+  issuerName: 'Verifier',
+  credentialId: 'CERT-1',
+})
+
+function ControlledEditor({
+  saving = false,
+  onSave,
+}: {
+  saving?: boolean
+  onSave: () => void
+}) {
+  const [draft, setDraft] = useState<DisclosureDraft>(controlledDraft)
+  return (
+    <DisclosureRowEditor
+      field={field}
+      draft={draft}
+      canEdit
+      saving={saving}
+      error={null}
+      onChange={setDraft}
+      onSave={onSave}
+    />
+  )
 }
 
 afterEach(cleanup)
@@ -140,5 +174,53 @@ describe('DisclosureRowEditor', () => {
       expect((control as HTMLInputElement).disabled).toBe(true)
     }
     expect(screen.queryByRole('button', { name: 'Save' })).toBeNull()
+  })
+
+  it('switches between a deliberate non-disclosure and editable disclosure fields', async () => {
+    const user = userEvent.setup()
+    render(<ControlledEditor onSave={vi.fn()} />)
+
+    await user.selectOptions(screen.getAllByRole('combobox')[0]!, 'not_disclosed')
+
+    expect(
+      screen.getByText(/Non-disclosed rows carry no value/),
+    ).toBeTruthy()
+    expect(screen.queryByText('Provenance')).toBeNull()
+
+    await user.selectOptions(screen.getAllByRole('combobox')[0]!, 'disclosed')
+
+    expect(screen.getByText('Provenance')).toBeTruthy()
+    expect(screen.getByRole('radio', { name: /Third-party verified/i })).toBeTruthy()
+  })
+
+  it('updates provenance and publishing in place before saving', async () => {
+    const onSave = vi.fn()
+    const user = userEvent.setup()
+    render(<ControlledEditor onSave={onSave} />)
+
+    await user.click(screen.getByRole('radio', { name: /Brand document/i }))
+    expect(screen.queryByText('Issuer')).toBeNull()
+    expect(
+      (screen.getByPlaceholderText('https://') as HTMLInputElement).value,
+    ).toBe('https://example.com/certificate')
+
+    await user.click(screen.getByRole('radio', { name: /Brand stated/i }))
+    expect(screen.queryByPlaceholderText('https://')).toBeNull()
+
+    const publish = screen.getByRole('checkbox', {
+      name: /Show this to shoppers/,
+    })
+    await user.click(publish)
+    expect((publish as HTMLInputElement).checked).toBe(true)
+
+    await user.click(screen.getByRole('button', { name: 'Save changes' }))
+    expect(onSave).toHaveBeenCalledOnce()
+  })
+
+  it('locks the publish footer save action while a write is in flight', () => {
+    render(<ControlledEditor saving onSave={vi.fn()} />)
+
+    const save = screen.getByRole('button', { name: 'Saving…' })
+    expect((save as HTMLButtonElement).disabled).toBe(true)
   })
 })
