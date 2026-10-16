@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
+import { BRAND_PHOTO_ACCEPT } from '@/lib/productMaster/brandPhoto'
 import type { MasterCoverage, ProductMaster } from '@/lib/productMaster/types'
 import type { ProductMasterWrites } from '../../tabs/useProductMasterWrites'
 import { ProductCoverageNote } from '../ProductCoverageNote'
@@ -62,7 +63,7 @@ describe('product master pieces', () => {
     )
     expect(html).toContain('id="pm-product-image-file"')
     expect(html).toContain('class="pm-hero-file"')
-    expect(html).toContain('accept="image/png,image/jpeg,image/webp,image/gif"')
+    expect(html).toContain(`accept="${BRAND_PHOTO_ACCEPT}"`)
     expect(html).toContain('disabled=""')
   })
 })

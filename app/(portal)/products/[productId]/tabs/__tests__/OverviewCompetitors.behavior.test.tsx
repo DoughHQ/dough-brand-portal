@@ -20,6 +20,9 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/components/distribution/WhereItsSoldSection', () => ({
   default: () => null,
 }))
+vi.mock('@/app/(portal)/products/photoActions', () => ({
+  moderateBrandPhotoAction: vi.fn(),
+}))
 vi.mock('@/lib/supabase', () => ({
   createClient: () => ({
     storage: { from: () => ({ upload: mocks.upload }) },

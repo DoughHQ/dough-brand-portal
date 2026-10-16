@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { BRAND_PHOTO_ACCEPT } from '@/lib/productMaster/brandPhoto'
 import type { ProductMasterWrites } from '../tabs/useProductMasterWrites'
 
 export function ProductImageFileInput({
@@ -17,7 +18,7 @@ export function ProductImageFileInput({
       ref={imageFileRef}
       className="pm-hero-file"
       type="file"
-      accept="image/png,image/jpeg,image/webp,image/gif"
+      accept={BRAND_PHOTO_ACCEPT}
       disabled={uploading}
       onChange={(e) => {
         const f = e.target.files?.[0]

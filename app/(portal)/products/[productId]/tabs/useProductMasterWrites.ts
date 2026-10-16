@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase'
+import { moderateBrandPhotoAction } from '@/app/(portal)/products/photoActions'
+import { uploadBrandProductPhoto } from '@/lib/productMaster/brandPhoto'
 import { callWriteRpc, fetchProductMaster } from '@/lib/productMaster/fetch'
 import { getHint, humanizeRpcError, type RpcErrorLike } from '@/lib/productMaster/errors'
 import type {
@@ -279,35 +281,36 @@ export function useProductMasterWrites(args: {
     if (!canEdit) return
     setUploading(true)
     setErrorMsg(null)
-    const brandFolder = product.brand_id ?? effectiveBrandId
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-    const path = `${brandFolder}/${Date.now()}-${safeName}`
-    const { error: upErr } = await supabase.storage.from('brand-assets').upload(path, file, {
-      upsert: false,
-      contentType: file.type || 'image/jpeg',
-    })
-    if (upErr) {
+    try {
+      const uploaded = await uploadBrandProductPhoto({
+        supabase,
+        brandId: product.brand_id ?? effectiveBrandId,
+        file,
+        moderate: moderateBrandPhotoAction,
+      })
+      if (!uploaded.ok) {
+        setErrorMsg(uploaded.message)
+        return
+      }
+      const makePrimary =
+        opts?.makePrimary ?? (!product.primary_image_url || master.images.length === 0)
+      const result = await callWriteRpc(supabase, 'register_brand_product_image', {
+        p_product_id: product.product_id,
+        p_image_role: 'front',
+        p_storage_path: uploaded.storagePath,
+        p_sku_variant_id: null,
+        p_supersede_image_id: null,
+        p_make_primary: makePrimary,
+      })
+      if (!result.ok) {
+        handleWriteError(result.error)
+        return
+      }
+      setFlash(makePrimary ? 'Pack shot added' : 'Image registered')
+      await refetch()
+    } finally {
       setUploading(false)
-      setErrorMsg(upErr.message || 'Upload failed.')
-      return
     }
-    const makePrimary =
-      opts?.makePrimary ?? (!product.primary_image_url || master.images.length === 0)
-    const result = await callWriteRpc(supabase, 'register_brand_product_image', {
-      p_product_id: product.product_id,
-      p_image_role: 'front',
-      p_storage_path: path,
-      p_sku_variant_id: null,
-      p_supersede_image_id: null,
-      p_make_primary: makePrimary,
-    })
-    setUploading(false)
-    if (!result.ok) {
-      handleWriteError(result.error)
-      return
-    }
-    setFlash(makePrimary ? 'Pack shot added' : 'Image registered')
-    await refetch()
   }
 
   async function promoteImage(imageId: number) {

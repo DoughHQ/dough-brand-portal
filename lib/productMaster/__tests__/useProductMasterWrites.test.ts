@@ -1,6 +1,11 @@
+// @vitest-environment jsdom
+
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, cleanup, renderHook } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { moderateBrandPhotoAction } from '@/app/(portal)/products/photoActions'
+import { humanizeRpcError } from '@/lib/productMaster/errors'
 import type { ProductMaster } from '../types'
 import {
   useProductMasterWrites,
@@ -12,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   fetchProductMaster: vi.fn(),
   upload: vi.fn(),
   rpc: vi.fn(),
+  uploadBrandProductPhoto: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase', () => ({
@@ -25,6 +31,16 @@ vi.mock('@/lib/productMaster/fetch', () => ({
   callWriteRpc: mocks.callWriteRpc,
   fetchProductMaster: mocks.fetchProductMaster,
 }))
+
+vi.mock('@/lib/productMaster/brandPhoto', () => ({
+  uploadBrandProductPhoto: (...args: unknown[]) => mocks.uploadBrandProductPhoto(...args),
+}))
+
+vi.mock('@/app/(portal)/products/photoActions', () => ({
+  moderateBrandPhotoAction: vi.fn(),
+}))
+
+const PUBLISHED = `3/products/${'a'.repeat(64)}.jpg`
 
 const initial = {
   product: {
@@ -82,7 +98,7 @@ const initial = {
   recent_changes: [],
 } as unknown as ProductMaster
 
-function renderHook(): ProductMasterWrites {
+function renderOnce(): ProductMasterWrites {
   let current: ProductMasterWrites | null = null
   function Harness() {
     current = useProductMasterWrites({
@@ -103,14 +119,19 @@ beforeEach(() => {
   mocks.fetchProductMaster.mockReset()
   mocks.upload.mockReset()
   mocks.rpc.mockReset()
+  mocks.uploadBrandProductPhoto.mockReset()
   mocks.callWriteRpc.mockResolvedValue({ ok: true, data: null })
   mocks.fetchProductMaster.mockResolvedValue({ ok: true, data: initial })
   mocks.upload.mockResolvedValue({ error: null })
 })
 
+afterEach(() => {
+  cleanup()
+})
+
 describe('useProductMasterWrites RPC contract', () => {
   it('preserves identity optimistic-concurrency arguments', async () => {
-    const writes = renderHook()
+    const writes = renderOnce()
 
     await writes.saveIdentity('product_name_display', 'New name')
 
@@ -126,7 +147,7 @@ describe('useProductMasterWrites RPC contract', () => {
   })
 
   it('preserves SKU price, ingredient, and nutrition arguments', async () => {
-    const writes = renderHook()
+    const writes = renderOnce()
     const sku = initial.skus[0]
 
     await writes.saveMsrp(sku, '4.25')
@@ -165,18 +186,34 @@ describe('useProductMasterWrites RPC contract', () => {
     )
   })
 
-  it('preserves image storage and registration arguments', async () => {
-    const writes = renderHook()
-    const file = { name: 'front shot.png', type: 'image/png' } as File
-
-    await writes.uploadImage(file)
-    await writes.promoteImage(301)
-
-    expect(mocks.upload).toHaveBeenCalledWith(
-      expect.stringMatching(/^3\/\d+-front_shot\.png$/),
-      file,
-      { upsert: false, contentType: 'image/png' }
+  it('registers the moderated publish path and still promotes', async () => {
+    mocks.uploadBrandProductPhoto.mockResolvedValue({
+      ok: true,
+      storagePath: PUBLISHED,
+      publicUrl: 'https://example.test/pack.jpg',
+    })
+    const { result } = renderHook(() =>
+      useProductMasterWrites({
+        initial,
+        effectiveBrandId: 99,
+        canEdit: true,
+        isAdmin: false,
+      }),
     )
+    const file = new File(['png'], 'front shot.png', { type: 'image/png' })
+
+    await act(async () => {
+      await result.current.uploadImage(file)
+      await result.current.promoteImage(301)
+    })
+
+    expect(result.current.uploading).toBe(false)
+    expect(mocks.uploadBrandProductPhoto).toHaveBeenCalledWith({
+      supabase: expect.anything(),
+      brandId: 3,
+      file,
+      moderate: moderateBrandPhotoAction,
+    })
     expect(mocks.callWriteRpc).toHaveBeenNthCalledWith(
       1,
       expect.anything(),
@@ -184,17 +221,83 @@ describe('useProductMasterWrites RPC contract', () => {
       {
         p_product_id: 71,
         p_image_role: 'front',
-        p_storage_path: expect.stringMatching(/^3\/\d+-front_shot\.png$/),
+        p_storage_path: PUBLISHED,
         p_sku_variant_id: null,
         p_supersede_image_id: null,
         p_make_primary: true,
-      }
+      },
     )
     expect(mocks.callWriteRpc).toHaveBeenNthCalledWith(
       2,
       expect.anything(),
       'set_primary_product_image',
-      { p_product_image_id: 301 }
+      { p_product_image_id: 301 },
     )
+  })
+
+  it('shows a helper failure and does not register', async () => {
+    mocks.uploadBrandProductPhoto.mockResolvedValue({ ok: false, message: 'X' })
+    const { result } = renderHook(() =>
+      useProductMasterWrites({
+        initial,
+        effectiveBrandId: 3,
+        canEdit: true,
+        isAdmin: false,
+      }),
+    )
+    await act(async () => {
+      await result.current.uploadImage(new File(['x'], 'a.png', { type: 'image/png' }))
+    })
+    expect(result.current.errorMsg).toBe('X')
+    expect(result.current.uploading).toBe(false)
+    expect(mocks.callWriteRpc).not.toHaveBeenCalled()
+  })
+
+  it('shows a register failure and clears the spinner', async () => {
+    mocks.uploadBrandProductPhoto.mockResolvedValue({
+      ok: true,
+      storagePath: PUBLISHED,
+      publicUrl: null,
+    })
+    mocks.callWriteRpc.mockResolvedValue({
+      ok: false,
+      error: { message: 'used', hint: 'PHOTO_IN_USE' },
+    })
+    const { result } = renderHook(() =>
+      useProductMasterWrites({
+        initial,
+        effectiveBrandId: 3,
+        canEdit: true,
+        isAdmin: false,
+      }),
+    )
+    await act(async () => {
+      await result.current.uploadImage(new File(['x'], 'a.png', { type: 'image/png' }))
+    })
+    expect(result.current.errorMsg).toBe(humanizeRpcError({ hint: 'PHOTO_IN_USE' }))
+    expect(result.current.errorMsg).toBe('That photo is already on a product. Use a different photo.')
+    expect(humanizeRpcError({ hint: 'IMAGE_NOT_MODERATED' })).toBe(
+      'That photo hasn’t passed our check yet. Upload it again.',
+    )
+    expect(result.current.uploading).toBe(false)
+  })
+
+  it('clears the spinner when the helper throws', async () => {
+    mocks.uploadBrandProductPhoto.mockRejectedValue(new Error('boom'))
+    const { result } = renderHook(() =>
+      useProductMasterWrites({
+        initial,
+        effectiveBrandId: 3,
+        canEdit: true,
+        isAdmin: false,
+      }),
+    )
+    await act(async () => {
+      await expect(
+        result.current.uploadImage(new File(['x'], 'a.png', { type: 'image/png' })),
+      ).rejects.toThrow('boom')
+    })
+    expect(result.current.uploading).toBe(false)
+    expect(mocks.callWriteRpc).not.toHaveBeenCalled()
   })
 })
