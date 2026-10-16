@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { previewIhutJourneyAction } from '@/app/(portal)/studies/box/actions'
+import { previewIhutJourneyAction } from '@/app/(portal)/studies/box/boxReadActions'
 import { loadBoxDraft } from '@/lib/box/draftStore'
 import {
   combatantsFromBoxDraft,

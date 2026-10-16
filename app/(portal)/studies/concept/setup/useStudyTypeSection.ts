@@ -18,7 +18,7 @@ import {
   titleAfterCategory,
 } from '@/lib/concept/modeTransition'
 import type { TaxonomyNodeInfo } from '@/lib/studies/taxonomy'
-import { listTaxonomySiblingsAction } from '../actions'
+import { listTaxonomySiblingsAction } from '../conceptCatalogActions'
 import type { ConfirmRequest } from '../ConfirmDialog'
 import { summarizeSetup } from '@/lib/concept/builderSummaries'
 

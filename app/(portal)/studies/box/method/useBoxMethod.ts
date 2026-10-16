@@ -13,7 +13,7 @@ import {
 } from '@/lib/box/method'
 import { syncBrandQuestionFieldOptions } from '@/lib/concept/singleTest'
 import type { IhutPreviewJourney } from '@/lib/box/preview/screensFromIhutJourney'
-import { previewIhutJourneyAction } from '@/app/(portal)/studies/box/actions'
+import { previewIhutJourneyAction } from '@/app/(portal)/studies/box/boxReadActions'
 import { isResolvedBoxSeat } from '@/lib/box/fieldSize'
 import { hasLoyaltyModule, resolveBoxSelectedModules } from '@/lib/study/modules'
 

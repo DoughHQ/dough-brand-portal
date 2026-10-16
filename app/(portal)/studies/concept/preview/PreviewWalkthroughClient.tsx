@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { previewConceptJourneyAction } from '@/app/(portal)/studies/concept/actions'
+import { previewConceptJourneyAction } from '@/app/(portal)/studies/concept/conceptCatalogActions'
 import { combatantsFromDraft } from '@/lib/concept/preview/combatants'
 import { loadConceptDraftForPreview, snapshotDraft } from '@/lib/concept/preview/loadDraft'
 import { screensFromJourney } from '@/lib/concept/preview/screensFromJourney'

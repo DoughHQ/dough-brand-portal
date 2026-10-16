@@ -7,7 +7,7 @@ import {
   shouldClearPackSizeOnCategoryChange,
   type PackSizeOption,
 } from '@/lib/concept/packSize'
-import { getPackSizeOptionsAction } from '../actions'
+import { getPackSizeOptionsAction } from '../conceptCatalogActions'
 
 export function usePackSizeField(
   draft: ConceptStudyDraft,
