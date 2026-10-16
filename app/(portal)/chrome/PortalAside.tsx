@@ -22,7 +22,7 @@ export function PortalAside(chrome: PortalChrome) {
     <div className="portal-mark">
       <div className="portal-mark-lockup">
         <div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- local brand mark */}
           <img
             className="portal-mark-logo"
             src="/brand/runoff-horizontal-reversed.svg"

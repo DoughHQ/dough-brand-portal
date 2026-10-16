@@ -31,7 +31,7 @@ export function CardArt({ path }: { path: string | null }) {
 
   if (!url) return <div className="proto-card-art proto-card-art-empty" aria-hidden />
   return (
-    // eslint-disable-next-line @next/next/no-img-element
+    // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
     <img src={url} alt="" className="proto-card-art" />
   )
 }

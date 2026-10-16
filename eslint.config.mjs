@@ -18,6 +18,11 @@ export default defineConfig([
       ],
       // Defer compiler-readiness rules until the planned React Compiler pass.
       // Rules-of-Hooks and exhaustive dependency checks remain enforced.
+      //
+      // @next/next/no-img-element stays on. next/image is limited to **.supabase.co
+      // and would cache expiring signatures. Product, evidence, prototype, and
+      // catalog photos stay on <img>, as do local brand marks (SVG or CSS-sized).
+      // Each suppression names which of those cases it is.
       'react-hooks/error-boundaries': 'off',
       'react-hooks/purity': 'off',
       'react-hooks/refs': 'off',

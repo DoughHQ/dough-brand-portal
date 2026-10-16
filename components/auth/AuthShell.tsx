@@ -212,7 +212,7 @@ export default function AuthShell({
     <div className={`auth-shell${align === 'start' ? ' auth-shell--start' : ''}`}>
       <div className="auth-shell__brand">
         <div className="auth-shell__mark" aria-hidden>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- local brand mark */}
           <img src="/brand/runoff-app-icon-256.png" alt="" width={72} height={72} />
         </div>
         <div className="auth-shell__wordmark">{wordmark}</div>

@@ -14,7 +14,7 @@ export function CombatantPortrait({ name, battleIntent, imageUrl, size = 64 }: P
 
   if (imageUrl) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
+      // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
       <img
         src={imageUrl}
         alt=""

@@ -13,7 +13,7 @@ export default function MarketingWorkspaceLayout({ children }: { children: React
     <div className="mw-shell">
       <aside className="mw-nav" aria-hidden="true">
         <div className="mw-brand">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- local brand mark */}
           <img src="/dough-mark.png" alt="" width={28} height={28} />
           <span>{PRODUCT_NAME}</span>
         </div>

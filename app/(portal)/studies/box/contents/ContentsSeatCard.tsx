@@ -45,7 +45,7 @@ export default function ContentsSeatCard({
       }}
     >
       {row.frozen_image_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
+        // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
         <img
           src={row.frozen_image_url}
           alt=""

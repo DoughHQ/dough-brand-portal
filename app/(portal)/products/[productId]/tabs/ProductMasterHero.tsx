@@ -140,14 +140,14 @@ export function ProductMasterHero({
             disabled={uploading}
             aria-label="Manage product images"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo */}
             <img src={product.primary_image_url} alt="" className="pm-hero-art-img" />
             <span className="pm-hero-art-hover">Manage images</span>
           </button>
         ) : (
           <div className={`pm-hero-art${product.primary_image_url ? '' : ' is-empty'} is-static`}>
             {product.primary_image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
+              // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
               <img src={product.primary_image_url} alt="" className="pm-hero-art-img" />
             ) : (
               <span className="pm-hero-art-letter" aria-hidden>

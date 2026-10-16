@@ -177,7 +177,8 @@ while IFS='|' read -r MODULE LIMIT; do
     FAIL=1
   fi
 done <<'EOF'
-useTransparencyStudio.ts|525
+useTransparencyStudio.ts|300
+saveStories.ts|280
 DisclosureRowEditor.tsx|120
 progress.ts|450
 InventoryGroups.tsx|175

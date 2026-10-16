@@ -49,7 +49,7 @@ export function OwnedCard({ row }: { row: CategoryLauncherRow }) {
     <div className="cat-feature">
       <div className="cat-feature-art">
         {row.banner_image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
+          // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
           <img src={row.banner_image_url} alt="" />
         ) : (
           <div className="cat-feature-art-fallback" aria-hidden>

@@ -36,6 +36,6 @@ export default function HandoffHeroPhoto({
     )
   }
   // Study media can use remote catalog URLs that must not be server-fetched.
-  // eslint-disable-next-line @next/next/no-img-element
+  // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
   return <img className="cb-handoff-photo" src={src} alt="" />
 }

@@ -3,7 +3,7 @@ export function CatArt({ name, src }: { name: string; src: string | null }) {
   return (
     <div className="bh-cat-art" aria-hidden>
       {src ? (
-        // eslint-disable-next-line @next/next/no-img-element
+        // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
         <img src={src} alt="" />
       ) : (
         <span className="bh-cat-art-fallback">{letter}</span>

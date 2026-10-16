@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import type { BoxStudyDraft } from '@/lib/box/types'
 import { boxRiskNodeIds, type BoxTaxonomyRisk } from '@/lib/box/risk'
-import { checkBoxTaxonomyRiskAction } from '../actions'
+import { checkBoxTaxonomyRiskAction } from '../boxReadActions'
 
 /** taxonomy_box_risk for the box category and seats, refetched when they change. */
 export function useBoxTaxonomyRisk(draft: BoxStudyDraft): BoxTaxonomyRisk {

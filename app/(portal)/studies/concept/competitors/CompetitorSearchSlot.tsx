@@ -156,7 +156,7 @@ export default function CompetitorSearchSlot({
 
   useEffect(() => {
     retry()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- retry tracks the query, so a mode change must not refetch every keystroke
   }, [explicitMode])
 
   return (
@@ -241,7 +241,7 @@ export default function CompetitorSearchSlot({
               return (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   {p.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
+                    // eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo
                     <img src={p.image_url} alt="" style={resultThumb} />
                   ) : (
                     <div

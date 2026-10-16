@@ -20,7 +20,7 @@ import {
 import {
   checkConceptDecoyAction,
   previewConceptJourneyAction,
-} from '../actions'
+} from '../conceptCatalogActions'
 import { initialJourneyOpen } from './journeyLabels'
 
 export function useSingleTestJourney({

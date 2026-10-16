@@ -26,7 +26,7 @@ export function CaseEvidence({
           className="corr-evidence"
           onClick={onExpandEvidence}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo */}
           <img src={row.evidence_preview_url!} alt="Submitted evidence" />
         </button>
       ) : row.evidence_capture_path ? (

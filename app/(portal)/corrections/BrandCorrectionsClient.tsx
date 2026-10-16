@@ -82,7 +82,7 @@ export default function BrandCorrectionsClient({
           className="corr-lightbox"
           onClick={() => desk.setExpandedImg(null)}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- signed, catalog, or uploaded photo */}
           <img src={desk.expandedImg} alt="Evidence full size" />
         </div>
       )}
