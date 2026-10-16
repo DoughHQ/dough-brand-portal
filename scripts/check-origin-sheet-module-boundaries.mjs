@@ -97,7 +97,11 @@ const dependencies = {
     `${originSheetRoot}originModel.ts`,
   ],
   [`${originSheetRoot}CoverageStrip.tsx`]: [`${originSheetRoot}originModel.ts`],
-  [`${originSheetRoot}PlaceStoryEditor.tsx`]: [`${originSheetRoot}originModel.ts`],
+  [`${originSheetRoot}PlaceStoryEditor.tsx`]: [
+    `${originSheetRoot}PlaceDepthFields.tsx`,
+    `${originSheetRoot}originModel.ts`,
+  ],
+  [`${originSheetRoot}PlaceDepthFields.tsx`]: [`${originSheetRoot}originModel.ts`],
   [`${originSheetRoot}originModel.ts`]: [],
 }
 const trackedModules = new Set(Object.keys(dependencies))
@@ -180,7 +184,8 @@ for (const relativePath of trackedModules) visit(relativePath, [])
 
 const budgets = {
   [originSheetShell]: 285,
-  [`${originSheetRoot}PlaceStoryEditor.tsx`]: 400,
+  [`${originSheetRoot}PlaceStoryEditor.tsx`]: 290,
+  [`${originSheetRoot}PlaceDepthFields.tsx`]: 180,
 }
 for (const relativePath of trackedModules) {
   const source = readModule(relativePath)
