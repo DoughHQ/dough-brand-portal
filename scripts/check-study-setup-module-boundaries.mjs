@@ -189,9 +189,9 @@ const neighborModules = new Set([
   `${boxRoot}preview/BoxPreviewWalkthroughClient.tsx`,
   `${boxRoot}[draftId]/edit/page.tsx`,
   `${boxRoot}[draftId]/preview/page.tsx`,
-  `${boxRoot}[boxId]/fulfillment/page.tsx`,
-  `${boxRoot}[boxId]/fulfillment/actions.ts`,
-  `${boxRoot}[boxId]/fulfillment/BrandFulfillmentPanel.tsx`,
+  `${boxRoot}[draftId]/fulfillment/page.tsx`,
+  `${boxRoot}[draftId]/fulfillment/actions.ts`,
+  `${boxRoot}[draftId]/fulfillment/BrandFulfillmentPanel.tsx`,
   `${conceptRoot}AudienceSection.tsx`,
   `${conceptRoot}BuilderSectionChrome.tsx`,
   `${conceptRoot}BuilderStepper.tsx`,
@@ -277,7 +277,7 @@ const conceptReportStateRoot = `${conceptRoot}[missionId]/report/states/`
 const conceptStudyStatusRoot = `${conceptRoot}[missionId]/status/`
 const conceptEditDraftRoot = `${conceptRoot}[missionId]/edit/draft/`
 const boxDraftLoaderRoot = `${boxRoot}draftLoader/`
-const fulfillmentPanelRoot = `${boxRoot}[boxId]/fulfillment/panel/`
+const fulfillmentPanelRoot = `${boxRoot}[draftId]/fulfillment/panel/`
 
 function isSetupModule(relativePath) {
   return (

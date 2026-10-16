@@ -4,8 +4,8 @@ import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const brandFulfillmentRoot = 'app/(portal)/studies/box/[boxId]/fulfillment/panel/'
-const brandFulfillmentShell = 'app/(portal)/studies/box/[boxId]/fulfillment/BrandFulfillmentPanel.tsx'
+const brandFulfillmentRoot = 'app/(portal)/studies/box/[draftId]/fulfillment/panel/'
+const brandFulfillmentShell = 'app/(portal)/studies/box/[draftId]/fulfillment/BrandFulfillmentPanel.tsx'
 let failed = false
 
 function fail(message) {

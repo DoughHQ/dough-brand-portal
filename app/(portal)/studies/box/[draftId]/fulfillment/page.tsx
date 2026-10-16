@@ -4,15 +4,17 @@ import { getPortalBrandScope } from '@/lib/portal/getPortalBrandScope'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import BrandFulfillmentPanel from './BrandFulfillmentPanel'
 
+// Next requires one slug name per segment, so this route shares [draftId]
+// with edit and preview. The value here is a sampling box id.
 type Props = {
-  params: Promise<{ boxId: string }>
+  params: Promise<{ draftId: string }>
 }
 
 export default async function BrandBoxFulfillmentPage({ params }: Props) {
   const scope = await getPortalBrandScope()
   if (!scope) redirect('/login')
 
-  const { boxId } = await params
+  const { draftId: boxId } = await params
   if (!boxId) notFound()
 
   const supabase = await createServerSupabaseClient()
