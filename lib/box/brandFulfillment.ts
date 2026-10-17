@@ -12,12 +12,15 @@ import {
   parseShipHolds,
   type AddressChange,
   type AddressChanges,
+  type NullableExcept,
   type OperatorFulfillmentAction,
   type ShipHolds,
 } from '@/lib/box/fulfillment'
 
-export type BrandFulfillmentRow =
-  Database['public']['Functions']['list_brand_box_fulfillments']['Returns'][number]
+export type BrandFulfillmentRow = NullableExcept<
+  Database['public']['Functions']['list_brand_box_fulfillments']['Returns'][number],
+  'dings_reliability' | 'fulfillment_id' | 'state'
+>
 
 /** Same logistics targets brands may drive (backend ACL matches). */
 export const BRAND_FULFILLMENT_ACTIONS = OPERATOR_FULFILLMENT_ACTIONS

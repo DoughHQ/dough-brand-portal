@@ -106,25 +106,31 @@ export type Database = {
       }
       account_deletion_log: {
         Row: {
+          apple_revoked: boolean | null
           deleted_at: string
           provider_jobs: number
           providers: string[]
+          reason: string
           retained: Json
           storage_jobs: number
           user_id: number
         }
         Insert: {
+          apple_revoked?: boolean | null
           deleted_at?: string
           provider_jobs?: number
           providers?: string[]
+          reason?: string
           retained: Json
           storage_jobs?: number
           user_id: number
         }
         Update: {
+          apple_revoked?: boolean | null
           deleted_at?: string
           provider_jobs?: number
           providers?: string[]
+          reason?: string
           retained?: Json
           storage_jobs?: number
           user_id?: number
@@ -1779,6 +1785,47 @@ export type Database = {
         }
         Relationships: []
       }
+      box_fulfillment_address_changes: {
+        Row: {
+          changed_at: string
+          changed_by_user_id: number
+          from_address_id: number | null
+          fulfillment_id: string
+          id: string
+          source: string
+          state_at_change: Database["public"]["Enums"]["box_fulfillment_state"]
+          to_address_id: number
+        }
+        Insert: {
+          changed_at?: string
+          changed_by_user_id: number
+          from_address_id?: number | null
+          fulfillment_id: string
+          id?: string
+          source: string
+          state_at_change: Database["public"]["Enums"]["box_fulfillment_state"]
+          to_address_id: number
+        }
+        Update: {
+          changed_at?: string
+          changed_by_user_id?: number
+          from_address_id?: number | null
+          fulfillment_id?: string
+          id?: string
+          source?: string
+          state_at_change?: Database["public"]["Enums"]["box_fulfillment_state"]
+          to_address_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "box_fulfillment_address_changes_fulfillment_id_fkey"
+            columns: ["fulfillment_id"]
+            isOneToOne: false
+            referencedRelation: "box_fulfillments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       box_fulfillment_scans: {
         Row: {
           combatant_ref: number
@@ -1840,6 +1887,8 @@ export type Database = {
           delivered_at: string | null
           dings_reliability: boolean
           id: string
+          left_at: string | null
+          left_reason: string | null
           mission_claim_id: string
           session_1_completed_at: string | null
           session_2_available_at: string | null
@@ -1865,6 +1914,8 @@ export type Database = {
           delivered_at?: string | null
           dings_reliability?: boolean
           id?: string
+          left_at?: string | null
+          left_reason?: string | null
           mission_claim_id: string
           session_1_completed_at?: string | null
           session_2_available_at?: string | null
@@ -1890,6 +1941,8 @@ export type Database = {
           delivered_at?: string | null
           dings_reliability?: boolean
           id?: string
+          left_at?: string | null
+          left_reason?: string | null
           mission_claim_id?: string
           session_1_completed_at?: string | null
           session_2_available_at?: string | null
@@ -4681,6 +4734,270 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_browse_nodes"
             referencedColumns: ["taxonomy_node_id"]
+          },
+        ]
+      }
+      brand_product_reviews: {
+        Row: {
+          barcode: string | null
+          barcode_key: string | null
+          brand_id: number
+          closed_reason: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by_portal_user_id: string | null
+          decision_note: string | null
+          kind: string
+          product_id: number | null
+          review_id: number
+          snapshot: Json
+          status: string
+          submission: Json
+          submitted_by_portal_user_id: string | null
+          target_product_id: number | null
+          updated_at: string
+        }
+        Insert: {
+          barcode?: string | null
+          barcode_key?: string | null
+          brand_id: number
+          closed_reason?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by_portal_user_id?: string | null
+          decision_note?: string | null
+          kind: string
+          product_id?: number | null
+          review_id?: never
+          snapshot?: Json
+          status?: string
+          submission?: Json
+          submitted_by_portal_user_id?: string | null
+          target_product_id?: number | null
+          updated_at?: string
+        }
+        Update: {
+          barcode?: string | null
+          barcode_key?: string | null
+          brand_id?: number
+          closed_reason?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by_portal_user_id?: string | null
+          decision_note?: string | null
+          kind?: string
+          product_id?: number | null
+          review_id?: never
+          snapshot?: Json
+          status?: string
+          submission?: Json
+          submitted_by_portal_user_id?: string | null
+          target_product_id?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_product_reviews_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_decided_by_portal_user_id_fkey"
+            columns: ["decided_by_portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "brand_portal_users"
+            referencedColumns: ["portal_user_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_submitted_by_portal_user_id_fkey"
+            columns: ["submitted_by_portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "brand_portal_users"
+            referencedColumns: ["portal_user_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_cpg_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_decision_velocity"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_momentum_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_packaging_signal"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranked"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_scan_view"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_time_preference"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "products_renderable"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "user_produce_passport"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "brand_product_reviews_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "v_allergen_filter"
+            referencedColumns: ["product_id"]
           },
         ]
       }
@@ -9221,6 +9538,7 @@ export type Database = {
           position_bias_check: Json
           question_responses: Json | null
           ranked_field: Json
+          sample_composition: Json | null
           snapshot_date: string
           top_pair_record: Json | null
           win_rate_field: Json | null
@@ -9250,6 +9568,7 @@ export type Database = {
           position_bias_check?: Json
           question_responses?: Json | null
           ranked_field?: Json
+          sample_composition?: Json | null
           snapshot_date?: string
           top_pair_record?: Json | null
           win_rate_field?: Json | null
@@ -9279,6 +9598,7 @@ export type Database = {
           position_bias_check?: Json
           question_responses?: Json | null
           ranked_field?: Json
+          sample_composition?: Json | null
           snapshot_date?: string
           top_pair_record?: Json | null
           win_rate_field?: Json | null
@@ -23629,6 +23949,7 @@ export type Database = {
           content_sha256: string | null
           created_at: string
           deleted_at: string | null
+          deleted_by_portal_user_id: string | null
           evidence_rung: Database["public"]["Enums"]["evidence_rung"]
           image_role: Database["public"]["Enums"]["product_image_role"]
           is_primary: boolean
@@ -23653,6 +23974,7 @@ export type Database = {
           content_sha256?: string | null
           created_at?: string
           deleted_at?: string | null
+          deleted_by_portal_user_id?: string | null
           evidence_rung: Database["public"]["Enums"]["evidence_rung"]
           image_role: Database["public"]["Enums"]["product_image_role"]
           is_primary?: boolean
@@ -23677,6 +23999,7 @@ export type Database = {
           content_sha256?: string | null
           created_at?: string
           deleted_at?: string | null
+          deleted_by_portal_user_id?: string | null
           evidence_rung?: Database["public"]["Enums"]["evidence_rung"]
           image_role?: Database["public"]["Enums"]["product_image_role"]
           is_primary?: boolean
@@ -23715,6 +24038,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "product_images_deleted_by_portal_user_id_fkey"
+            columns: ["deleted_by_portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "brand_portal_users"
+            referencedColumns: ["portal_user_id"]
           },
           {
             foreignKeyName: "product_images_product_id_fkey"
@@ -29258,6 +29588,8 @@ export type Database = {
           locked_at: string | null
           mission_id: string
           physical_units: number
+          risk_declaration: Json | null
+          risk_flags: string[]
           session_count: number
           session_template_code: string | null
           session2_interval_hours: number | null
@@ -29282,6 +29614,8 @@ export type Database = {
           locked_at?: string | null
           mission_id: string
           physical_units: number
+          risk_declaration?: Json | null
+          risk_flags?: string[]
           session_count?: number
           session_template_code?: string | null
           session2_interval_hours?: number | null
@@ -29306,6 +29640,8 @@ export type Database = {
           locked_at?: string | null
           mission_id?: string
           physical_units?: number
+          risk_declaration?: Json | null
+          risk_flags?: string[]
           session_count?: number
           session_template_code?: string | null
           session2_interval_hours?: number | null
@@ -32725,6 +33061,10 @@ export type Database = {
           alert_id: number
           dedupe_key: string
           detail: Json
+          email_attempts: number
+          email_claimed_at: string | null
+          email_last_error: string | null
+          emailed_at: string | null
           first_seen_at: string
           last_seen_at: string
           occurrence_count: number
@@ -32738,6 +33078,10 @@ export type Database = {
           alert_id?: never
           dedupe_key: string
           detail?: Json
+          email_attempts?: number
+          email_claimed_at?: string | null
+          email_last_error?: string | null
+          emailed_at?: string | null
           first_seen_at?: string
           last_seen_at?: string
           occurrence_count?: number
@@ -32751,6 +33095,10 @@ export type Database = {
           alert_id?: never
           dedupe_key?: string
           detail?: Json
+          email_attempts?: number
+          email_claimed_at?: string | null
+          email_last_error?: string | null
+          emailed_at?: string | null
           first_seen_at?: string
           last_seen_at?: string
           occurrence_count?: number
@@ -45040,6 +45388,36 @@ export type Database = {
         Returns: Json
       }
       _brand_invite_lookup: { Args: { p_token_hash: string }; Returns: Json }
+      _brand_product_activity: {
+        Args: { p_product_id: number }
+        Returns: string
+      }
+      _brand_product_category: {
+        Args: { p_taxonomy_node_id: number }
+        Returns: string
+      }
+      _brand_product_flag_review: {
+        Args: {
+          p_brand_id: number
+          p_portal_user_id: string
+          p_product_id: number
+          p_submission: Json
+        }
+        Returns: number
+      }
+      _brand_product_review_alert: {
+        Args: { p_extra?: Json; p_review_id: number }
+        Returns: undefined
+      }
+      _brand_product_review_close: {
+        Args: {
+          p_closed_reason: string
+          p_note: string
+          p_review_id: number
+          p_status: string
+        }
+        Returns: undefined
+      }
       _brand_site_host: { Args: { p_url: string }; Returns: string }
       _cg_resolve_actor: { Args: never; Returns: Record<string, unknown> }
       _close_lifecycle_alert: {
@@ -45090,6 +45468,7 @@ export type Database = {
         Args: { p_user_id: number }
         Returns: number
       }
+      _gtin_check_digit_ok: { Args: { p_digits: string }; Returns: boolean }
       _hard_delete_mission_internal: {
         Args: { p_mission_id: string }
         Returns: Json
@@ -45133,7 +45512,16 @@ export type Database = {
         Args: { p_mission_id: string }
         Returns: number
       }
+      _move_box_seat_address: {
+        Args: {
+          p_fulfillment_id: string
+          p_shipping_address_id: number
+          p_source: string
+        }
+        Returns: Json
+      }
       _normalize_username: { Args: { p_name: string }; Returns: string }
+      _ops_alert_secret_ok: { Args: { p_secret: string }; Returns: boolean }
       _ping_safety_alert_dispatcher: { Args: never; Returns: undefined }
       _portal_needs_password: { Args: { p_auth_uid: string }; Returns: boolean }
       _profile_access_scope: {
@@ -45199,6 +45587,13 @@ export type Database = {
           product_id: number
           rank: number
           wins: number
+        }[]
+      }
+      _snapshot_claim_brand_familiarity: {
+        Args: { p_mission_id: string; p_user_id: number }
+        Returns: {
+          is_existing_pantry_item: boolean
+          prior_brand_battle_count: number
         }[]
       }
       _study_delivered_count: {
@@ -45363,6 +45758,10 @@ export type Database = {
           photos_complete: boolean
         }[]
       }
+      age_restricted_box_missions_hidden: {
+        Args: { p_mission_ids: string[]; p_user_id: number }
+        Returns: string[]
+      }
       aggregate_job_bt_intervals: {
         Args: {
           p_asof?: string
@@ -45479,6 +45878,7 @@ export type Database = {
         Args: { p_requester_id: number; p_target_auth_id: string }
         Returns: Json
       }
+      archive_brand_product: { Args: { p_product_id: number }; Returns: Json }
       archive_brand_prototype: {
         Args: { p_prototype_id: string }
         Returns: Json
@@ -45491,6 +45891,7 @@ export type Database = {
         Args: { p_brand_id: number }
         Returns: undefined
       }
+      assert_caller_owns_box: { Args: { p_box_id: string }; Returns: number }
       assert_caller_owns_campaign: {
         Args: { p_brand_campaign_id: string }
         Returns: number
@@ -45605,6 +46006,10 @@ export type Database = {
         Args: { p_target_user_id: number; p_viewer_auth_id: string }
         Returns: Json
       }
+      box_fulfillment_ship_hold: {
+        Args: { p_fulfillment_id: string }
+        Returns: string
+      }
       brand_identity_key: { Args: { p_name: string }; Returns: string }
       brand_key: { Args: { p_name: string }; Returns: string }
       brand_label: {
@@ -45708,6 +46113,10 @@ export type Database = {
         Returns: string
       }
       cg_question_slug: { Args: { p_q: string }; Returns: string }
+      change_box_shipping_address: {
+        Args: { p_fulfillment_id: string; p_shipping_address_id: number }
+        Returns: Json
+      }
       check_and_award_badges: {
         Args: { p_context?: Json; p_trigger: string; p_user_id: number }
         Returns: {
@@ -45745,6 +46154,7 @@ export type Database = {
       check_mission_lifecycle_invariants: { Args: never; Returns: number }
       check_orphaned_user_refs_invariant: { Args: never; Returns: number }
       check_slot_fragmentation_invariant: { Args: never; Returns: number }
+      check_study_health: { Args: { p_dry_run?: boolean }; Returns: Json }
       check_top_lists_scope_invariant: { Args: never; Returns: number }
       check_tried_invariant: { Args: never; Returns: number }
       claim_box: {
@@ -45778,6 +46188,7 @@ export type Database = {
       }
       claim_safety_alert_reports: { Args: { p_limit?: number }; Returns: Json }
       claim_sku: { Args: { p_product_id: number }; Returns: Json }
+      claim_system_alert_emails: { Args: { p_limit?: number }; Returns: Json }
       classify_and_normalize_scan: {
         Args: { p_raw: string }
         Returns: {
@@ -45990,6 +46401,10 @@ export type Database = {
           reportable: boolean
           withheld_reason: string
         }[]
+      }
+      compute_mission_sample_composition: {
+        Args: { p_k_floor?: number; p_mission_id: string }
+        Returns: Json
       }
       compute_mission_signal_aggregate: {
         Args: {
@@ -46436,6 +46851,10 @@ export type Database = {
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       daitch_mokotoff: { Args: { "": string }; Returns: string[] }
+      decide_brand_product_review: {
+        Args: { p_approve: boolean; p_note?: string; p_review_id: number }
+        Returns: Json
+      }
       declare_facet_for_brand_node: {
         Args: {
           p_evidence_note?: string
@@ -46477,6 +46896,7 @@ export type Database = {
         }
         Returns: Json
       }
+      defer_system_alert_emails: { Args: { p_reason: string }; Returns: number }
       delete_my_account: { Args: never; Returns: Json }
       delete_simulated_studies: { Args: never; Returns: Json }
       delete_study_draft: { Args: { p_draft_id: string }; Returns: boolean }
@@ -46758,6 +47178,10 @@ export type Database = {
         Args: { p_limit?: number; p_offset?: number; p_viewer_auth_id: string }
         Returns: Json
       }
+      get_box_allergen_summary: {
+        Args: { p_fulfillment_id: string }
+        Returns: Json
+      }
       get_box_contents: { Args: { p_mission_id: string }; Returns: Json }
       get_box_prototype_labels: { Args: { p_box_id: string }; Returns: Json }
       get_box_qualification_reasons: {
@@ -46862,6 +47286,10 @@ export type Database = {
           sku_variant_id: number
           variant_label: string
         }[]
+      }
+      get_brand_product_options: {
+        Args: { p_product_id: number }
+        Returns: Json
       }
       get_brand_products_for_application: {
         Args: { p_brand_id: number; p_limit?: number }
@@ -47210,6 +47638,7 @@ export type Database = {
         Args: { p_mission_claim_id: string; p_session_number?: number }
         Returns: Json
       }
+      get_my_box_allergen_alerts: { Args: never; Returns: Json }
       get_my_proof_asks: {
         Args: never
         Returns: {
@@ -47946,36 +48375,58 @@ export type Database = {
         Args: { p_exclude_node_id?: number; p_l2_node_id: number }
         Returns: Record<string, unknown>
       }
+      leave_box: {
+        Args: { p_fulfillment_id: string; p_reason?: string }
+        Returns: Json
+      }
+      list_box_address_changes: {
+        Args: { p_box_id: string }
+        Returns: {
+          changed_at: string
+          from_address_id: number
+          fulfillment_id: string
+          source: string
+          state_at_change: Database["public"]["Enums"]["box_fulfillment_state"]
+          to_address_id: number
+        }[]
+      }
+      list_box_ship_holds: {
+        Args: { p_box_id: string }
+        Returns: {
+          fulfillment_id: string
+          ship_hold: string
+        }[]
+      }
       list_brand_box_fulfillments: {
         Args: { p_box_id: string }
         Returns: {
-          abandon_deadline: string | null
-          carrier: string | null
-          claimed_at: string | null
-          completed_at: string | null
-          confirmed_at: string | null
-          consent_version: string | null
-          consented_at: string | null
-          delivered_at: string | null
+          abandon_deadline: string
+          carrier: string
+          claimed_at: string
+          completed_at: string
+          confirmed_at: string
+          consent_version: string
+          consented_at: string
+          delivered_at: string
           dings_reliability: boolean
           fulfillment_id: string
-          left_at: string | null
-          left_reason: string | null
-          recipient_name: string | null
-          session_1_completed_at: string | null
-          session_2_completed_at: string | null
-          ship_city: string | null
-          ship_country: string | null
-          ship_hold: string | null
-          ship_line1: string | null
-          ship_line2: string | null
-          ship_phone: string | null
-          ship_postal: string | null
-          ship_state: string | null
-          shipped_at: string | null
+          left_at: string
+          left_reason: string
+          recipient_name: string
+          session_1_completed_at: string
+          session_2_completed_at: string
+          ship_city: string
+          ship_country: string
+          ship_hold: string
+          ship_line1: string
+          ship_line2: string
+          ship_phone: string
+          ship_postal: string
+          ship_state: string
+          shipped_at: string
           state: Database["public"]["Enums"]["box_fulfillment_state"]
-          terminal_reason: string | null
-          tracking_ref: string | null
+          terminal_reason: string
+          tracking_ref: string
         }[]
       }
       list_brand_pending_corrections: {
@@ -48021,28 +48472,28 @@ export type Database = {
       list_operator_box_fulfillments: {
         Args: { p_box_id: string }
         Returns: {
-          abandon_deadline: string | null
-          carrier: string | null
-          claimed_at: string | null
-          completed_at: string | null
-          confirmed_at: string | null
-          consent_version: string | null
-          consented_at: string | null
-          delivered_at: string | null
+          abandon_deadline: string
+          carrier: string
+          claimed_at: string
+          completed_at: string
+          confirmed_at: string
+          consent_version: string
+          consented_at: string
+          delivered_at: string
           dings_reliability: boolean
           fulfillment_id: string
-          left_at: string | null
-          left_reason: string | null
-          recipient_name: string | null
-          session_1_completed_at: string | null
-          session_2_completed_at: string | null
-          ship_city: string | null
-          ship_postal: string | null
-          ship_state: string | null
-          shipped_at: string | null
+          left_at: string
+          left_reason: string
+          recipient_name: string
+          session_1_completed_at: string
+          session_2_completed_at: string
+          ship_city: string
+          ship_postal: string
+          ship_state: string
+          shipped_at: string
           state: Database["public"]["Enums"]["box_fulfillment_state"]
-          terminal_reason: string | null
-          tracking_ref: string | null
+          terminal_reason: string
+          tracking_ref: string
           user_id: number
         }[]
       }
@@ -48313,6 +48764,10 @@ export type Database = {
         Args: { p_staging_scan_id: number }
         Returns: undefined
       }
+      mark_system_alert_emails: {
+        Args: { p_alert_ids: number[]; p_error?: string; p_ok: boolean }
+        Returns: number
+      }
       mat_inverse: { Args: { p_m: number[]; p_n: number }; Returns: number[] }
       match_validated_meals: {
         Args: {
@@ -48581,6 +49036,7 @@ export type Database = {
         Returns: Json
       }
       purge_old_purveyor_messages: { Args: never; Returns: undefined }
+      purge_unconfirmed_signups: { Args: { p_limit?: number }; Returns: Json }
       purveyor_search: {
         Args: { p_l3_node_ids?: number[]; p_limit?: number; p_query: string }
         Returns: {
@@ -48939,6 +49395,10 @@ export type Database = {
         Args: { p_report_ids: number[] }
         Returns: number
       }
+      remove_brand_product_image: {
+        Args: { p_product_image_id: number }
+        Returns: Json
+      }
       remove_from_list: {
         Args: { p_product_id: number; p_tag: string }
         Returns: Json
@@ -49198,6 +49658,23 @@ export type Database = {
       run_study_lifecycle: { Args: { p_dry_run?: boolean }; Returns: Json }
       save_about_you: {
         Args: { p_date_of_birth: string; p_gender: string }
+        Returns: Json
+      }
+      save_brand_product: {
+        Args: {
+          p_allergens_contains: string[]
+          p_allergens_may_contain: string[]
+          p_barcode: string
+          p_flavor?: string
+          p_ingredients_text: string
+          p_name?: string
+          p_package_count?: number
+          p_package_size_uom: string
+          p_package_size_value: number
+          p_photo_path?: string
+          p_product_id?: number
+          p_taxonomy_node_id?: number
+        }
         Returns: Json
       }
       save_brand_prototype: {
@@ -49516,6 +49993,10 @@ export type Database = {
       }
       set_brand_msrp: {
         Args: { p_currency?: string; p_price: number; p_sku_variant_id: number }
+        Returns: Json
+      }
+      set_brand_product_category: {
+        Args: { p_product_id: number; p_taxonomy_node_id: number }
         Returns: Json
       }
       set_canonical_nutrition_sku: {
@@ -49943,6 +50424,7 @@ export type Database = {
       }
       username_available: { Args: { p_username: string }; Returns: Json }
       validate_change_batch: { Args: { p_batch_id: string }; Returns: Json }
+      validate_retail_gtin: { Args: { p_code: string }; Returns: Json }
       withdraw_mission: { Args: { p_mission_id: string }; Returns: Json }
       withdraw_product_availability_declaration: {
         Args: { p_declaration_id: number }
