@@ -21,6 +21,7 @@ export type RpcHint =
   | 'PATH_NOT_OWNED'
   | 'OBJECT_NOT_FOUND'
   | 'IMAGE_NOT_MODERATED'
+  | 'IMAGE_NOT_FOUND'
   | 'PHOTO_IN_USE'
   | string
 
@@ -101,6 +102,8 @@ export function humanizeRpcError(error: RpcErrorLike): string {
       return 'Upload didn’t finish before registration. Try again.'
     case 'IMAGE_NOT_MODERATED':
       return 'That photo hasn’t passed our check yet. Upload it again.'
+    case 'IMAGE_NOT_FOUND':
+      return 'That photo is already gone.'
     case 'PHOTO_IN_USE':
       return 'That photo is already on a product. Use a different photo.'
     default:

@@ -204,6 +204,20 @@ export async function promoteImage(ctx: ProductMasterMutationCtx, imageId: numbe
   await ctx.refetch()
 }
 
+export async function removeImage(ctx: ProductMasterMutationCtx, imageId: number) {
+  if (!ctx.canEdit) return
+  ctx.setErrorMsg(null)
+  const result = await callWriteRpc(ctx.supabase, 'remove_brand_product_image', {
+    p_product_image_id: imageId,
+  })
+  if (!result.ok) {
+    ctx.handleWriteError(result.error)
+    return
+  }
+  ctx.setFlash('Photo removed')
+  await ctx.refetch()
+}
+
 export async function loadPriceSurface(ctx: ProductMasterMutationCtx) {
   ctx.setPriceLoading(true)
   const result = await callWriteRpc(ctx.supabase, 'get_product_price_surface', {
