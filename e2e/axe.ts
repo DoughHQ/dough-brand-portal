@@ -23,7 +23,13 @@ export async function expectNoSeriousA11yViolations(page: Page): Promise<void> {
       rule: v.id,
       impact: v.impact,
       help: v.help,
-      targets: v.nodes.slice(0, 5).map((n) => n.target.join(' ')),
+      targets: v.nodes.map((n) => {
+        const target = n.target.join(' ')
+        const data: unknown = n.any[0]?.data
+        if (v.id !== 'color-contrast' || typeof data !== 'object' || data === null) return target
+        const { fgColor, bgColor, contrastRatio } = data as Record<string, unknown>
+        return `${target} (${String(fgColor)} on ${String(bgColor)}, ${String(contrastRatio)}:1)`
+      }),
     }))
   expect(blocking, `axe violations on ${page.url()}`).toEqual([])
 }
