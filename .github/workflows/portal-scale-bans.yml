@@ -8,6 +8,8 @@ on:
       - 'lib/**'
       - 'scripts/**'
       - '.github/workflows/**'
+      - 'e2e/**'
+      - 'playwright.config.ts'
       - 'package.json'
       - 'package-lock.json'
       - 'eslint.config.mjs'
