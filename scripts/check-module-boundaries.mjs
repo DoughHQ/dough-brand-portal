@@ -1,11 +1,10 @@
 /**
  * One dependency-contract checker for the portal module splits.
  *
- * scripts/module-boundaries.config.json holds the contracts that used to live
- * in the per-screen check-*-module-boundaries.mjs files. Those scripts stay
- * in place until a later change deletes them; this checker must agree with
- * them. Audience, distribution, and transparency keep their own checkers:
- * they ban declarations as well as imports. The shell security bans stay too.
+ * scripts/module-boundaries.config.json holds one contract per split screen.
+ * A new split adds a group there, not a new script. Audience, distribution,
+ * and transparency keep their own checkers: they ban declarations as well as
+ * imports. The shell security bans stay too.
  */
 import fs from 'node:fs'
 import path from 'node:path'
