@@ -34,7 +34,8 @@
   --sage-soft: rgba(62, 107, 74, 0.12);
   --amber-soft: rgba(192, 120, 24, 0.12);
   --clay-soft: rgba(166, 84, 60, 0.14);
-  --ink-muted: rgba(28, 38, 32, 0.55);
+  /* 0.66 keeps 4.5:1 (WCAG AA body text) on every light canvas down to --mist */
+  --ink-muted: rgba(28, 38, 32, 0.66);
   --ink-faint: rgba(28, 38, 32, 0.38);
 
   /* Concept report — own-arm tint (ownership, never rank) */

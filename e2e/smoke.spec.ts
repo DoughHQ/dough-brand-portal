@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { expectNoSeriousA11yViolations } from './axe'
 import { signIn } from './signIn'
 
 test.beforeEach(async ({ page }) => {
@@ -12,6 +13,7 @@ test('brand home loads', async ({ page }) => {
       .getByRole('heading', { name: 'Open studies' })
       .or(page.getByRole('heading', { name: 'Platform home' })),
   ).toBeVisible()
+  await expectNoSeriousA11yViolations(page)
 })
 
 test('product facets editor opens', async ({ page }) => {
@@ -21,6 +23,7 @@ test('product facets editor opens', async ({ page }) => {
   await facetLink.click()
   await expect(page.getByRole('heading', { name: 'Facets' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'You can add' })).toBeVisible()
+  await expectNoSeriousA11yViolations(page)
 })
 
 test('new concept study opens without publishing', async ({ page }) => {
@@ -29,6 +32,7 @@ test('new concept study opens without publishing', async ({ page }) => {
   await page.getByRole('link', { name: /Concept test/ }).click()
   await expect(page).toHaveURL(/\/studies\/concept\/new/)
   await expect(page.getByRole('heading', { name: 'Concept study' })).toBeVisible()
+  await expectNoSeriousA11yViolations(page)
 })
 
 test('admin compare group editor opens without saving', async ({ page }) => {
@@ -41,4 +45,5 @@ test('admin compare group editor opens without saving', async ({ page }) => {
   await groupLink.click()
   await page.getByRole('button', { name: 'Edit details' }).click()
   await expect(page.getByRole('heading', { name: 'Edit details' })).toBeVisible()
+  await expectNoSeriousA11yViolations(page)
 })

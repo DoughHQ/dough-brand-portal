@@ -9,6 +9,7 @@
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "check:bundle-budgets": "node scripts/check-bundle-budgets.mjs",
     "gen:types": "supabase gen types typescript --project-id rzovknemrvpioidkaqrk --schema public > lib/database.types.ts",
     "test:watch": "vitest",
     "check:home-ban": "bash scripts/check-home-import-ban.sh",
@@ -44,6 +45,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.64.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
