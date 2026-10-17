@@ -1,0 +1,30 @@
+/*
+ * Metric-matched fallbacks shown until the DM fonts load. Values are the ones
+ * next/font/google generated; next/font/local cannot derive them from subsets.
+ */
+@font-face {
+  font-family: 'DM Serif Display Fallback';
+  src: local('Times New Roman');
+  ascent-override: 94.37%;
+  descent-override: 30.51%;
+  line-gap-override: 0%;
+  size-adjust: 109.78%;
+}
+
+@font-face {
+  font-family: 'DM Sans Fallback';
+  src: local('Arial');
+  ascent-override: 94.9%;
+  descent-override: 29.66%;
+  line-gap-override: 0%;
+  size-adjust: 104.53%;
+}
+
+@font-face {
+  font-family: 'DM Mono Fallback';
+  src: local('Arial');
+  ascent-override: 73.71%;
+  descent-override: 23.03%;
+  line-gap-override: 0%;
+  size-adjust: 134.59%;
+}
