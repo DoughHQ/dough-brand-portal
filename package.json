@@ -9,6 +9,7 @@
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "check:bundle-budgets": "node scripts/check-bundle-budgets.mjs",
     "gen:types": "supabase gen types typescript --project-id rzovknemrvpioidkaqrk --schema public > lib/database.types.ts",
     "test:watch": "vitest",
     "check:home-ban": "bash scripts/check-home-import-ban.sh",
