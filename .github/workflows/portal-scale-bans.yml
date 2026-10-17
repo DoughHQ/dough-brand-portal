@@ -7,13 +7,20 @@ on:
       - 'components/**'
       - 'lib/**'
       - 'scripts/**'
-      - '.github/workflows/portal-scale-bans.yml'
+      - '.github/workflows/**'
       - 'package.json'
       - 'package-lock.json'
       - 'eslint.config.mjs'
       - 'tsconfig.json'
       - 'vitest.config.*'
       - 'docs/portal-shell.md'
+      # Root files that change routing, types, or fixture-backed screens.
+      # middleware.ts is the older filename; this app uses proxy.ts.
+      - 'next.config.*'
+      - 'proxy.ts'
+      - 'middleware.ts'
+      - 'next-env.d.ts'
+      - 'concept-core-fixtures/**'
   push:
     branches: [main, master]
 
