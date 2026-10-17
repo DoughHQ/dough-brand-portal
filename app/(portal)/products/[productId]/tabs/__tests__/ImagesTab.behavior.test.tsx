@@ -89,17 +89,18 @@ const initial = {
   recent_changes: [],
 } as unknown as ProductMaster
 
-function Harness() {
+function Harness({ canEdit = true }: { canEdit?: boolean }) {
   const writes = useProductMasterWrites({
     initial,
     effectiveBrandId: 3,
-    canEdit: true,
+    canEdit,
     isAdmin: false,
   })
   return (
     <>
+      {writes.flash ? <div role="status">{writes.flash}</div> : null}
       {writes.errorMsg ? <div role="alert">{writes.errorMsg}</div> : null}
-      <ImagesTab master={writes.master} writes={writes} canEdit />
+      <ImagesTab master={writes.master} writes={writes} canEdit={canEdit} />
     </>
   )
 }
@@ -110,9 +111,13 @@ beforeEach(() => {
   mocks.upload.mockReset()
   mocks.rpc.mockReset()
   mocks.fetchProductMaster.mockResolvedValue({ ok: true, data: initial })
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
 })
 
-afterEach(cleanup)
+afterEach(() => {
+  vi.mocked(window.confirm).mockRestore()
+  cleanup()
+})
 
 describe('ImagesTab behavior', () => {
   it('promotes only a current alternate image', async () => {
@@ -150,5 +155,59 @@ describe('ImagesTab behavior', () => {
       await screen.findByText('Could not promote this image.'),
     ).toBeTruthy()
     expect(mocks.fetchProductMaster).not.toHaveBeenCalled()
+  })
+
+  it('removes a photo after confirmation and reloads the product', async () => {
+    mocks.callWriteRpc.mockResolvedValue({ ok: true, data: { removed: true } })
+    const user = userEvent.setup()
+    render(<Harness />)
+
+    const remove = screen.getAllByRole('button', { name: 'Remove' })
+    expect(remove).toHaveLength(3)
+
+    await user.click(remove[0]!)
+
+    expect(window.confirm).toHaveBeenCalledWith('Remove this photo?')
+    await waitFor(() =>
+      expect(mocks.callWriteRpc).toHaveBeenCalledWith(
+        expect.anything(),
+        'remove_brand_product_image',
+        { p_product_image_id: 1 },
+      ),
+    )
+    expect((await screen.findByRole('status')).textContent).toBe('Photo removed')
+    expect(mocks.fetchProductMaster).toHaveBeenCalled()
+  })
+
+  it('leaves the photo in place when removal is declined', async () => {
+    vi.mocked(window.confirm).mockReturnValue(false)
+    const user = userEvent.setup()
+    render(<Harness />)
+
+    await user.click(screen.getAllByRole('button', { name: 'Remove' })[1]!)
+
+    expect(mocks.callWriteRpc).not.toHaveBeenCalled()
+    expect(mocks.fetchProductMaster).not.toHaveBeenCalled()
+  })
+
+  it('shows a missing photo without reloading the product', async () => {
+    mocks.callWriteRpc.mockResolvedValue({
+      ok: false,
+      error: { message: 'photo 2 not found', hint: 'IMAGE_NOT_FOUND' },
+    })
+    const user = userEvent.setup()
+    render(<Harness />)
+
+    await user.click(screen.getAllByRole('button', { name: 'Remove' })[1]!)
+
+    expect((await screen.findByRole('alert')).textContent).toBe('That photo is already gone.')
+    expect(mocks.fetchProductMaster).not.toHaveBeenCalled()
+  })
+
+  it('hides removal when the product cannot be edited', () => {
+    render(<Harness canEdit={false} />)
+
+    expect(screen.queryByRole('button', { name: 'Remove' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Make primary' })).toBeNull()
   })
 })

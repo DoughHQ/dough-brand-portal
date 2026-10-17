@@ -23,7 +23,7 @@ export function ImagesTab({
   writes: ProductMasterWrites
   canEdit: boolean
 }) {
-  const { pendingFields, uploading, promoteImage } = writes
+  const { pendingFields, uploading, promoteImage, removeImage } = writes
 
   return (
     <ProductImagesTab>
@@ -76,6 +76,18 @@ export function ImagesTab({
               )}
               {img.superseded_by_id && (
                 <div style={{ fontSize: 13, color: 'var(--ink-30)' }}>History</div>
+              )}
+              {canEdit && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!window.confirm('Remove this photo?')) return
+                    void removeImage(img.product_image_id)
+                  }}
+                  style={{ ...secondaryBtn, fontSize: 13, padding: '2px 6px', marginTop: 4 }}
+                >
+                  Remove
+                </button>
               )}
             </div>
           ))}

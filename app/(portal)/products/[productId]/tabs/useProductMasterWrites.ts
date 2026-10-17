@@ -18,6 +18,7 @@ import {
 import {
   loadPriceSurface as loadPriceSurfaceMutation,
   promoteImage as promoteImageMutation,
+  removeImage as removeImageMutation,
   saveIngredients as saveIngredientsMutation,
   saveMsrp as saveMsrpMutation,
   saveNutritionField as saveNutritionFieldMutation,
@@ -203,6 +204,7 @@ export function useProductMasterWrites(args: {
   const uploadImage = (file: File, opts?: { makePrimary?: boolean }) =>
     uploadImageMutation(mutations, file, opts)
   const promoteImage = (imageId: number) => promoteImageMutation(mutations, imageId)
+  const removeImage = (imageId: number) => removeImageMutation(mutations, imageId)
   const loadPriceSurface = () => loadPriceSurfaceMutation(mutations)
   const searchCompetitors = (q: string) => searchCompetitorsMutation(mutations, q)
 
@@ -267,6 +269,7 @@ export function useProductMasterWrites(args: {
     saveNutritionField,
     uploadImage,
     promoteImage,
+    removeImage,
     loadPriceSurface,
     searchCompetitors,
     startEditIdentity,
