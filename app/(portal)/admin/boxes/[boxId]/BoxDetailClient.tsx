@@ -1,5 +1,11 @@
 'use client'
 
+/**
+ * Size exemption. Status, fulfillment, and address changes share this
+ * operator console, so it stays one module past the 400-line guideline.
+ * Do not split it, and do not add a boundary ban for it.
+ */
+
 import Link from 'next/link'
 import { useEffect, useState, useTransition, type CSSProperties } from 'react'
 import {
