@@ -1,0 +1,4072 @@
+{
+  "groups": [
+    {
+      "label": "admin-boxes",
+      "outside": "admin-boxes",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/boxes/queue/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/boxes/AdminBoxesClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/boxes/AdminBoxesClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/boxes/queue/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/boxes/AdminBoxesClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/boxes/AdminBoxesClient.tsx": [
+          "app/(portal)/admin/boxes/queue/AdminBoxesHeader.tsx",
+          "app/(portal)/admin/boxes/queue/AdminBoxesTable.tsx",
+          "app/(portal)/admin/boxes/queue/AdminBoxesToolbar.tsx",
+          "app/(portal)/admin/boxes/queue/boxesModel.ts",
+          "app/(portal)/admin/boxes/queue/useAdminBoxes.ts"
+        ],
+        "app/(portal)/admin/boxes/queue/AdminBoxesHeader.tsx": [],
+        "app/(portal)/admin/boxes/queue/AdminBoxesTable.tsx": [
+          "app/(portal)/admin/boxes/queue/BoxStatusBadge.tsx",
+          "app/(portal)/admin/boxes/queue/boxesModel.ts"
+        ],
+        "app/(portal)/admin/boxes/queue/AdminBoxesToolbar.tsx": [
+          "app/(portal)/admin/boxes/queue/boxesModel.ts"
+        ],
+        "app/(portal)/admin/boxes/queue/BoxStatusBadge.tsx": [],
+        "app/(portal)/admin/boxes/queue/useAdminBoxes.ts": [
+          "app/(portal)/admin/boxes/queue/boxesModel.ts"
+        ],
+        "app/(portal)/admin/boxes/queue/boxesModel.ts": []
+      },
+      "budgets": {
+        "app/(portal)/admin/boxes/AdminBoxesClient.tsx": 105
+      }
+    },
+    {
+      "label": "admin-products",
+      "outside": "admin-products",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/products/adminDesk/"
+      ],
+      "scanShells": [
+        "app/(portal)/products/AdminProductsClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/products/AdminProductsClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/products/adminDesk/"
+      ],
+      "entryPoints": [
+        "app/(portal)/products/AdminProductsClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/products/AdminProductsClient.tsx": [
+          "app/(portal)/products/adminDesk/AdminProductsSearch.tsx",
+          "app/(portal)/products/adminDesk/AdminCategoryHeat.tsx",
+          "app/(portal)/products/adminDesk/AdminMilestoneAlerts.tsx",
+          "app/(portal)/products/adminDesk/useAdminProducts.ts"
+        ],
+        "app/(portal)/products/adminDesk/AdminProductsSearch.tsx": [
+          "app/(portal)/products/adminDesk/adminProductModel.ts",
+          "app/(portal)/products/adminDesk/useAdminProducts.ts"
+        ],
+        "app/(portal)/products/adminDesk/AdminCategoryHeat.tsx": [
+          "app/(portal)/products/adminDesk/useAdminProducts.ts"
+        ],
+        "app/(portal)/products/adminDesk/AdminMilestoneAlerts.tsx": [
+          "app/(portal)/products/adminDesk/adminProductModel.ts",
+          "app/(portal)/products/adminDesk/useAdminProducts.ts"
+        ],
+        "app/(portal)/products/adminDesk/useAdminProducts.ts": [
+          "app/(portal)/products/adminDesk/adminProductModel.ts"
+        ],
+        "app/(portal)/products/adminDesk/adminProductModel.ts": []
+      },
+      "budgets": {
+        "app/(portal)/products/AdminProductsClient.tsx": 60,
+        "app/(portal)/products/adminDesk/AdminProductsSearch.tsx": 220
+      }
+    },
+    {
+      "label": "application-decision-dialogs",
+      "outside": "application-decision-dialogs ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/brand-applications/dialogs/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/brand-applications/ApplicationDecisionDialogs.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/brand-applications/ApplicationDecisionDialogs.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/brand-applications/dialogs/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/brand-applications/ApplicationDecisionDialogs.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/brand-applications/ApplicationDecisionDialogs.tsx": [
+          "app/(portal)/admin/brand-applications/dialogs/ApproveInviteDialog.tsx",
+          "app/(portal)/admin/brand-applications/dialogs/RejectDialog.tsx",
+          "app/(portal)/admin/brand-applications/dialogs/ConfirmDialog.tsx",
+          "app/(portal)/admin/brand-applications/dialogs/approveSubmit.ts"
+        ],
+        "app/(portal)/admin/brand-applications/dialogs/ApproveInviteDialog.tsx": [
+          "app/(portal)/admin/brand-applications/dialogs/DialogShell.tsx",
+          "app/(portal)/admin/brand-applications/dialogs/DialogFooter.tsx",
+          "app/(portal)/admin/brand-applications/dialogs/approveSubmit.ts",
+          "app/(portal)/admin/brand-applications/dialogs/dialogStyles.ts"
+        ],
+        "app/(portal)/admin/brand-applications/dialogs/RejectDialog.tsx": [
+          "app/(portal)/admin/brand-applications/dialogs/DialogShell.tsx",
+          "app/(portal)/admin/brand-applications/dialogs/DialogFooter.tsx",
+          "app/(portal)/admin/brand-applications/dialogs/dialogStyles.ts"
+        ],
+        "app/(portal)/admin/brand-applications/dialogs/ConfirmDialog.tsx": [
+          "app/(portal)/admin/brand-applications/dialogs/DialogShell.tsx",
+          "app/(portal)/admin/brand-applications/dialogs/DialogFooter.tsx"
+        ],
+        "app/(portal)/admin/brand-applications/dialogs/DialogShell.tsx": [
+          "app/(portal)/admin/brand-applications/dialogs/dialogStyles.ts"
+        ],
+        "app/(portal)/admin/brand-applications/dialogs/DialogFooter.tsx": [],
+        "app/(portal)/admin/brand-applications/dialogs/dialogStyles.ts": [],
+        "app/(portal)/admin/brand-applications/dialogs/approveSubmit.ts": []
+      },
+      "budgets": {
+        "app/(portal)/admin/brand-applications/dialogs/ApproveInviteDialog.tsx": 205
+      }
+    },
+    {
+      "label": "apply-flow",
+      "outside": "apply-flow",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "components/auth/apply/"
+      ],
+      "scanShells": [
+        "components/auth/ApplyBrandFlow.tsx"
+      ],
+      "shells": [
+        "components/auth/ApplyBrandFlow.tsx"
+      ],
+      "prefixes": [
+        "components/auth/apply/"
+      ],
+      "entryPoints": [
+        "components/auth/ApplyBrandFlow.tsx"
+      ],
+      "dependencies": {
+        "components/auth/ApplyBrandFlow.tsx": [
+          "components/auth/apply/ApplyBookingStep.tsx",
+          "components/auth/apply/ApplyDetailsStep.tsx",
+          "components/auth/apply/ApplySearchStep.tsx",
+          "components/auth/apply/ApplySessionBanner.tsx",
+          "components/auth/apply/applyModel.ts",
+          "components/auth/apply/useApplyBrandFlow.ts"
+        ],
+        "components/auth/apply/ApplyBookingStep.tsx": [
+          "components/auth/apply/applyModel.ts",
+          "components/auth/apply/useApplyBrandFlow.ts"
+        ],
+        "components/auth/apply/ApplyDetailsStep.tsx": [
+          "components/auth/apply/applyModel.ts",
+          "components/auth/apply/useApplyBrandFlow.ts"
+        ],
+        "components/auth/apply/ApplySearchStep.tsx": [
+          "components/auth/apply/applyModel.ts",
+          "components/auth/apply/useApplyBrandFlow.ts"
+        ],
+        "components/auth/apply/ApplySessionBanner.tsx": [
+          "components/auth/apply/useApplyBrandFlow.ts"
+        ],
+        "components/auth/apply/applyModel.ts": [],
+        "components/auth/apply/useApplyBrandFlow.ts": [
+          "components/auth/apply/applyModel.ts"
+        ]
+      },
+      "budgets": {
+        "components/auth/ApplyBrandFlow.tsx": 120,
+        "components/auth/apply/ApplyDetailsStep.tsx": 240,
+        "components/auth/apply/ApplySearchStep.tsx": 125,
+        "components/auth/apply/useApplyBrandFlow.ts": 230
+      }
+    },
+    {
+      "label": "arm-image",
+      "outside": "arm-image ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/armImage/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/ConceptArmImageUploader.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/ConceptArmImageUploader.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/armImage/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/ConceptArmImageUploader.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/ConceptArmImageUploader.tsx": [
+          "app/(portal)/studies/concept/armImage/CompactFilledImage.tsx",
+          "app/(portal)/studies/concept/armImage/EmptyDropZone.tsx",
+          "app/(portal)/studies/concept/armImage/HeroImageStage.tsx",
+          "app/(portal)/studies/concept/armImage/useConceptArmImage.ts"
+        ],
+        "app/(portal)/studies/concept/armImage/CompactFilledImage.tsx": [
+          "app/(portal)/studies/concept/armImage/Spinner.tsx"
+        ],
+        "app/(portal)/studies/concept/armImage/DropGlyph.tsx": [],
+        "app/(portal)/studies/concept/armImage/EmptyDropZone.tsx": [
+          "app/(portal)/studies/concept/armImage/DropGlyph.tsx",
+          "app/(portal)/studies/concept/armImage/Spinner.tsx"
+        ],
+        "app/(portal)/studies/concept/armImage/HeroImageStage.tsx": [
+          "app/(portal)/studies/concept/armImage/Spinner.tsx"
+        ],
+        "app/(portal)/studies/concept/armImage/Spinner.tsx": [],
+        "app/(portal)/studies/concept/armImage/useConceptArmImage.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/concept/ConceptArmImageUploader.tsx": 120,
+        "app/(portal)/studies/concept/armImage/CompactFilledImage.tsx": 140,
+        "app/(portal)/studies/concept/armImage/EmptyDropZone.tsx": 120,
+        "app/(portal)/studies/concept/armImage/useConceptArmImage.ts": 160
+      }
+    },
+    {
+      "label": "box-allergen",
+      "outside": "box-allergen ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/box/allergenConfirm/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/box/BoxAllergenConfirm.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/box/BoxAllergenConfirm.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/box/allergenConfirm/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/box/BoxAllergenConfirm.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/box/BoxAllergenConfirm.tsx": [
+          "app/(portal)/studies/box/allergenConfirm/AllergenReview.tsx",
+          "app/(portal)/studies/box/allergenConfirm/ConfirmedAllergenBanner.tsx",
+          "app/(portal)/studies/box/allergenConfirm/useBoxAllergenConfirm.ts"
+        ],
+        "app/(portal)/studies/box/allergenConfirm/AllergenChipGroup.tsx": [],
+        "app/(portal)/studies/box/allergenConfirm/AllergenReview.tsx": [
+          "app/(portal)/studies/box/allergenConfirm/AllergenChipGroup.tsx",
+          "app/(portal)/studies/box/allergenConfirm/allergenSummary.ts"
+        ],
+        "app/(portal)/studies/box/allergenConfirm/ConfirmedAllergenBanner.tsx": [
+          "app/(portal)/studies/box/allergenConfirm/allergenSummary.ts"
+        ],
+        "app/(portal)/studies/box/allergenConfirm/allergenSummary.ts": [],
+        "app/(portal)/studies/box/allergenConfirm/useBoxAllergenConfirm.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/box/allergenConfirm/useBoxAllergenConfirm.ts": 140
+      }
+    },
+    {
+      "label": "box-audience",
+      "outside": "box-audience ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/box/audience/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/box/AudienceSection.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/box/AudienceSection.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/box/audience/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/box/AudienceSection.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/box/AudienceSection.tsx": [
+          "app/(portal)/studies/box/audience/AudienceEstimateHead.tsx",
+          "app/(portal)/studies/box/audience/AudienceEstimateNote.tsx",
+          "app/(portal)/studies/box/audience/BoxAudienceCategory.tsx",
+          "app/(portal)/studies/box/audience/BoxAudienceNarrowing.tsx",
+          "app/(portal)/studies/box/audience/useBoxAudience.ts"
+        ],
+        "app/(portal)/studies/box/audience/AudienceEstimateHead.tsx": [],
+        "app/(portal)/studies/box/audience/AudienceEstimateNote.tsx": [],
+        "app/(portal)/studies/box/audience/BoxAudienceCategory.tsx": [],
+        "app/(portal)/studies/box/audience/BoxAudienceNarrowing.tsx": [],
+        "app/(portal)/studies/box/audience/useBoxAudience.ts": []
+      }
+    },
+    {
+      "label": "box client",
+      "outside": "box client ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/box/client/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/box/BoxStudyClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/box/BoxStudyClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/box/client/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/box/BoxStudyClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/box/BoxStudyClient.tsx": [
+          "app/(portal)/studies/box/client/BoxOpenAudienceDialog.tsx",
+          "app/(portal)/studies/box/client/BoxPublishedDialog.tsx",
+          "app/(portal)/studies/box/client/BoxStudyStepper.tsx",
+          "app/(portal)/studies/box/client/useBoxStudyClient.ts"
+        ],
+        "app/(portal)/studies/box/client/BoxOpenAudienceDialog.tsx": [],
+        "app/(portal)/studies/box/client/BoxPublishedDialog.tsx": [],
+        "app/(portal)/studies/box/client/BoxStudyStepper.tsx": [],
+        "app/(portal)/studies/box/client/useBoxStudyClient.ts": [
+          "app/(portal)/studies/box/client/useBoxTaxonomyRisk.ts"
+        ],
+        "app/(portal)/studies/box/client/useBoxTaxonomyRisk.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/box/BoxStudyClient.tsx": 180,
+        "app/(portal)/studies/box/client/BoxPublishedDialog.tsx": 240,
+        "app/(portal)/studies/box/client/useBoxStudyClient.ts": 290
+      }
+    },
+    {
+      "label": "box-draft-loader",
+      "outside": "box-draft-loader ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/box/draftLoader/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/box/BoxDraftLoader.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/box/BoxDraftLoader.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/box/draftLoader/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/box/BoxDraftLoader.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/box/BoxDraftLoader.tsx": [
+          "app/(portal)/studies/box/draftLoader/useBoxDraftLoader.ts"
+        ],
+        "app/(portal)/studies/box/draftLoader/useBoxDraftLoader.ts": []
+      }
+    },
+    {
+      "label": "box method",
+      "outside": "box method ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/box/method/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/box/MethodSection.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/box/MethodSection.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/box/method/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/box/MethodSection.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/box/MethodSection.tsx": [
+          "app/(portal)/studies/box/method/Day1Steps.tsx",
+          "app/(portal)/studies/box/method/Day2Panel.tsx",
+          "app/(portal)/studies/box/method/methodStyles.ts",
+          "app/(portal)/studies/box/method/useBoxMethod.ts"
+        ],
+        "app/(portal)/studies/box/method/AttributeEditor.tsx": [],
+        "app/(portal)/studies/box/method/Day1Steps.tsx": [
+          "app/(portal)/studies/box/method/AttributeEditor.tsx",
+          "app/(portal)/studies/box/method/IhutBrandQuestionsEditor.tsx",
+          "app/(portal)/studies/box/method/SuccessBarsEditor.tsx",
+          "app/(portal)/studies/box/method/methodStyles.ts"
+        ],
+        "app/(portal)/studies/box/method/Day2Panel.tsx": [
+          "app/(portal)/studies/box/method/methodStyles.ts"
+        ],
+        "app/(portal)/studies/box/method/IhutBrandQuestionsEditor.tsx": [],
+        "app/(portal)/studies/box/method/SuccessBarsEditor.tsx": [
+          "app/(portal)/studies/box/method/methodStyles.ts"
+        ],
+        "app/(portal)/studies/box/method/methodStyles.ts": [],
+        "app/(portal)/studies/box/method/useBoxMethod.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/box/MethodSection.tsx": 100,
+        "app/(portal)/studies/box/method/Day1Steps.tsx": 200,
+        "app/(portal)/studies/box/method/Day2Panel.tsx": 200,
+        "app/(portal)/studies/box/method/SuccessBarsEditor.tsx": 110,
+        "app/(portal)/studies/box/method/useBoxMethod.ts": 180
+      }
+    },
+    {
+      "label": "box-product-search",
+      "outside": "box-product-search ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/box/productSearch/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/box/BoxProductSearchSlot.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/box/BoxProductSearchSlot.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/box/productSearch/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/box/BoxProductSearchSlot.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/box/BoxProductSearchSlot.tsx": [
+          "app/(portal)/studies/box/productSearch/BoxProductSearchField.tsx",
+          "app/(portal)/studies/box/productSearch/BoxProductSuggestions.tsx",
+          "app/(portal)/studies/box/productSearch/useBoxProductSearch.ts"
+        ],
+        "app/(portal)/studies/box/productSearch/BoxProductSearchField.tsx": [],
+        "app/(portal)/studies/box/productSearch/BoxProductSuggestion.tsx": [],
+        "app/(portal)/studies/box/productSearch/BoxProductSuggestions.tsx": [
+          "app/(portal)/studies/box/productSearch/BoxProductSuggestion.tsx"
+        ],
+        "app/(portal)/studies/box/productSearch/useBoxProductSearch.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/box/productSearch/useBoxProductSearch.ts": 190
+      }
+    },
+    {
+      "label": "box-prototype-pick",
+      "outside": "box-prototype-pick ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/box/prototypePick/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/box/BoxPrototypePickSlot.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/box/BoxPrototypePickSlot.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/box/prototypePick/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/box/BoxPrototypePickSlot.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/box/BoxPrototypePickSlot.tsx": [
+          "app/(portal)/studies/box/prototypePick/PrototypeLibraryEmpty.tsx",
+          "app/(portal)/studies/box/prototypePick/PrototypePickError.tsx",
+          "app/(portal)/studies/box/prototypePick/PrototypeReadyList.tsx",
+          "app/(portal)/studies/box/prototypePick/useBoxPrototypePick.ts"
+        ],
+        "app/(portal)/studies/box/prototypePick/PrototypeLibraryEmpty.tsx": [],
+        "app/(portal)/studies/box/prototypePick/PrototypePickError.tsx": [],
+        "app/(portal)/studies/box/prototypePick/PrototypeReadyList.tsx": [
+          "app/(portal)/studies/box/prototypePick/PrototypeThumb.tsx"
+        ],
+        "app/(portal)/studies/box/prototypePick/PrototypeThumb.tsx": [],
+        "app/(portal)/studies/box/prototypePick/useBoxPrototypePick.ts": []
+      }
+    },
+    {
+      "label": "box-setup",
+      "outside": "box-setup ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/box/setup/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/box/SetupSection.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/box/SetupSection.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/box/setup/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/box/SetupSection.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/box/SetupSection.tsx": [
+          "app/(portal)/studies/box/setup/BoxCategoryField.tsx",
+          "app/(portal)/studies/box/setup/BoxRunSection.tsx",
+          "app/(portal)/studies/box/setup/BoxStudyNameField.tsx",
+          "app/(portal)/studies/box/setup/setupStyles.ts",
+          "app/(portal)/studies/box/setup/useBoxSetup.ts"
+        ],
+        "app/(portal)/studies/box/setup/BoxCategoryField.tsx": [
+          "app/(portal)/studies/box/setup/setupStyles.ts"
+        ],
+        "app/(portal)/studies/box/setup/BoxRunSection.tsx": [
+          "app/(portal)/studies/box/setup/setupStyles.ts"
+        ],
+        "app/(portal)/studies/box/setup/BoxStudyNameField.tsx": [
+          "app/(portal)/studies/box/setup/setupStyles.ts"
+        ],
+        "app/(portal)/studies/box/setup/setupStyles.ts": [],
+        "app/(portal)/studies/box/setup/useBoxSetup.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/box/setup/BoxRunSection.tsx": 140
+      }
+    },
+    {
+      "label": "box-upc",
+      "outside": "box-upc ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/box/upcField/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/box/BoxUpcField.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/box/BoxUpcField.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/box/upcField/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/box/BoxUpcField.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/box/BoxUpcField.tsx": [
+          "app/(portal)/studies/box/upcField/UpcChoiceList.tsx",
+          "app/(portal)/studies/box/upcField/UpcConfirmedCode.tsx",
+          "app/(portal)/studies/box/upcField/UpcManualEntry.tsx",
+          "app/(portal)/studies/box/upcField/useBoxUpcField.ts"
+        ],
+        "app/(portal)/studies/box/upcField/BarcodeGlyph.tsx": [],
+        "app/(portal)/studies/box/upcField/UpcChoiceList.tsx": [],
+        "app/(portal)/studies/box/upcField/UpcConfirmedCode.tsx": [
+          "app/(portal)/studies/box/upcField/BarcodeGlyph.tsx"
+        ],
+        "app/(portal)/studies/box/upcField/UpcManualEntry.tsx": [
+          "app/(portal)/studies/box/upcField/BarcodeGlyph.tsx"
+        ],
+        "app/(portal)/studies/box/upcField/useBoxUpcField.ts": []
+      }
+    },
+    {
+      "label": "brand-applications",
+      "outside": "brand-applications ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/brand-applications/queue/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/brand-applications/BrandApplicationsClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/brand-applications/BrandApplicationsClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/brand-applications/queue/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/brand-applications/BrandApplicationsClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/brand-applications/BrandApplicationsClient.tsx": [
+          "app/(portal)/admin/brand-applications/queue/BrandApplicationCard.tsx",
+          "app/(portal)/admin/brand-applications/queue/ApplicationQueueHeader.tsx",
+          "app/(portal)/admin/brand-applications/queue/ApplicationQueueBanner.tsx",
+          "app/(portal)/admin/brand-applications/queue/ApplicationQueueImpersonation.tsx",
+          "app/(portal)/admin/brand-applications/queue/ApplicationQueueError.tsx",
+          "app/(portal)/admin/brand-applications/queue/ApplicationQueueEmpty.tsx",
+          "app/(portal)/admin/brand-applications/queue/ApplicationQueueLoadMore.tsx",
+          "app/(portal)/admin/brand-applications/queue/useBrandApplicationQueue.ts"
+        ],
+        "app/(portal)/admin/brand-applications/queue/useBrandApplicationQueue.ts": [
+          "app/(portal)/admin/brand-applications/queue/ApplicationQueueBanner.tsx",
+          "app/(portal)/admin/brand-applications/queue/brandApplicationDialog.ts"
+        ],
+        "app/(portal)/admin/brand-applications/queue/BrandApplicationCard.tsx": [
+          "app/(portal)/admin/brand-applications/queue/ApplicationCardActions.tsx",
+          "app/(portal)/admin/brand-applications/queue/ApplicationCardFlags.tsx",
+          "app/(portal)/admin/brand-applications/queue/ApplicationCardHead.tsx",
+          "app/(portal)/admin/brand-applications/queue/ApplicationCardMeta.tsx",
+          "app/(portal)/admin/brand-applications/queue/brandApplicationDialog.ts"
+        ],
+        "app/(portal)/admin/brand-applications/queue/ApplicationCardActions.tsx": [
+          "app/(portal)/admin/brand-applications/queue/brandApplicationDialog.ts"
+        ],
+        "app/(portal)/admin/brand-applications/queue/ApplicationCardFlags.tsx": [
+          "app/(portal)/admin/brand-applications/queue/applicationCardFormat.ts",
+          "app/(portal)/admin/brand-applications/queue/DecisionBadge.tsx"
+        ],
+        "app/(portal)/admin/brand-applications/queue/ApplicationCardHead.tsx": [
+          "app/(portal)/admin/brand-applications/queue/applicationCardFormat.ts",
+          "app/(portal)/admin/brand-applications/queue/DecisionBadge.tsx",
+          "app/(portal)/admin/brand-applications/queue/StatusChip.tsx"
+        ],
+        "app/(portal)/admin/brand-applications/queue/ApplicationCardMeta.tsx": [
+          "app/(portal)/admin/brand-applications/queue/applicationCardFormat.ts",
+          "app/(portal)/admin/brand-applications/queue/MetaLine.tsx"
+        ],
+        "app/(portal)/admin/brand-applications/queue/applicationCardFormat.ts": [],
+        "app/(portal)/admin/brand-applications/queue/brandApplicationDialog.ts": [],
+        "app/(portal)/admin/brand-applications/queue/DecisionBadge.tsx": [],
+        "app/(portal)/admin/brand-applications/queue/MetaLine.tsx": [],
+        "app/(portal)/admin/brand-applications/queue/StatusChip.tsx": [],
+        "app/(portal)/admin/brand-applications/queue/ApplicationQueueHeader.tsx": [],
+        "app/(portal)/admin/brand-applications/queue/ApplicationQueueBanner.tsx": [],
+        "app/(portal)/admin/brand-applications/queue/ApplicationQueueImpersonation.tsx": [],
+        "app/(portal)/admin/brand-applications/queue/ApplicationQueueError.tsx": [],
+        "app/(portal)/admin/brand-applications/queue/ApplicationQueueEmpty.tsx": [],
+        "app/(portal)/admin/brand-applications/queue/ApplicationQueueLoadMore.tsx": []
+      },
+      "budgets": {
+        "app/(portal)/admin/brand-applications/BrandApplicationsClient.tsx": 175,
+        "app/(portal)/admin/brand-applications/queue/ApplicationCardActions.tsx": 140,
+        "app/(portal)/admin/brand-applications/queue/useBrandApplicationQueue.ts": 235
+      }
+    },
+    {
+      "label": "brand-corrections",
+      "outside": "brand-corrections",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/corrections/inbox/"
+      ],
+      "scanShells": [
+        "app/(portal)/corrections/BrandCorrectionsClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/corrections/BrandCorrectionsClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/corrections/inbox/"
+      ],
+      "entryPoints": [
+        "app/(portal)/corrections/BrandCorrectionsClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/corrections/BrandCorrectionsClient.tsx": [
+          "app/(portal)/corrections/inbox/BrandCorrectionsEmpty.tsx",
+          "app/(portal)/corrections/inbox/BrandCorrectionsHead.tsx",
+          "app/(portal)/corrections/inbox/BrandCorrectionsRail.tsx",
+          "app/(portal)/corrections/inbox/BrandStatusStage.tsx",
+          "app/(portal)/corrections/inbox/useBrandCorrections.ts"
+        ],
+        "app/(portal)/corrections/inbox/BrandCorrectionsEmpty.tsx": [],
+        "app/(portal)/corrections/inbox/BrandCorrectionsHead.tsx": [],
+        "app/(portal)/corrections/inbox/BrandCorrectionsRail.tsx": [
+          "app/(portal)/corrections/inbox/BrandProductArt.tsx"
+        ],
+        "app/(portal)/corrections/inbox/BrandStatusStage.tsx": [],
+        "app/(portal)/corrections/inbox/BrandProductArt.tsx": [],
+        "app/(portal)/corrections/inbox/useBrandCorrections.ts": [
+          "app/(portal)/corrections/inbox/brandQueue.ts"
+        ],
+        "app/(portal)/corrections/inbox/brandQueue.ts": []
+      },
+      "budgets": {
+        "app/(portal)/corrections/BrandCorrectionsClient.tsx": 105,
+        "app/(portal)/corrections/inbox/useBrandCorrections.ts": 170,
+        "app/(portal)/corrections/inbox/BrandStatusStage.tsx": 150
+      }
+    },
+    {
+      "label": "brand-fulfillment",
+      "outside": "brand-fulfillment",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/box/[draftId]/fulfillment/panel/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/box/[draftId]/fulfillment/BrandFulfillmentPanel.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/box/[draftId]/fulfillment/BrandFulfillmentPanel.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/box/[draftId]/fulfillment/panel/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/box/[draftId]/fulfillment/BrandFulfillmentPanel.tsx"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/box/[draftId]/fulfillment/BrandFulfillmentPanel.tsx": [
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/FulfillmentConfirm.tsx",
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/PanelHeader.tsx",
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/SeatCard.tsx",
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/panelStyles.ts",
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/useBrandFulfillment.ts"
+        ],
+        "app/(portal)/studies/box/[draftId]/fulfillment/panel/FulfillmentConfirm.tsx": [
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/useBrandFulfillment.ts"
+        ],
+        "app/(portal)/studies/box/[draftId]/fulfillment/panel/PanelHeader.tsx": [
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/downloadCsv.ts",
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/panelStyles.ts"
+        ],
+        "app/(portal)/studies/box/[draftId]/fulfillment/panel/SeatActions.tsx": [
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/panelStyles.ts",
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/useBrandFulfillment.ts"
+        ],
+        "app/(portal)/studies/box/[draftId]/fulfillment/panel/SeatCard.tsx": [
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/SeatActions.tsx",
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/ShipForm.tsx",
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/useBrandFulfillment.ts"
+        ],
+        "app/(portal)/studies/box/[draftId]/fulfillment/panel/ShipForm.tsx": [
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/panelStyles.ts",
+          "app/(portal)/studies/box/[draftId]/fulfillment/panel/useBrandFulfillment.ts"
+        ],
+        "app/(portal)/studies/box/[draftId]/fulfillment/panel/downloadCsv.ts": [],
+        "app/(portal)/studies/box/[draftId]/fulfillment/panel/panelStyles.ts": [],
+        "app/(portal)/studies/box/[draftId]/fulfillment/panel/useBrandFulfillment.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/box/[draftId]/fulfillment/panel/SeatCard.tsx": 160,
+        "app/(portal)/studies/box/[draftId]/fulfillment/panel/useBrandFulfillment.ts": 130,
+        "app/(portal)/studies/box/[draftId]/fulfillment/BrandFulfillmentPanel.tsx": 115
+      }
+    },
+    {
+      "label": "brand-home",
+      "outside": "brand-home",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "components/brandHome/home/"
+      ],
+      "scanShells": [
+        "components/brandHome/BrandHome.tsx"
+      ],
+      "shells": [
+        "components/brandHome/BrandHome.tsx"
+      ],
+      "prefixes": [
+        "components/brandHome/home/"
+      ],
+      "entryPoints": [
+        "components/brandHome/BrandHome.tsx"
+      ],
+      "dependencies": {
+        "components/brandHome/BrandHome.tsx": [
+          "components/brandHome/home/AttentionPanel.tsx",
+          "components/brandHome/home/CategoriesSection.tsx",
+          "components/brandHome/home/HomeAside.tsx",
+          "components/brandHome/home/OpenStudiesSection.tsx",
+          "components/brandHome/home/ProductsSection.tsx",
+          "components/brandHome/home/SnapshotStrip.tsx",
+          "components/brandHome/home/homeStrip.ts"
+        ],
+        "components/brandHome/home/AttentionPanel.tsx": [],
+        "components/brandHome/home/CatArt.tsx": [],
+        "components/brandHome/home/CategoriesSection.tsx": [
+          "components/brandHome/home/CatArt.tsx",
+          "components/brandHome/home/EmptyPanel.tsx"
+        ],
+        "components/brandHome/home/EmptyPanel.tsx": [],
+        "components/brandHome/home/HomeAside.tsx": [],
+        "components/brandHome/home/OpenStudiesSection.tsx": [
+          "components/brandHome/home/EmptyPanel.tsx"
+        ],
+        "components/brandHome/home/ProductsSection.tsx": [
+          "components/brandHome/home/EmptyPanel.tsx"
+        ],
+        "components/brandHome/home/SnapshotStrip.tsx": [
+          "components/brandHome/home/StripIcon.tsx",
+          "components/brandHome/home/homeStrip.ts"
+        ],
+        "components/brandHome/home/StripIcon.tsx": [],
+        "components/brandHome/home/homeModel.ts": [],
+        "components/brandHome/home/homeStrip.ts": [
+          "components/brandHome/home/homeModel.ts"
+        ]
+      }
+    },
+    {
+      "label": "brand-profile",
+      "outside": "brand-profile",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "components/brandHome/profile/"
+      ],
+      "scanShells": [
+        "components/brandHome/BrandProfileCard.tsx"
+      ],
+      "shells": [
+        "components/brandHome/BrandProfileCard.tsx"
+      ],
+      "prefixes": [
+        "components/brandHome/profile/"
+      ],
+      "entryPoints": [
+        "components/brandHome/BrandProfileCard.tsx"
+      ],
+      "dependencies": {
+        "components/brandHome/BrandProfileCard.tsx": [
+          "components/brandHome/profile/BrandProfileAbout.tsx",
+          "components/brandHome/profile/BrandProfileEditor.tsx",
+          "components/brandHome/profile/BrandProfileSummary.tsx",
+          "components/brandHome/profile/useBrandProfile.ts"
+        ],
+        "components/brandHome/profile/AboutField.tsx": [
+          "components/brandHome/profile/profileModel.ts"
+        ],
+        "components/brandHome/profile/BrandProfileAbout.tsx": [
+          "components/brandHome/profile/useBrandProfile.ts"
+        ],
+        "components/brandHome/profile/BrandProfileEditor.tsx": [
+          "components/brandHome/profile/AboutField.tsx",
+          "components/brandHome/profile/LinkChip.tsx",
+          "components/brandHome/profile/profileModel.ts",
+          "components/brandHome/profile/useBrandProfile.ts"
+        ],
+        "components/brandHome/profile/BrandProfileSummary.tsx": [
+          "components/brandHome/profile/LocationIcon.tsx",
+          "components/brandHome/profile/PresenceLink.tsx",
+          "components/brandHome/profile/useBrandProfile.ts"
+        ],
+        "components/brandHome/profile/LinkChip.tsx": [
+          "components/brandHome/profile/profileModel.ts"
+        ],
+        "components/brandHome/profile/LocationIcon.tsx": [],
+        "components/brandHome/profile/PresenceLink.tsx": [],
+        "components/brandHome/profile/profileModel.ts": [],
+        "components/brandHome/profile/useBrandProfile.ts": [
+          "components/brandHome/profile/profileModel.ts"
+        ]
+      },
+      "budgets": {
+        "components/brandHome/BrandProfileCard.tsx": 135,
+        "components/brandHome/profile/AboutField.tsx": 175,
+        "components/brandHome/profile/LinkChip.tsx": 260,
+        "components/brandHome/profile/useBrandProfile.ts": 110
+      }
+    },
+    {
+      "label": "builder-section-chrome",
+      "outside": "builder-section-chrome ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/sectionChrome/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/BuilderSectionChrome.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/BuilderSectionChrome.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/sectionChrome/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/BuilderSectionChrome.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/BuilderSectionChrome.tsx": [
+          "app/(portal)/studies/concept/sectionChrome/BuilderSectionToggle.tsx",
+          "app/(portal)/studies/concept/sectionChrome/useBuilderSectionChrome.ts"
+        ],
+        "app/(portal)/studies/concept/sectionChrome/BuilderSectionToggle.tsx": [],
+        "app/(portal)/studies/concept/sectionChrome/useBuilderSectionChrome.ts": []
+      }
+    },
+    {
+      "label": "builder-stepper",
+      "outside": "builder-stepper ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/stepper/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/BuilderStepper.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/BuilderStepper.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/stepper/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/BuilderStepper.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/BuilderStepper.tsx": [
+          "app/(portal)/studies/concept/stepper/BuilderStepLink.tsx",
+          "app/(portal)/studies/concept/stepper/builderStep.ts",
+          "app/(portal)/studies/concept/stepper/useBuilderStepper.ts"
+        ],
+        "app/(portal)/studies/concept/stepper/BuilderStepLink.tsx": [
+          "app/(portal)/studies/concept/stepper/BuilderStepMark.tsx",
+          "app/(portal)/studies/concept/stepper/builderStep.ts"
+        ],
+        "app/(portal)/studies/concept/stepper/BuilderStepMark.tsx": [],
+        "app/(portal)/studies/concept/stepper/builderStep.ts": [],
+        "app/(portal)/studies/concept/stepper/useBuilderStepper.ts": [
+          "app/(portal)/studies/concept/stepper/builderStep.ts"
+        ]
+      }
+    },
+    {
+      "label": "case-editor",
+      "outside": "case-editor ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/corrections/editor/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/corrections/CaseEditor.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/corrections/CaseEditor.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/corrections/editor/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/corrections/CaseEditor.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/corrections/CaseEditor.tsx": [
+          "app/(portal)/admin/corrections/editor/NutritionFields.tsx",
+          "app/(portal)/admin/corrections/editor/IngredientsFields.tsx",
+          "app/(portal)/admin/corrections/editor/NameField.tsx",
+          "app/(portal)/admin/corrections/editor/BrandFields.tsx",
+          "app/(portal)/admin/corrections/editor/CategoryFields.tsx",
+          "app/(portal)/admin/corrections/editor/PriceFields.tsx",
+          "app/(portal)/admin/corrections/editor/ImageField.tsx",
+          "app/(portal)/admin/corrections/editor/OtherField.tsx",
+          "app/(portal)/admin/corrections/editor/EditorKicker.tsx",
+          "app/(portal)/admin/corrections/editor/VariantPicker.tsx",
+          "app/(portal)/admin/corrections/editor/EditorActions.tsx",
+          "app/(portal)/admin/corrections/editor/useCaseEditor.ts"
+        ],
+        "app/(portal)/admin/corrections/editor/NutritionFields.tsx": [],
+        "app/(portal)/admin/corrections/editor/IngredientsFields.tsx": [],
+        "app/(portal)/admin/corrections/editor/NameField.tsx": [],
+        "app/(portal)/admin/corrections/editor/BrandFields.tsx": [],
+        "app/(portal)/admin/corrections/editor/CategoryFields.tsx": [],
+        "app/(portal)/admin/corrections/editor/PriceFields.tsx": [],
+        "app/(portal)/admin/corrections/editor/ImageField.tsx": [],
+        "app/(portal)/admin/corrections/editor/OtherField.tsx": [],
+        "app/(portal)/admin/corrections/editor/EditorKicker.tsx": [],
+        "app/(portal)/admin/corrections/editor/VariantPicker.tsx": [],
+        "app/(portal)/admin/corrections/editor/EditorActions.tsx": [],
+        "app/(portal)/admin/corrections/editor/useCaseEditor.ts": [
+          "app/(portal)/admin/corrections/editor/CategoryFields.tsx",
+          "app/(portal)/admin/corrections/editor/NutritionFields.tsx"
+        ]
+      },
+      "budgets": {
+        "app/(portal)/admin/corrections/CaseEditor.tsx": 115,
+        "app/(portal)/admin/corrections/editor/useCaseEditor.ts": 220
+      }
+    },
+    {
+      "label": "category-intelligence",
+      "outside": "category-intelligence",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/categories/[slug]/overview/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/categories/[slug]/CategoryIntelligenceClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/categories/[slug]/CategoryIntelligenceClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/categories/[slug]/overview/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/categories/[slug]/CategoryIntelligenceClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/categories/[slug]/CategoryIntelligenceClient.tsx": [
+          "app/(portal)/admin/categories/[slug]/overview/CategoryIntelHeader.tsx",
+          "app/(portal)/admin/categories/[slug]/overview/CategoryStatStrip.tsx",
+          "app/(portal)/admin/categories/[slug]/overview/CategoryL3Breakdown.tsx",
+          "app/(portal)/admin/categories/[slug]/overview/CategoryLeaderboard.tsx",
+          "app/(portal)/admin/categories/[slug]/overview/categoryModel.ts",
+          "app/(portal)/admin/categories/[slug]/overview/useCategoryIntelligence.ts"
+        ],
+        "app/(portal)/admin/categories/[slug]/overview/CategoryIntelHeader.tsx": [
+          "app/(portal)/admin/categories/[slug]/overview/useCategoryIntelligence.ts"
+        ],
+        "app/(portal)/admin/categories/[slug]/overview/CategoryStatStrip.tsx": [],
+        "app/(portal)/admin/categories/[slug]/overview/CategoryL3Breakdown.tsx": [
+          "app/(portal)/admin/categories/[slug]/overview/categoryModel.ts",
+          "app/(portal)/admin/categories/[slug]/overview/useCategoryIntelligence.ts"
+        ],
+        "app/(portal)/admin/categories/[slug]/overview/CategoryLeaderboard.tsx": [
+          "app/(portal)/admin/categories/[slug]/overview/categoryModel.ts",
+          "app/(portal)/admin/categories/[slug]/overview/useCategoryIntelligence.ts"
+        ],
+        "app/(portal)/admin/categories/[slug]/overview/useCategoryIntelligence.ts": [
+          "app/(portal)/admin/categories/[slug]/overview/categoryModel.ts"
+        ],
+        "app/(portal)/admin/categories/[slug]/overview/categoryModel.ts": []
+      },
+      "budgets": {
+        "app/(portal)/admin/categories/[slug]/CategoryIntelligenceClient.tsx": 70,
+        "app/(portal)/admin/categories/[slug]/overview/CategoryLeaderboard.tsx": 200
+      }
+    },
+    {
+      "label": "category-launcher",
+      "outside": "category-launcher",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "components/categories/launcher/"
+      ],
+      "scanShells": [
+        "components/categories/CategoryLauncher.tsx"
+      ],
+      "shells": [
+        "components/categories/CategoryLauncher.tsx"
+      ],
+      "prefixes": [
+        "components/categories/launcher/"
+      ],
+      "entryPoints": [
+        "components/categories/CategoryLauncher.tsx"
+      ],
+      "dependencies": {
+        "components/categories/CategoryLauncher.tsx": [
+          "components/categories/launcher/BrowseSection.tsx",
+          "components/categories/launcher/CompeteSection.tsx",
+          "components/categories/launcher/ExploreCard.tsx",
+          "components/categories/launcher/LauncherError.tsx",
+          "components/categories/launcher/LauncherSummary.tsx",
+          "components/categories/launcher/OwnedCards.tsx",
+          "components/categories/launcher/launcherModel.ts",
+          "components/categories/launcher/launcherParts.tsx",
+          "components/categories/launcher/useCategoryLauncher.ts"
+        ],
+        "components/categories/launcher/BrowseSection.tsx": [
+          "components/categories/launcher/ExploreCard.tsx",
+          "components/categories/launcher/launcherParts.tsx",
+          "components/categories/launcher/useCategoryLauncher.ts"
+        ],
+        "components/categories/launcher/CompeteCard.tsx": [
+          "components/categories/launcher/launcherModel.ts",
+          "components/categories/launcher/launcherParts.tsx"
+        ],
+        "components/categories/launcher/CompeteSection.tsx": [
+          "components/categories/launcher/CompeteCard.tsx",
+          "components/categories/launcher/launcherParts.tsx"
+        ],
+        "components/categories/launcher/ExploreCard.tsx": [],
+        "components/categories/launcher/LauncherError.tsx": [],
+        "components/categories/launcher/LauncherSummary.tsx": [
+          "components/categories/launcher/SummaryCard.tsx"
+        ],
+        "components/categories/launcher/OwnedCards.tsx": [
+          "components/categories/launcher/launcherParts.tsx"
+        ],
+        "components/categories/launcher/SummaryCard.tsx": [
+          "components/categories/launcher/launcherModel.ts",
+          "components/categories/launcher/launcherParts.tsx"
+        ],
+        "components/categories/launcher/launcherModel.ts": [],
+        "components/categories/launcher/launcherParts.tsx": [
+          "components/categories/launcher/launcherModel.ts"
+        ],
+        "components/categories/launcher/useCategoryLauncher.ts": [
+          "components/categories/launcher/launcherModel.ts"
+        ]
+      },
+      "budgets": {
+        "components/categories/CategoryLauncher.tsx": 120
+      }
+    },
+    {
+      "label": "checkout-desk",
+      "outside": "checkout-desk ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/[missionId]/checkout/desk/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/[missionId]/checkout/CheckoutClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/[missionId]/checkout/CheckoutClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/[missionId]/checkout/desk/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/[missionId]/checkout/CheckoutClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/[missionId]/checkout/CheckoutClient.tsx": [
+          "app/(portal)/studies/[missionId]/checkout/desk/CheckoutOrderCard.tsx",
+          "app/(portal)/studies/[missionId]/checkout/desk/CheckoutReportChapters.tsx",
+          "app/(portal)/studies/[missionId]/checkout/desk/CheckoutStudyPanel.tsx",
+          "app/(portal)/studies/[missionId]/checkout/desk/useCheckoutDesk.ts"
+        ],
+        "app/(portal)/studies/[missionId]/checkout/desk/CheckoutOrderCard.tsx": [],
+        "app/(portal)/studies/[missionId]/checkout/desk/CheckoutReportChapters.tsx": [],
+        "app/(portal)/studies/[missionId]/checkout/desk/CheckoutStudyPanel.tsx": [
+          "app/(portal)/studies/[missionId]/checkout/desk/CheckoutThumbFigure.tsx"
+        ],
+        "app/(portal)/studies/[missionId]/checkout/desk/CheckoutThumbFigure.tsx": [],
+        "app/(portal)/studies/[missionId]/checkout/desk/useCheckoutDesk.ts": []
+      }
+    },
+    {
+      "label": "checkout-handoff",
+      "outside": "checkout-handoff ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/handoff/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/CheckoutHandoff.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/CheckoutHandoff.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/handoff/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/CheckoutHandoff.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/CheckoutHandoff.tsx": [
+          "app/(portal)/studies/concept/handoff/AwaitingPaymentNotice.tsx",
+          "app/(portal)/studies/concept/handoff/HandoffCloseMark.tsx",
+          "app/(portal)/studies/concept/handoff/HandoffFacts.tsx",
+          "app/(portal)/studies/concept/handoff/HandoffHero.tsx",
+          "app/(portal)/studies/concept/handoff/useCheckoutHandoff.ts"
+        ],
+        "app/(portal)/studies/concept/handoff/AwaitingPaymentNotice.tsx": [],
+        "app/(portal)/studies/concept/handoff/HandoffCloseMark.tsx": [],
+        "app/(portal)/studies/concept/handoff/HandoffFacts.tsx": [],
+        "app/(portal)/studies/concept/handoff/HandoffHero.tsx": [
+          "app/(portal)/studies/concept/handoff/HandoffHeroPhoto.tsx"
+        ],
+        "app/(portal)/studies/concept/handoff/HandoffHeroPhoto.tsx": [],
+        "app/(portal)/studies/concept/handoff/useCheckoutHandoff.ts": []
+      }
+    },
+    {
+      "label": "checkout-page",
+      "outside": "checkout-page ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/[missionId]/checkout/emptyOrder/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/[missionId]/checkout/page.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/[missionId]/checkout/page.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/[missionId]/checkout/emptyOrder/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/[missionId]/checkout/page.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/[missionId]/checkout/page.tsx": [
+          "app/(portal)/studies/[missionId]/checkout/emptyOrder/CheckoutEmptyOrder.tsx",
+          "app/(portal)/studies/[missionId]/checkout/emptyOrder/loadCheckoutPage.ts"
+        ],
+        "app/(portal)/studies/[missionId]/checkout/emptyOrder/CheckoutEmptyOrder.tsx": [],
+        "app/(portal)/studies/[missionId]/checkout/emptyOrder/loadCheckoutPage.ts": []
+      }
+    },
+    {
+      "label": "command-palette",
+      "outside": "command-palette",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "components/portal/palette/"
+      ],
+      "scanShells": [
+        "components/portal/CommandPalette.tsx"
+      ],
+      "shells": [
+        "components/portal/CommandPalette.tsx"
+      ],
+      "prefixes": [
+        "components/portal/palette/"
+      ],
+      "entryPoints": [
+        "components/portal/CommandPalette.tsx"
+      ],
+      "dependencies": {
+        "components/portal/CommandPalette.tsx": [
+          "components/portal/palette/CommandList.tsx",
+          "components/portal/palette/PaletteFooter.tsx",
+          "components/portal/palette/PaletteSearchRow.tsx",
+          "components/portal/palette/paletteModel.ts",
+          "components/portal/palette/useCommandPalette.ts",
+          "components/portal/palette/useCommandPaletteHotkey.ts"
+        ],
+        "components/portal/palette/CommandList.tsx": [
+          "components/portal/palette/paletteModel.ts",
+          "components/portal/palette/useCommandPalette.ts"
+        ],
+        "components/portal/palette/PaletteFooter.tsx": [
+          "components/portal/palette/useCommandPalette.ts"
+        ],
+        "components/portal/palette/PaletteSearchRow.tsx": [
+          "components/portal/palette/useCommandPalette.ts"
+        ],
+        "components/portal/palette/paletteModel.ts": [],
+        "components/portal/palette/useCommandPalette.ts": [
+          "components/portal/palette/paletteModel.ts"
+        ],
+        "components/portal/palette/useCommandPaletteHotkey.ts": []
+      },
+      "budgets": {
+        "components/portal/palette/useCommandPalette.ts": 210
+      }
+    },
+    {
+      "label": "compare-group-edit",
+      "outside": "compare-group-edit",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/compare-groups/[id]/_components/edit/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/compare-groups/[id]/_components/EditDetailsPanel.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/compare-groups/[id]/_components/EditDetailsPanel.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/compare-groups/[id]/_components/edit/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/compare-groups/[id]/_components/EditDetailsPanel.tsx"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/compare-groups/[id]/_components/EditDetailsPanel.tsx": [
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/AuditNoteField.tsx",
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/DetailsTextFields.tsx",
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/EditActions.tsx",
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/EditHeader.tsx",
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/GroupMetaFields.tsx",
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/useEditDetails.ts"
+        ],
+        "app/(portal)/admin/compare-groups/[id]/_components/edit/AuditNoteField.tsx": [
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/editModel.ts",
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/useEditDetails.ts"
+        ],
+        "app/(portal)/admin/compare-groups/[id]/_components/edit/DetailsTextFields.tsx": [
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/editModel.ts",
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/useEditDetails.ts"
+        ],
+        "app/(portal)/admin/compare-groups/[id]/_components/edit/EditActions.tsx": [
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/useEditDetails.ts"
+        ],
+        "app/(portal)/admin/compare-groups/[id]/_components/edit/EditHeader.tsx": [],
+        "app/(portal)/admin/compare-groups/[id]/_components/edit/GroupMetaFields.tsx": [
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/editModel.ts",
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/useEditDetails.ts"
+        ],
+        "app/(portal)/admin/compare-groups/[id]/_components/edit/editModel.ts": [],
+        "app/(portal)/admin/compare-groups/[id]/_components/edit/useEditDetails.ts": [
+          "app/(portal)/admin/compare-groups/[id]/_components/edit/editModel.ts"
+        ]
+      },
+      "budgets": {
+        "app/(portal)/admin/compare-groups/[id]/_components/edit/useEditDetails.ts": 155
+      }
+    },
+    {
+      "label": "compare-groups",
+      "outside": "compare-groups",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/compare-groups/_components/groups/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/compare-groups/_components/CompareGroupsTable.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/compare-groups/_components/CompareGroupsTable.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/compare-groups/_components/groups/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/compare-groups/_components/CompareGroupsTable.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/compare-groups/_components/CompareGroupsTable.tsx": [
+          "app/(portal)/admin/compare-groups/_components/groups/CompareGroupsSortBar.tsx",
+          "app/(portal)/admin/compare-groups/_components/groups/CompareGroupsRangeFilters.tsx",
+          "app/(portal)/admin/compare-groups/_components/groups/CompareGroupsTodFilter.tsx",
+          "app/(portal)/admin/compare-groups/_components/groups/CompareGroupsSearch.tsx",
+          "app/(portal)/admin/compare-groups/_components/groups/CompareGroupsBody.tsx",
+          "app/(portal)/admin/compare-groups/_components/groups/useCompareGroups.ts"
+        ],
+        "app/(portal)/admin/compare-groups/_components/groups/CompareGroupsSortBar.tsx": [
+          "app/(portal)/admin/compare-groups/_components/groups/compareGroupChrome.ts"
+        ],
+        "app/(portal)/admin/compare-groups/_components/groups/CompareGroupsRangeFilters.tsx": [
+          "app/(portal)/admin/compare-groups/_components/groups/compareGroupChrome.ts"
+        ],
+        "app/(portal)/admin/compare-groups/_components/groups/CompareGroupsTodFilter.tsx": [
+          "app/(portal)/admin/compare-groups/_components/groups/compareGroupChrome.ts"
+        ],
+        "app/(portal)/admin/compare-groups/_components/groups/CompareGroupsSearch.tsx": [],
+        "app/(portal)/admin/compare-groups/_components/groups/CompareGroupsHead.tsx": [
+          "app/(portal)/admin/compare-groups/_components/groups/compareGroupChrome.ts"
+        ],
+        "app/(portal)/admin/compare-groups/_components/groups/CompareGroupsBody.tsx": [
+          "app/(portal)/admin/compare-groups/_components/groups/CompareGroupRow.tsx",
+          "app/(portal)/admin/compare-groups/_components/groups/CompareGroupsHead.tsx",
+          "app/(portal)/admin/compare-groups/_components/groups/compareGroupChrome.ts"
+        ],
+        "app/(portal)/admin/compare-groups/_components/groups/CompareGroupRow.tsx": [],
+        "app/(portal)/admin/compare-groups/_components/groups/useCompareGroups.ts": [
+          "app/(portal)/admin/compare-groups/_components/groups/compareGroupChrome.ts"
+        ],
+        "app/(portal)/admin/compare-groups/_components/groups/compareGroupChrome.ts": []
+      },
+      "budgets": {
+        "app/(portal)/admin/compare-groups/_components/CompareGroupsTable.tsx": 60,
+        "app/(portal)/admin/compare-groups/_components/groups/useCompareGroups.ts": 125,
+        "app/(portal)/admin/compare-groups/_components/groups/CompareGroupRow.tsx": 135
+      }
+    },
+    {
+      "label": "concept-audience",
+      "outside": "concept-audience ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/audience/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/AudienceSection.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/AudienceSection.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/audience/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/AudienceSection.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/AudienceSection.tsx": [
+          "app/(portal)/studies/concept/audience/ConceptAudienceCategory.tsx",
+          "app/(portal)/studies/concept/audience/ConceptAudienceHead.tsx",
+          "app/(portal)/studies/concept/audience/ConceptAudienceLocked.tsx",
+          "app/(portal)/studies/concept/audience/ConceptAudienceNarrowing.tsx",
+          "app/(portal)/studies/concept/audience/useConceptAudience.ts"
+        ],
+        "app/(portal)/studies/concept/audience/ConceptAudienceCategory.tsx": [],
+        "app/(portal)/studies/concept/audience/ConceptAudienceHead.tsx": [],
+        "app/(portal)/studies/concept/audience/ConceptAudienceLocked.tsx": [],
+        "app/(portal)/studies/concept/audience/ConceptAudienceNarrowing.tsx": [],
+        "app/(portal)/studies/concept/audience/useConceptAudience.ts": []
+      }
+    },
+    {
+      "label": "concept card",
+      "outside": "concept card ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/cards/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/conceptCards.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/conceptCards.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/cards/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/conceptCards.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/conceptCards.tsx": [
+          "app/(portal)/studies/concept/cards/BandStrip.tsx",
+          "app/(portal)/studies/concept/cards/Chip.tsx",
+          "app/(portal)/studies/concept/cards/ExpectedPriceCard.tsx",
+          "app/(portal)/studies/concept/cards/QCard.tsx",
+          "app/(portal)/studies/concept/cards/VerificationCard.tsx"
+        ],
+        "app/(portal)/studies/concept/cards/BandStrip.tsx": [],
+        "app/(portal)/studies/concept/cards/Chip.tsx": [],
+        "app/(portal)/studies/concept/cards/ExpectedPriceCard.tsx": [
+          "app/(portal)/studies/concept/cards/BandStrip.tsx",
+          "app/(portal)/studies/concept/cards/QCard.tsx",
+          "app/(portal)/studies/concept/cards/cardTypes.ts"
+        ],
+        "app/(portal)/studies/concept/cards/QCard.tsx": [],
+        "app/(portal)/studies/concept/cards/VerificationCard.tsx": [
+          "app/(portal)/studies/concept/cards/Chip.tsx",
+          "app/(portal)/studies/concept/cards/QCard.tsx",
+          "app/(portal)/studies/concept/cards/cardTypes.ts"
+        ],
+        "app/(portal)/studies/concept/cards/cardTypes.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/concept/conceptCards.tsx": 20,
+        "app/(portal)/studies/concept/cards/VerificationCard.tsx": 220
+      }
+    },
+    {
+      "label": "concept client",
+      "outside": "concept client ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/client/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/ConceptStudyClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/ConceptStudyClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/client/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/ConceptStudyClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/ConceptStudyClient.tsx": [
+          "app/(portal)/studies/concept/client/ConceptStudyStepper.tsx",
+          "app/(portal)/studies/concept/client/NoVerificationDialog.tsx",
+          "app/(portal)/studies/concept/client/useConceptStudyClient.ts"
+        ],
+        "app/(portal)/studies/concept/client/ConceptStudyStepper.tsx": [],
+        "app/(portal)/studies/concept/client/NoVerificationDialog.tsx": [],
+        "app/(portal)/studies/concept/client/useConceptStudyClient.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/concept/ConceptStudyClient.tsx": 210,
+        "app/(portal)/studies/concept/client/useConceptStudyClient.ts": 360
+      }
+    },
+    {
+      "label": "concept-draft-edit",
+      "outside": "concept-draft-edit ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/[missionId]/edit/draft/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/[missionId]/edit/page.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/[missionId]/edit/page.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/[missionId]/edit/draft/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/[missionId]/edit/page.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/[missionId]/edit/page.tsx": [
+          "app/(portal)/studies/concept/[missionId]/edit/draft/ConceptDraftLoading.tsx",
+          "app/(portal)/studies/concept/[missionId]/edit/draft/ConceptDraftMissing.tsx",
+          "app/(portal)/studies/concept/[missionId]/edit/draft/useEditConceptDraft.ts"
+        ],
+        "app/(portal)/studies/concept/[missionId]/edit/draft/ConceptDraftLoading.tsx": [],
+        "app/(portal)/studies/concept/[missionId]/edit/draft/ConceptDraftMissing.tsx": [],
+        "app/(portal)/studies/concept/[missionId]/edit/draft/useEditConceptDraft.ts": []
+      }
+    },
+    {
+      "label": "concept-field",
+      "outside": "concept-field ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/field/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/FieldSection.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/FieldSection.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/field/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/FieldSection.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/FieldSection.tsx": [
+          "app/(portal)/studies/concept/field/FieldBattleLine.tsx",
+          "app/(portal)/studies/concept/field/FieldCapacityStatus.tsx",
+          "app/(portal)/studies/concept/field/FieldLockedPanel.tsx",
+          "app/(portal)/studies/concept/field/PricePosturePicker.tsx",
+          "app/(portal)/studies/concept/field/fieldDerived.ts"
+        ],
+        "app/(portal)/studies/concept/field/FieldBattleLine.tsx": [],
+        "app/(portal)/studies/concept/field/FieldCapacityStatus.tsx": [],
+        "app/(portal)/studies/concept/field/FieldLockedPanel.tsx": [],
+        "app/(portal)/studies/concept/field/PricePosturePicker.tsx": [],
+        "app/(portal)/studies/concept/field/fieldDerived.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/concept/FieldSection.tsx": 130,
+        "app/(portal)/studies/concept/field/fieldDerived.ts": 120
+      }
+    },
+    {
+      "label": "concept-report-page",
+      "outside": "concept-report-page ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/[missionId]/report/states/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/[missionId]/report/page.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/[missionId]/report/page.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/[missionId]/report/states/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/[missionId]/report/page.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/[missionId]/report/page.tsx": [
+          "app/(portal)/studies/concept/[missionId]/report/states/ConceptReportPreviewBanner.tsx",
+          "app/(portal)/studies/concept/[missionId]/report/states/ConceptReportStateCard.tsx",
+          "app/(portal)/studies/concept/[missionId]/report/states/StudyReportNotReady.tsx",
+          "app/(portal)/studies/concept/[missionId]/report/states/conceptReportMessages.ts",
+          "app/(portal)/studies/concept/[missionId]/report/states/tryParseConceptTest.ts"
+        ],
+        "app/(portal)/studies/concept/[missionId]/report/states/ConceptReportPreviewBanner.tsx": [],
+        "app/(portal)/studies/concept/[missionId]/report/states/ConceptReportStateCard.tsx": [],
+        "app/(portal)/studies/concept/[missionId]/report/states/StudyReportNotReady.tsx": [
+          "app/(portal)/studies/concept/[missionId]/report/states/ConceptReportStateCard.tsx"
+        ],
+        "app/(portal)/studies/concept/[missionId]/report/states/conceptReportMessages.ts": [],
+        "app/(portal)/studies/concept/[missionId]/report/states/tryParseConceptTest.ts": []
+      }
+    },
+    {
+      "label": "concept-study-status",
+      "outside": "concept-study-status ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/[missionId]/status/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/[missionId]/page.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/[missionId]/page.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/[missionId]/status/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/[missionId]/page.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/[missionId]/page.tsx": [
+          "app/(portal)/studies/concept/[missionId]/status/ConceptStudyStatusActions.tsx",
+          "app/(portal)/studies/concept/[missionId]/status/ConceptStudyStatusHeading.tsx"
+        ],
+        "app/(portal)/studies/concept/[missionId]/status/ConceptStudyStatusActions.tsx": [],
+        "app/(portal)/studies/concept/[missionId]/status/ConceptStudyStatusHeading.tsx": []
+      }
+    },
+    {
+      "label": "confirm-dialog",
+      "outside": "confirm-dialog ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/confirm/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/ConfirmDialog.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/ConfirmDialog.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/confirm/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/ConfirmDialog.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/ConfirmDialog.tsx": [
+          "app/(portal)/studies/concept/confirm/ConfirmDialogPanel.tsx",
+          "app/(portal)/studies/concept/confirm/confirmRequest.ts",
+          "app/(portal)/studies/concept/confirm/useConfirmDialog.ts"
+        ],
+        "app/(portal)/studies/concept/confirm/ConfirmDialogPanel.tsx": [
+          "app/(portal)/studies/concept/confirm/confirmRequest.ts"
+        ],
+        "app/(portal)/studies/concept/confirm/confirmRequest.ts": [],
+        "app/(portal)/studies/concept/confirm/useConfirmDialog.ts": [
+          "app/(portal)/studies/concept/confirm/confirmRequest.ts"
+        ]
+      }
+    },
+    {
+      "label": "corrections-review",
+      "outside": "corrections-review ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/corrections/review/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/corrections/CorrectionsReviewClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/corrections/CorrectionsReviewClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/corrections/review/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/corrections/CorrectionsReviewClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/corrections/CorrectionsReviewClient.tsx": [
+          "app/(portal)/admin/corrections/review/CaseStage.tsx",
+          "app/(portal)/admin/corrections/review/CorrectionRail.tsx",
+          "app/(portal)/admin/corrections/review/CorrectionsDeskHead.tsx",
+          "app/(portal)/admin/corrections/review/CorrectionsDeskNotices.tsx",
+          "app/(portal)/admin/corrections/review/CorrectionsDeskEmpty.tsx",
+          "app/(portal)/admin/corrections/review/CorrectionsLightbox.tsx",
+          "app/(portal)/admin/corrections/review/useCorrectionsReview.ts"
+        ],
+        "app/(portal)/admin/corrections/review/CaseStage.tsx": [
+          "app/(portal)/admin/corrections/review/CasePhoto.tsx",
+          "app/(portal)/admin/corrections/review/CaseMismatch.tsx",
+          "app/(portal)/admin/corrections/review/CaseEvidence.tsx",
+          "app/(portal)/admin/corrections/review/CaseActions.tsx",
+          "app/(portal)/admin/corrections/review/CaseRelated.tsx",
+          "app/(portal)/admin/corrections/review/CaseReject.tsx",
+          "app/(portal)/admin/corrections/review/caseStageModel.ts"
+        ],
+        "app/(portal)/admin/corrections/review/CasePhoto.tsx": [],
+        "app/(portal)/admin/corrections/review/CaseMismatch.tsx": [],
+        "app/(portal)/admin/corrections/review/CaseEvidence.tsx": [],
+        "app/(portal)/admin/corrections/review/CaseActions.tsx": [],
+        "app/(portal)/admin/corrections/review/CaseRelated.tsx": [],
+        "app/(portal)/admin/corrections/review/CaseReject.tsx": [
+          "app/(portal)/admin/corrections/review/caseStageModel.ts"
+        ],
+        "app/(portal)/admin/corrections/review/caseStageModel.ts": [],
+        "app/(portal)/admin/corrections/review/CorrectionRail.tsx": [],
+        "app/(portal)/admin/corrections/review/CorrectionsDeskHead.tsx": [],
+        "app/(portal)/admin/corrections/review/CorrectionsDeskNotices.tsx": [],
+        "app/(portal)/admin/corrections/review/CorrectionsDeskEmpty.tsx": [],
+        "app/(portal)/admin/corrections/review/CorrectionsLightbox.tsx": [],
+        "app/(portal)/admin/corrections/review/useCorrectionsReview.ts": []
+      },
+      "budgets": {
+        "app/(portal)/admin/corrections/CorrectionsReviewClient.tsx": 150,
+        "app/(portal)/admin/corrections/review/CaseStage.tsx": 155,
+        "app/(portal)/admin/corrections/review/CorrectionRail.tsx": 125,
+        "app/(portal)/admin/corrections/review/useCorrectionsReview.ts": 355
+      }
+    },
+    {
+      "label": "dashboard-more",
+      "outside": "dashboard-more",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/dashboard/more/"
+      ],
+      "scanShells": [
+        "app/(portal)/dashboard/DashboardClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/dashboard/DashboardClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/dashboard/more/"
+      ],
+      "entryPoints": [
+        "app/(portal)/dashboard/DashboardClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/dashboard/DashboardClient.tsx": [
+          "app/(portal)/dashboard/more/DashboardMore.tsx",
+          "app/(portal)/dashboard/more/useDashboardMore.ts"
+        ],
+        "app/(portal)/dashboard/more/DashboardMore.tsx": [
+          "app/(portal)/dashboard/more/DashboardCategoryTable.tsx",
+          "app/(portal)/dashboard/more/DashboardInsights.tsx",
+          "app/(portal)/dashboard/more/DashboardSkuTable.tsx",
+          "app/(portal)/dashboard/more/dashboardFormat.ts",
+          "app/(portal)/dashboard/more/useDashboardMore.ts"
+        ],
+        "app/(portal)/dashboard/more/DashboardCategoryTable.tsx": [
+          "app/(portal)/dashboard/more/DashboardCategoryProducts.tsx",
+          "app/(portal)/dashboard/more/dashboardFormat.ts"
+        ],
+        "app/(portal)/dashboard/more/DashboardCategoryProducts.tsx": [
+          "app/(portal)/dashboard/more/dashboardFormat.ts"
+        ],
+        "app/(portal)/dashboard/more/DashboardInsights.tsx": [
+          "app/(portal)/dashboard/more/dashboardFormat.ts"
+        ],
+        "app/(portal)/dashboard/more/DashboardSkuTable.tsx": [
+          "app/(portal)/dashboard/more/dashboardFormat.ts"
+        ],
+        "app/(portal)/dashboard/more/useDashboardMore.ts": [
+          "app/(portal)/dashboard/more/dashboardFormat.ts"
+        ],
+        "app/(portal)/dashboard/more/dashboardFormat.ts": []
+      },
+      "budgets": {
+        "app/(portal)/dashboard/DashboardClient.tsx": 95,
+        "app/(portal)/dashboard/more/DashboardCategoryTable.tsx": 195,
+        "app/(portal)/dashboard/more/DashboardCategoryProducts.tsx": 155,
+        "app/(portal)/dashboard/more/DashboardMore.tsx": 120
+      }
+    },
+    {
+      "label": "flavor-notes",
+      "outside": "flavor-notes",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "components/products/flavorNotes/"
+      ],
+      "scanShells": [
+        "components/products/FlavorNotesPanel.tsx"
+      ],
+      "shells": [
+        "components/products/FlavorNotesPanel.tsx"
+      ],
+      "prefixes": [
+        "components/products/flavorNotes/"
+      ],
+      "entryPoints": [
+        "components/products/FlavorNotesPanel.tsx"
+      ],
+      "dependencies": {
+        "components/products/FlavorNotesPanel.tsx": [
+          "components/products/flavorNotes/NotesAdd.tsx",
+          "components/products/flavorNotes/NotesList.tsx",
+          "components/products/flavorNotes/useFlavorNotes.ts"
+        ],
+        "components/products/flavorNotes/DraftComposer.tsx": [
+          "components/products/flavorNotes/useFlavorNotes.ts"
+        ],
+        "components/products/flavorNotes/NoteEditComposer.tsx": [
+          "components/products/flavorNotes/useFlavorNotes.ts"
+        ],
+        "components/products/flavorNotes/NoteItem.tsx": [
+          "components/products/flavorNotes/NoteEditComposer.tsx",
+          "components/products/flavorNotes/useFlavorNotes.ts"
+        ],
+        "components/products/flavorNotes/NotesAdd.tsx": [
+          "components/products/flavorNotes/DraftComposer.tsx",
+          "components/products/flavorNotes/useFlavorNotes.ts"
+        ],
+        "components/products/flavorNotes/NotesList.tsx": [
+          "components/products/flavorNotes/NoteItem.tsx",
+          "components/products/flavorNotes/useFlavorNotes.ts"
+        ],
+        "components/products/flavorNotes/useFlavorNotes.ts": []
+      },
+      "budgets": {
+        "components/products/flavorNotes/useFlavorNotes.ts": 160
+      }
+    },
+    {
+      "label": "formula-sheet",
+      "outside": "formula-sheet",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "components/transparency/formula/"
+      ],
+      "scanShells": [
+        "components/transparency/FormulaSheet.tsx"
+      ],
+      "shells": [
+        "components/transparency/FormulaSheet.tsx"
+      ],
+      "prefixes": [
+        "components/transparency/formula/"
+      ],
+      "entryPoints": [
+        "components/transparency/FormulaSheet.tsx"
+      ],
+      "dependencies": {
+        "components/transparency/FormulaSheet.tsx": [
+          "components/transparency/formula/AmountBlock.tsx",
+          "components/transparency/formula/BreakoutBlock.tsx",
+          "components/transparency/formula/formulaModel.ts"
+        ],
+        "components/transparency/formula/AmountBlock.tsx": [
+          "components/transparency/formula/formulaModel.ts"
+        ],
+        "components/transparency/formula/BreakoutBlock.tsx": [
+          "components/transparency/formula/formulaModel.ts"
+        ],
+        "components/transparency/formula/formulaModel.ts": []
+      },
+      "budgets": {
+        "components/transparency/FormulaSheet.tsx": 250,
+        "components/transparency/formula/AmountBlock.tsx": 130,
+        "components/transparency/formula/BreakoutBlock.tsx": 110
+      }
+    },
+    {
+      "label": "impersonate-search",
+      "outside": "impersonate-search",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/impersonate/search/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/impersonate/ImpersonateBrandClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/impersonate/ImpersonateBrandClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/impersonate/search/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/impersonate/ImpersonateBrandClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/impersonate/ImpersonateBrandClient.tsx": [
+          "app/(portal)/admin/impersonate/search/ImpersonateHeader.tsx",
+          "app/(portal)/admin/impersonate/search/ImpersonateResults.tsx",
+          "app/(portal)/admin/impersonate/search/ImpersonateSearchInput.tsx",
+          "app/(portal)/admin/impersonate/search/useImpersonateSearch.ts"
+        ],
+        "app/(portal)/admin/impersonate/search/ImpersonateHeader.tsx": [],
+        "app/(portal)/admin/impersonate/search/ImpersonateResults.tsx": [
+          "app/(portal)/admin/impersonate/search/useImpersonateSearch.ts"
+        ],
+        "app/(portal)/admin/impersonate/search/ImpersonateSearchInput.tsx": [],
+        "app/(portal)/admin/impersonate/search/useImpersonateSearch.ts": []
+      },
+      "budgets": {
+        "app/(portal)/admin/impersonate/ImpersonateBrandClient.tsx": 65,
+        "app/(portal)/admin/impersonate/search/ImpersonateResults.tsx": 110
+      }
+    },
+    {
+      "label": "journey",
+      "outside": "journey ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/journey/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/SingleTestJourneySection.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/SingleTestJourneySection.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/journey/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/SingleTestJourneySection.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/SingleTestJourneySection.tsx": [
+          "app/(portal)/studies/concept/journey/JourneySectionHead.tsx",
+          "app/(portal)/studies/concept/journey/JourneyStepList.tsx",
+          "app/(portal)/studies/concept/journey/JourneySuccessBlock.tsx",
+          "app/(portal)/studies/concept/journey/journeyLabels.ts",
+          "app/(portal)/studies/concept/journey/useSingleTestJourney.ts"
+        ],
+        "app/(portal)/studies/concept/journey/JourneyBattlePrompt.tsx": [],
+        "app/(portal)/studies/concept/journey/JourneyBoughtRecently.tsx": [],
+        "app/(portal)/studies/concept/journey/JourneyBrandQuestions.tsx": [
+          "app/(portal)/studies/concept/journey/journeyChrome.tsx"
+        ],
+        "app/(portal)/studies/concept/journey/JourneySectionHead.tsx": [
+          "app/(portal)/studies/concept/journey/journeyLabels.ts"
+        ],
+        "app/(portal)/studies/concept/journey/JourneyStepList.tsx": [
+          "app/(portal)/studies/concept/journey/JourneyBattlePrompt.tsx",
+          "app/(portal)/studies/concept/journey/JourneyBoughtRecently.tsx",
+          "app/(portal)/studies/concept/journey/JourneyBrandQuestions.tsx",
+          "app/(portal)/studies/concept/journey/journeyChrome.tsx",
+          "app/(portal)/studies/concept/journey/useSingleTestJourney.ts"
+        ],
+        "app/(portal)/studies/concept/journey/JourneySuccessBars.tsx": [],
+        "app/(portal)/studies/concept/journey/JourneySuccessBlock.tsx": [
+          "app/(portal)/studies/concept/journey/JourneySuccessBars.tsx",
+          "app/(portal)/studies/concept/journey/journeyChrome.tsx",
+          "app/(portal)/studies/concept/journey/useSingleTestJourney.ts"
+        ],
+        "app/(portal)/studies/concept/journey/journeyChrome.tsx": [],
+        "app/(portal)/studies/concept/journey/journeyLabels.ts": [],
+        "app/(portal)/studies/concept/journey/useSingleTestJourney.ts": [
+          "app/(portal)/studies/concept/journey/journeyLabels.ts"
+        ]
+      },
+      "budgets": {
+        "app/(portal)/studies/concept/SingleTestJourneySection.tsx": 80,
+        "app/(portal)/studies/concept/journey/JourneyBrandQuestions.tsx": 140,
+        "app/(portal)/studies/concept/journey/JourneyStepList.tsx": 230,
+        "app/(portal)/studies/concept/journey/journeyChrome.tsx": 140,
+        "app/(portal)/studies/concept/journey/useSingleTestJourney.ts": 190
+      }
+    },
+    {
+      "label": "l3-intelligence",
+      "outside": "l3-intelligence",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/categories/[slug]/[l3slug]/intel/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/categories/[slug]/[l3slug]/L3IntelligenceClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/categories/[slug]/[l3slug]/L3IntelligenceClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/categories/[slug]/[l3slug]/intel/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/categories/[slug]/[l3slug]/L3IntelligenceClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/categories/[slug]/[l3slug]/L3IntelligenceClient.tsx": [
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3Breadcrumb.tsx",
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3Title.tsx",
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3StatStrip.tsx",
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3InsightCards.tsx",
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3RankToolbar.tsx",
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3RankTable.tsx",
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/l3Model.ts",
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/useL3Intelligence.ts"
+        ],
+        "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3Breadcrumb.tsx": [],
+        "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3Title.tsx": [],
+        "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3StatStrip.tsx": [],
+        "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3InsightCards.tsx": [
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/l3Model.ts"
+        ],
+        "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3RankToolbar.tsx": [
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/l3Model.ts"
+        ],
+        "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3RankTable.tsx": [
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/l3Model.ts",
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3RankRow.tsx"
+        ],
+        "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3RankRow.tsx": [
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/l3Model.ts"
+        ],
+        "app/(portal)/admin/categories/[slug]/[l3slug]/intel/useL3Intelligence.ts": [
+          "app/(portal)/admin/categories/[slug]/[l3slug]/intel/l3Model.ts"
+        ],
+        "app/(portal)/admin/categories/[slug]/[l3slug]/intel/l3Model.ts": []
+      },
+      "budgets": {
+        "app/(portal)/admin/categories/[slug]/[l3slug]/L3IntelligenceClient.tsx": 70,
+        "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3InsightCards.tsx": 125,
+        "app/(portal)/admin/categories/[slug]/[l3slug]/intel/L3RankRow.tsx": 150
+      }
+    },
+    {
+      "label": "login-page",
+      "outside": "login-page",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "components/auth/login/"
+      ],
+      "scanShells": [
+        "app/login/page.tsx"
+      ],
+      "shells": [
+        "app/login/page.tsx"
+      ],
+      "prefixes": [
+        "components/auth/login/"
+      ],
+      "entryPoints": [
+        "app/login/page.tsx"
+      ],
+      "dependencies": {
+        "app/login/page.tsx": [
+          "components/auth/login/ForgotStep.tsx",
+          "components/auth/login/SignInStep.tsx",
+          "components/auth/login/useLogin.ts"
+        ],
+        "components/auth/login/ForgotStep.tsx": [
+          "components/auth/login/useLogin.ts"
+        ],
+        "components/auth/login/SignInStep.tsx": [
+          "components/auth/login/useLogin.ts"
+        ],
+        "components/auth/login/loginModel.ts": [],
+        "components/auth/login/useLogin.ts": [
+          "components/auth/login/loginModel.ts"
+        ]
+      },
+      "budgets": {
+        "components/auth/login/ForgotStep.tsx": 115,
+        "components/auth/login/SignInStep.tsx": 140,
+        "components/auth/login/useLogin.ts": 130
+      }
+    },
+    {
+      "label": "new-study-chooser",
+      "outside": "new-study-chooser ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/new/chooser/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/new/page.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/new/page.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/new/chooser/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/new/page.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/new/page.tsx": [
+          "app/(portal)/studies/new/chooser/NewStudyChooserIntro.tsx",
+          "app/(portal)/studies/new/chooser/StudyChoiceCard.tsx"
+        ],
+        "app/(portal)/studies/new/chooser/NewStudyChooserIntro.tsx": [],
+        "app/(portal)/studies/new/chooser/StudyChoiceCard.tsx": []
+      }
+    },
+    {
+      "label": "origin-sheet",
+      "outside": "origin-sheet",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "components/transparency/origin/"
+      ],
+      "scanShells": [
+        "components/transparency/OriginSheet.tsx"
+      ],
+      "shells": [
+        "components/transparency/OriginSheet.tsx"
+      ],
+      "prefixes": [
+        "components/transparency/origin/"
+      ],
+      "entryPoints": [
+        "components/transparency/OriginSheet.tsx"
+      ],
+      "dependencies": {
+        "components/transparency/OriginSheet.tsx": [
+          "components/transparency/origin/CoverageStrip.tsx",
+          "components/transparency/origin/PlaceStoryEditor.tsx",
+          "components/transparency/origin/originModel.ts"
+        ],
+        "components/transparency/origin/CoverageStrip.tsx": [
+          "components/transparency/origin/originModel.ts"
+        ],
+        "components/transparency/origin/PlaceStoryEditor.tsx": [
+          "components/transparency/origin/PlaceDepthFields.tsx",
+          "components/transparency/origin/originModel.ts"
+        ],
+        "components/transparency/origin/PlaceDepthFields.tsx": [
+          "components/transparency/origin/originModel.ts"
+        ],
+        "components/transparency/origin/originModel.ts": []
+      },
+      "budgets": {
+        "components/transparency/OriginSheet.tsx": 285,
+        "components/transparency/origin/PlaceStoryEditor.tsx": 290,
+        "components/transparency/origin/PlaceDepthFields.tsx": 180
+      }
+    },
+    {
+      "label": "own-product",
+      "outside": "own-product ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/ownProduct/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/OwnProductColumn.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/OwnProductColumn.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/ownProduct/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/OwnProductColumn.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/OwnProductColumn.tsx": [
+          "app/(portal)/studies/concept/ownProduct/OwnProductAddControl.tsx",
+          "app/(portal)/studies/concept/ownProduct/OwnProductColumnHead.tsx",
+          "app/(portal)/studies/concept/ownProduct/OwnProductEmptyState.tsx",
+          "app/(portal)/studies/concept/ownProduct/OwnProductSeat.tsx",
+          "app/(portal)/studies/concept/ownProduct/useOwnProductColumn.ts"
+        ],
+        "app/(portal)/studies/concept/ownProduct/ConceptDesignCard.tsx": [],
+        "app/(portal)/studies/concept/ownProduct/OwnProductAddControl.tsx": [],
+        "app/(portal)/studies/concept/ownProduct/OwnProductColumnHead.tsx": [],
+        "app/(portal)/studies/concept/ownProduct/OwnProductEmptyState.tsx": [],
+        "app/(portal)/studies/concept/ownProduct/OwnProductSeat.tsx": [
+          "app/(portal)/studies/concept/ownProduct/ConceptDesignCard.tsx",
+          "app/(portal)/studies/concept/ownProduct/OwnVariantCard.tsx"
+        ],
+        "app/(portal)/studies/concept/ownProduct/OwnVariantCard.tsx": [],
+        "app/(portal)/studies/concept/ownProduct/useOwnProductColumn.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/concept/OwnProductColumn.tsx": 105,
+        "app/(portal)/studies/concept/ownProduct/OwnProductSeat.tsx": 110,
+        "app/(portal)/studies/concept/ownProduct/OwnVariantCard.tsx": 190,
+        "app/(portal)/studies/concept/ownProduct/useOwnProductColumn.ts": 150
+      }
+    },
+    {
+      "label": "ownership-correction",
+      "outside": "ownership-correction",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "components/brandHome/ownership/"
+      ],
+      "scanShells": [
+        "components/brandHome/OwnershipCorrectionModal.tsx"
+      ],
+      "shells": [
+        "components/brandHome/OwnershipCorrectionModal.tsx"
+      ],
+      "prefixes": [
+        "components/brandHome/ownership/"
+      ],
+      "entryPoints": [
+        "components/brandHome/OwnershipCorrectionModal.tsx"
+      ],
+      "dependencies": {
+        "components/brandHome/OwnershipCorrectionModal.tsx": [
+          "components/brandHome/ownership/EvidenceField.tsx",
+          "components/brandHome/ownership/NotesField.tsx",
+          "components/brandHome/ownership/OwnershipActions.tsx",
+          "components/brandHome/ownership/OwnershipModeChoice.tsx",
+          "components/brandHome/ownership/ParentPicker.tsx",
+          "components/brandHome/ownership/useOwnershipCorrection.ts"
+        ],
+        "components/brandHome/ownership/EvidenceField.tsx": [
+          "components/brandHome/ownership/useOwnershipCorrection.ts"
+        ],
+        "components/brandHome/ownership/NotesField.tsx": [
+          "components/brandHome/ownership/useOwnershipCorrection.ts"
+        ],
+        "components/brandHome/ownership/OwnershipActions.tsx": [
+          "components/brandHome/ownership/useOwnershipCorrection.ts"
+        ],
+        "components/brandHome/ownership/OwnershipModeChoice.tsx": [
+          "components/brandHome/ownership/useOwnershipCorrection.ts"
+        ],
+        "components/brandHome/ownership/ParentPicker.tsx": [
+          "components/brandHome/ownership/useOwnershipCorrection.ts"
+        ],
+        "components/brandHome/ownership/ownershipModel.ts": [],
+        "components/brandHome/ownership/useOwnershipCorrection.ts": [
+          "components/brandHome/ownership/ownershipModel.ts"
+        ]
+      },
+      "budgets": {
+        "components/brandHome/OwnershipCorrectionModal.tsx": 130,
+        "components/brandHome/ownership/ParentPicker.tsx": 130,
+        "components/brandHome/ownership/useOwnershipCorrection.ts": 130
+      }
+    },
+    {
+      "label": "ownership-corrections",
+      "outside": "ownership-corrections ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/ownership-corrections/queue/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/ownership-corrections/OwnershipCorrectionsClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/ownership-corrections/OwnershipCorrectionsClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/ownership-corrections/queue/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/ownership-corrections/OwnershipCorrectionsClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/ownership-corrections/OwnershipCorrectionsClient.tsx": [
+          "app/(portal)/admin/ownership-corrections/queue/OwnershipCorrectionCard.tsx",
+          "app/(portal)/admin/ownership-corrections/queue/OwnershipQueueHead.tsx",
+          "app/(portal)/admin/ownership-corrections/queue/OwnershipQueueNotices.tsx",
+          "app/(portal)/admin/ownership-corrections/queue/OwnershipQueueEmpty.tsx",
+          "app/(portal)/admin/ownership-corrections/queue/OwnershipQueueLoadMore.tsx",
+          "app/(portal)/admin/ownership-corrections/queue/useOwnershipCorrections.ts"
+        ],
+        "app/(portal)/admin/ownership-corrections/queue/OwnershipCorrectionCard.tsx": [
+          "app/(portal)/admin/ownership-corrections/queue/OwnershipCorrectionHeading.tsx",
+          "app/(portal)/admin/ownership-corrections/queue/OwnershipCorrectionBody.tsx",
+          "app/(portal)/admin/ownership-corrections/queue/OwnershipReviewNotes.tsx",
+          "app/(portal)/admin/ownership-corrections/queue/OwnershipStaleConfirm.tsx",
+          "app/(portal)/admin/ownership-corrections/queue/OwnershipDecisionActions.tsx"
+        ],
+        "app/(portal)/admin/ownership-corrections/queue/OwnershipCorrectionHeading.tsx": [],
+        "app/(portal)/admin/ownership-corrections/queue/OwnershipCorrectionBody.tsx": [],
+        "app/(portal)/admin/ownership-corrections/queue/OwnershipReviewNotes.tsx": [],
+        "app/(portal)/admin/ownership-corrections/queue/OwnershipStaleConfirm.tsx": [],
+        "app/(portal)/admin/ownership-corrections/queue/OwnershipDecisionActions.tsx": [],
+        "app/(portal)/admin/ownership-corrections/queue/OwnershipQueueHead.tsx": [],
+        "app/(portal)/admin/ownership-corrections/queue/OwnershipQueueNotices.tsx": [],
+        "app/(portal)/admin/ownership-corrections/queue/OwnershipQueueEmpty.tsx": [],
+        "app/(portal)/admin/ownership-corrections/queue/OwnershipQueueLoadMore.tsx": [],
+        "app/(portal)/admin/ownership-corrections/queue/useOwnershipCorrections.ts": []
+      },
+      "budgets": {
+        "app/(portal)/admin/ownership-corrections/OwnershipCorrectionsClient.tsx": 95,
+        "app/(portal)/admin/ownership-corrections/queue/useOwnershipCorrections.ts": 180
+      }
+    },
+    {
+      "label": "pack-size",
+      "outside": "pack-size ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/packSize/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/PackSizeField.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/PackSizeField.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/packSize/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/PackSizeField.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/PackSizeField.tsx": [
+          "app/(portal)/studies/concept/packSize/PackSizeNotes.tsx",
+          "app/(portal)/studies/concept/packSize/PackSizeOtherInput.tsx",
+          "app/(portal)/studies/concept/packSize/PackSizeSelect.tsx",
+          "app/(portal)/studies/concept/packSize/usePackSizeField.ts"
+        ],
+        "app/(portal)/studies/concept/packSize/PackSizeNotes.tsx": [],
+        "app/(portal)/studies/concept/packSize/PackSizeOtherInput.tsx": [],
+        "app/(portal)/studies/concept/packSize/PackSizeSelect.tsx": [],
+        "app/(portal)/studies/concept/packSize/usePackSizeField.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/concept/packSize/usePackSizeField.ts": 110
+      }
+    },
+    {
+      "label": "planet-sheet",
+      "outside": "planet-sheet",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "components/transparency/planet/"
+      ],
+      "scanShells": [
+        "components/transparency/PlanetSheet.tsx"
+      ],
+      "shells": [
+        "components/transparency/PlanetSheet.tsx"
+      ],
+      "prefixes": [
+        "components/transparency/planet/"
+      ],
+      "entryPoints": [
+        "components/transparency/PlanetSheet.tsx"
+      ],
+      "dependencies": {
+        "components/transparency/PlanetSheet.tsx": [
+          "components/transparency/planet/FootprintEditor.tsx",
+          "components/transparency/planet/PackSheet.tsx",
+          "components/transparency/planet/planetModel.ts"
+        ],
+        "components/transparency/planet/FootprintEditor.tsx": [
+          "components/transparency/planet/planetModel.ts"
+        ],
+        "components/transparency/planet/PackEditor.tsx": [
+          "components/transparency/planet/planetModel.ts"
+        ],
+        "components/transparency/planet/PackSheet.tsx": [
+          "components/transparency/planet/PackEditor.tsx",
+          "components/transparency/planet/planetModel.ts"
+        ],
+        "components/transparency/planet/planetModel.ts": []
+      },
+      "budgets": {
+        "components/transparency/PlanetSheet.tsx": 140,
+        "components/transparency/planet/FootprintEditor.tsx": 320,
+        "components/transparency/planet/PackEditor.tsx": 215,
+        "components/transparency/planet/PackSheet.tsx": 180
+      }
+    },
+    {
+      "label": "portal-layout",
+      "outside": "portal-layout",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/chrome/"
+      ],
+      "scanShells": [
+        "app/(portal)/PortalLayoutClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/PortalLayoutClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/chrome/"
+      ],
+      "entryPoints": [
+        "app/(portal)/PortalLayoutClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/PortalLayoutClient.tsx": [
+          "app/(portal)/chrome/PortalMobileTopbar.tsx",
+          "app/(portal)/chrome/PortalAside.tsx",
+          "app/(portal)/chrome/PortalDesktopTopbar.tsx",
+          "app/(portal)/chrome/PortalImpersonationBar.tsx",
+          "app/(portal)/chrome/usePortalLayout.ts"
+        ],
+        "app/(portal)/chrome/PortalMobileTopbar.tsx": [
+          "app/(portal)/chrome/NavGlyph.tsx",
+          "app/(portal)/chrome/usePortalLayout.ts"
+        ],
+        "app/(portal)/chrome/PortalAside.tsx": [
+          "app/(portal)/chrome/NavGlyph.tsx",
+          "app/(portal)/chrome/portalNav.ts",
+          "app/(portal)/chrome/usePortalLayout.ts"
+        ],
+        "app/(portal)/chrome/PortalDesktopTopbar.tsx": [
+          "app/(portal)/chrome/NavGlyph.tsx",
+          "app/(portal)/chrome/usePortalLayout.ts"
+        ],
+        "app/(portal)/chrome/PortalImpersonationBar.tsx": [
+          "app/(portal)/chrome/usePortalLayout.ts"
+        ],
+        "app/(portal)/chrome/usePortalLayout.ts": [
+          "app/(portal)/chrome/portalNav.ts"
+        ],
+        "app/(portal)/chrome/NavGlyph.tsx": [
+          "app/(portal)/chrome/navModel.ts"
+        ],
+        "app/(portal)/chrome/portalNav.ts": [
+          "app/(portal)/chrome/navModel.ts"
+        ],
+        "app/(portal)/chrome/navModel.ts": []
+      },
+      "budgets": {
+        "app/(portal)/PortalLayoutClient.tsx": 110,
+        "app/(portal)/chrome/usePortalLayout.ts": 295,
+        "app/(portal)/chrome/PortalAside.tsx": 125
+      }
+    },
+    {
+      "label": "product-attributes",
+      "outside": "product-attributes",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "components/products/attributes/"
+      ],
+      "scanShells": [
+        "components/products/ProductAttributesEditor.tsx"
+      ],
+      "shells": [
+        "components/products/ProductAttributesEditor.tsx"
+      ],
+      "prefixes": [
+        "components/products/attributes/"
+      ],
+      "entryPoints": [
+        "components/products/ProductAttributesEditor.tsx"
+      ],
+      "dependencies": {
+        "components/products/ProductAttributesEditor.tsx": [
+          "components/products/attributes/AttributesAddList.tsx",
+          "components/products/attributes/AttributesHero.tsx",
+          "components/products/attributes/ClaimCard.tsx",
+          "components/products/attributes/KnownTile.tsx",
+          "components/products/attributes/attributesModel.ts",
+          "components/products/attributes/useProductAttributes.ts"
+        ],
+        "components/products/attributes/AttributesAddList.tsx": [
+          "components/products/attributes/useProductAttributes.ts"
+        ],
+        "components/products/attributes/AttributesHero.tsx": [
+          "components/products/attributes/attributesModel.ts",
+          "components/products/attributes/useProductAttributes.ts"
+        ],
+        "components/products/attributes/ClaimCard.tsx": [
+          "components/products/attributes/useClaimCard.ts"
+        ],
+        "components/products/attributes/KnownTile.tsx": [],
+        "components/products/attributes/attributesModel.ts": [],
+        "components/products/attributes/useClaimCard.ts": [],
+        "components/products/attributes/useProductAttributes.ts": [
+          "components/products/attributes/attributesModel.ts"
+        ]
+      },
+      "budgets": {
+        "components/products/attributes/ClaimCard.tsx": 215,
+        "components/products/attributes/useClaimCard.ts": 190
+      }
+    },
+    {
+      "label": "product-entry-mode",
+      "outside": "product-entry-mode ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/entryMode/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/ProductEntryModeToggle.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/ProductEntryModeToggle.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/entryMode/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/ProductEntryModeToggle.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/ProductEntryModeToggle.tsx": [
+          "app/(portal)/studies/entryMode/ProductEntryModeTab.tsx"
+        ],
+        "app/(portal)/studies/entryMode/ProductEntryModeTab.tsx": []
+      }
+    },
+    {
+      "label": "product-identity-confirm",
+      "outside": "product-identity-confirm ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/identityConfirm/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/ProductIdentityConfirm.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/ProductIdentityConfirm.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/identityConfirm/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/ProductIdentityConfirm.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/ProductIdentityConfirm.tsx": [
+          "app/(portal)/studies/identityConfirm/ProductIdentityActions.tsx",
+          "app/(portal)/studies/identityConfirm/ProductIdentityDetails.tsx"
+        ],
+        "app/(portal)/studies/identityConfirm/ProductIdentityActions.tsx": [],
+        "app/(portal)/studies/identityConfirm/ProductIdentityDetails.tsx": []
+      }
+    },
+    {
+      "label": "product-master",
+      "outside": "product-master",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/products/[productId]/master/"
+      ],
+      "scanShells": [
+        "app/(portal)/products/[productId]/ProductMasterClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/products/[productId]/ProductMasterClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/products/[productId]/master/"
+      ],
+      "entryPoints": [
+        "app/(portal)/products/[productId]/ProductMasterClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/products/[productId]/ProductMasterClient.tsx": [
+          "app/(portal)/products/[productId]/master/ProductCoverageNote.tsx",
+          "app/(portal)/products/[productId]/master/ProductImageFileInput.tsx",
+          "app/(portal)/products/[productId]/master/ProductMasterTabBody.tsx",
+          "app/(portal)/products/[productId]/master/useProductMasterNav.ts"
+        ],
+        "app/(portal)/products/[productId]/master/ProductCoverageNote.tsx": [],
+        "app/(portal)/products/[productId]/master/ProductImageFileInput.tsx": [],
+        "app/(portal)/products/[productId]/master/ProductMasterTabBody.tsx": [],
+        "app/(portal)/products/[productId]/master/useProductMasterNav.ts": []
+      },
+      "budgets": {
+        "app/(portal)/products/[productId]/ProductMasterClient.tsx": 145
+      }
+    },
+    {
+      "label": "products-catalog",
+      "outside": "products-catalog",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/products/catalog/"
+      ],
+      "scanShells": [
+        "app/(portal)/products/ProductsClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/products/ProductsClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/products/catalog/"
+      ],
+      "entryPoints": [
+        "app/(portal)/products/ProductsClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/products/ProductsClient.tsx": [
+          "app/(portal)/products/catalog/ProductsHeader.tsx",
+          "app/(portal)/products/catalog/ProductsSummary.tsx",
+          "app/(portal)/products/catalog/ProductsToolbar.tsx",
+          "app/(portal)/products/catalog/ProductsResults.tsx",
+          "app/(portal)/products/catalog/ProductsLoadMore.tsx",
+          "app/(portal)/products/catalog/useProductsCatalog.ts"
+        ],
+        "app/(portal)/products/catalog/ProductsHeader.tsx": [],
+        "app/(portal)/products/catalog/ProductsSummary.tsx": [
+          "app/(portal)/products/catalog/summaryCards.tsx"
+        ],
+        "app/(portal)/products/catalog/ProductsToolbar.tsx": [],
+        "app/(portal)/products/catalog/ProductsResults.tsx": [
+          "app/(portal)/products/catalog/productCards.tsx",
+          "app/(portal)/products/catalog/ProductListRows.tsx"
+        ],
+        "app/(portal)/products/catalog/ProductsLoadMore.tsx": [],
+        "app/(portal)/products/catalog/useProductsCatalog.ts": [],
+        "app/(portal)/products/catalog/ProductListRows.tsx": [
+          "app/(portal)/products/catalog/productCards.tsx",
+          "app/(portal)/products/catalog/summaryCards.tsx"
+        ],
+        "app/(portal)/products/catalog/productCards.tsx": [],
+        "app/(portal)/products/catalog/summaryCards.tsx": []
+      },
+      "budgets": {
+        "app/(portal)/products/ProductsClient.tsx": 95,
+        "app/(portal)/products/catalog/useProductsCatalog.ts": 190,
+        "app/(portal)/products/catalog/productCards.tsx": 135
+      }
+    },
+    {
+      "label": "prototype-editor",
+      "outside": "prototype-editor",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/prototypes/editor/"
+      ],
+      "scanShells": [
+        "app/(portal)/prototypes/PrototypeEditor.tsx"
+      ],
+      "shells": [
+        "app/(portal)/prototypes/PrototypeEditor.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/prototypes/editor/"
+      ],
+      "entryPoints": [
+        "app/(portal)/prototypes/PrototypeEditor.tsx"
+      ],
+      "dependencies": {
+        "app/(portal)/prototypes/PrototypeEditor.tsx": [
+          "app/(portal)/prototypes/editor/DetailsFields.tsx",
+          "app/(portal)/prototypes/editor/EditorFooter.tsx",
+          "app/(portal)/prototypes/editor/EditorHeader.tsx",
+          "app/(portal)/prototypes/editor/MediaFields.tsx",
+          "app/(portal)/prototypes/editor/usePrototypeEditor.ts"
+        ],
+        "app/(portal)/prototypes/editor/DetailsFields.tsx": [
+          "app/(portal)/prototypes/editor/usePrototypeEditor.ts"
+        ],
+        "app/(portal)/prototypes/editor/EditorFooter.tsx": [
+          "app/(portal)/prototypes/editor/usePrototypeEditor.ts"
+        ],
+        "app/(portal)/prototypes/editor/EditorHeader.tsx": [],
+        "app/(portal)/prototypes/editor/MediaFields.tsx": [
+          "app/(portal)/prototypes/editor/usePrototypeEditor.ts"
+        ],
+        "app/(portal)/prototypes/editor/usePrototypeEditor.ts": []
+      },
+      "budgets": {
+        "app/(portal)/prototypes/editor/DetailsFields.tsx": 125,
+        "app/(portal)/prototypes/editor/usePrototypeEditor.ts": 180
+      }
+    },
+    {
+      "label": "prototypes-library",
+      "outside": "prototypes-library",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/prototypes/library/"
+      ],
+      "scanShells": [
+        "app/(portal)/prototypes/PrototypesClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/prototypes/PrototypesClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/prototypes/library/"
+      ],
+      "entryPoints": [
+        "app/(portal)/prototypes/PrototypesClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/prototypes/PrototypesClient.tsx": [
+          "app/(portal)/prototypes/library/PrototypeCard.tsx",
+          "app/(portal)/prototypes/library/PrototypesEmpty.tsx",
+          "app/(portal)/prototypes/library/PrototypesHeader.tsx",
+          "app/(portal)/prototypes/library/PrototypesSummary.tsx",
+          "app/(portal)/prototypes/library/PrototypesToolbar.tsx",
+          "app/(portal)/prototypes/library/usePrototypesLibrary.ts"
+        ],
+        "app/(portal)/prototypes/library/PrototypeCard.tsx": [
+          "app/(portal)/prototypes/library/prototypeArt.tsx"
+        ],
+        "app/(portal)/prototypes/library/PrototypesEmpty.tsx": [],
+        "app/(portal)/prototypes/library/PrototypesHeader.tsx": [],
+        "app/(portal)/prototypes/library/PrototypesSummary.tsx": [],
+        "app/(portal)/prototypes/library/PrototypesToolbar.tsx": [],
+        "app/(portal)/prototypes/library/prototypeArt.tsx": [],
+        "app/(portal)/prototypes/library/usePrototypesLibrary.ts": []
+      },
+      "budgets": {
+        "app/(portal)/prototypes/PrototypesClient.tsx": 85
+      }
+    },
+    {
+      "label": "publishing-dock",
+      "outside": "publishing-dock ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/components/publishingDock/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/components/PublishingDock.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/components/PublishingDock.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/components/publishingDock/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/components/PublishingDock.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/components/PublishingDock.tsx": [
+          "app/(portal)/studies/components/publishingDock/PublishingDockStatus.tsx",
+          "app/(portal)/studies/components/publishingDock/PublishingDockActions.tsx"
+        ],
+        "app/(portal)/studies/components/publishingDock/PublishingDockStatus.tsx": [],
+        "app/(portal)/studies/components/publishingDock/PublishingDockActions.tsx": []
+      },
+      "budgets": {
+        "app/(portal)/studies/components/PublishingDock.tsx": 150,
+        "app/(portal)/studies/components/publishingDock/PublishingDockStatus.tsx": 110
+      }
+    },
+    {
+      "label": "readiness-table",
+      "outside": "readiness-table ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/categories/_components/readiness/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/categories/_components/ReadinessTable.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/categories/_components/ReadinessTable.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/categories/_components/readiness/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/categories/_components/ReadinessTable.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/categories/_components/ReadinessTable.tsx": [
+          "app/(portal)/admin/categories/_components/readiness/ReadinessStatusStrip.tsx",
+          "app/(portal)/admin/categories/_components/readiness/ReadinessSortBar.tsx",
+          "app/(portal)/admin/categories/_components/readiness/ReadinessSearch.tsx",
+          "app/(portal)/admin/categories/_components/readiness/ReadinessTableBody.tsx",
+          "app/(portal)/admin/categories/_components/readiness/useReadinessTable.ts"
+        ],
+        "app/(portal)/admin/categories/_components/readiness/ReadinessTableRow.tsx": [
+          "app/(portal)/admin/categories/_components/readiness/RaterProgress.tsx",
+          "app/(portal)/admin/categories/_components/readiness/StatusBadge.tsx"
+        ],
+        "app/(portal)/admin/categories/_components/readiness/RaterProgress.tsx": [],
+        "app/(portal)/admin/categories/_components/readiness/StatusBadge.tsx": [
+          "app/(portal)/admin/categories/_components/readiness/statusStyle.ts"
+        ],
+        "app/(portal)/admin/categories/_components/readiness/statusStyle.ts": [],
+        "app/(portal)/admin/categories/_components/readiness/ReadinessStatusStrip.tsx": [
+          "app/(portal)/admin/categories/_components/readiness/statusStyle.ts"
+        ],
+        "app/(portal)/admin/categories/_components/readiness/ReadinessSortBar.tsx": [],
+        "app/(portal)/admin/categories/_components/readiness/ReadinessSearch.tsx": [],
+        "app/(portal)/admin/categories/_components/readiness/ReadinessTableHead.tsx": [
+          "app/(portal)/admin/categories/_components/readiness/ReadinessSortBar.tsx"
+        ],
+        "app/(portal)/admin/categories/_components/readiness/ReadinessTableBody.tsx": [
+          "app/(portal)/admin/categories/_components/readiness/ReadinessSortBar.tsx",
+          "app/(portal)/admin/categories/_components/readiness/ReadinessTableHead.tsx",
+          "app/(portal)/admin/categories/_components/readiness/ReadinessTableRow.tsx"
+        ],
+        "app/(portal)/admin/categories/_components/readiness/useReadinessTable.ts": [
+          "app/(portal)/admin/categories/_components/readiness/ReadinessSortBar.tsx"
+        ]
+      },
+      "budgets": {
+        "app/(portal)/admin/categories/_components/ReadinessTable.tsx": 80,
+        "app/(portal)/admin/categories/_components/readiness/ReadinessTableRow.tsx": 160,
+        "app/(portal)/admin/categories/_components/readiness/ReadinessTableBody.tsx": 120
+      }
+    },
+    {
+      "label": "report-deck",
+      "outside": "report-deck ownership",
+      "defaultBudget": 200,
+      "scanRoots": [
+        "components/conceptReport/",
+        "components/experiencedReport/"
+      ],
+      "prefixes": [
+        "components/conceptReport/",
+        "components/experiencedReport/"
+      ],
+      "neighbors": [
+        "components/conceptReport/CombatantPortrait.tsx",
+        "components/conceptReport/ConceptTestReportDeck.tsx",
+        "components/conceptReport/ExportReportButton.tsx",
+        "components/conceptReport/SimulatedDataBanner.tsx",
+        "components/conceptReport/WinRateTrack.tsx",
+        "components/conceptReport/WtpDemandCurve.tsx",
+        "components/experiencedReport/DecisionChapters.tsx",
+        "components/experiencedReport/ExecutiveSummaryStrip.tsx",
+        "components/experiencedReport/ExperienceSplitLabel.tsx",
+        "components/experiencedReport/IhutStoryReport.tsx",
+        "components/experiencedReport/ReportSectionRail.tsx",
+        "components/experiencedReport/WithheldMetric.tsx",
+        "components/experiencedReport/deckChrome.tsx",
+        "components/experiencedReport/index.ts",
+        "components/experiencedReport/reportSections.ts"
+      ],
+      "entryPoints": [
+        "components/conceptReport/ConceptReportDeck.tsx",
+        "components/experiencedReport/ExperiencedReportDeck.tsx",
+        "components/experiencedReport/IhutEvidencePack.tsx",
+        "components/experiencedReport/ExperiencedStoryReport.tsx",
+        "components/conceptReport/ConceptStoryReport.tsx",
+        "components/experiencedReport/DecisionBrief.tsx"
+      ],
+      "cycleThrough": [
+        "components/conceptReport/",
+        "components/experiencedReport/"
+      ],
+      "dependencies": {
+        "components/conceptReport/ConceptReportDeck.tsx": [
+          "components/conceptReport/DeckColdOpen.tsx",
+          "components/conceptReport/DeckFieldCast.tsx",
+          "components/conceptReport/DeckLadder.tsx",
+          "components/conceptReport/DeckMatchups.tsx",
+          "components/conceptReport/DeckQuestions.tsx",
+          "components/conceptReport/DeckTrust.tsx",
+          "components/conceptReport/DeckVerdictNext.tsx",
+          "components/conceptReport/conceptDeckShared.tsx"
+        ],
+        "components/conceptReport/DeckColdOpen.tsx": [
+          "components/conceptReport/conceptDeckShared.tsx"
+        ],
+        "components/conceptReport/DeckFieldCast.tsx": [
+          "components/conceptReport/conceptDeckShared.tsx"
+        ],
+        "components/conceptReport/DeckLadder.tsx": [
+          "components/conceptReport/conceptDeckShared.tsx"
+        ],
+        "components/conceptReport/DeckMatchups.tsx": [
+          "components/conceptReport/conceptDeckShared.tsx"
+        ],
+        "components/conceptReport/DeckQuestions.tsx": [],
+        "components/conceptReport/DeckTrust.tsx": [
+          "components/conceptReport/conceptDeckShared.tsx"
+        ],
+        "components/conceptReport/DeckVerdictNext.tsx": [
+          "components/conceptReport/conceptDeckShared.tsx"
+        ],
+        "components/conceptReport/conceptDeckShared.tsx": [],
+        "components/conceptReport/ConceptStoryReport.tsx": [
+          "components/conceptReport/story/ChoiceChapter.tsx",
+          "components/conceptReport/story/FirstLookChapter.tsx",
+          "components/conceptReport/story/MethodChapter.tsx",
+          "components/conceptReport/story/PriceChapter.tsx",
+          "components/conceptReport/story/VoicesChapter.tsx",
+          "components/conceptReport/story/storyFormat.ts"
+        ],
+        "components/conceptReport/story/ChoiceChapter.tsx": [
+          "components/conceptReport/story/storyFormat.ts"
+        ],
+        "components/conceptReport/story/DemandCurve.tsx": [
+          "components/conceptReport/story/storyFormat.ts"
+        ],
+        "components/conceptReport/story/DistributionRows.tsx": [
+          "components/conceptReport/story/storyFormat.ts"
+        ],
+        "components/conceptReport/story/FirstLookChapter.tsx": [
+          "components/conceptReport/story/DistributionRows.tsx",
+          "components/conceptReport/story/storyFormat.ts"
+        ],
+        "components/conceptReport/story/MethodChapter.tsx": [],
+        "components/conceptReport/story/PriceChapter.tsx": [
+          "components/conceptReport/story/DemandCurve.tsx",
+          "components/conceptReport/story/storyFormat.ts"
+        ],
+        "components/conceptReport/story/VoicesChapter.tsx": [
+          "components/conceptReport/story/DistributionRows.tsx",
+          "components/conceptReport/story/storyFormat.ts"
+        ],
+        "components/conceptReport/story/storyFormat.ts": [],
+        "components/experiencedReport/ExperiencedReportDeck.tsx": [
+          "components/experiencedReport/ExperiencedStoryReport.tsx",
+          "components/experiencedReport/LegacyAttributeImportanceSection.tsx",
+          "components/experiencedReport/LegacyDeckColdOpen.tsx",
+          "components/experiencedReport/LegacyDriversSection.tsx",
+          "components/experiencedReport/LegacyFieldSection.tsx",
+          "components/experiencedReport/LegacyLiftSection.tsx",
+          "components/experiencedReport/LegacyLoyaltySection.tsx",
+          "components/experiencedReport/LegacyRankValidationSection.tsx",
+          "components/experiencedReport/LegacyTrustSection.tsx",
+          "components/experiencedReport/LegacyVerdictSection.tsx",
+          "components/experiencedReport/legacyMethodNotes.ts"
+        ],
+        "components/experiencedReport/LegacyAttributeImportanceSection.tsx": [
+          "components/experiencedReport/legacyDeckShared.tsx"
+        ],
+        "components/experiencedReport/LegacyDeckColdOpen.tsx": [],
+        "components/experiencedReport/LegacyDriversSection.tsx": [],
+        "components/experiencedReport/LegacyFieldSection.tsx": [
+          "components/experiencedReport/legacyDeckShared.tsx"
+        ],
+        "components/experiencedReport/LegacyLiftSection.tsx": [
+          "components/experiencedReport/legacyDeckShared.tsx"
+        ],
+        "components/experiencedReport/LegacyLoyaltySection.tsx": [
+          "components/experiencedReport/legacyDeckShared.tsx"
+        ],
+        "components/experiencedReport/LegacyRankValidationSection.tsx": [
+          "components/experiencedReport/legacyDeckShared.tsx"
+        ],
+        "components/experiencedReport/LegacyTrustSection.tsx": [
+          "components/experiencedReport/legacyDeckShared.tsx"
+        ],
+        "components/experiencedReport/LegacyVerdictSection.tsx": [
+          "components/experiencedReport/legacyDeckShared.tsx"
+        ],
+        "components/experiencedReport/legacyDeckShared.tsx": [],
+        "components/experiencedReport/legacyMethodNotes.ts": [],
+        "components/experiencedReport/ExperiencedStoryReport.tsx": [
+          "components/experiencedReport/DecisionBrief.tsx",
+          "components/experiencedReport/story/EvidenceChapter.tsx",
+          "components/experiencedReport/story/IntentChapter.tsx",
+          "components/experiencedReport/story/MethodChapter.tsx",
+          "components/experiencedReport/story/RepurchaseChart.tsx",
+          "components/experiencedReport/story/WhyChapter.tsx",
+          "components/experiencedReport/story/storyFormat.ts"
+        ],
+        "components/experiencedReport/story/AttributeChart.tsx": [],
+        "components/experiencedReport/story/DriverChart.tsx": [
+          "components/experiencedReport/story/storyFormat.ts"
+        ],
+        "components/experiencedReport/story/EvidenceChapter.tsx": [
+          "components/experiencedReport/DecisionBrief.tsx",
+          "components/experiencedReport/story/storyFormat.ts"
+        ],
+        "components/experiencedReport/story/IntentChapter.tsx": [
+          "components/experiencedReport/story/RepurchaseChart.tsx",
+          "components/experiencedReport/story/storyFormat.ts"
+        ],
+        "components/experiencedReport/story/MethodChapter.tsx": [
+          "components/experiencedReport/story/RepurchaseChart.tsx",
+          "components/experiencedReport/story/storyFormat.ts"
+        ],
+        "components/experiencedReport/story/RepurchaseChart.tsx": [
+          "components/experiencedReport/story/storyFormat.ts"
+        ],
+        "components/experiencedReport/story/WhyChapter.tsx": [
+          "components/experiencedReport/story/AttributeChart.tsx",
+          "components/experiencedReport/story/DriverChart.tsx"
+        ],
+        "components/experiencedReport/story/storyFormat.ts": [],
+        "components/experiencedReport/DecisionBrief.tsx": [
+          "components/experiencedReport/brief/DecisionBriefHeader.tsx",
+          "components/experiencedReport/brief/EvidenceStrip.tsx",
+          "components/experiencedReport/brief/HeadToHeadForest.tsx",
+          "components/experiencedReport/brief/OverviewBottomLine.tsx",
+          "components/experiencedReport/brief/PreferenceIntervalBar.tsx"
+        ],
+        "components/experiencedReport/brief/DecisionBriefHeader.tsx": [
+          "components/experiencedReport/brief/OverviewBottomLine.tsx"
+        ],
+        "components/experiencedReport/brief/EvidenceStrip.tsx": [],
+        "components/experiencedReport/brief/FieldProofStrip.tsx": [
+          "components/experiencedReport/brief/briefCalls.ts"
+        ],
+        "components/experiencedReport/brief/HeadToHeadForest.tsx": [
+          "components/experiencedReport/brief/briefCalls.ts"
+        ],
+        "components/experiencedReport/brief/OverviewBottomLine.tsx": [
+          "components/experiencedReport/brief/FieldProofStrip.tsx",
+          "components/experiencedReport/brief/PreferenceIntervalBar.tsx",
+          "components/experiencedReport/brief/briefCalls.ts"
+        ],
+        "components/experiencedReport/brief/PreferenceIntervalBar.tsx": [],
+        "components/experiencedReport/brief/briefCalls.ts": [],
+        "components/experiencedReport/IhutEvidencePack.tsx": [
+          "components/experiencedReport/ihutEvidence/AttributeEvidenceChapter.tsx",
+          "components/experiencedReport/ihutEvidence/BuyOrderEvidenceChapter.tsx",
+          "components/experiencedReport/ihutEvidence/Day2EvidenceChapter.tsx",
+          "components/experiencedReport/ihutEvidence/EvidencePackNavigation.tsx",
+          "components/experiencedReport/ihutEvidence/ExpectationEvidenceChapter.tsx",
+          "components/experiencedReport/ihutEvidence/FieldEvidenceChapter.tsx",
+          "components/experiencedReport/ihutEvidence/LikingEvidenceChapter.tsx",
+          "components/experiencedReport/ihutEvidence/WhyEvidenceChapter.tsx"
+        ],
+        "components/experiencedReport/ihutEvidence/AttributeEvidenceChapter.tsx": [
+          "components/experiencedReport/ihutEvidence/AttributeJarBook.tsx",
+          "components/experiencedReport/ihutEvidence/format.ts"
+        ],
+        "components/experiencedReport/ihutEvidence/AttributeJarBook.tsx": [
+          "components/experiencedReport/ihutEvidence/format.ts"
+        ],
+        "components/experiencedReport/ihutEvidence/BuyOrderEvidenceChapter.tsx": [
+          "components/experiencedReport/ihutEvidence/ShareTable.tsx",
+          "components/experiencedReport/ihutEvidence/format.ts"
+        ],
+        "components/experiencedReport/ihutEvidence/CountBanks.tsx": [
+          "components/experiencedReport/ihutEvidence/format.ts"
+        ],
+        "components/experiencedReport/ihutEvidence/Day2EvidenceChapter.tsx": [
+          "components/experiencedReport/ihutEvidence/CountBanks.tsx",
+          "components/experiencedReport/ihutEvidence/format.ts"
+        ],
+        "components/experiencedReport/ihutEvidence/EvidencePackNavigation.tsx": [],
+        "components/experiencedReport/ihutEvidence/ExpectationEvidenceChapter.tsx": [
+          "components/experiencedReport/ihutEvidence/ShareTable.tsx",
+          "components/experiencedReport/ihutEvidence/format.ts"
+        ],
+        "components/experiencedReport/ihutEvidence/FieldEvidenceChapter.tsx": [
+          "components/experiencedReport/ihutEvidence/rankEvidence.tsx"
+        ],
+        "components/experiencedReport/ihutEvidence/LikingEvidenceChapter.tsx": [
+          "components/experiencedReport/ihutEvidence/ShareTable.tsx",
+          "components/experiencedReport/ihutEvidence/format.ts"
+        ],
+        "components/experiencedReport/ihutEvidence/ShareTable.tsx": [
+          "components/experiencedReport/ihutEvidence/format.ts"
+        ],
+        "components/experiencedReport/ihutEvidence/WhyEvidenceChapter.tsx": [
+          "components/experiencedReport/ihutEvidence/CountBanks.tsx"
+        ],
+        "components/experiencedReport/ihutEvidence/format.ts": [],
+        "components/experiencedReport/ihutEvidence/rankEvidence.tsx": []
+      },
+      "budgets": {
+        "components/conceptReport/ConceptReportDeck.tsx": 100,
+        "components/conceptReport/DeckQuestions.tsx": 325,
+        "components/conceptReport/DeckVerdictNext.tsx": 275,
+        "components/experiencedReport/ExperiencedReportDeck.tsx": 225,
+        "components/experiencedReport/LegacyTrustSection.tsx": 275,
+        "components/experiencedReport/IhutEvidencePack.tsx": 30,
+        "components/experiencedReport/ExperiencedStoryReport.tsx": 150,
+        "components/conceptReport/ConceptStoryReport.tsx": 165,
+        "components/experiencedReport/DecisionBrief.tsx": 15,
+        "components/experiencedReport/ihutEvidence/FieldEvidenceChapter.tsx": 175
+      }
+    },
+    {
+      "label": "reports-library",
+      "outside": "reports-library",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/reports/library/"
+      ],
+      "scanShells": [
+        "app/(portal)/reports/ReportsClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/reports/ReportsClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/reports/library/"
+      ],
+      "entryPoints": [
+        "app/(portal)/reports/ReportsClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/reports/ReportsClient.tsx": [
+          "app/(portal)/reports/library/ReportsAllSections.tsx",
+          "app/(portal)/reports/library/ReportsHeader.tsx",
+          "app/(portal)/reports/library/ReportsToolbar.tsx",
+          "app/(portal)/reports/library/ReportsTypeGrid.tsx",
+          "app/(portal)/reports/library/useReportsLibrary.ts"
+        ],
+        "app/(portal)/reports/library/ReportsAllSections.tsx": [
+          "app/(portal)/reports/library/ReportCard.tsx",
+          "app/(portal)/reports/library/reportsModel.ts"
+        ],
+        "app/(portal)/reports/library/ReportsHeader.tsx": [],
+        "app/(portal)/reports/library/ReportsToolbar.tsx": [
+          "app/(portal)/reports/library/reportsModel.ts"
+        ],
+        "app/(portal)/reports/library/ReportsTypeGrid.tsx": [
+          "app/(portal)/reports/library/ReportCard.tsx",
+          "app/(portal)/reports/library/reportsModel.ts"
+        ],
+        "app/(portal)/reports/library/ReportCard.tsx": [
+          "app/(portal)/reports/library/reportsModel.ts"
+        ],
+        "app/(portal)/reports/library/useReportsLibrary.ts": [
+          "app/(portal)/reports/library/reportsModel.ts"
+        ],
+        "app/(portal)/reports/library/reportsModel.ts": []
+      },
+      "budgets": {
+        "app/(portal)/reports/ReportsClient.tsx": 85,
+        "app/(portal)/reports/library/ReportCard.tsx": 175
+      }
+    },
+    {
+      "label": "resume-draft-banner",
+      "outside": "resume-draft-banner ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/components/resumeDraft/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/components/ResumeDraftBanner.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/components/ResumeDraftBanner.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/components/resumeDraft/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/components/ResumeDraftBanner.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/components/ResumeDraftBanner.tsx": [
+          "app/(portal)/studies/components/resumeDraft/ResumeDraftActions.tsx",
+          "app/(portal)/studies/components/resumeDraft/ResumeDraftCopy.tsx"
+        ],
+        "app/(portal)/studies/components/resumeDraft/ResumeDraftActions.tsx": [],
+        "app/(portal)/studies/components/resumeDraft/ResumeDraftCopy.tsx": []
+      }
+    },
+    {
+      "label": "row-overflow",
+      "outside": "row-overflow ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/components/rowOverflow/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/components/RowOverflowMenu.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/components/RowOverflowMenu.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/components/rowOverflow/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/components/RowOverflowMenu.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/components/RowOverflowMenu.tsx": [
+          "app/(portal)/studies/components/rowOverflow/RowOverflowPanel.tsx",
+          "app/(portal)/studies/components/rowOverflow/placeMenu.ts"
+        ],
+        "app/(portal)/studies/components/rowOverflow/RowOverflowPanel.tsx": [
+          "app/(portal)/studies/components/rowOverflow/placeMenu.ts"
+        ],
+        "app/(portal)/studies/components/rowOverflow/placeMenu.ts": []
+      }
+    },
+    {
+      "label": "safety-desk",
+      "outside": "safety-desk",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/safety/desk/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/safety/SafetyDeskClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/safety/SafetyDeskClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/safety/desk/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/safety/SafetyDeskClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/safety/SafetyDeskClient.tsx": [
+          "app/(portal)/admin/safety/desk/SafetyQueue.tsx",
+          "app/(portal)/admin/safety/desk/SafetyCase.tsx",
+          "app/(portal)/admin/safety/desk/useSafetyDesk.ts"
+        ],
+        "app/(portal)/admin/safety/desk/SafetyQueue.tsx": [
+          "app/(portal)/admin/safety/desk/SafetyAvatar.tsx"
+        ],
+        "app/(portal)/admin/safety/desk/SafetyCase.tsx": [
+          "app/(portal)/admin/safety/desk/SafetyAvatar.tsx"
+        ],
+        "app/(portal)/admin/safety/desk/SafetyAvatar.tsx": [],
+        "app/(portal)/admin/safety/desk/useSafetyDesk.ts": []
+      },
+      "budgets": {
+        "app/(portal)/admin/safety/SafetyDeskClient.tsx": 80,
+        "app/(portal)/admin/safety/desk/useSafetyDesk.ts": 165,
+        "app/(portal)/admin/safety/desk/SafetyCase.tsx": 215
+      }
+    },
+    {
+      "label": "scope-search",
+      "outside": "scope-search",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/admin/report-preview/scope/"
+      ],
+      "scanShells": [
+        "app/(portal)/admin/report-preview/ScopeSearch.tsx"
+      ],
+      "shells": [
+        "app/(portal)/admin/report-preview/ScopeSearch.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/admin/report-preview/scope/"
+      ],
+      "entryPoints": [
+        "app/(portal)/admin/report-preview/ScopeSearch.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/admin/report-preview/ScopeSearch.tsx": [
+          "app/(portal)/admin/report-preview/scope/ScopeSearchSelection.tsx",
+          "app/(portal)/admin/report-preview/scope/ScopeSearchField.tsx",
+          "app/(portal)/admin/report-preview/scope/useScopeSearch.ts"
+        ],
+        "app/(portal)/admin/report-preview/scope/ScopeSearchSelection.tsx": [
+          "app/(portal)/admin/report-preview/scope/scopeChrome.ts",
+          "app/(portal)/admin/report-preview/scope/scopeChips.tsx"
+        ],
+        "app/(portal)/admin/report-preview/scope/ScopeSearchField.tsx": [
+          "app/(portal)/admin/report-preview/scope/scopeChrome.ts",
+          "app/(portal)/admin/report-preview/scope/scopeChips.tsx",
+          "app/(portal)/admin/report-preview/scope/useScopeSearch.ts"
+        ],
+        "app/(portal)/admin/report-preview/scope/scopeChips.tsx": [
+          "app/(portal)/admin/report-preview/scope/scopeChrome.ts"
+        ],
+        "app/(portal)/admin/report-preview/scope/useScopeSearch.ts": [
+          "app/(portal)/admin/report-preview/scope/scopeFetch.ts"
+        ],
+        "app/(portal)/admin/report-preview/scope/scopeFetch.ts": [],
+        "app/(portal)/admin/report-preview/scope/scopeChrome.ts": []
+      },
+      "budgets": {
+        "app/(portal)/admin/report-preview/ScopeSearch.tsx": 50,
+        "app/(portal)/admin/report-preview/scope/useScopeSearch.ts": 145,
+        "app/(portal)/admin/report-preview/scope/ScopeSearchField.tsx": 170
+      }
+    },
+    {
+      "label": "studies-client",
+      "outside": "studies-client ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/archive/",
+        "app/(portal)/studies/header/",
+        "app/(portal)/studies/notices/",
+        "app/(portal)/studies/confirms/",
+        "app/(portal)/studies/loadMore/",
+        "app/(portal)/studies/client/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/StudiesClient.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/StudiesClient.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/archive/",
+        "app/(portal)/studies/header/",
+        "app/(portal)/studies/notices/",
+        "app/(portal)/studies/confirms/",
+        "app/(portal)/studies/loadMore/",
+        "app/(portal)/studies/client/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/StudiesClient.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/StudiesClient.tsx": [
+          "app/(portal)/studies/archive/StudiesArchive.tsx",
+          "app/(portal)/studies/header/StudiesListHeader.tsx",
+          "app/(portal)/studies/notices/StudiesToast.tsx",
+          "app/(portal)/studies/notices/StudiesErrorBanner.tsx",
+          "app/(portal)/studies/confirms/EndStudyConfirm.tsx",
+          "app/(portal)/studies/confirms/DeleteStudyConfirm.tsx",
+          "app/(portal)/studies/loadMore/StudiesLoadMore.tsx",
+          "app/(portal)/studies/client/useStudiesClient.ts"
+        ],
+        "app/(portal)/studies/client/useStudiesClient.ts": [
+          "app/(portal)/studies/notices/StudiesToast.tsx",
+          "app/(portal)/studies/client/useStudyListCommands.ts"
+        ],
+        "app/(portal)/studies/client/useStudyListCommands.ts": [
+          "app/(portal)/studies/notices/StudiesToast.tsx"
+        ],
+        "app/(portal)/studies/archive/StudiesArchive.tsx": [
+          "app/(portal)/studies/archive/StudiesArchiveRow.tsx"
+        ],
+        "app/(portal)/studies/archive/StudiesArchiveRow.tsx": [],
+        "app/(portal)/studies/header/StudiesListHeader.tsx": [],
+        "app/(portal)/studies/notices/StudiesToast.tsx": [],
+        "app/(portal)/studies/notices/StudiesErrorBanner.tsx": [],
+        "app/(portal)/studies/confirms/EndStudyConfirm.tsx": [],
+        "app/(portal)/studies/confirms/DeleteStudyConfirm.tsx": [],
+        "app/(portal)/studies/loadMore/StudiesLoadMore.tsx": []
+      },
+      "budgets": {
+        "app/(portal)/studies/StudiesClient.tsx": 245,
+        "app/(portal)/studies/client/useStudiesClient.ts": 235,
+        "app/(portal)/studies/client/useStudyListCommands.ts": 230
+      }
+    },
+    {
+      "label": "studies-confirm-dialog",
+      "outside": "studies-confirm-dialog ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/confirmDialog/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/ConfirmDialog.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/ConfirmDialog.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/confirmDialog/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/ConfirmDialog.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/ConfirmDialog.tsx": [
+          "app/(portal)/studies/confirmDialog/ConfirmDialogCard.tsx",
+          "app/(portal)/studies/confirmDialog/confirmTone.ts"
+        ],
+        "app/(portal)/studies/confirmDialog/ConfirmDialogCard.tsx": [
+          "app/(portal)/studies/confirmDialog/confirmTone.ts"
+        ],
+        "app/(portal)/studies/confirmDialog/confirmTone.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/confirmDialog/ConfirmDialogCard.tsx": 120
+      }
+    },
+    {
+      "label": "studies-metrics",
+      "outside": "studies-metrics ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/components/metrics/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/components/StudiesMetricStrip.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/components/StudiesMetricStrip.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/components/metrics/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/components/StudiesMetricStrip.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/components/StudiesMetricStrip.tsx": [
+          "app/(portal)/studies/components/metrics/computeStudyMetrics.ts",
+          "app/(portal)/studies/components/metrics/StudiesMetricCards.tsx"
+        ],
+        "app/(portal)/studies/components/metrics/computeStudyMetrics.ts": [],
+        "app/(portal)/studies/components/metrics/StudiesMetricCards.tsx": []
+      },
+      "budgets": {
+        "app/(portal)/studies/components/metrics/StudiesMetricCards.tsx": 110
+      }
+    },
+    {
+      "label": "studies-page",
+      "outside": "studies-page ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/list/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/page.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/page.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/list/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/page.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/page.tsx": [
+          "app/(portal)/studies/list/loadStudiesPage.ts"
+        ],
+        "app/(portal)/studies/list/loadStudiesPage.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/list/loadStudiesPage.ts": 105
+      }
+    },
+    {
+      "label": "study-checkout-desk",
+      "outside": "study-checkout-desk ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/components/studyCheckoutDesk/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/components/StudyCheckoutDesk.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/components/StudyCheckoutDesk.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/components/studyCheckoutDesk/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/components/StudyCheckoutDesk.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/components/StudyCheckoutDesk.tsx": [
+          "app/(portal)/studies/components/studyCheckoutDesk/StudyCheckoutPaymentRow.tsx",
+          "app/(portal)/studies/components/studyCheckoutDesk/StudyCheckoutPriceForm.tsx"
+        ],
+        "app/(portal)/studies/components/studyCheckoutDesk/StudyCheckoutPaymentRow.tsx": [
+          "app/(portal)/studies/components/studyCheckoutDesk/centsToDollars.ts"
+        ],
+        "app/(portal)/studies/components/studyCheckoutDesk/StudyCheckoutPriceForm.tsx": [
+          "app/(portal)/studies/components/studyCheckoutDesk/centsToDollars.ts"
+        ],
+        "app/(portal)/studies/components/studyCheckoutDesk/centsToDollars.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/components/studyCheckoutDesk/StudyCheckoutPaymentRow.tsx": 120
+      }
+    },
+    {
+      "label": "study-drafts",
+      "outside": "study-drafts ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/components/drafts/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/components/StudyDraftsPanel.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/components/StudyDraftsPanel.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/components/drafts/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/components/StudyDraftsPanel.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/components/StudyDraftsPanel.tsx": [
+          "app/(portal)/studies/components/drafts/StudyDraftRow.tsx"
+        ],
+        "app/(portal)/studies/components/drafts/StudyDraftRow.tsx": [
+          "app/(portal)/studies/components/drafts/StudyDraftRenameForm.tsx"
+        ],
+        "app/(portal)/studies/components/drafts/StudyDraftRenameForm.tsx": []
+      },
+      "budgets": {
+        "app/(portal)/studies/components/StudyDraftsPanel.tsx": 160,
+        "app/(portal)/studies/components/drafts/StudyDraftRow.tsx": 115
+      }
+    },
+    {
+      "label": "study-lifecycle",
+      "outside": "study-lifecycle ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/components/lifecycle/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/components/StudyLifecycleLists.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/components/StudyLifecycleLists.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/components/lifecycle/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/components/StudyLifecycleLists.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/components/StudyLifecycleLists.tsx": [
+          "app/(portal)/studies/components/lifecycle/ActiveStudyList.tsx",
+          "app/(portal)/studies/components/lifecycle/CompletedStudyList.tsx",
+          "app/(portal)/studies/components/lifecycle/InProgressEmpty.tsx",
+          "app/(portal)/studies/components/lifecycle/StudiesSectionHeads.tsx"
+        ],
+        "app/(portal)/studies/components/lifecycle/ActiveStudyList.tsx": [
+          "app/(portal)/studies/components/lifecycle/StudyNameBlock.tsx",
+          "app/(portal)/studies/components/lifecycle/studyRowModel.ts"
+        ],
+        "app/(portal)/studies/components/lifecycle/CompletedStudyList.tsx": [
+          "app/(portal)/studies/components/lifecycle/StudyNameBlock.tsx",
+          "app/(portal)/studies/components/lifecycle/studyRowModel.ts"
+        ],
+        "app/(portal)/studies/components/lifecycle/InProgressEmpty.tsx": [],
+        "app/(portal)/studies/components/lifecycle/StudiesSectionHeads.tsx": [],
+        "app/(portal)/studies/components/lifecycle/StudyNameBlock.tsx": [
+          "app/(portal)/studies/components/lifecycle/studyRowModel.ts"
+        ],
+        "app/(portal)/studies/components/lifecycle/studyRowModel.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/components/lifecycle/studyRowModel.ts": 160
+      }
+    },
+    {
+      "label": "study-masthead",
+      "outside": "study-masthead ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/masthead/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/StudyMasthead.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/StudyMasthead.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/masthead/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/StudyMasthead.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/StudyMasthead.tsx": [
+          "app/(portal)/studies/concept/masthead/MastheadAddTile.tsx",
+          "app/(portal)/studies/concept/masthead/MastheadFilledTile.tsx",
+          "app/(portal)/studies/concept/masthead/useStudyMasthead.ts"
+        ],
+        "app/(portal)/studies/concept/masthead/MastheadAddTile.tsx": [],
+        "app/(portal)/studies/concept/masthead/MastheadFilledTile.tsx": [
+          "app/(portal)/studies/concept/masthead/MastheadShelfPhoto.tsx"
+        ],
+        "app/(portal)/studies/concept/masthead/MastheadShelfPhoto.tsx": [],
+        "app/(portal)/studies/concept/masthead/mastheadActions.ts": [],
+        "app/(portal)/studies/concept/masthead/useStudyMasthead.ts": [
+          "app/(portal)/studies/concept/masthead/mastheadActions.ts"
+        ]
+      }
+    },
+    {
+      "label": "study-setup",
+      "outside": "study-setup ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/box/",
+        "app/(portal)/studies/concept/"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/box/",
+        "app/(portal)/studies/concept/"
+      ],
+      "excludePrefixes": [
+        "app/(portal)/studies/concept/journey/",
+        "app/(portal)/studies/box/method/",
+        "app/(portal)/studies/box/client/",
+        "app/(portal)/studies/concept/client/",
+        "app/(portal)/studies/concept/cards/",
+        "app/(portal)/studies/concept/ownProduct/",
+        "app/(portal)/studies/concept/setup/",
+        "app/(portal)/studies/concept/armImage/",
+        "app/(portal)/studies/concept/field/",
+        "app/(portal)/studies/box/productSearch/",
+        "app/(portal)/studies/box/setup/",
+        "app/(portal)/studies/box/allergenConfirm/",
+        "app/(portal)/studies/box/prototypePick/",
+        "app/(portal)/studies/box/upcField/",
+        "app/(portal)/studies/concept/masthead/",
+        "app/(portal)/studies/concept/handoff/",
+        "app/(portal)/studies/box/audience/",
+        "app/(portal)/studies/concept/packSize/",
+        "app/(portal)/studies/concept/audience/",
+        "app/(portal)/studies/concept/suggestion/",
+        "app/(portal)/studies/concept/confirm/",
+        "app/(portal)/studies/concept/stepper/",
+        "app/(portal)/studies/concept/sectionChrome/",
+        "app/(portal)/studies/concept/[missionId]/report/states/",
+        "app/(portal)/studies/concept/[missionId]/status/",
+        "app/(portal)/studies/concept/[missionId]/edit/draft/",
+        "app/(portal)/studies/box/draftLoader/",
+        "app/(portal)/studies/box/[draftId]/fulfillment/panel/"
+      ],
+      "neighbors": [
+        "app/(portal)/studies/box/AudienceSection.tsx",
+        "app/(portal)/studies/box/BattleSection.tsx",
+        "app/(portal)/studies/box/BoxAllergenConfirm.tsx",
+        "app/(portal)/studies/box/BoxDraftLoader.tsx",
+        "app/(portal)/studies/box/BoxProductSearchSlot.tsx",
+        "app/(portal)/studies/box/BoxPrototypePickSlot.tsx",
+        "app/(portal)/studies/box/BoxStudyClient.tsx",
+        "app/(portal)/studies/box/BoxUpcField.tsx",
+        "app/(portal)/studies/box/MethodSection.tsx",
+        "app/(portal)/studies/box/SetupSection.tsx",
+        "app/(portal)/studies/box/actions.ts",
+        "app/(portal)/studies/box/boxReadActions.ts",
+        "app/(portal)/studies/box/new/page.tsx",
+        "app/(portal)/studies/box/preview/BoxPreviewWalkthroughClient.tsx",
+        "app/(portal)/studies/box/[draftId]/edit/page.tsx",
+        "app/(portal)/studies/box/[draftId]/preview/page.tsx",
+        "app/(portal)/studies/box/[draftId]/fulfillment/page.tsx",
+        "app/(portal)/studies/box/[draftId]/fulfillment/actions.ts",
+        "app/(portal)/studies/box/[draftId]/fulfillment/BrandFulfillmentPanel.tsx",
+        "app/(portal)/studies/concept/AudienceSection.tsx",
+        "app/(portal)/studies/concept/BuilderSectionChrome.tsx",
+        "app/(portal)/studies/concept/BuilderStepper.tsx",
+        "app/(portal)/studies/concept/CheckoutHandoff.tsx",
+        "app/(portal)/studies/concept/ConceptArmImageUploader.tsx",
+        "app/(portal)/studies/concept/ConceptStudyClient.tsx",
+        "app/(portal)/studies/concept/ConfirmDialog.tsx",
+        "app/(portal)/studies/concept/FieldSection.tsx",
+        "app/(portal)/studies/concept/OwnProductColumn.tsx",
+        "app/(portal)/studies/concept/PackSizeField.tsx",
+        "app/(portal)/studies/concept/SingleTestJourneySection.tsx",
+        "app/(portal)/studies/concept/StudyMasthead.tsx",
+        "app/(portal)/studies/concept/StudyTypeSection.tsx",
+        "app/(portal)/studies/concept/SuggestionDropdown.tsx",
+        "app/(portal)/studies/concept/actions.ts",
+        "app/(portal)/studies/concept/conceptCatalogActions.ts",
+        "app/(portal)/studies/concept/conceptCards.tsx",
+        "app/(portal)/studies/concept/conceptStyles.ts",
+        "app/(portal)/studies/concept/fieldIcons.tsx",
+        "app/(portal)/studies/concept/new/page.tsx",
+        "app/(portal)/studies/concept/preview/BattleScreen.tsx",
+        "app/(portal)/studies/concept/preview/ChoiceScreen.tsx",
+        "app/(portal)/studies/concept/preview/PreviewRunner.tsx",
+        "app/(portal)/studies/concept/preview/PreviewWalkthroughClient.tsx",
+        "app/(portal)/studies/concept/preview/ProgressHeader.tsx",
+        "app/(portal)/studies/concept/preview/SampleReportFrame.tsx",
+        "app/(portal)/studies/concept/preview/SampleReportScreen.tsx",
+        "app/(portal)/studies/concept/preview/StimulusImage.tsx",
+        "app/(portal)/studies/concept/preview/SummaryScreen.tsx",
+        "app/(portal)/studies/concept/[missionId]/edit/page.tsx",
+        "app/(portal)/studies/concept/[missionId]/page.tsx",
+        "app/(portal)/studies/concept/[missionId]/preview/page.tsx",
+        "app/(portal)/studies/concept/[missionId]/report/page.tsx"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/box/ContentsSection.tsx",
+        "app/(portal)/studies/box/RiskSection.tsx",
+        "app/(portal)/studies/concept/CompetitorsColumn.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/box/",
+        "app/(portal)/studies/concept/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/box/ContentsSection.tsx": [
+          "app/(portal)/studies/box/contents/ContentsComposer.tsx",
+          "app/(portal)/studies/box/contents/ContentsEmptyState.tsx",
+          "app/(portal)/studies/box/contents/ContentsFieldAlert.tsx",
+          "app/(portal)/studies/box/contents/ContentsFieldIntro.tsx",
+          "app/(portal)/studies/box/contents/ContentsOccupiedField.tsx",
+          "app/(portal)/studies/box/contents/ContentsReadinessNote.tsx",
+          "app/(portal)/studies/box/contents/priceReadiness.ts",
+          "app/(portal)/studies/box/contents/useContentsField.ts"
+        ],
+        "app/(portal)/studies/box/contents/catalogSeat.ts": [],
+        "app/(portal)/studies/box/contents/ContentsAddActions.tsx": [
+          "app/(portal)/studies/box/contents/types.ts"
+        ],
+        "app/(portal)/studies/box/contents/ContentsComposer.tsx": [
+          "app/(portal)/studies/box/contents/types.ts"
+        ],
+        "app/(portal)/studies/box/contents/ContentsEmptyState.tsx": [
+          "app/(portal)/studies/box/contents/ContentsAddActions.tsx",
+          "app/(portal)/studies/box/contents/types.ts"
+        ],
+        "app/(portal)/studies/box/contents/ContentsFieldAlert.tsx": [],
+        "app/(portal)/studies/box/contents/ContentsFieldIntro.tsx": [],
+        "app/(portal)/studies/box/contents/ContentsFieldNotes.tsx": [
+          "app/(portal)/studies/box/contents/types.ts"
+        ],
+        "app/(portal)/studies/box/contents/ContentsOccupiedField.tsx": [
+          "app/(portal)/studies/box/contents/ContentsAddActions.tsx",
+          "app/(portal)/studies/box/contents/ContentsComposer.tsx",
+          "app/(portal)/studies/box/contents/ContentsFieldNotes.tsx",
+          "app/(portal)/studies/box/contents/ContentsSeatCard.tsx",
+          "app/(portal)/studies/box/contents/types.ts"
+        ],
+        "app/(portal)/studies/box/contents/ContentsReadinessNote.tsx": [],
+        "app/(portal)/studies/box/contents/ContentsSeatCard.tsx": [
+          "app/(portal)/studies/box/contents/ShelfPriceInput.tsx",
+          "app/(portal)/studies/box/contents/types.ts"
+        ],
+        "app/(portal)/studies/box/contents/priceReadiness.ts": [],
+        "app/(portal)/studies/box/contents/ShelfPriceInput.tsx": [],
+        "app/(portal)/studies/box/contents/types.ts": [],
+        "app/(portal)/studies/box/contents/useContentsField.ts": [
+          "app/(portal)/studies/box/contents/catalogSeat.ts",
+          "app/(portal)/studies/box/contents/types.ts"
+        ],
+        "app/(portal)/studies/box/RiskSection.tsx": [
+          "app/(portal)/studies/box/risk/RiskAlcoholCard.tsx",
+          "app/(portal)/studies/box/risk/RiskAttestation.tsx",
+          "app/(portal)/studies/box/risk/RiskYesNo.tsx",
+          "app/(portal)/studies/box/risk/riskStyles.ts",
+          "app/(portal)/studies/box/risk/summarizeRiskSection.ts"
+        ],
+        "app/(portal)/studies/box/risk/RiskAlcoholCard.tsx": [
+          "app/(portal)/studies/box/risk/RiskAttestation.tsx",
+          "app/(portal)/studies/box/risk/RiskYesNo.tsx",
+          "app/(portal)/studies/box/risk/riskStyles.ts"
+        ],
+        "app/(portal)/studies/box/risk/RiskAttestation.tsx": [],
+        "app/(portal)/studies/box/risk/RiskYesNo.tsx": [],
+        "app/(portal)/studies/box/risk/riskStyles.ts": [],
+        "app/(portal)/studies/box/risk/summarizeRiskSection.ts": [],
+        "app/(portal)/studies/concept/CompetitorsColumn.tsx": [
+          "app/(portal)/studies/concept/competitors/CompetitorColumnHead.tsx",
+          "app/(portal)/studies/concept/competitors/CompetitorEmptyState.tsx",
+          "app/(portal)/studies/concept/competitors/CompetitorSearchSlot.tsx",
+          "app/(portal)/studies/concept/competitors/SelectedCompetitor.tsx",
+          "app/(portal)/studies/concept/competitors/useCompetitorColumn.ts"
+        ],
+        "app/(portal)/studies/concept/competitors/CompetitorColumnHead.tsx": [],
+        "app/(portal)/studies/concept/competitors/CompetitorEmptyState.tsx": [
+          "app/(portal)/studies/concept/competitors/ShelfGlyph.tsx"
+        ],
+        "app/(portal)/studies/concept/competitors/CompetitorSearchSlot.tsx": [],
+        "app/(portal)/studies/concept/competitors/SelectedCompetitor.tsx": [],
+        "app/(portal)/studies/concept/competitors/ShelfGlyph.tsx": [],
+        "app/(portal)/studies/concept/competitors/useCompetitorColumn.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/box/ContentsSection.tsx": 100,
+        "app/(portal)/studies/box/contents/ContentsOccupiedField.tsx": 110,
+        "app/(portal)/studies/box/contents/ContentsComposer.tsx": 150,
+        "app/(portal)/studies/box/contents/ContentsSeatCard.tsx": 340,
+        "app/(portal)/studies/box/contents/useContentsField.ts": 240,
+        "app/(portal)/studies/concept/CompetitorsColumn.tsx": 150,
+        "app/(portal)/studies/concept/competitors/CompetitorSearchSlot.tsx": 320,
+        "app/(portal)/studies/concept/competitors/SelectedCompetitor.tsx": 280,
+        "app/(portal)/studies/concept/competitors/useCompetitorColumn.ts": 180
+      }
+    },
+    {
+      "label": "study-type",
+      "outside": "study-type ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/setup/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/StudyTypeSection.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/StudyTypeSection.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/setup/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/StudyTypeSection.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/StudyTypeSection.tsx": [
+          "app/(portal)/studies/concept/setup/CategoryWording.tsx",
+          "app/(portal)/studies/concept/setup/CompletionsRun.tsx",
+          "app/(portal)/studies/concept/setup/StudyNameField.tsx",
+          "app/(portal)/studies/concept/setup/StudyTypeModes.tsx",
+          "app/(portal)/studies/concept/setup/useStudyTypeSection.ts"
+        ],
+        "app/(portal)/studies/concept/setup/CategoryWording.tsx": [],
+        "app/(portal)/studies/concept/setup/CompletionsRun.tsx": [],
+        "app/(portal)/studies/concept/setup/StudyNameField.tsx": [],
+        "app/(portal)/studies/concept/setup/StudyTypeModes.tsx": [],
+        "app/(portal)/studies/concept/setup/useStudyTypeSection.ts": []
+      },
+      "budgets": {
+        "app/(portal)/studies/concept/StudyTypeSection.tsx": 120,
+        "app/(portal)/studies/concept/setup/CategoryWording.tsx": 120,
+        "app/(portal)/studies/concept/setup/CompletionsRun.tsx": 140,
+        "app/(portal)/studies/concept/setup/useStudyTypeSection.ts": 270
+      }
+    },
+    {
+      "label": "suggestion-dropdown",
+      "outside": "suggestion-dropdown ownership",
+      "defaultBudget": 100,
+      "scanRoots": [
+        "app/(portal)/studies/concept/suggestion/"
+      ],
+      "scanShells": [
+        "app/(portal)/studies/concept/SuggestionDropdown.tsx"
+      ],
+      "shells": [
+        "app/(portal)/studies/concept/SuggestionDropdown.tsx"
+      ],
+      "prefixes": [
+        "app/(portal)/studies/concept/suggestion/"
+      ],
+      "entryPoints": [
+        "app/(portal)/studies/concept/SuggestionDropdown.tsx"
+      ],
+      "cycleThrough": [
+        "app/(portal)/studies/concept/",
+        "app/(portal)/studies/box/"
+      ],
+      "dependencies": {
+        "app/(portal)/studies/concept/SuggestionDropdown.tsx": [
+          "app/(portal)/studies/concept/suggestion/SuggestionOptions.tsx",
+          "app/(portal)/studies/concept/suggestion/SuggestionStatusRows.tsx",
+          "app/(portal)/studies/concept/suggestion/suggestionStyles.ts"
+        ],
+        "app/(portal)/studies/concept/suggestion/SuggestionOptions.tsx": [
+          "app/(portal)/studies/concept/suggestion/suggestionStyles.ts"
+        ],
+        "app/(portal)/studies/concept/suggestion/SuggestionStatusRows.tsx": [
+          "app/(portal)/studies/concept/suggestion/suggestionStyles.ts"
+        ],
+        "app/(portal)/studies/concept/suggestion/suggestionStyles.ts": []
+      }
+    }
+  ]
+}
