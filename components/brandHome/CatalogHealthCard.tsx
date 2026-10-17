@@ -68,7 +68,7 @@ export default function CatalogHealthCard({
               <Link
                 href="/products"
                 className="catalog-health-row"
-                aria-label={`${row.label} ${row.have.toLocaleString()} of ${row.total.toLocaleString()} — view products`}
+                aria-label={`${row.label} ${row.have.toLocaleString()} / ${row.total.toLocaleString()} — view products`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -76,7 +76,6 @@ export default function CatalogHealthCard({
                   minHeight: 42,
                   padding: '0 2px',
                   borderBottom: i === rows.length - 1 ? 'none' : '1px solid rgba(36, 61, 44, 0.08)',
-                  opacity: row.complete ? 0.78 : 1,
                   textDecoration: 'none',
                   color: 'inherit',
                   borderRadius: 4,

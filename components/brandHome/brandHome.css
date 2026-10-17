@@ -106,7 +106,13 @@
 .bh-onboarding-links {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: flex-start;
+}
+
+.bh-onboarding-links .bh-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
 }
 
 .bh-onboarding-finish {
