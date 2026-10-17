@@ -12,8 +12,16 @@ import type { Database } from '@/lib/database.types'
 
 export type FulfillmentState = Database['public']['Enums']['box_fulfillment_state']
 
-export type FulfillmentRow =
-  Database['public']['Functions']['list_operator_box_fulfillments']['Returns'][number]
+/** Generated types mark every RETURNS TABLE column non-null. Only the keys
+ *  in K are always set on a fulfillment row; the rest are null until used. */
+export type NullableExcept<T, K extends keyof T> = Pick<T, K> & {
+  [P in Exclude<keyof T, K>]: T[P] | null
+}
+
+export type FulfillmentRow = NullableExcept<
+  Database['public']['Functions']['list_operator_box_fulfillments']['Returns'][number],
+  'dings_reliability' | 'fulfillment_id' | 'state' | 'user_id'
+>
 
 /** Logistics targets an operator may drive. Anything not here is respondent-
  *  or sweep-driven and must NOT be a button. Confirm is never operator-driven. */
